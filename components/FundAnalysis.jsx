@@ -341,7 +341,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   );
 }
 
-export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, onRemoveFund, onLoadDemo }) {
+export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, onRemoveFund, onLoadDemo, onClearDemo }) {
   const groups = groupByFund(savedDeals);
   const fundNames = Object.keys(groups);
   const currentFund = currentDeal.inputs.fundName?.trim() || "(No Fund)";
@@ -356,6 +356,16 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
             Save the current deal to a fund to track cumulative returns across assets.
           </p>
         </div>
+        <div className="flex items-center gap-2">
+          {onClearDemo && savedDeals.some((d) => d.id.startsWith("demo-")) && (
+            <button
+              type="button"
+              onClick={onClearDemo}
+              className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 rounded-lg px-3 py-2 transition-colors"
+            >
+              Clear demo data
+            </button>
+          )}
         <button
           type="button"
           onClick={onSave}
@@ -369,6 +379,7 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
             <span className="ml-1 text-blue-200">· {currentDeal.inputs.fundName}</span>
           )}
         </button>
+        </div>
       </div>
 
       {savedDeals.length === 0 ? (

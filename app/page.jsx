@@ -312,6 +312,10 @@ export default function Home() {
     setSavedDeals((prev) => [...prev, ...generateDemoFund()]);
   }
 
+  function handleClearDemo() {
+    setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("demo-")));
+  }
+
   const summaryItems = [
     { label: "IRR", value: fmtPct(returns.irr), good: returns.irr >= 14 },
     { label: "Eq. Multiple", value: fmtX(returns.equityMultiple), good: returns.equityMultiple >= 2 },
@@ -478,6 +482,7 @@ export default function Home() {
                 onSave={handleSaveDeal}
                 onRemove={handleRemoveDeal}
                 onLoadDemo={handleLoadDemo}
+                onClearDemo={handleClearDemo}
               />
             )}
           </div>
