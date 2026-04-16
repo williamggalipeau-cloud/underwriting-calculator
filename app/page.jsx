@@ -389,25 +389,22 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Test scenario button */}
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4">
-        {testLoaded ? (
-          <button
-            type="button"
-            onClick={handleClearTest}
-            className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-          >
-            Clear test data
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleLoadTest}
-            className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
-          >
-            Load test scenario
-          </button>
-        )}
+      {/* Test scenario buttons */}
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleLoadTest}
+          className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
+        >
+          Load test scenario
+        </button>
+        <button
+          type="button"
+          onClick={handleClearTest}
+          className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
+        >
+          Clear test data
+        </button>
       </div>
 
       {/* Body */}
