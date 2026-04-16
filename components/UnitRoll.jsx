@@ -19,6 +19,7 @@ function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0)
     tiRenewalPSF: inputs.tiPerSFRenewal,
     leaseType: inputs.leaseType,
     otherIncomePSF: inputs.otherIncomePSF ?? 0,
+    annualEscalationPct: inputs.annualRentEscalationPct,
     leasingCommissionNewPct: inputs.leasingCommissionNewPct,
     leasingCommissionRenewalPct: inputs.leasingCommissionRenewalPct,
   };
@@ -136,6 +137,8 @@ const COL_HEADERS = [
   { key: "leaseType", label: "Lease",     width: "w-28", tip: "Lease type — determines landlord expense responsibility" },
   { key: "rent",      label: "Rent $/SF", width: "w-20", tip: "Contracted rent ($/SF/yr)" },
   { key: "otherInc",  label: "Oth Inc",   width: "w-16", tip: "Other income ($/SF/yr)" },
+  { key: "esc",       label: "Esc %",     width: "w-16", tip: "In-lease annual rent escalation (% per year during lease term)" },
+  { key: "mktSpread", label: "Mkt Δ",     width: "w-16", tip: "Contracted rent vs. current market rent ($/SF)" },
   { key: "moLeft",    label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease" },
   { key: "newTerm",   label: "New Term",  width: "w-16", tip: "Months for next lease" },
   { key: "renew",     label: "Renew %",   width: "w-16", tip: "Renewal probability" },
@@ -288,6 +291,21 @@ export default function UnitRoll({ units, inputs, onChange }) {
                     </td>
                     <td className="px-2 py-1.5">
                       <NumCell label="Other income per SF" value={u.otherIncomePSF ?? 0} step={0.05} prefix="$" onChange={(v) => update(u.id, "otherIncomePSF", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="In-lease escalation %" value={u.annualEscalationPct ?? inputs.annualRentEscalationPct} step={0.5} suffix="%" onChange={(v) => update(u.id, "annualEscalationPct", v)} />
+                    </td>
+                    {/* Mark-to-market spread: contracted vs current market rent */}
+                    <td className={`px-2 py-1.5 text-right tabular-nums whitespace-nowrap ${!isOccupied ? "text-gray-300" : ""}`}>
+                      {isOccupied ? (() => {
+                        const spread = u.currentRentPSF - inputs.rentPerSF;
+                        const color = spread > 0.25 ? "text-emerald-600" : spread < -0.25 ? "text-red-500" : "text-gray-400";
+                        return (
+                          <span className={`text-xs font-medium ${color}`}>
+                            {spread >= 0 ? "+" : ""}{spread.toFixed(2)}
+                          </span>
+                        );
+                      })() : <span className="text-gray-300 text-xs">—</span>}
                     </td>
                     <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
                       <NumCell label="Months remaining" value={u.monthsRemaining} step={1} suffix="mo" onChange={(v) => update(u.id, "monthsRemaining", v)} />
