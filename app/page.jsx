@@ -161,55 +161,6 @@ const DEFAULT_INPUTS = {
   units: [],
 };
 
-const DEMO_ASSETS = [
-  { propertyName: "Sunrise Business Park",    squareFootage: 45000,  purchasePrice: 6500000,  rentPerSF: 13.0, exitCapRatePct: 6.50, holdPeriodYears: 8,  ltvPct: 65, vacancyPct:  8 },
-  { propertyName: "Lakeside Distribution",    squareFootage: 120000, purchasePrice: 15000000, rentPerSF: 11.0, exitCapRatePct: 6.00, holdPeriodYears: 7,  ltvPct: 60, vacancyPct:  5 },
-  { propertyName: "Metro Flex Complex",       squareFootage: 28000,  purchasePrice: 4200000,  rentPerSF: 16.0, exitCapRatePct: 7.00, holdPeriodYears: 5,  ltvPct: 65, vacancyPct: 12 },
-  { propertyName: "Harbor Industrial",        squareFootage: 85000,  purchasePrice: 11000000, rentPerSF: 12.0, exitCapRatePct: 6.25, holdPeriodYears: 10, ltvPct: 60, vacancyPct:  7 },
-  { propertyName: "Westside Light Industrial",squareFootage: 35000,  purchasePrice: 5800000,  rentPerSF: 15.0, exitCapRatePct: 6.75, holdPeriodYears: 6,  ltvPct: 65, vacancyPct: 10 },
-  { propertyName: "Crossroads Warehouse",     squareFootage: 180000, purchasePrice: 20000000, rentPerSF:  9.5, exitCapRatePct: 5.75, holdPeriodYears: 8,  ltvPct: 55, vacancyPct:  5 },
-  { propertyName: "Tech Park Flex",           squareFootage: 22000,  purchasePrice: 3800000,  rentPerSF: 18.0, exitCapRatePct: 7.25, holdPeriodYears: 5,  ltvPct: 65, vacancyPct: 15 },
-  { propertyName: "Valley Business Center",   squareFootage: 65000,  purchasePrice: 8500000,  rentPerSF: 13.5, exitCapRatePct: 6.50, holdPeriodYears: 7,  ltvPct: 65, vacancyPct:  8 },
-  { propertyName: "Airport Commerce Park",    squareFootage: 95000,  purchasePrice: 13000000, rentPerSF: 11.5, exitCapRatePct: 6.00, holdPeriodYears: 9,  ltvPct: 60, vacancyPct:  6 },
-  { propertyName: "Summit Industrial",        squareFootage: 42000,  purchasePrice: 6000000,  rentPerSF: 14.0, exitCapRatePct: 6.75, holdPeriodYears: 6,  ltvPct: 65, vacancyPct: 10 },
-];
-
-function generateDemoFund() {
-  return DEMO_ASSETS.map((asset) => {
-    const inputs = {
-      ...DEFAULT_INPUTS,
-      ...asset,
-      fundName: "Fund I",
-      annualRentEscalationPct: 3.0,
-      closingCosts: {
-        titleInsuranceOwner:  Math.round(asset.purchasePrice * 0.003),
-        titleInsuranceLender: Math.round(asset.purchasePrice * asset.ltvPct / 100 * 0.002),
-        transferTax:          Math.round(asset.purchasePrice * 0.005),
-        loanOrigination:      Math.round(asset.purchasePrice * asset.ltvPct / 100 * 0.01),
-        acquisitionFee:       Math.round(asset.purchasePrice * 0.01),
-        legalFees:            15000,
-        environmentalReport:  3500,
-        appraisal:            7500,
-        surveyAndPCA:         5000,
-        miscClosingCosts:     2500,
-      },
-    };
-    const result = underwrite(inputs);
-    const id = `demo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    return {
-      id,
-      inputs,
-      irrFlows: [...(result.irrFlows ?? [])],
-      metrics: {
-        irr:                result.returns.irr,
-        equityMultiple:     result.returns.equityMultiple,
-        yearOneCashOnCash:  result.returns.yearOneCashOnCash,
-        equityRequired:     result.debt.equityRequired,
-        loanAmount:         result.debt.loanAmount,
-      },
-    };
-  });
-}
 
 function newDeal(overrides = {}) {
   return {
@@ -307,14 +258,6 @@ export default function Home() {
 
   function handleRemoveDeal(id) {
     setSavedDeals((prev) => prev.filter((d) => d.id !== id));
-  }
-
-  function handleLoadDemo() {
-    setSavedDeals((prev) => [...prev, ...generateDemoFund()]);
-  }
-
-  function handleClearDemo() {
-    setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("demo-")));
   }
 
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
@@ -526,7 +469,6 @@ export default function Home() {
                 currentDeal={{ inputs, irrFlows: irrFlows ?? [], metrics: { irr: returns.irr, equityMultiple: returns.equityMultiple, yearOneCashOnCash: returns.yearOneCashOnCash, equityRequired: debt.equityRequired, loanAmount: debt.loanAmount } }}
                 onSave={handleSaveDeal}
                 onRemove={handleRemoveDeal}
-                onLoadDemo={handleLoadDemo}
                 onClearDemo={handleClearDemo}
               />
             )}
