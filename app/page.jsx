@@ -33,7 +33,7 @@ const DEFAULT_INPUTS = {
   downtimeBetweenLeases: 2,
 
   // Modified Gross — landlord pays taxes + insurance
-  leaseType: "MG",
+  leaseType: "NNN",
 
   rentPerSF: 14.0,
   annualRentEscalationPct: 3.0,
