@@ -1,43 +1,35 @@
 "use client";
 
-import type { ReturnsMetrics, AnnualCashFlow } from "@/lib/types";
-
-interface Props {
-  returns: ReturnsMetrics;
-  cashFlows: AnnualCashFlow[];
-}
-
-function fmt(n: number, decimals = 0): string {
+function fmt(n, decimals = 0) {
   if (!isFinite(n)) return "—";
   return n.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
 }
-function fmtPct(n: number, d = 1) { return isFinite(n) ? `${fmt(n, d)}%` : "—"; }
-function fmtDollar(n: number, d = 0) { return isFinite(n) ? `$${fmt(n, d)}` : "—"; }
-function fmtM(n: number) {
+function fmtPct(n, d = 1) { return isFinite(n) ? `${fmt(n, d)}%` : "—"; }
+function fmtDollar(n, d = 0) { return isFinite(n) ? `$${fmt(n, d)}` : "—"; }
+function fmtM(n) {
   if (!isFinite(n)) return "—";
   if (Math.abs(n) >= 1_000_000) return `$${fmt(n / 1_000_000, 2)}M`;
   return fmtDollar(n);
 }
 
-type Tier = "great" | "good" | "ok" | "bad";
-function tier(val: number, great: number, good: number, ok: number): Tier {
+function tier(val, great, good, ok) {
   if (val >= great) return "great";
   if (val >= good) return "good";
   if (val >= ok) return "ok";
   return "bad";
 }
 
-const tierColors: Record<Tier, { text: string; bg: string; border: string }> = {
+const tierColors = {
   great: { text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" },
   good:  { text: "text-blue-700",    bg: "bg-blue-50",    border: "border-blue-200" },
   ok:    { text: "text-yellow-700",  bg: "bg-yellow-50",  border: "border-yellow-200" },
   bad:   { text: "text-red-700",     bg: "bg-red-50",     border: "border-red-200" },
 };
 
-function KPI({ label, value, sub, t }: { label: string; value: string; sub?: string; t?: Tier }) {
+function KPI({ label, value, sub, t }) {
   const c = t ? tierColors[t] : { text: "text-gray-900", bg: "bg-gray-50", border: "border-gray-200" };
   return (
     <div className={`rounded-xl border p-4 ${c.bg} ${c.border}`}>
@@ -48,7 +40,7 @@ function KPI({ label, value, sub, t }: { label: string; value: string; sub?: str
   );
 }
 
-export default function ReturnsAnalysis({ returns, cashFlows }: Props) {
+export default function ReturnsAnalysis({ returns, cashFlows }) {
   const irrTier = tier(returns.irr, 18, 14, 10);
   const emTier  = tier(returns.equityMultiple, 2.5, 2.0, 1.5);
   const cocTier = tier(returns.yearOneCashOnCash, 9, 7, 5);
@@ -69,25 +61,13 @@ export default function ReturnsAnalysis({ returns, cashFlows }: Props) {
       {/* Secondary metrics */}
       <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
         {[
-          {
-            label: "Adjusted Cap Rate",
-            value: fmtPct(returns.adjustedGoingInCapRate),
-            sub: "Year 1 NOI after TI & leasing commissions",
-          },
-          {
-            label: "Avg. Annual TI + LC",
-            value: fmtM(returns.annualRolloverCosts),
-            sub: "Normalized rollover costs over hold period",
-          },
+          { label: "Adjusted Cap Rate", value: fmtPct(returns.adjustedGoingInCapRate), sub: "Year 1 NOI after TI & leasing commissions" },
+          { label: "Avg. Annual TI + LC", value: fmtM(returns.annualRolloverCosts), sub: "Normalized rollover costs over hold period" },
           { label: "Avg. Cash-on-Cash", value: fmtPct(returns.averageCashOnCash), sub: "Average over hold period" },
           { label: "Exit Value", value: fmtM(returns.exitValue), sub: `At ${returns.exitCapRate}% exit cap rate` },
           { label: "Equity Reversion", value: fmtM(returns.equityReversion), sub: "After loan payoff & selling costs" },
           { label: "Total Equity Invested", value: fmtM(returns.totalEquityInvested) },
-          {
-            label: "NPV (8% hurdle)",
-            value: fmtM(returns.npv),
-            sub: returns.npv > 0 ? "Positive — clears hurdle" : "Negative — below hurdle",
-          },
+          { label: "NPV (8% hurdle)", value: fmtM(returns.npv), sub: returns.npv > 0 ? "Positive — clears hurdle" : "Negative — below hurdle" },
         ].map(({ label, value, sub }) => (
           <div key={label} className="flex items-center justify-between px-4 py-3">
             <div>

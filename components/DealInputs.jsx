@@ -1,31 +1,6 @@
 "use client";
 
-import type { ClosingCostBreakdown, DealInputs, LeaseType } from "@/lib/types";
-
-interface Props {
-  inputs: DealInputs;
-  onChange: (inputs: DealInputs) => void;
-}
-
-function Field({
-  label,
-  value,
-  field,
-  prefix,
-  suffix,
-  step = 1,
-  min = 0,
-  onChange,
-}: {
-  label: string;
-  value: number | string;
-  field: keyof DealInputs;
-  prefix?: string;
-  suffix?: string;
-  step?: number;
-  min?: number;
-  onChange: (field: keyof DealInputs, value: number | string) => void;
-}) {
+function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
@@ -60,7 +35,7 @@ function Field({
   );
 }
 
-function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+function SectionHeader({ title, subtitle }) {
   return (
     <div className="mb-3">
       <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
@@ -69,25 +44,8 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
   );
 }
 
-function ClosingCostsSection({
-  cc,
-  purchasePrice,
-  loanAmount,
-  onChange,
-}: {
-  cc: ClosingCostBreakdown;
-  purchasePrice: number;
-  loanAmount: number;
-  onChange: (field: keyof ClosingCostBreakdown, value: number) => void;
-}) {
-  type Row = {
-    label: string;
-    field: keyof ClosingCostBreakdown;
-    basis: "pp" | "loan" | "fixed";
-    step: number;
-  };
-
-  const rows: Row[] = [
+function ClosingCostsSection({ cc, purchasePrice, loanAmount, onChange }) {
+  const rows = [
     { label: "Title Insurance (Owner)",  field: "titleInsuranceOwnerPct",  basis: "pp",   step: 0.05 },
     { label: "Title Insurance (Lender)", field: "titleInsuranceLenderPct", basis: "loan", step: 0.05 },
     { label: "Transfer / Recording Tax", field: "transferTaxPct",          basis: "pp",   step: 0.05 },
@@ -99,8 +57,8 @@ function ClosingCostsSection({
     { label: "Misc / Other",             field: "miscClosingCosts",        basis: "fixed", step: 500  },
   ];
 
-  const computed = (row: Row): number => {
-    const v = cc[row.field] as number;
+  const computed = (row) => {
+    const v = cc[row.field];
     if (row.basis === "pp")   return purchasePrice * (v / 100);
     if (row.basis === "loan") return loanAmount    * (v / 100);
     return v;
@@ -126,7 +84,7 @@ function ClosingCostsSection({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {rows.map((row) => {
-              const val = cc[row.field] as number;
+              const val = cc[row.field];
               const amt = computed(row);
               const basisLabel = row.basis === "pp" ? "% of PP" : row.basis === "loan" ? "% of loan" : "$";
               return (
@@ -170,24 +128,23 @@ function ClosingCostsSection({
   );
 }
 
-const LEASE_TYPES: { id: LeaseType; label: string; description: string }[] = [
+const LEASE_TYPES = [
   { id: "NNN",   label: "NNN",          description: "Tenant pays taxes, insurance, maintenance" },
   { id: "MG",    label: "Modified Gross", description: "Landlord pays taxes & insurance" },
   { id: "Gross", label: "Full Gross",    description: "Landlord pays all operating expenses" },
 ];
 
-function fmtK(n: number): string {
+function fmtK(n) {
   if (n === 0) return "—";
   if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (Math.abs(n) >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
   return `$${n.toFixed(0)}`;
 }
 
-export default function DealInputsPanel({ inputs, onChange }: Props) {
-  const set = (field: keyof DealInputs, value: number | string) =>
-    onChange({ ...inputs, [field]: value });
+export default function DealInputsPanel({ inputs, onChange }) {
+  const set = (field, value) => onChange({ ...inputs, [field]: value });
 
-  const setCC = (field: keyof ClosingCostBreakdown, value: number) =>
+  const setCC = (field, value) =>
     onChange({ ...inputs, closingCosts: { ...inputs.closingCosts, [field]: value } });
 
   const avgUnitSize =
@@ -286,11 +243,11 @@ export default function DealInputsPanel({ inputs, onChange }: Props) {
         />
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: "Real Estate Tax", field: "realEstateTaxPSF" as keyof DealInputs, landlordPaid: isMG || isGross },
-            { label: "Insurance",       field: "insurancePSF"     as keyof DealInputs, landlordPaid: isMG || isGross },
-            { label: "Utilities",       field: "utilitiesPSF"     as keyof DealInputs, landlordPaid: isGross },
-            { label: "Maintenance",     field: "maintenancePSF"   as keyof DealInputs, landlordPaid: isGross },
-            { label: "Janitorial",      field: "janitorialPSF"    as keyof DealInputs, landlordPaid: isGross },
+            { label: "Real Estate Tax", field: "realEstateTaxPSF", landlordPaid: isMG || isGross },
+            { label: "Insurance",       field: "insurancePSF",     landlordPaid: isMG || isGross },
+            { label: "Utilities",       field: "utilitiesPSF",     landlordPaid: isGross },
+            { label: "Maintenance",     field: "maintenancePSF",   landlordPaid: isGross },
+            { label: "Janitorial",      field: "janitorialPSF",    landlordPaid: isGross },
           ].map(({ label, field, landlordPaid }) => (
             <div key={field} className={`rounded-lg ${landlordPaid ? "ring-1 ring-amber-300" : ""}`}>
               <div className="flex flex-col gap-1">
@@ -305,7 +262,7 @@ export default function DealInputsPanel({ inputs, onChange }: Props) {
                   <input
                     id={`expense-${field}`}
                     type="number"
-                    value={inputs[field] as number}
+                    value={inputs[field]}
                     step={0.05}
                     min={0}
                     onChange={(e) => set(field, parseFloat(e.target.value) || 0)}
@@ -319,7 +276,8 @@ export default function DealInputsPanel({ inputs, onChange }: Props) {
         </div>
 
         <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-100">
-          <Field label="Management Fee" value={inputs.managementFeePct} field="managementFeePct" suffix="% EGR" step={0.5} onChange={set} />
+          <Field label="Mgmt. Fee" value={inputs.managementFeePct} field="managementFeePct" suffix="% EGR" step={0.5} onChange={set} />
+          <Field label="Leasing Fees" value={inputs.leasingFeesPSF} field="leasingFeesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
           <Field label="Capital Reserves" value={inputs.capitalReservesPSF} field="capitalReservesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
         </div>
       </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { DealInputs } from "@/lib/types";
 import { underwrite } from "@/lib/calculations";
 import DealInputsPanel from "@/components/DealInputs";
 import DebtSizingPanel from "@/components/DebtSizing";
@@ -9,7 +8,7 @@ import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import UnitRoll from "@/components/UnitRoll";
 
-const DEFAULT_INPUTS: DealInputs = {
+const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
   squareFootage: 60000,
   purchasePrice: 9000000,
@@ -43,11 +42,12 @@ const DEFAULT_INPUTS: DealInputs = {
   // Landlord-paid operating expenses
   realEstateTaxPSF: 1.20,
   insurancePSF: 0.35,
-  utilitiesPSF: 0.50,   // not paid under MG — entered for reference
-  maintenancePSF: 0.40, // not paid under MG
-  janitorialPSF: 0.20,  // not paid under MG
+  utilitiesPSF: 0.50,
+  maintenancePSF: 0.40,
+  janitorialPSF: 0.20,
 
   managementFeePct: 6,
+  leasingFeesPSF: 0.10,
   capitalReservesPSF: 0.30,
 
   // Rollover costs (higher than big box due to short leases)
@@ -66,33 +66,31 @@ const DEFAULT_INPUTS: DealInputs = {
   exitCapRatePct: 6.75,
   sellingCostsPct: 2.0,
 
-  units: [], // empty = use portfolio-level assumptions; populate via Unit Roll tab
+  units: [],
 };
 
-type Tab = "units" | "debt" | "returns" | "sensitivity";
-
-const TABS: { id: Tab; label: string }[] = [
+const TABS = [
   { id: "units",       label: "Unit Roll" },
   { id: "debt",        label: "Debt Sizing" },
   { id: "returns",     label: "Returns" },
   { id: "sensitivity", label: "Sensitivity" },
 ];
 
-function fmtPct(n: number) {
+function fmtPct(n) {
   return isFinite(n) ? `${n.toFixed(1)}%` : "—";
 }
-function fmtX(n: number) {
+function fmtX(n) {
   return isFinite(n) ? `${n.toFixed(2)}x` : "—";
 }
-function fmtDollarM(n: number) {
+function fmtDollarM(n) {
   if (!isFinite(n)) return "—";
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   return `$${n.toLocaleString()}`;
 }
 
 export default function Home() {
-  const [inputs, setInputs] = useState<DealInputs>(DEFAULT_INPUTS);
-  const [activeTab, setActiveTab] = useState<Tab>("units");
+  const [inputs, setInputs] = useState(DEFAULT_INPUTS);
+  const [activeTab, setActiveTab] = useState("units");
 
   const results = useMemo(() => underwrite(inputs), [inputs]);
 

@@ -1,28 +1,15 @@
 "use client";
 
 import { useId } from "react";
-import type { Unit, DealInputs } from "@/lib/types";
-
-interface Props {
-  units: Unit[];
-  inputs: DealInputs; // for defaults when generating
-  onChange: (units: Unit[]) => void;
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function newUnit(
-  name: string,
-  squareFeet: number,
-  inputs: DealInputs,
-  occupied = true,
-  monthsRemaining = 0
-): Unit {
+function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0) {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     name,
     squareFeet,
-    tenantName: occupied ? "" : "",
+    tenantName: "",
     leaseStatus: occupied ? "occupied" : "vacant",
     currentRentPSF: inputs.rentPerSF,
     monthsRemaining: occupied ? Math.max(1, monthsRemaining) : 0,
@@ -33,26 +20,22 @@ function newUnit(
   };
 }
 
-/** Generate a roster from deal-level settings, distributing SF and
- *  staggering lease expirations so not every unit rolls at the same time. */
-export function generateUnits(inputs: DealInputs): Unit[] {
+export function generateUnits(inputs) {
   const { squareFootage, unitCount, vacancyPct, rentPerSF, avgLeaseTerm } = inputs;
   if (unitCount <= 0) return [];
 
-  const sfPerUnit   = Math.round(squareFootage / unitCount);
-  const occupiedN   = Math.round(unitCount * (1 - vacancyPct / 100));
-  const maxExpiry   = Math.round(avgLeaseTerm * 12); // max months remaining
+  const sfPerUnit  = Math.round(squareFootage / unitCount);
+  const occupiedN  = Math.round(unitCount * (1 - vacancyPct / 100));
+  const maxExpiry  = Math.round(avgLeaseTerm * 12);
 
   return Array.from({ length: unitCount }, (_, i) => {
-    const name         = String(i + 1).padStart(3, "0");
-    const isOccupied   = i < occupiedN;
-    // Stagger lease expirations evenly across the full lease term cycle
-    const moRemaining  = isOccupied
+    const name        = String(i + 1).padStart(3, "0");
+    const isOccupied  = i < occupiedN;
+    const moRemaining = isOccupied
       ? Math.max(1, Math.round(((i + 1) / occupiedN) * maxExpiry))
       : 0;
-    // Small rent variation around market (±15%) using a deterministic offset
     const rentVariation = rentPerSF * (1 + ((i % 7) - 3) * 0.025);
-    const rent         = Math.round(rentVariation * 4) / 4; // round to $0.25
+    const rent          = Math.round(rentVariation * 4) / 4;
 
     const unit = newUnit(name, sfPerUnit, inputs, isOccupied, moRemaining);
     if (isOccupied) unit.currentRentPSF = Math.max(0.5, rent);
@@ -62,23 +45,7 @@ export function generateUnits(inputs: DealInputs): Unit[] {
 
 // ─── Editable cell ────────────────────────────────────────────────────────────
 
-function NumCell({
-  value,
-  onChange,
-  step = 1,
-  min = 0,
-  label,
-  prefix,
-  suffix,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  step?: number;
-  min?: number;
-  label: string;
-  prefix?: string;
-  suffix?: string;
-}) {
+function NumCell({ value, onChange, step = 1, min = 0, label, prefix, suffix }) {
   return (
     <div className="flex items-center border border-transparent rounded focus-within:border-blue-400 focus-within:bg-blue-50 overflow-hidden">
       {prefix && <span className="text-gray-400 text-xs pl-1">{prefix}</span>}
@@ -96,7 +63,7 @@ function NumCell({
   );
 }
 
-function TextCell({ value, onChange, placeholder, label }: { value: string; onChange: (v: string) => void; placeholder?: string; label: string }) {
+function TextCell({ value, onChange, placeholder, label }) {
   return (
     <input
       type="text"
@@ -111,18 +78,17 @@ function TextCell({ value, onChange, placeholder, label }: { value: string; onCh
 
 // ─── Summary stats ────────────────────────────────────────────────────────────
 
-function SummaryStats({ units, propertySF }: { units: Unit[]; propertySF: number }) {
+function SummaryStats({ units, propertySF }) {
   if (units.length === 0) return null;
 
-  const totalUnitSF   = units.reduce((s, u) => s + u.squareFeet, 0);
-  const occupied       = units.filter((u) => u.leaseStatus === "occupied");
-  const occupiedSF     = occupied.reduce((s, u) => s + u.squareFeet, 0);
-  const occupancyPct   = totalUnitSF > 0 ? (occupiedSF / totalUnitSF) * 100 : 0;
-  const sfMismatch     = Math.abs(totalUnitSF - propertySF) > 1;
+  const totalUnitSF  = units.reduce((s, u) => s + u.squareFeet, 0);
+  const occupied     = units.filter((u) => u.leaseStatus === "occupied");
+  const occupiedSF   = occupied.reduce((s, u) => s + u.squareFeet, 0);
+  const occupancyPct = totalUnitSF > 0 ? (occupiedSF / totalUnitSF) * 100 : 0;
+  const sfMismatch   = Math.abs(totalUnitSF - propertySF) > 1;
 
   const walMonths = occupied.length > 0
-    ? occupied.reduce((s, u) => s + u.monthsRemaining * u.squareFeet, 0) /
-      occupiedSF
+    ? occupied.reduce((s, u) => s + u.monthsRemaining * u.squareFeet, 0) / occupiedSF
     : 0;
 
   const wAvgRent = occupiedSF > 0
@@ -130,11 +96,11 @@ function SummaryStats({ units, propertySF }: { units: Unit[]; propertySF: number
     : 0;
 
   const stats = [
-    { label: "Units",      value: `${units.length}` },
-    { label: "Total SF",   value: totalUnitSF.toLocaleString() },
-    { label: "Occupancy",  value: `${occupancyPct.toFixed(0)}%` },
-    { label: "WAL",        value: `${(walMonths / 12).toFixed(1)} yrs` },
-    { label: "Wtd Rent",   value: `$${wAvgRent.toFixed(2)}/SF` },
+    { label: "Units",     value: `${units.length}` },
+    { label: "Total SF",  value: totalUnitSF.toLocaleString() },
+    { label: "Occupancy", value: `${occupancyPct.toFixed(0)}%` },
+    { label: "WAL",       value: `${(walMonths / 12).toFixed(1)} yrs` },
+    { label: "Wtd Rent",  value: `$${wAvgRent.toFixed(2)}/SF` },
   ];
 
   return (
@@ -149,7 +115,7 @@ function SummaryStats({ units, propertySF }: { units: Unit[]; propertySF: number
       </div>
       {sfMismatch && (
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          ⚠ Unit roster SF ({totalUnitSF.toLocaleString()}) differs from property SF ({propertySF.toLocaleString()}). Adjust unit SF or property SF to match.
+          Unit roster SF ({totalUnitSF.toLocaleString()}) differs from property SF ({propertySF.toLocaleString()}). Adjust unit SF or property SF to match.
         </p>
       )}
     </div>
@@ -159,22 +125,22 @@ function SummaryStats({ units, propertySF }: { units: Unit[]; propertySF: number
 // ─── Main component ───────────────────────────────────────────────────────────
 
 const COL_HEADERS = [
-  { key: "name",       label: "Unit",       width: "w-16",  tip: ""                              },
-  { key: "sf",         label: "SF",         width: "w-20",  tip: ""                              },
-  { key: "tenant",     label: "Tenant",     width: "w-28",  tip: ""                              },
-  { key: "status",     label: "Status",     width: "w-24",  tip: ""                              },
-  { key: "rent",       label: "Rent $/SF",  width: "w-20",  tip: "Contracted rent ($/SF/yr)"     },
-  { key: "moLeft",     label: "Mo. Left",   width: "w-16",  tip: "Months remaining on current lease" },
-  { key: "newTerm",    label: "New Term",   width: "w-16",  tip: "Months for next lease"         },
-  { key: "renew",      label: "Renew %",    width: "w-16",  tip: "Renewal probability"           },
-  { key: "tiNew",      label: "TI New",     width: "w-16",  tip: "TI for new tenants ($/SF)"     },
-  { key: "tiRen",      label: "TI Ren",     width: "w-16",  tip: "TI for renewals ($/SF)"        },
+  { key: "name",    label: "Unit",      width: "w-16", tip: "" },
+  { key: "sf",      label: "SF",        width: "w-20", tip: "" },
+  { key: "tenant",  label: "Tenant",    width: "w-28", tip: "" },
+  { key: "status",  label: "Status",    width: "w-24", tip: "" },
+  { key: "rent",    label: "Rent $/SF", width: "w-20", tip: "Contracted rent ($/SF/yr)" },
+  { key: "moLeft",  label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease" },
+  { key: "newTerm", label: "New Term",  width: "w-16", tip: "Months for next lease" },
+  { key: "renew",   label: "Renew %",   width: "w-16", tip: "Renewal probability" },
+  { key: "tiNew",   label: "TI New",    width: "w-16", tip: "TI for new tenants ($/SF)" },
+  { key: "tiRen",   label: "TI Ren",    width: "w-16", tip: "TI for renewals ($/SF)" },
 ];
 
-export default function UnitRoll({ units, inputs, onChange }: Props) {
+export default function UnitRoll({ units, inputs, onChange }) {
   const headerId = useId();
 
-  const update = (id: string, field: keyof Unit, value: unknown) =>
+  const update = (id, field, value) =>
     onChange(units.map((u) => (u.id === id ? { ...u, [field]: value } : u)));
 
   const addUnit = () => {
@@ -186,9 +152,8 @@ export default function UnitRoll({ units, inputs, onChange }: Props) {
     onChange([...units, newUnit(name, Math.max(500, sfRemaining > 0 ? Math.min(suggestedSF, sfRemaining) : suggestedSF), inputs, false, 0)]);
   };
 
-  const removeUnit = (id: string) => onChange(units.filter((u) => u.id !== id));
-
-  const generate = () => onChange(generateUnits(inputs));
+  const removeUnit = (id) => onChange(units.filter((u) => u.id !== id));
+  const generate   = () => onChange(generateUnits(inputs));
 
   const totalUnitSF = units.reduce((s, u) => s + u.squareFeet, 0);
 
@@ -215,25 +180,13 @@ export default function UnitRoll({ units, inputs, onChange }: Props) {
             </button>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={generate}
-                className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
+              <button type="button" onClick={generate} className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 Regenerate
               </button>
-              <button
-                type="button"
-                onClick={() => onChange([])}
-                className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-              >
+              <button type="button" onClick={() => onChange([])} className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
                 Clear all
               </button>
-              <button
-                type="button"
-                onClick={addUnit}
-                className="px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
-              >
+              <button type="button" onClick={addUnit} className="px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
                 + Add unit
               </button>
             </>
@@ -270,11 +223,7 @@ export default function UnitRoll({ units, inputs, onChange }: Props) {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 {COL_HEADERS.map((h) => (
-                  <th
-                    key={h.key}
-                    title={h.tip}
-                    className={`${h.width} px-2 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap`}
-                  >
+                  <th key={h.key} title={h.tip} className={`${h.width} px-2 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap`}>
                     {h.label}
                   </th>
                 ))}
@@ -283,85 +232,50 @@ export default function UnitRoll({ units, inputs, onChange }: Props) {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {units.map((u) => {
-                const isOccupied = u.leaseStatus === "occupied";
+                const isOccupied   = u.leaseStatus === "occupied";
                 const annualRevenue = isOccupied ? u.currentRentPSF * u.squareFeet : 0;
 
                 return (
-                  <tr
-                    key={u.id}
-                    className={`hover:bg-gray-50 transition-colors ${!isOccupied ? "bg-red-50/30" : ""}`}
-                  >
-                    {/* Unit name */}
+                  <tr key={u.id} className={`hover:bg-gray-50 transition-colors ${!isOccupied ? "bg-red-50/30" : ""}`}>
                     <td className="px-2 py-1.5">
                       <TextCell label="Unit name" value={u.name} onChange={(v) => update(u.id, "name", v)} />
                     </td>
-
-                    {/* SF */}
                     <td className="px-2 py-1.5">
                       <NumCell label="Square feet" value={u.squareFeet} step={100} onChange={(v) => update(u.id, "squareFeet", v)} />
                     </td>
-
-                    {/* Tenant */}
                     <td className="px-2 py-1.5">
-                      <TextCell
-                        label="Tenant name"
-                        value={u.tenantName}
-                        placeholder={isOccupied ? "Tenant" : "Vacant"}
-                        onChange={(v) => update(u.id, "tenantName", v)}
-                      />
+                      <TextCell label="Tenant name" value={u.tenantName} placeholder={isOccupied ? "Tenant" : "Vacant"} onChange={(v) => update(u.id, "tenantName", v)} />
                     </td>
-
-                    {/* Status */}
                     <td className="px-2 py-1.5">
                       <button
                         type="button"
                         onClick={() => update(u.id, "leaseStatus", isOccupied ? "vacant" : "occupied")}
-                        className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors ${
-                          isOccupied
-                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                            : "bg-red-100 text-red-700 hover:bg-red-200"
-                        }`}
+                        className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors ${isOccupied ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-red-100 text-red-700 hover:bg-red-200"}`}
                       >
                         {isOccupied ? "Occupied" : "Vacant"}
                       </button>
                     </td>
-
-                    {/* Rent */}
                     <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
                       <NumCell label="Rent per SF" value={u.currentRentPSF} step={0.25} prefix="$" onChange={(v) => update(u.id, "currentRentPSF", v)} />
                     </td>
-
-                    {/* Months remaining */}
                     <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
                       <NumCell label="Months remaining" value={u.monthsRemaining} step={1} suffix="mo" onChange={(v) => update(u.id, "monthsRemaining", v)} />
                     </td>
-
-                    {/* New lease term */}
                     <td className="px-2 py-1.5">
                       <NumCell label="New lease term" value={u.newLeaseTerm} step={6} suffix="mo" onChange={(v) => update(u.id, "newLeaseTerm", v)} />
                     </td>
-
-                    {/* Renewal % */}
                     <td className="px-2 py-1.5">
                       <NumCell label="Renewal probability" value={u.renewalProbabilityPct} step={5} suffix="%" onChange={(v) => update(u.id, "renewalProbabilityPct", v)} />
                     </td>
-
-                    {/* TI new */}
                     <td className="px-2 py-1.5">
                       <NumCell label="TI for new lease" value={u.tiNewPSF} step={0.5} prefix="$" onChange={(v) => update(u.id, "tiNewPSF", v)} />
                     </td>
-
-                    {/* TI renewal */}
                     <td className="px-2 py-1.5">
                       <NumCell label="TI for renewal" value={u.tiRenewalPSF} step={0.5} prefix="$" onChange={(v) => update(u.id, "tiRenewalPSF", v)} />
                     </td>
-
-                    {/* Annual revenue (computed, read-only) */}
                     <td className="px-2 py-1.5 text-right tabular-nums text-gray-400 whitespace-nowrap">
                       {isOccupied ? `$${Math.round(annualRevenue / 1000)}k` : "—"}
                     </td>
-
-                    {/* Delete */}
                     <td className="px-2 py-1.5 text-center">
                       <button
                         type="button"
@@ -376,13 +290,9 @@ export default function UnitRoll({ units, inputs, onChange }: Props) {
                 );
               })}
             </tbody>
-
-            {/* Totals footer */}
             <tfoot>
               <tr className="bg-gray-50 border-t-2 border-gray-200 font-semibold text-gray-700">
-                <td className="px-2 py-2 text-xs" colSpan={2}>
-                  {units.length} units
-                </td>
+                <td className="px-2 py-2 text-xs" colSpan={2}>{units.length} units</td>
                 <td className="px-2 py-2 text-xs text-right tabular-nums" colSpan={2}>
                   {units.reduce((s, u) => s + u.squareFeet, 0).toLocaleString()} SF total
                 </td>
@@ -390,11 +300,7 @@ export default function UnitRoll({ units, inputs, onChange }: Props) {
                   {units.filter((u) => u.leaseStatus === "occupied").length} occupied
                 </td>
                 <td className="px-2 py-2 text-xs text-right tabular-nums" colSpan={4}>
-                  ${(
-                    units
-                      .filter((u) => u.leaseStatus === "occupied")
-                      .reduce((s, u) => s + u.currentRentPSF * u.squareFeet, 0) / 1000
-                  ).toFixed(0)}k contracted rev/yr
+                  ${(units.filter((u) => u.leaseStatus === "occupied").reduce((s, u) => s + u.currentRentPSF * u.squareFeet, 0) / 1000).toFixed(0)}k contracted rev/yr
                 </td>
                 <td colSpan={2} />
               </tr>

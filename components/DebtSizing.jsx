@@ -1,12 +1,6 @@
 "use client";
 
-import type { DebtMetrics } from "@/lib/types";
-
-interface Props {
-  debt: DebtMetrics;
-}
-
-function fmt(n: number, decimals = 0): string {
+function fmt(n, decimals = 0) {
   if (!isFinite(n)) return "—";
   return n.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
@@ -14,20 +8,18 @@ function fmt(n: number, decimals = 0): string {
   });
 }
 
-function fmtPct(n: number, decimals = 2): string {
+function fmtPct(n, decimals = 2) {
   if (!isFinite(n)) return "—";
   return `${fmt(n, decimals)}%`;
 }
 
-function fmtDollar(n: number, decimals = 0): string {
+function fmtDollar(n, decimals = 0) {
   if (!isFinite(n)) return "—";
   return `$${fmt(n, decimals)}`;
 }
 
-type Status = "good" | "warn" | "bad" | "neutral";
-
-function StatusBadge({ status, label }: { status: Status; label: string }) {
-  const colors: Record<Status, string> = {
+function StatusBadge({ status, label }) {
+  const colors = {
     good: "bg-green-50 text-green-700 border-green-200",
     warn: "bg-yellow-50 text-yellow-700 border-yellow-200",
     bad: "bg-red-50 text-red-700 border-red-200",
@@ -40,21 +32,7 @@ function StatusBadge({ status, label }: { status: Status; label: string }) {
   );
 }
 
-function MetricRow({
-  label,
-  value,
-  sub,
-  status,
-  statusLabel,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  status?: Status;
-  statusLabel?: string;
-  highlight?: boolean;
-}) {
+function MetricRow({ label, value, sub, status, statusLabel, highlight }) {
   return (
     <div className={`flex items-center justify-between py-3 border-b border-gray-100 last:border-0 ${highlight ? "bg-blue-50 -mx-4 px-4 rounded" : ""}`}>
       <div>
@@ -71,21 +49,21 @@ function MetricRow({
   );
 }
 
-function dscrStatus(dscr: number): { status: Status; label: string } {
+function dscrStatus(dscr) {
   if (dscr >= 1.35) return { status: "good", label: "Strong" };
   if (dscr >= 1.20) return { status: "good", label: "Acceptable" };
   if (dscr >= 1.10) return { status: "warn", label: "Tight" };
   return { status: "bad", label: "Below min" };
 }
 
-function ltvStatus(ltv: number): { status: Status; label: string } {
+function ltvStatus(ltv) {
   if (ltv <= 60) return { status: "good", label: "Conservative" };
   if (ltv <= 70) return { status: "good", label: "Standard" };
   if (ltv <= 75) return { status: "warn", label: "Elevated" };
   return { status: "bad", label: "High" };
 }
 
-export default function DebtSizingPanel({ debt }: Props) {
+export default function DebtSizingPanel({ debt }) {
   const { dscr } = debt;
   const ds = dscrStatus(dscr);
   const ls = ltvStatus(debt.ltv);
@@ -120,24 +98,14 @@ export default function DebtSizingPanel({ debt }: Props) {
 
       {/* Metrics table */}
       <div className="bg-white border border-gray-200 rounded-xl px-4">
-        <MetricRow
-          label="Loan Amount"
-          value={fmtDollar(debt.loanAmount)}
-          highlight
-        />
+        <MetricRow label="Loan Amount" value={fmtDollar(debt.loanAmount)} highlight />
         <MetricRow
           label="Equity Required"
           sub="Purchase price + closing costs − loan"
           value={fmtDollar(debt.equityRequired)}
         />
-        <MetricRow
-          label="Annual Debt Service"
-          value={fmtDollar(debt.annualDebtService)}
-        />
-        <MetricRow
-          label="Monthly Payment"
-          value={fmtDollar(debt.monthlyPayment)}
-        />
+        <MetricRow label="Annual Debt Service" value={fmtDollar(debt.annualDebtService)} />
+        <MetricRow label="Monthly Payment" value={fmtDollar(debt.monthlyPayment)} />
         <MetricRow
           label="Loan Constant"
           sub="Annual debt service ÷ loan amount"
