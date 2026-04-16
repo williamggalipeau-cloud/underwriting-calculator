@@ -761,11 +761,10 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
           <>
             <SectionHeader
               title="Multi-Tenant"
-              subtitle={`${inputs.units.length} units in rent roll — per-unit values override these defaults`}
+              subtitle={`${inputs.units.length} units in rent roll`}
             />
-            <Field label="Turnover Downtime" value={inputs.downtimeBetweenLeases} field="downtimeBetweenLeases" suffix="mo" step={1} onChange={set} />
-            <p className="text-xs text-gray-400 mt-1.5">
-              Unit count, lease term, and renewal probability are set per unit in the rent roll.
+            <p className="text-xs text-gray-400">
+              Lease term, renewal probability, and turnover downtime are set per unit in the rent roll.
             </p>
           </>
         ) : (

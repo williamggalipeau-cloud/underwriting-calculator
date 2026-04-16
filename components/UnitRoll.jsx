@@ -136,6 +136,7 @@ function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0)
     monthsRemaining: occupied ? Math.max(1, monthsRemaining) : 0,
     newLeaseTerm: Math.round(inputs.avgLeaseTerm * 12),
     renewalProbabilityPct: inputs.renewalProbabilityPct,
+    downtimeBetweenLeases: inputs.downtimeBetweenLeases ?? 2,
     tiNewPSF: inputs.tiPerSFNew ?? 8,
     tiRenewalPSF: inputs.tiPerSFRenewal,
     leaseType: inputs.leaseType,
@@ -276,6 +277,7 @@ const COL_HEADERS = [
   { key: "moLeft",    label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease" },
   { key: "newTerm",   label: "New Term",  width: "w-16", tip: "Months for next lease" },
   { key: "renew",     label: "Renew %",   width: "w-16", tip: "Renewal probability" },
+  { key: "downtime",  label: "Downtime",  width: "w-16", tip: "Vacancy months between leases" },
   { key: "tiNew",     label: "TI New",    width: "w-16", tip: "TI for new tenants ($/SF)" },
   { key: "tiRen",     label: "TI Ren",    width: "w-16", tip: "TI for renewals ($/SF)" },
   { key: "lcNew",     label: "LC New",    width: "w-16", tip: "Leasing commission — new lease (% of lease value)" },
@@ -542,6 +544,9 @@ export default function UnitRoll({ units, inputs, onChange }) {
                     </td>
                     <td className="px-2 py-1.5">
                       <NumCell label="Renewal probability" value={u.renewalProbabilityPct} step={5} suffix="%" onChange={(v) => update(u.id, "renewalProbabilityPct", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="Downtime between leases" value={u.downtimeBetweenLeases ?? inputs.downtimeBetweenLeases ?? 2} step={1} suffix="mo" onChange={(v) => update(u.id, "downtimeBetweenLeases", v)} />
                     </td>
                     <td className="px-2 py-1.5">
                       <NumCell label="TI for new lease" value={u.tiNewPSF} step={0.5} prefix="$" onChange={(v) => update(u.id, "tiNewPSF", v)} />
