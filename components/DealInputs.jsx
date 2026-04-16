@@ -46,28 +46,21 @@ function SectionHeader({ title, subtitle }) {
   );
 }
 
-function ClosingCostsSection({ cc, purchasePrice, loanAmount, onChange }) {
+function ClosingCostsSection({ cc, purchasePrice, onChange }) {
   const rows = [
-    { label: "Title Insurance (Owner)",  field: "titleInsuranceOwnerPct",  basis: "pp",   step: 0.05 },
-    { label: "Title Insurance (Lender)", field: "titleInsuranceLenderPct", basis: "loan", step: 0.05 },
-    { label: "Transfer / Recording Tax", field: "transferTaxPct",          basis: "pp",   step: 0.05 },
-    { label: "Loan Origination",         field: "loanOriginationPct",      basis: "loan", step: 0.25 },
-    { label: "Acquisition Fee",          field: "acquisitionFeePct",        basis: "pp",   step: 0.25 },
-    { label: "Legal Fees",               field: "legalFees",               basis: "fixed", step: 500  },
-    { label: "Phase I ESA",              field: "environmentalReport",     basis: "fixed", step: 250  },
-    { label: "Appraisal",                field: "appraisal",               basis: "fixed", step: 500  },
-    { label: "Survey / PCA",             field: "surveyAndPCA",            basis: "fixed", step: 250  },
-    { label: "Misc / Other",             field: "miscClosingCosts",        basis: "fixed", step: 500  },
+    { label: "Title Insurance (Owner)",  field: "titleInsuranceOwner",  step: 500  },
+    { label: "Title Insurance (Lender)", field: "titleInsuranceLender", step: 500  },
+    { label: "Transfer / Recording Tax", field: "transferTax",          step: 500  },
+    { label: "Loan Origination",         field: "loanOrigination",      step: 500  },
+    { label: "Acquisition Fee",          field: "acquisitionFee",       step: 500  },
+    { label: "Legal Fees",               field: "legalFees",            step: 500  },
+    { label: "Phase I ESA",              field: "environmentalReport",  step: 250  },
+    { label: "Appraisal",                field: "appraisal",            step: 500  },
+    { label: "Survey / PCA",             field: "surveyAndPCA",         step: 250  },
+    { label: "Misc / Other",             field: "miscClosingCosts",     step: 500  },
   ];
 
-  const computed = (row) => {
-    const v = cc[row.field];
-    if (row.basis === "pp")   return purchasePrice * (v / 100);
-    if (row.basis === "loan") return loanAmount    * (v / 100);
-    return v;
-  };
-
-  const total = rows.reduce((s, r) => s + computed(r), 0);
+  const total = rows.reduce((s, r) => s + (cc[r.field] ?? 0), 0);
   const totalPct = purchasePrice > 0 ? (total / purchasePrice) * 100 : 0;
 
   return (
@@ -81,47 +74,33 @@ function ClosingCostsSection({ cc, purchasePrice, loanAmount, onChange }) {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Item</th>
-              <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide w-28">Input</th>
-              <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide w-20">Amount</th>
+              <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide w-32">Amount</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {rows.map((row) => {
-              const val = cc[row.field];
-              const amt = computed(row);
-              const basisLabel = row.basis === "pp" ? "% of PP" : row.basis === "loan" ? "% of loan" : "$";
-              return (
-                <tr key={row.field} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 text-gray-700 font-medium whitespace-nowrap">{row.label}</td>
-                  <td className="px-2 py-1.5">
-                    <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
-                      {row.basis === "fixed" && (
-                        <span className="px-2 py-1.5 bg-gray-50 border-r border-gray-200 text-gray-400 text-xs">$</span>
-                      )}
-                      <input
-                        type="number"
-                        aria-label={row.label}
-                        value={val}
-                        step={row.step}
-                        min={0}
-                        onChange={(e) => onChange(row.field, parseFloat(e.target.value) || 0)}
-                        className="flex-1 px-2 py-1.5 text-xs text-gray-900 bg-white outline-none min-w-0 w-16"
-                      />
-                      {row.basis !== "fixed" && (
-                        <span className="px-2 py-1.5 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs whitespace-nowrap">
-                          {basisLabel}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-500">{fmtK(amt)}</td>
-                </tr>
-              );
-            })}
+            {rows.map((row) => (
+              <tr key={row.field} className="hover:bg-gray-50">
+                <td className="px-3 py-2 text-gray-700 font-medium whitespace-nowrap">{row.label}</td>
+                <td className="px-2 py-1.5">
+                  <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                    <span className="px-2 py-1.5 bg-gray-50 border-r border-gray-200 text-gray-400 text-xs">$</span>
+                    <input
+                      type="number"
+                      aria-label={row.label}
+                      value={cc[row.field] ?? 0}
+                      step={row.step}
+                      min={0}
+                      onChange={(e) => onChange(row.field, parseFloat(e.target.value) || 0)}
+                      className="flex-1 px-2 py-1.5 text-xs text-gray-900 bg-white outline-none min-w-0 w-24 text-right"
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
           <tfoot>
             <tr className="bg-gray-50 border-t-2 border-gray-300">
-              <td className="px-3 py-2 font-semibold text-gray-900 text-xs" colSpan={2}>Total Closing Costs</td>
+              <td className="px-3 py-2 font-semibold text-gray-900 text-xs">Total Closing Costs</td>
               <td className="px-3 py-2 text-right font-bold text-gray-900 tabular-nums text-xs">{fmtK(total)}</td>
             </tr>
           </tfoot>
@@ -773,7 +752,6 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
       <ClosingCostsSection
         cc={inputs.closingCosts}
         purchasePrice={inputs.purchasePrice}
-        loanAmount={inputs.purchasePrice * (inputs.ltvPct / 100)}
         onChange={setCC}
       />
 
