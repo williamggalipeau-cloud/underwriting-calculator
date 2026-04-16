@@ -1,6 +1,124 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useRef, useState } from "react";
+
+// ─── CSV import ───────────────────────────────────────────────────────────────
+
+// Normalise a header string: lowercase, strip spaces/underscores/slashes
+function normalise(s) { return s.toLowerCase().replace(/[\s_/]+/g, ""); }
+
+// Map normalised CSV header → unit field name (and optional transform fn)
+const CSV_FIELD_MAP = [
+  { keys: ["unit", "unitname", "name", "suite"],                   field: "name",                        parse: String },
+  { keys: ["sf", "squarefeet", "squarefoot", "sqft", "size"],      field: "squareFeet",                  parse: Number },
+  { keys: ["tenant", "tenantname", "lessee"],                      field: "tenantName",                  parse: String },
+  { keys: ["business", "description", "businessdesc", "use"],      field: "businessDescription",         parse: String },
+  { keys: ["credit", "creditrating", "rating"],                    field: "creditRating",                parse: String },
+  { keys: ["sic", "naics", "naicscode", "siccode", "industry"],    field: "naicsCode",                   parse: String },
+  { keys: ["status", "leasestatus", "occupied"],                   field: "leaseStatus",                 parse: (v) => /^(occupied|occ|yes|true|1|y)$/i.test(v.trim()) ? "occupied" : "vacant" },
+  { keys: ["leasetype", "lease", "type"],                          field: "leaseType",                   parse: (v) => ["NNN","MG","Gross"].includes(v.trim()) ? v.trim() : "NNN" },
+  { keys: ["rent", "rentpsf", "currentrent", "contractedrent"],    field: "currentRentPSF",              parse: Number },
+  { keys: ["otherincome", "otherinc", "otherincomepsf"],           field: "otherIncomePSF",              parse: Number },
+  { keys: ["escalation", "escpct", "annualescalation", "esc"],     field: "annualEscalationPct",         parse: Number },
+  { keys: ["monthsremaining", "moleft", "moremaining", "months"],  field: "monthsRemaining",             parse: Number },
+  { keys: ["newterm", "newleaseterm", "leasetermmonths"],           field: "newLeaseTerm",                parse: Number },
+  { keys: ["renewalpct", "renew", "renewalprob", "renewalprobability"], field: "renewalProbabilityPct",   parse: Number },
+  { keys: ["tinew", "tipersfnew"],                                 field: "tiNewPSF",                    parse: Number },
+  { keys: ["tirenewal", "tiren", "tipersfrenewal"],                field: "tiRenewalPSF",                parse: Number },
+  { keys: ["lcnew", "leasingcommissionnew", "lcnewpct"],           field: "leasingCommissionNewPct",     parse: Number },
+  { keys: ["lcrenewal", "lcren", "leasingcommissionrenewal"],      field: "leasingCommissionRenewalPct", parse: Number },
+  { keys: ["retax", "realestatetax", "retaxpsf", "taxpsf"],        field: "realEstateTaxPSF",            parse: Number },
+  { keys: ["insurance", "insurancepsf", "ins"],                    field: "insurancePSF",                parse: Number },
+  { keys: ["utilities", "utilpsf", "utils"],                       field: "utilitiesPSF",                parse: Number },
+  { keys: ["maintenance", "maintpsf", "maint"],                    field: "maintenancePSF",              parse: Number },
+  { keys: ["janitorial", "janitpsf", "janit"],                     field: "janitorialPSF",               parse: Number },
+];
+
+function buildHeaderIndex(headerRow) {
+  const index = {};
+  headerRow.forEach((raw, col) => {
+    const key = normalise(raw);
+    const entry = CSV_FIELD_MAP.find((m) => m.keys.includes(key));
+    if (entry) index[entry.field] = { col, parse: entry.parse };
+  });
+  return index;
+}
+
+function parseCSV(text) {
+  // Split on newlines; handle \r\n
+  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
+  if (lines.length < 2) throw new Error("CSV must have a header row and at least one data row.");
+
+  // Simple CSV tokeniser (handles double-quoted fields with commas)
+  function tokenise(line) {
+    const out = [];
+    let field = "";
+    let inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuote && line[i + 1] === '"') { field += '"'; i++; }
+        else inQuote = !inQuote;
+      } else if (ch === "," && !inQuote) {
+        out.push(field); field = "";
+      } else {
+        field += ch;
+      }
+    }
+    out.push(field);
+    return out.map((f) => f.trim());
+  }
+
+  const headers = tokenise(lines[0]);
+  const index   = buildHeaderIndex(headers);
+
+  if (!index.squareFeet) throw new Error('Required column not found: "SF" (square footage). Check your header row.');
+
+  const units = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = tokenise(lines[i]);
+    if (cols.every((c) => c === "")) continue; // skip blank rows
+
+    const unit = {
+      id:                        `csv-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 5)}`,
+      name:                      String(i),
+      squareFeet:                0,
+      tenantName:                "",
+      businessDescription:       "",
+      creditRating:              "",
+      naicsCode:                 "",
+      leaseStatus:               "occupied",
+      leaseType:                 "NNN",
+      currentRentPSF:            0,
+      otherIncomePSF:            0,
+      annualEscalationPct:       3,
+      monthsRemaining:           12,
+      newLeaseTerm:              24,
+      renewalProbabilityPct:     60,
+      tiNewPSF:                  8,
+      tiRenewalPSF:              2,
+      leasingCommissionNewPct:   6,
+      leasingCommissionRenewalPct: 2,
+    };
+
+    for (const [field, { col, parse }] of Object.entries(index)) {
+      const raw = cols[col] ?? "";
+      if (raw === "") continue;
+      const parsed = parse(raw);
+      if (field === "squareFeet" || field === "currentRentPSF" || field === "monthsRemaining" || field === "newLeaseTerm") {
+        unit[field] = isNaN(parsed) ? unit[field] : Math.max(0, parsed);
+      } else {
+        unit[field] = isNaN(parsed) && typeof parsed === "number" ? unit[field] : parsed;
+      }
+    }
+
+    if (unit.squareFeet <= 0) continue; // skip rows with no SF
+    units.push(unit);
+  }
+
+  if (units.length === 0) throw new Error("No valid data rows found. Make sure the SF column has values > 0.");
+  return units;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -165,7 +283,9 @@ const COL_HEADERS = [
 ];
 
 export default function UnitRoll({ units, inputs, onChange }) {
-  const headerId = useId();
+  const headerId  = useId();
+  const fileInput = useRef(null);
+  const [csvError, setCsvError] = useState(null);
 
   const update = (id, field, value) =>
     onChange(units.map((u) => (u.id === id ? { ...u, [field]: value } : u)));
@@ -182,6 +302,33 @@ export default function UnitRoll({ units, inputs, onChange }) {
   const removeUnit = (id) => onChange(units.filter((u) => u.id !== id));
   const generate   = () => onChange(generateUnits(inputs));
 
+  const handleCSVUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so the same file can be re-uploaded
+    e.target.value = "";
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = parseCSV(ev.target.result);
+        // Backfill any missing per-unit defaults from deal inputs
+        const filled = imported.map((u) => ({
+          realEstateTaxPSF:            inputs.realEstateTaxPSF,
+          insurancePSF:                inputs.insurancePSF,
+          utilitiesPSF:                inputs.utilitiesPSF,
+          maintenancePSF:              inputs.maintenancePSF,
+          janitorialPSF:               inputs.janitorialPSF,
+          ...u,
+        }));
+        setCsvError(null);
+        onChange(filled);
+      } catch (err) {
+        setCsvError(err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const totalUnitSF = units.reduce((s, u) => s + u.squareFeet, 0);
 
   return (
@@ -196,19 +343,44 @@ export default function UnitRoll({ units, inputs, onChange }) {
               : `${units.length} units · ${totalUnitSF.toLocaleString()} SF modeled individually`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {/* Hidden file input */}
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleCSVUpload}
+            className="sr-only"
+            aria-label="Upload CSV"
+          />
           {units.length === 0 ? (
-            <button
-              type="button"
-              onClick={generate}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              Generate from settings
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={generate}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                Generate from settings
+              </button>
+              <button
+                type="button"
+                onClick={() => { setCsvError(null); fileInput.current?.click(); }}
+                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Import CSV
+              </button>
+            </>
           ) : (
             <>
               <button type="button" onClick={generate} className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 Regenerate
+              </button>
+              <button
+                type="button"
+                onClick={() => { setCsvError(null); fileInput.current?.click(); }}
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Import CSV
               </button>
               <button type="button" onClick={() => onChange([])} className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
                 Clear all
@@ -221,6 +393,15 @@ export default function UnitRoll({ units, inputs, onChange }) {
         </div>
       </div>
 
+      {/* CSV error */}
+      {csvError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800 flex items-start gap-2">
+          <span className="font-semibold shrink-0">CSV import error:</span>
+          <span>{csvError}</span>
+          <button type="button" onClick={() => setCsvError(null)} className="ml-auto text-red-400 hover:text-red-600 text-base leading-none shrink-0">×</button>
+        </div>
+      )}
+
       {/* Summary stats */}
       <SummaryStats units={units} propertySF={inputs.squareFootage} />
 
@@ -229,8 +410,11 @@ export default function UnitRoll({ units, inputs, onChange }) {
         <div className="border-2 border-dashed border-gray-200 rounded-xl p-12 text-center">
           <p className="text-sm font-medium text-gray-500">No unit lease roll defined</p>
           <p className="text-xs text-gray-400 mt-1 mb-4">
-            Generate a roster from your deal settings, or add units manually.
+            Generate a roster from your deal settings, add units manually, or import from a CSV file.
             <br />When units are present, the model uses actual lease schedules instead of portfolio-level vacancy.
+          </p>
+          <p className="text-xs text-gray-300 mb-4 max-w-lg mx-auto">
+            CSV columns (header row required): <span className="font-mono">unit, sf, tenant, business, credit, sic, status, lease_type, rent, escalation, months_remaining, new_term, renewal_pct, ti_new, ti_renewal, lc_new, lc_renewal</span>
           </p>
           <button
             type="button"
