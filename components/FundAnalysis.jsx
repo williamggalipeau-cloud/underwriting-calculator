@@ -1,5 +1,7 @@
 "use client";
 
+import { computeWaterfall } from "@/lib/calculations";
+
 function fmt(n, decimals = 0) {
   if (!isFinite(n) || n == null) return "—";
   return n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -51,6 +53,96 @@ function groupByFund(deals) {
     groups[key].push(deal);
   }
   return groups;
+}
+
+function FundWaterfall({ combinedFlows, totalEquity, waterfallConfig }) {
+  const wf = computeWaterfall(combinedFlows, totalEquity, waterfallConfig);
+  const lpGood  = (v, t) => isFinite(v) && v >= t;
+
+  const kpis = [
+    { label: "LP IRR",       value: fmtPct(wf.lpIRR),                      good: lpGood(wf.lpIRR, 12) },
+    { label: "LP Multiple",  value: fmtX(wf.lpEquityMultiple),              good: lpGood(wf.lpEquityMultiple, 1.8) },
+    { label: "LP Equity",    value: fmtM(wf.lpEquity),                      good: true },
+    { label: "LP Dist.",     value: fmtM(wf.lpTotalDistributions),          good: true },
+    { label: "GP IRR",       value: fmtPct(wf.gpIRR),                      good: lpGood(wf.gpIRR, 18) },
+    { label: "GP Multiple",  value: fmtX(wf.gpEquityMultiple),              good: lpGood(wf.gpEquityMultiple, 2.5) },
+    { label: "GP Equity",    value: fmtM(wf.gpEquity),                      good: true },
+    { label: "GP Promote",   value: fmtM(wf.gpPromote),                     good: true },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">LP / GP Waterfall</h3>
+        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+          Active tier: {wf.activeTier.irrThreshold != null ? `≤${wf.activeTier.irrThreshold}% IRR` : "Top tier"} · {wf.activeTier.lpSplit}/{wf.activeTier.gpSplit} split
+        </span>
+      </div>
+
+      {/* KPI grid */}
+      <div className="grid grid-cols-4 gap-3">
+        {kpis.map(({ label, value, good }) => (
+          <div key={label} className="bg-white rounded-xl border border-gray-200 px-3 py-2.5">
+            <p className="text-xs text-gray-500 mb-0.5">{label}</p>
+            <p className={`text-sm font-bold tabular-nums ${good ? "text-gray-900" : "text-red-600"}`}>{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Year-by-year distribution table */}
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {["Year", "Total CF", "LP", "GP", "LP Cumul.", "GP Cumul."].map((h) => (
+                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            <tr className="bg-red-50">
+              <td className="px-3 py-2 font-medium text-gray-700">Y0</td>
+              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(combinedFlows[0])}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.lpEquity)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.gpEquity)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.lpEquity)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.gpEquity)}</td>
+            </tr>
+            {(() => {
+              let lpCumul = -wf.lpEquity;
+              let gpCumul = -wf.gpEquity;
+              return wf.yearlyDist.map(({ year, lp, gp }) => {
+                lpCumul += lp;
+                gpCumul += gp;
+                const total = combinedFlows[year] ?? 0;
+                return (
+                  <tr key={year} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-3 py-2 font-medium text-gray-700">Y{year}</td>
+                    <td className={`px-3 py-2 text-right tabular-nums ${total < 0 ? "text-red-600" : "text-gray-600"}`}>{fmtM(total)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-blue-700 font-medium">{fmtM(lp)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-purple-700 font-medium">{fmtM(gp)}</td>
+                    <td className={`px-3 py-2 text-right tabular-nums ${lpCumul < 0 ? "text-red-500" : "text-blue-600"}`}>{fmtM(lpCumul)}</td>
+                    <td className={`px-3 py-2 text-right tabular-nums ${gpCumul < 0 ? "text-red-500" : "text-purple-600"}`}>{fmtM(gpCumul)}</td>
+                  </tr>
+                );
+              });
+            })()}
+          </tbody>
+          <tfoot>
+            <tr className="bg-gray-50 border-t-2 border-gray-200">
+              <td className="px-3 py-2 font-semibold text-gray-700 text-xs">Total</td>
+              <td className="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 text-xs">{fmtM(combinedFlows.reduce((s, v) => s + v, 0))}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-bold text-blue-700 text-xs">{fmtM(wf.lpTotalDistributions)}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-bold text-purple-700 text-xs">{fmtM(wf.gpTotalDistributions)}</td>
+              <td colSpan={2} />
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 function DealRow({ deal, onRemove }) {
@@ -175,6 +267,24 @@ function FundGroup({ fundName, deals, onRemove }) {
           </tfoot>
         </table>
       </div>
+
+      {/* Fund-level waterfall */}
+      {(() => {
+        const waterfallDeal = deals.find((d) => d.inputs.waterfallEnabled);
+        if (!waterfallDeal) return null;
+        return (
+          <div className="border-t border-gray-200 pt-5">
+            <FundWaterfall
+              combinedFlows={combinedFlows}
+              totalEquity={totalEquity}
+              waterfallConfig={waterfallDeal.inputs.waterfall}
+            />
+            <p className="text-xs text-gray-400 mt-2">
+              Waterfall config from <span className="font-medium">{waterfallDeal.inputs.propertyName || "first deal"}</span>. All assets in the fund are assumed to share the same LP/GP structure.
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Combined cash flow table */}
       <div>
