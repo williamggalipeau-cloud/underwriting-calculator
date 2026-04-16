@@ -469,7 +469,6 @@ export default function Home() {
                 currentDeal={{ inputs, irrFlows: irrFlows ?? [], metrics: { irr: returns.irr, equityMultiple: returns.equityMultiple, yearOneCashOnCash: returns.yearOneCashOnCash, equityRequired: debt.equityRequired, loanAmount: debt.loanAmount } }}
                 onSave={handleSaveDeal}
                 onRemove={handleRemoveDeal}
-                onClearDemo={handleClearDemo}
               />
             )}
           </div>
