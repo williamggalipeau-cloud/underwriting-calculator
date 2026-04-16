@@ -188,7 +188,7 @@ function DealRow({ deal, onRemove }) {
   );
 }
 
-function FundGroup({ fundName, deals, onRemove }) {
+function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   const combinedFlows = aggregateFlows(deals);
   const fundIRR = calcIRR(combinedFlows);
   const totalEquity = deals.reduce((s, d) => s + (d.metrics.equityRequired ?? 0), 0);
@@ -216,6 +216,13 @@ function FundGroup({ fundName, deals, onRemove }) {
         <div>
           <h3 className="text-sm font-semibold text-gray-900">{fundName}</h3>
           <p className="text-xs text-gray-400 mt-0.5">{deals.length} asset{deals.length !== 1 ? "s" : ""} · {fmt(totalSF)} SF · {fmtM(totalPurchasePrice)} total purchase price</p>
+          <button
+            type="button"
+            onClick={() => onRemoveFund(deals.map((d) => d.id))}
+            className="mt-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
+          >
+            Remove fund
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
@@ -334,7 +341,7 @@ function FundGroup({ fundName, deals, onRemove }) {
   );
 }
 
-export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove }) {
+export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, onRemoveFund }) {
   const groups = groupByFund(savedDeals);
   const fundNames = Object.keys(groups);
   const currentFund = currentDeal.inputs.fundName?.trim() || "(No Fund)";
@@ -380,7 +387,7 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
         <div className="space-y-10">
           {fundNames.map((name) => (
             <div key={name} className="bg-gray-50 rounded-2xl border border-gray-200 p-5 space-y-5">
-              <FundGroup fundName={name} deals={groups[name]} onRemove={onRemove} />
+              <FundGroup fundName={name} deals={groups[name]} onRemove={onRemove} onRemoveFund={(ids) => ids.forEach(onRemove)} />
             </div>
           ))}
         </div>
