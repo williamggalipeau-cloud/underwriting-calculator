@@ -145,6 +145,9 @@ function ConstructionCostsSection({ cc, avgUnitSF, onChange }) {
     { label: "Lighting",                 field: "lighting",        step: 0.05 },
     { label: "Doors & hardware",         field: "doorsHardware",   step: 0.05 },
     { label: "Overhead / dock doors",    field: "overheadDoors",   step: 0.05 },
+    { label: "Landscaping",              field: "landscaping",      step: 0.05 },
+    { label: "Roofing",                  field: "roofing",          step: 0.05 },
+    { label: "Signage",                  field: "signage",          step: 0.05 },
     { label: "Misc / allowance",         field: "miscConstruction", step: 0.05 },
   ];
 
@@ -940,6 +943,88 @@ export default function DealInputsPanel({ inputs, onChange }) {
           <Field label="LTV" value={inputs.ltvPct} field="ltvPct" suffix="%" step={5} onChange={set} />
           <Field label="Amortization" value={inputs.amortizationYears} field="amortizationYears" suffix="yrs" step={5} onChange={set} />
           <Field label="I/O Period" value={inputs.ioPeriodYears} field="ioPeriodYears" suffix="yrs" step={1} onChange={set} />
+        </div>
+
+        {/* Loan sizing constraints */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-1">Loan Sizing Constraints</p>
+          <p className="text-xs text-gray-400 mb-2">Loan amount = lesser of LTV and any enabled constraints below.</p>
+          {[
+            { label: "Min DSCR",       enabledField: "minDSCREnabled",      valueField: "minDSCR",            suffix: "x",   step: 0.05, defaultVal: 1.25 },
+            { label: "Max LTC",        enabledField: "maxLTCEnabled",       valueField: "maxLTCPct",          suffix: "%",   step: 1,    defaultVal: 75 },
+            { label: "Min Debt Yield", enabledField: "minDebtYieldEnabled", valueField: "minDebtYieldPct",    suffix: "%",   step: 0.25, defaultVal: 8.0 },
+          ].map(({ label, enabledField, valueField, suffix, step, defaultVal }) => {
+            const lsc = inputs.loanSizingConstraints ?? {};
+            const enabled = !!lsc[enabledField];
+            const val = lsc[valueField] ?? defaultVal;
+            const setLSC = (f, v) => onChange({
+              ...inputs,
+              loanSizingConstraints: { ...(inputs.loanSizingConstraints ?? {}), [f]: v },
+            });
+            return (
+              <div key={enabledField} className="flex items-center gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setLSC(enabledField, !enabled)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${enabled ? "bg-blue-600" : "bg-gray-200"}`}
+                >
+                  <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ${enabled ? "translate-x-4" : "translate-x-0"}`} />
+                </button>
+                <span className={`text-xs font-medium w-24 shrink-0 ${enabled ? "text-gray-700" : "text-gray-400"}`}>{label}</span>
+                <div className={`flex items-center border rounded-lg overflow-hidden flex-1 ${enabled ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"}`}>
+                  <input
+                    type="number"
+                    aria-label={label}
+                    value={val}
+                    step={step}
+                    min={0}
+                    disabled={!enabled}
+                    onChange={(e) => setLSC(valueField, parseFloat(e.target.value) || 0)}
+                    className="flex-1 px-3 py-2 text-sm text-gray-900 bg-transparent outline-none min-w-0 disabled:text-gray-400"
+                  />
+                  <span className={`px-3 py-2 bg-gray-50 border-l border-gray-200 text-xs ${enabled ? "text-gray-500" : "text-gray-300"}`}>{suffix}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* TI Reserve */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs font-semibold text-gray-600">TI Reserve (Holdback)</p>
+              <p className="text-xs text-gray-400 mt-0.5">Lender-funded reserve for tenant improvements, drawn down as needed.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onChange({ ...inputs, tiReserve: { ...(inputs.tiReserve ?? {}), enabled: !(inputs.tiReserve?.enabled) } })}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${inputs.tiReserve?.enabled ? "bg-blue-600" : "bg-gray-200"}`}
+            >
+              <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ${inputs.tiReserve?.enabled ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </div>
+          {inputs.tiReserve?.enabled && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field
+                label="Reserve"
+                value={inputs.tiReserve?.reservePSF ?? 8.0}
+                field="reservePSF"
+                prefix="$"
+                suffix="/SF"
+                step={0.5}
+                onChange={(f, v) => onChange({ ...inputs, tiReserve: { ...(inputs.tiReserve ?? {}), [f]: v } })}
+              />
+              <Field
+                label="Min Draw DSCR"
+                value={inputs.tiReserve?.minDrawDSCR ?? 1.10}
+                field="minDrawDSCR"
+                suffix="x"
+                step={0.05}
+                onChange={(f, v) => onChange({ ...inputs, tiReserve: { ...(inputs.tiReserve ?? {}), [f]: v } })}
+              />
+            </div>
+          )}
         </div>
 
         {/* Loan term + extensions */}

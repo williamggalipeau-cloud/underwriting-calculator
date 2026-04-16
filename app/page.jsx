@@ -7,6 +7,7 @@ import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import UnitRoll from "@/components/UnitRoll";
+import CapitalAnalysis from "@/components/CapitalAnalysis";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -63,6 +64,9 @@ const DEFAULT_INPUTS = {
     lighting:             0.60,
     doorsHardware:        0.35,
     overheadDoors:        0.50,
+    landscaping:          0.15,
+    roofing:              0.50,
+    signage:              0.10,
     miscConstruction:     0.25,
     generalConditionsPct: 10,
     overheadProfitPct:    10,
@@ -72,6 +76,21 @@ const DEFAULT_INPUTS = {
   tiPerSFRenewal: 2.0,
   leasingCommissionNewPct: 6.0,
   leasingCommissionRenewalPct: 2.0,
+
+  loanSizingConstraints: {
+    minDSCREnabled:     false,
+    minDSCR:            1.25,
+    maxLTCEnabled:      false,
+    maxLTCPct:          75,
+    minDebtYieldEnabled: false,
+    minDebtYieldPct:    8.0,
+  },
+
+  tiReserve: {
+    enabled:        false,
+    reservePSF:     8.0,
+    minDrawDSCR:    1.10,
+  },
 
   ltvPct: 65,
   interestRatePct: 7.50,   // fixed rate (used when floatingRate is false)
@@ -142,6 +161,7 @@ const DEFAULT_INPUTS = {
 const TABS = [
   { id: "units",       label: "Unit Roll" },
   { id: "debt",        label: "Debt Sizing" },
+  { id: "capital",     label: "Capital" },
   { id: "returns",     label: "Returns" },
   { id: "sensitivity", label: "Sensitivity" },
 ];
@@ -252,6 +272,7 @@ export default function Home() {
               />
             )}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} />}
+            {activeTab === "capital" && <CapitalAnalysis debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
             {activeTab === "returns" && (
               <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} />
             )}
