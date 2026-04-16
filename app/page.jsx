@@ -174,9 +174,9 @@ const TABS = [
   { id: "units",       label: "Unit Roll" },
   { id: "debt",        label: "Debt" },
   { id: "capital",     label: "Capital" },
+  { id: "stress",      label: "Return Stress Testing" },
   { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
-  { id: "stress",      label: "Return Stress Testing" },
   { id: "fund",        label: "Portfolio Return" },
 ];
 
