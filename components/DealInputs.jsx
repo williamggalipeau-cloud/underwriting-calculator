@@ -1,6 +1,36 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
+
+function useSofr() {
+  const [sofr, setSofr] = useState(null);   // { rate: number, date: string }
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function fetch_() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        "https://markets.newyorkfed.org/api/rates/sofr/last/1.json"
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const entry = data?.refRates?.[0];
+      if (!entry) throw new Error("No data");
+      setSofr({ rate: entry.percentRate, date: entry.effectiveDate });
+    } catch (e) {
+      setError("Could not fetch SOFR");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { fetch_(); }, []);
+
+  return { sofr, loading, error, refresh: fetch_ };
+}
 
 function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
   return (
@@ -704,6 +734,7 @@ function fmtK(n) {
 
 export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
+  const { sofr, loading: sofrLoading, error: sofrError, refresh: sofrRefresh } = useSofr();
 
   const setCC = (field, value) =>
     onChange({ ...inputs, closingCosts: { ...inputs.closingCosts, [field]: value } });
@@ -1101,7 +1132,42 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
           </div>
           {inputs.floatingRate ? (
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Index Rate" value={inputs.indexRatePct} field="indexRatePct" suffix="%" step={0.05} onChange={set} />
+              <div className="col-span-2 flex items-center justify-between rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+                <div className="text-xs text-gray-500">
+                  <span className="font-medium text-gray-700">SOFR</span>
+                  {sofr && (
+                    <span className="ml-2 font-semibold text-gray-900 tabular-nums">{sofr.rate.toFixed(2)}%</span>
+                  )}
+                  {sofr && (
+                    <span className="ml-1.5 text-gray-400">as of {sofr.date}</span>
+                  )}
+                  {sofrLoading && <span className="ml-2 text-gray-400">Loading…</span>}
+                  {sofrError && <span className="ml-2 text-red-400">{sofrError}</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  {sofr && (
+                    <button
+                      type="button"
+                      onClick={() => set("indexRatePct", sofr.rate)}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 hover:border-blue-300 bg-white rounded-md px-2 py-1 transition-colors"
+                    >
+                      Use SOFR
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={sofrRefresh}
+                    disabled={sofrLoading}
+                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+                    title="Refresh SOFR"
+                  >
+                    <svg className={`w-3.5 h-3.5 ${sofrLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <Field label="Index Rate (SOFR)" value={inputs.indexRatePct} field="indexRatePct" suffix="%" step={0.05} onChange={set} />
               <Field label="Spread" value={inputs.spreadPct} field="spreadPct" suffix="%" step={0.10} onChange={set} />
               <div className="col-span-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700 font-medium">
                 Effective rate: {((inputs.indexRatePct ?? 0) + (inputs.spreadPct ?? 0)).toFixed(2)}%
