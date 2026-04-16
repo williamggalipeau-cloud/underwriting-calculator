@@ -89,8 +89,10 @@ const DEFAULT_INPUTS = {
   // Hedging
   hedgingType: "cap",       // "none" | "cap" | "swap"
   capStrikeRatePct: 9.50,   // rate cap strike
+  capTermYears: 3,          // cap term in years (typically = initial loan term)
   capPremiumPct: 1.00,      // upfront cap premium (% of loan)
   swapFixedRatePct: 7.75,   // used only if hedgingType = "swap"
+  swapTermYears: 3,         // swap term in years
 
   holdPeriodYears: 7,
   exitCapRatePct: 6.75,

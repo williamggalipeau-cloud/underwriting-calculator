@@ -20,6 +20,11 @@ function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0)
     leaseType: inputs.leaseType,
     otherIncomePSF: inputs.otherIncomePSF ?? 0,
     annualEscalationPct: inputs.annualRentEscalationPct,
+    realEstateTaxPSF: inputs.realEstateTaxPSF,
+    insurancePSF: inputs.insurancePSF,
+    utilitiesPSF: inputs.utilitiesPSF,
+    maintenancePSF: inputs.maintenancePSF,
+    janitorialPSF: inputs.janitorialPSF,
     leasingCommissionNewPct: inputs.leasingCommissionNewPct,
     leasingCommissionRenewalPct: inputs.leasingCommissionRenewalPct,
   };
@@ -139,6 +144,11 @@ const COL_HEADERS = [
   { key: "otherInc",  label: "Oth Inc",   width: "w-16", tip: "Other income ($/SF/yr)" },
   { key: "esc",       label: "Esc %",     width: "w-16", tip: "In-lease annual rent escalation (% per year during lease term)" },
   { key: "mktSpread", label: "Mkt Δ",     width: "w-16", tip: "Contracted rent vs. current market rent ($/SF)" },
+  { key: "reTax",     label: "RE Tax",    width: "w-16", tip: "Real estate tax ($/SF/yr) — dimmed when tenant-paid" },
+  { key: "ins",       label: "Ins",       width: "w-16", tip: "Insurance ($/SF/yr) — dimmed when tenant-paid" },
+  { key: "utils",     label: "Utils",     width: "w-16", tip: "Utilities ($/SF/yr) — dimmed when tenant-paid" },
+  { key: "maint",     label: "Maint",     width: "w-16", tip: "Maintenance ($/SF/yr) — dimmed when tenant-paid" },
+  { key: "janit",     label: "Janit",     width: "w-16", tip: "Janitorial ($/SF/yr) — dimmed when tenant-paid" },
   { key: "moLeft",    label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease" },
   { key: "newTerm",   label: "New Term",  width: "w-16", tip: "Months for next lease" },
   { key: "renew",     label: "Renew %",   width: "w-16", tip: "Renewal probability" },
@@ -307,6 +317,24 @@ export default function UnitRoll({ units, inputs, onChange }) {
                         );
                       })() : <span className="text-gray-300 text-xs">—</span>}
                     </td>
+                    {/* Operating expenses — dimmed when tenant-paid for this unit's lease type */}
+                    {[
+                      { field: "realEstateTaxPSF", propField: "realEstateTaxPSF", landlordPaid: unitLease === "MG" || unitLease === "Gross", label: "RE Tax $/SF" },
+                      { field: "insurancePSF",     propField: "insurancePSF",     landlordPaid: unitLease === "MG" || unitLease === "Gross", label: "Insurance $/SF" },
+                      { field: "utilitiesPSF",     propField: "utilitiesPSF",     landlordPaid: unitLease === "Gross", label: "Utilities $/SF" },
+                      { field: "maintenancePSF",   propField: "maintenancePSF",   landlordPaid: unitLease === "Gross", label: "Maintenance $/SF" },
+                      { field: "janitorialPSF",    propField: "janitorialPSF",    landlordPaid: unitLease === "Gross", label: "Janitorial $/SF" },
+                    ].map(({ field, propField, landlordPaid, label }) => (
+                      <td key={field} className={`px-2 py-1.5 ${!landlordPaid ? "opacity-30" : ""}`}>
+                        <NumCell
+                          label={label}
+                          value={u[field] ?? inputs[propField] ?? 0}
+                          step={0.05}
+                          prefix="$"
+                          onChange={(v) => update(u.id, field, v)}
+                        />
+                      </td>
+                    ))}
                     <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
                       <NumCell label="Months remaining" value={u.monthsRemaining} step={1} suffix="mo" onChange={(v) => update(u.id, "monthsRemaining", v)} />
                     </td>

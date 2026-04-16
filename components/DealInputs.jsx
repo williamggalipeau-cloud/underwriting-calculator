@@ -771,11 +771,15 @@ export default function DealInputsPanel({ inputs, onChange }) {
           {inputs.hedgingType === "cap" && (
             <div className="grid grid-cols-2 gap-3">
               <Field label="Cap Strike" value={inputs.capStrikeRatePct} field="capStrikeRatePct" suffix="%" step={0.25} onChange={set} />
+              <Field label="Cap Term" value={inputs.capTermYears ?? inputs.loanTermYears} field="capTermYears" suffix="yrs" step={1} onChange={set} />
               <Field label="Cap Premium" value={inputs.capPremiumPct} field="capPremiumPct" suffix="% of loan" step={0.10} onChange={set} />
             </div>
           )}
           {inputs.hedgingType === "swap" && (
-            <Field label="Swap Fixed Rate" value={inputs.swapFixedRatePct} field="swapFixedRatePct" suffix="%" step={0.25} onChange={set} />
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Swap Fixed Rate" value={inputs.swapFixedRatePct} field="swapFixedRatePct" suffix="%" step={0.25} onChange={set} />
+              <Field label="Swap Term" value={inputs.swapTermYears ?? inputs.loanTermYears} field="swapTermYears" suffix="yrs" step={1} onChange={set} />
+            </div>
           )}
         </div>
       </div>
