@@ -137,6 +137,11 @@ function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0)
     newLeaseTerm: Math.round(inputs.avgLeaseTerm * 12),
     renewalProbabilityPct: inputs.renewalProbabilityPct,
     downtimeBetweenLeases: inputs.downtimeBetweenLeases ?? 2,
+    creditLossPct: inputs.creditLossPct ?? 1,
+    freeRentMonthsNew: inputs.freeRentMonthsNew ?? 1,
+    freeRentMonthsRenewal: inputs.freeRentMonthsRenewal ?? 0,
+    tiConcessionPSFNew: inputs.tiConcessionPSFNew ?? 0,
+    tiConcessionPSFRenewal: inputs.tiConcessionPSFRenewal ?? 0,
     tiNewPSF: inputs.tiPerSFNew ?? 8,
     tiRenewalPSF: inputs.tiPerSFRenewal,
     leaseType: inputs.leaseType,
@@ -282,6 +287,11 @@ const COL_HEADERS = [
   { key: "tiRen",     label: "TI Ren",    width: "w-16", tip: "TI for renewals ($/SF)" },
   { key: "lcNew",     label: "LC New",    width: "w-16", tip: "Leasing commission — new lease (% of lease value)" },
   { key: "lcRen",     label: "LC Ren",    width: "w-16", tip: "Leasing commission — renewal (% of lease value)" },
+  { key: "credLoss",  label: "Cr Loss",   width: "w-16", tip: "Credit loss / bad debt (% of EGR)" },
+  { key: "frNew",     label: "FR New",    width: "w-16", tip: "Free rent months granted to new tenants" },
+  { key: "frRen",     label: "FR Ren",    width: "w-16", tip: "Free rent months granted on renewals" },
+  { key: "tiConcN",   label: "TI Conc N", width: "w-20", tip: "TI concession $/SF — new lease (income-side deduction)" },
+  { key: "tiConcR",   label: "TI Conc R", width: "w-20", tip: "TI concession $/SF — renewal (income-side deduction)" },
 ];
 
 export default function UnitRoll({ units, inputs, onChange }) {
@@ -559,6 +569,21 @@ export default function UnitRoll({ units, inputs, onChange }) {
                     </td>
                     <td className="px-2 py-1.5">
                       <NumCell label="LC renewal %" value={u.leasingCommissionRenewalPct ?? inputs.leasingCommissionRenewalPct} step={0.5} suffix="%" onChange={(v) => update(u.id, "leasingCommissionRenewalPct", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="Credit loss %" value={u.creditLossPct ?? inputs.creditLossPct ?? 1} step={0.5} suffix="%" onChange={(v) => update(u.id, "creditLossPct", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="Free rent — new (mo)" value={u.freeRentMonthsNew ?? inputs.freeRentMonthsNew ?? 0} step={1} suffix="mo" onChange={(v) => update(u.id, "freeRentMonthsNew", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="Free rent — renewal (mo)" value={u.freeRentMonthsRenewal ?? inputs.freeRentMonthsRenewal ?? 0} step={1} suffix="mo" onChange={(v) => update(u.id, "freeRentMonthsRenewal", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="TI concession — new ($/SF)" value={u.tiConcessionPSFNew ?? inputs.tiConcessionPSFNew ?? 0} step={0.25} prefix="$" onChange={(v) => update(u.id, "tiConcessionPSFNew", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="TI concession — renewal ($/SF)" value={u.tiConcessionPSFRenewal ?? inputs.tiConcessionPSFRenewal ?? 0} step={0.25} prefix="$" onChange={(v) => update(u.id, "tiConcessionPSFRenewal", v)} />
                     </td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-gray-400 whitespace-nowrap">
                       {isOccupied ? `$${Math.round(annualRevenue / 1000)}k` : "—"}
