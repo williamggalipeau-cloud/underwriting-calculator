@@ -17,6 +17,7 @@ const DEFAULT_INPUTS = {
     titleInsuranceLenderPct: 0.20,
     transferTaxPct:          0.50,
     loanOriginationPct:      1.00,
+    acquisitionFeePct:       1.00,
     legalFees:               15000,
     environmentalReport:     3500,
     appraisal:               7500,
@@ -104,6 +105,15 @@ const DEFAULT_INPUTS = {
     legalFees:            15000,
     miscDispositionCosts: 5000,
   },
+
+  // Concessions
+  freeRentMonthsNew: 1,       // free rent months given to new tenants (reduces rollover revenue)
+  freeRentMonthsRenewal: 0,   // free rent months given on renewals
+
+  // User-defined custom line items
+  customIncomeItems: [],       // [{ id, label, psf }]
+  customExpenseItems: [],      // [{ id, label, psf }]
+  customDispositionItems: [],  // [{ id, label, basis: "pct"|"fixed", value }]
 
   // LP / GP waterfall
   waterfallEnabled: true,

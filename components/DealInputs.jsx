@@ -52,6 +52,7 @@ function ClosingCostsSection({ cc, purchasePrice, loanAmount, onChange }) {
     { label: "Title Insurance (Lender)", field: "titleInsuranceLenderPct", basis: "loan", step: 0.05 },
     { label: "Transfer / Recording Tax", field: "transferTaxPct",          basis: "pp",   step: 0.05 },
     { label: "Loan Origination",         field: "loanOriginationPct",      basis: "loan", step: 0.25 },
+    { label: "Acquisition Fee",          field: "acquisitionFeePct",        basis: "pp",   step: 0.25 },
     { label: "Legal Fees",               field: "legalFees",               basis: "fixed", step: 500  },
     { label: "Phase I ESA",              field: "environmentalReport",     basis: "fixed", step: 250  },
     { label: "Appraisal",                field: "appraisal",               basis: "fixed", step: 500  },
@@ -513,6 +514,130 @@ function WaterfallSection({ inputs, onChange }) {
   );
 }
 
+// ─── Custom line items ────────────────────────────────────────────────────────
+// PSF-based items (income + expense)
+
+function newPSFItem(label = "") {
+  return { id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, label, psf: 0 };
+}
+
+function CustomPSFItems({ items = [], suffix = "/SF/yr", placeholder, addLabel, onChange }) {
+  const set = (id, field, value) =>
+    onChange(items.map((it) => (it.id === id ? { ...it, [field]: value } : it)));
+  const remove = (id) => onChange(items.filter((it) => it.id !== id));
+  const add    = ()    => onChange([...items, newPSFItem()]);
+
+  return (
+    <div className="space-y-2">
+      {items.map((item) => (
+        <div key={item.id} className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder={placeholder}
+            value={item.label}
+            onChange={(e) => set(item.id, "label", e.target.value)}
+            className="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden w-32 shrink-0">
+            <span className="px-2 py-2 bg-gray-50 border-r border-gray-200 text-gray-500 text-sm">$</span>
+            <input
+              type="number"
+              aria-label={`${item.label || "item"} value`}
+              value={item.psf}
+              step={0.05}
+              min={0}
+              onChange={(e) => set(item.id, "psf", parseFloat(e.target.value) || 0)}
+              className="flex-1 px-2 py-2 text-sm text-gray-900 bg-white outline-none min-w-0"
+            />
+            <span className="px-2 py-2 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs whitespace-nowrap">{suffix}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => remove(item.id)}
+            className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none shrink-0"
+            aria-label="Remove item"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={add}
+        className="w-full px-3 py-1.5 text-xs font-medium text-blue-600 border border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+      >
+        + {addLabel}
+      </button>
+    </div>
+  );
+}
+
+// Disposition items — each can be % of exit value or a fixed dollar amount
+function newDispositionItem() {
+  return { id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, label: "", basis: "pct", value: 0 };
+}
+
+function CustomDispositionItems({ items = [], onChange }) {
+  const set = (id, field, value) =>
+    onChange(items.map((it) => (it.id === id ? { ...it, [field]: value } : it)));
+  const remove = (id) => onChange(items.filter((it) => it.id !== id));
+  const add    = ()    => onChange([...items, newDispositionItem()]);
+
+  return (
+    <div className="space-y-2">
+      {items.map((item) => (
+        <div key={item.id} className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Item name"
+            value={item.label}
+            onChange={(e) => set(item.id, "label", e.target.value)}
+            className="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden w-36 shrink-0">
+            {item.basis === "fixed" && (
+              <span className="px-2 py-2 bg-gray-50 border-r border-gray-200 text-gray-500 text-sm">$</span>
+            )}
+            <input
+              type="number"
+              aria-label={`${item.label || "item"} value`}
+              value={item.value}
+              step={item.basis === "pct" ? 0.05 : 500}
+              min={0}
+              onChange={(e) => set(item.id, "value", parseFloat(e.target.value) || 0)}
+              className="flex-1 px-2 py-2 text-sm text-gray-900 bg-white outline-none min-w-0"
+            />
+            <select
+              aria-label="Basis"
+              value={item.basis}
+              onChange={(e) => set(item.id, "basis", e.target.value)}
+              className="px-1 py-2 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs outline-none cursor-pointer"
+            >
+              <option value="pct">% of sale</option>
+              <option value="fixed">$ fixed</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => remove(item.id)}
+            className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none shrink-0"
+            aria-label="Remove item"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={add}
+        className="w-full px-3 py-1.5 text-xs font-medium text-blue-600 border border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+      >
+        + Add disposition item
+      </button>
+    </div>
+  );
+}
+
 const LEASE_TYPES = [
   { id: "NNN",   label: "NNN",          description: "Tenant pays taxes, insurance, maintenance" },
   { id: "MG",    label: "Modified Gross", description: "Landlord pays taxes & insurance" },
@@ -612,6 +737,26 @@ export default function DealInputsPanel({ inputs, onChange }) {
             <Field label="Other Income" value={inputs.otherIncomePSF} field="otherIncomePSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
           </div>
         </div>
+        {/* Concessions / free rent */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-2">Concessions &amp; Free Rent</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Free Rent — New" value={inputs.freeRentMonthsNew ?? 0} field="freeRentMonthsNew" suffix="mo" step={1} onChange={set} />
+            <Field label="Free Rent — Renewal" value={inputs.freeRentMonthsRenewal ?? 0} field="freeRentMonthsRenewal" suffix="mo" step={1} onChange={set} />
+          </div>
+          <p className="text-xs text-gray-400 mt-1.5">Free rent reduces collected rent when a new lease is executed, normalized over the lease term.</p>
+        </div>
+        {/* Custom income line items */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-2">Additional Income Items</p>
+          <CustomPSFItems
+            items={inputs.customIncomeItems ?? []}
+            suffix="/SF/yr"
+            placeholder="e.g. Parking revenue"
+            addLabel="Add income item"
+            onChange={(items) => onChange({ ...inputs, customIncomeItems: items })}
+          />
+        </div>
       </div>
 
       {/* Operating Expenses */}
@@ -664,6 +809,17 @@ export default function DealInputsPanel({ inputs, onChange }) {
           <Field label="Mgmt. Fee" value={inputs.managementFeePct} field="managementFeePct" suffix="% EGR" step={0.5} onChange={set} />
           <Field label="Leasing Fees" value={inputs.leasingFeesPSF} field="leasingFeesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
           <Field label="Capital Reserves" value={inputs.capitalReservesPSF} field="capitalReservesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
+        </div>
+        {/* Custom expense line items */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-2">Additional Expense Items</p>
+          <CustomPSFItems
+            items={inputs.customExpenseItems ?? []}
+            suffix="/SF/yr"
+            placeholder="e.g. Landscaping"
+            addLabel="Add expense item"
+            onChange={(items) => onChange({ ...inputs, customExpenseItems: items })}
+          />
         </div>
       </div>
 
@@ -800,6 +956,14 @@ export default function DealInputsPanel({ inputs, onChange }) {
             onChange({ ...inputs, sellingCosts: { ...inputs.sellingCosts, [field]: value } })
           }
         />
+        {/* Custom disposition items */}
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-2">Additional Disposition Items</p>
+          <CustomDispositionItems
+            items={inputs.customDispositionItems ?? []}
+            onChange={(items) => onChange({ ...inputs, customDispositionItems: items })}
+          />
+        </div>
       </div>
     </div>
   );
