@@ -107,8 +107,16 @@ const DEFAULT_INPUTS = {
   },
 
   // Concessions
-  freeRentMonthsNew: 1,       // free rent months given to new tenants (reduces rollover revenue)
-  freeRentMonthsRenewal: 0,   // free rent months given on renewals
+  freeRentMonthsNew: 1,         // free rent months given to new tenants
+  freeRentMonthsRenewal: 0,     // free rent months given on renewals
+  tiConcessionPSFNew: 0,        // TI allowance as income concession — new lease ($/SF)
+  tiConcessionPSFRenewal: 0,    // TI allowance as income concession — renewal ($/SF)
+
+  // Asset management fee allocations (charged by AM to the asset)
+  amFeeItems: [],  // [{ id, label, basis: "psf"|"fixed"|"pctEGR", value }]
+
+  // Custom rollover costs (charged at each lease rollover event, per SF)
+  customRolloverItems: [],  // [{ id, label, psf }]
 
   // User-defined custom line items
   customIncomeItems: [],       // [{ id, label, psf }]

@@ -514,6 +514,75 @@ function WaterfallSection({ inputs, onChange }) {
   );
 }
 
+// ─── AM fee allocations ───────────────────────────────────────────────────────
+
+function newAMFeeItem() {
+  return { id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, label: "", basis: "psf", value: 0 };
+}
+
+function AMFeeItems({ items = [], onChange }) {
+  const set    = (id, field, value) => onChange(items.map((it) => (it.id === id ? { ...it, [field]: value } : it)));
+  const remove = (id)               => onChange(items.filter((it) => it.id !== id));
+  const add    = ()                 => onChange([...items, newAMFeeItem()]);
+
+  const basisLabel = { psf: "$/SF/yr", fixed: "$/yr", pctEGR: "% EGR" };
+
+  return (
+    <div className="space-y-2">
+      {items.map((item) => (
+        <div key={item.id} className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="e.g. Asset mgmt. fee"
+            value={item.label}
+            onChange={(e) => set(item.id, "label", e.target.value)}
+            className="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden w-40 shrink-0">
+            {item.basis !== "pctEGR" && (
+              <span className="px-2 py-2 bg-gray-50 border-r border-gray-200 text-gray-500 text-sm">$</span>
+            )}
+            <input
+              type="number"
+              aria-label={`${item.label || "fee"} value`}
+              value={item.value}
+              step={item.basis === "psf" ? 0.05 : item.basis === "pctEGR" ? 0.25 : 500}
+              min={0}
+              onChange={(e) => set(item.id, "value", parseFloat(e.target.value) || 0)}
+              className="flex-1 px-2 py-2 text-sm text-gray-900 bg-white outline-none min-w-0"
+            />
+            <select
+              aria-label="Basis"
+              value={item.basis}
+              onChange={(e) => set(item.id, "basis", e.target.value)}
+              className="px-1 py-2 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs outline-none cursor-pointer"
+            >
+              <option value="psf">$/SF/yr</option>
+              <option value="fixed">$/yr</option>
+              <option value="pctEGR">% EGR</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => remove(item.id)}
+            className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none shrink-0"
+            aria-label="Remove fee"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={add}
+        className="w-full px-3 py-1.5 text-xs font-medium text-blue-600 border border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+      >
+        + Add allocation
+      </button>
+    </div>
+  );
+}
+
 // ─── Custom line items ────────────────────────────────────────────────────────
 // PSF-based items (income + expense)
 
@@ -743,8 +812,10 @@ export default function DealInputsPanel({ inputs, onChange }) {
           <div className="grid grid-cols-2 gap-3">
             <Field label="Free Rent — New" value={inputs.freeRentMonthsNew ?? 0} field="freeRentMonthsNew" suffix="mo" step={1} onChange={set} />
             <Field label="Free Rent — Renewal" value={inputs.freeRentMonthsRenewal ?? 0} field="freeRentMonthsRenewal" suffix="mo" step={1} onChange={set} />
+            <Field label="TI Concession — New" value={inputs.tiConcessionPSFNew ?? 0} field="tiConcessionPSFNew" prefix="$" suffix="/SF" step={0.5} onChange={set} />
+            <Field label="TI Concession — Renewal" value={inputs.tiConcessionPSFRenewal ?? 0} field="tiConcessionPSFRenewal" prefix="$" suffix="/SF" step={0.5} onChange={set} />
           </div>
-          <p className="text-xs text-gray-400 mt-1.5">Free rent reduces collected rent when a new lease is executed, normalized over the lease term.</p>
+          <p className="text-xs text-gray-400 mt-1.5">Free rent and TI concessions reduce income at each lease rollover event. TI concession is an income-side deduction (separate from capital TI in rollover costs).</p>
         </div>
         {/* Custom income line items */}
         <div className="mt-3 pt-3 border-t border-gray-100">
@@ -810,6 +881,15 @@ export default function DealInputsPanel({ inputs, onChange }) {
           <Field label="Leasing Fees" value={inputs.leasingFeesPSF} field="leasingFeesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
           <Field label="Capital Reserves" value={inputs.capitalReservesPSF} field="capitalReservesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
         </div>
+        {/* Asset management fee allocations */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-1">Asset Mgmt. Allocations</p>
+          <p className="text-xs text-gray-400 mb-2">Fees charged by the asset manager to the property (oversight, accounting, reporting, etc.).</p>
+          <AMFeeItems
+            items={inputs.amFeeItems ?? []}
+            onChange={(items) => onChange({ ...inputs, amFeeItems: items })}
+          />
+        </div>
         {/* Custom expense line items */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-600 mb-2">Additional Expense Items</p>
@@ -838,6 +918,18 @@ export default function DealInputsPanel({ inputs, onChange }) {
           <div />
           <Field label="LC — New Lease" value={inputs.leasingCommissionNewPct} field="leasingCommissionNewPct" suffix="% lease val" step={0.5} onChange={set} />
           <Field label="LC — Renewal" value={inputs.leasingCommissionRenewalPct} field="leasingCommissionRenewalPct" suffix="% lease val" step={0.5} onChange={set} />
+        </div>
+        {/* Custom rollover cost items */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-1">Additional Rollover Costs</p>
+          <p className="text-xs text-gray-400 mb-2">Charged per SF at each lease rollover (e.g. signage, permits, move-in allowance).</p>
+          <CustomPSFItems
+            items={inputs.customRolloverItems ?? []}
+            suffix="/SF"
+            placeholder="e.g. Signage allowance"
+            addLabel="Add rollover item"
+            onChange={(items) => onChange({ ...inputs, customRolloverItems: items })}
+          />
         </div>
       </div>
 
