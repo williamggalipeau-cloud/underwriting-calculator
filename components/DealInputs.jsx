@@ -755,31 +755,6 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
         onChange={setCC}
       />
 
-      {/* Multi-tenant */}
-      <div>
-        {(inputs.units ?? []).length > 0 ? (
-          <>
-            <SectionHeader
-              title="Multi-Tenant"
-              subtitle={`${inputs.units.length} units in rent roll`}
-            />
-            <p className="text-xs text-gray-400">
-              Lease term, renewal probability, and turnover downtime are set per unit in the rent roll.
-            </p>
-          </>
-        ) : (
-          <>
-            <SectionHeader title="Multi-Tenant" subtitle={avgUnitSize > 0 ? `Avg unit: ${avgUnitSize.toLocaleString()} SF` : undefined} />
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Unit Count" value={inputs.unitCount} field="unitCount" suffix="units" step={1} onChange={set} />
-              <Field label="Avg Lease Term" value={inputs.avgLeaseTerm} field="avgLeaseTerm" suffix="yrs" step={0.5} onChange={set} />
-              <Field label="Renewal Probability" value={inputs.renewalProbabilityPct} field="renewalProbabilityPct" suffix="%" step={5} onChange={set} />
-              <Field label="Downtime" value={inputs.downtimeBetweenLeases} field="downtimeBetweenLeases" suffix="mo" step={1} onChange={set} />
-            </div>
-          </>
-        )}
-      </div>
-
       {/* Lease Structure */}
       <div>
         <SectionHeader title="Lease Structure" />
