@@ -15,8 +15,12 @@ function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0)
     monthsRemaining: occupied ? Math.max(1, monthsRemaining) : 0,
     newLeaseTerm: Math.round(inputs.avgLeaseTerm * 12),
     renewalProbabilityPct: inputs.renewalProbabilityPct,
-    tiNewPSF: inputs.tiPerSFNew,
+    tiNewPSF: inputs.tiPerSFNew ?? 8,
     tiRenewalPSF: inputs.tiPerSFRenewal,
+    leaseType: inputs.leaseType,
+    otherIncomePSF: inputs.otherIncomePSF ?? 0,
+    leasingCommissionNewPct: inputs.leasingCommissionNewPct,
+    leasingCommissionRenewalPct: inputs.leasingCommissionRenewalPct,
   };
 }
 
@@ -125,16 +129,20 @@ function SummaryStats({ units, propertySF }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 const COL_HEADERS = [
-  { key: "name",    label: "Unit",      width: "w-16", tip: "" },
-  { key: "sf",      label: "SF",        width: "w-20", tip: "" },
-  { key: "tenant",  label: "Tenant",    width: "w-28", tip: "" },
-  { key: "status",  label: "Status",    width: "w-24", tip: "" },
-  { key: "rent",    label: "Rent $/SF", width: "w-20", tip: "Contracted rent ($/SF/yr)" },
-  { key: "moLeft",  label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease" },
-  { key: "newTerm", label: "New Term",  width: "w-16", tip: "Months for next lease" },
-  { key: "renew",   label: "Renew %",   width: "w-16", tip: "Renewal probability" },
-  { key: "tiNew",   label: "TI New",    width: "w-16", tip: "TI for new tenants ($/SF)" },
-  { key: "tiRen",   label: "TI Ren",    width: "w-16", tip: "TI for renewals ($/SF)" },
+  { key: "name",      label: "Unit",      width: "w-16", tip: "" },
+  { key: "sf",        label: "SF",        width: "w-20", tip: "" },
+  { key: "tenant",    label: "Tenant",    width: "w-28", tip: "" },
+  { key: "status",    label: "Status",    width: "w-24", tip: "" },
+  { key: "leaseType", label: "Lease",     width: "w-28", tip: "Lease type — determines landlord expense responsibility" },
+  { key: "rent",      label: "Rent $/SF", width: "w-20", tip: "Contracted rent ($/SF/yr)" },
+  { key: "otherInc",  label: "Oth Inc",   width: "w-16", tip: "Other income ($/SF/yr)" },
+  { key: "moLeft",    label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease" },
+  { key: "newTerm",   label: "New Term",  width: "w-16", tip: "Months for next lease" },
+  { key: "renew",     label: "Renew %",   width: "w-16", tip: "Renewal probability" },
+  { key: "tiNew",     label: "TI New",    width: "w-16", tip: "TI for new tenants ($/SF)" },
+  { key: "tiRen",     label: "TI Ren",    width: "w-16", tip: "TI for renewals ($/SF)" },
+  { key: "lcNew",     label: "LC New",    width: "w-16", tip: "Leasing commission — new lease (% of lease value)" },
+  { key: "lcRen",     label: "LC Ren",    width: "w-16", tip: "Leasing commission — renewal (% of lease value)" },
 ];
 
 export default function UnitRoll({ units, inputs, onChange }) {
@@ -234,6 +242,7 @@ export default function UnitRoll({ units, inputs, onChange }) {
               {units.map((u) => {
                 const isOccupied   = u.leaseStatus === "occupied";
                 const annualRevenue = isOccupied ? u.currentRentPSF * u.squareFeet : 0;
+                const unitLease    = u.leaseType ?? inputs.leaseType ?? "NNN";
 
                 return (
                   <tr key={u.id} className={`hover:bg-gray-50 transition-colors ${!isOccupied ? "bg-red-50/30" : ""}`}>
@@ -255,8 +264,30 @@ export default function UnitRoll({ units, inputs, onChange }) {
                         {isOccupied ? "Occupied" : "Vacant"}
                       </button>
                     </td>
+                    {/* Lease type — compact 3-way toggle */}
+                    <td className="px-2 py-1.5">
+                      <div className="flex gap-0.5">
+                        {["NNN", "MG", "Gross"].map((lt) => (
+                          <button
+                            key={lt}
+                            type="button"
+                            onClick={() => update(u.id, "leaseType", lt)}
+                            className={`px-1.5 py-0.5 rounded text-xs font-medium transition-colors ${
+                              unitLease === lt
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            }`}
+                          >
+                            {lt}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
                     <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
                       <NumCell label="Rent per SF" value={u.currentRentPSF} step={0.25} prefix="$" onChange={(v) => update(u.id, "currentRentPSF", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="Other income per SF" value={u.otherIncomePSF ?? 0} step={0.05} prefix="$" onChange={(v) => update(u.id, "otherIncomePSF", v)} />
                     </td>
                     <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
                       <NumCell label="Months remaining" value={u.monthsRemaining} step={1} suffix="mo" onChange={(v) => update(u.id, "monthsRemaining", v)} />
@@ -272,6 +303,12 @@ export default function UnitRoll({ units, inputs, onChange }) {
                     </td>
                     <td className="px-2 py-1.5">
                       <NumCell label="TI for renewal" value={u.tiRenewalPSF} step={0.5} prefix="$" onChange={(v) => update(u.id, "tiRenewalPSF", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="LC new lease %" value={u.leasingCommissionNewPct ?? inputs.leasingCommissionNewPct} step={0.5} suffix="%" onChange={(v) => update(u.id, "leasingCommissionNewPct", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <NumCell label="LC renewal %" value={u.leasingCommissionRenewalPct ?? inputs.leasingCommissionRenewalPct} step={0.5} suffix="%" onChange={(v) => update(u.id, "leasingCommissionRenewalPct", v)} />
                     </td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-gray-400 whitespace-nowrap">
                       {isOccupied ? `$${Math.round(annualRevenue / 1000)}k` : "—"}
