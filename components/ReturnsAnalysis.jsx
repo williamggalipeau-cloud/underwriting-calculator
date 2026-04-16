@@ -40,7 +40,90 @@ function KPI({ label, value, sub, t }) {
   );
 }
 
-export default function ReturnsAnalysis({ returns, cashFlows }) {
+function WaterfallSection({ wf }) {
+  if (!wf) return null;
+
+  const irrTierLP = tier(wf.lpIRR, 18, 14, 10);
+  const irrTierGP = tier(wf.gpIRR, 25, 20, 15);
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-gray-700">LP / GP Waterfall</h3>
+
+      {/* Active tier callout */}
+      <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800">
+        <span className="font-semibold">Active promote tier: </span>
+        Project IRR {fmtPct(wf.projectIRR)} →{" "}
+        LP {wf.activeTier?.lpSplit ?? "—"}% / GP {wf.activeTier?.gpSplit ?? "—"}%
+        {wf.activeTier?.irrThreshold
+          ? ` (below ${wf.activeTier.irrThreshold}% IRR hurdle)`
+          : " (above all thresholds)"}
+      </div>
+
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <KPI label="LP IRR"            value={fmtPct(wf.lpIRR)}           sub="Levered, after waterfall"       t={irrTierLP} />
+        <KPI label="GP IRR"            value={fmtPct(wf.gpIRR)}           sub="Including promote"              t={irrTierGP} />
+        <KPI label="LP Equity Multiple" value={`${fmt(wf.lpEquityMultiple, 2)}x`} sub="LP distributions ÷ LP equity" />
+        <KPI label="GP Equity Multiple" value={`${fmt(wf.gpEquityMultiple, 2)}x`} sub="GP distributions ÷ GP equity" />
+      </div>
+
+      {/* Summary rows */}
+      <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+        {[
+          { label: "LP Equity Invested",     value: fmtM(wf.lpEquity),             sub: "LP share of total equity" },
+          { label: "GP Equity Invested",     value: fmtM(wf.gpEquity),             sub: "GP co-invest" },
+          { label: "LP Total Distributions", value: fmtM(wf.lpTotalDistributions), sub: "Cash flows + reversion to LP" },
+          { label: "GP Total Distributions", value: fmtM(wf.gpTotalDistributions), sub: "Cash flows + reversion to GP" },
+          { label: "GP Promote",             value: fmtM(wf.gpPromote),            sub: "GP upside above capital return" },
+        ].map(({ label, value, sub }) => (
+          <div key={label} className="flex items-center justify-between px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-gray-700">{label}</p>
+              {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+            </div>
+            <span className="text-sm font-semibold text-gray-900 tabular-nums">{value}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Year-by-year distribution table */}
+      <div>
+        <h4 className="text-xs font-semibold text-gray-600 mb-2">Annual Distributions</h4>
+        <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                {["Year", "Total CF", "LP", "GP", "GP %"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {wf.yearlyDist.map(({ year, lp, gp }) => {
+                const total = lp + gp;
+                const gpSharePct = total > 0 ? (gp / total) * 100 : 0;
+                return (
+                  <tr key={year} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-3 py-2 font-medium text-gray-700">Y{year}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-600">{fmtM(total)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-blue-700 font-medium">{fmtM(lp)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-emerald-700 font-medium">{fmtM(gp)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-500">{fmtPct(gpSharePct, 1)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ReturnsAnalysis({ returns, cashFlows, waterfall }) {
   const irrTier = tier(returns.irr, 18, 14, 10);
   const emTier  = tier(returns.equityMultiple, 2.5, 2.0, 1.5);
   const cocTier = tier(returns.yearOneCashOnCash, 9, 7, 5);
@@ -131,6 +214,9 @@ export default function ReturnsAnalysis({ returns, cashFlows }) {
           TI + LC = normalized tenant improvements & leasing commissions. Op. Exp. reflects landlord-paid costs per lease type.
         </p>
       </div>
+
+      {/* LP / GP waterfall */}
+      {waterfall && <WaterfallSection wf={waterfall} />}
     </div>
   );
 }

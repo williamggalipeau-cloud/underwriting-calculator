@@ -313,6 +313,206 @@ function ExitCostsSection({ sc, onChange }) {
   );
 }
 
+function WaterfallSection({ inputs, onChange }) {
+  const wf = inputs.waterfall ?? {};
+  const enabled = !!inputs.waterfallEnabled;
+
+  const setWF = (field, value) =>
+    onChange({ ...inputs, waterfall: { ...wf, [field]: value } });
+
+  const setTier = (idx, field, value) => {
+    const tiers = (wf.tiers ?? []).map((t, i) =>
+      i === idx ? { ...t, [field]: value } : t
+    );
+    onChange({ ...inputs, waterfall: { ...wf, tiers } });
+  };
+
+  const addTier = () => {
+    const existing = wf.tiers ?? [];
+    // Insert before the last (catch-all) tier
+    const last = existing[existing.length - 1];
+    const prevThreshold = existing.length >= 2
+      ? existing[existing.length - 2]?.irrThreshold ?? 0
+      : 0;
+    const newTier = { irrThreshold: prevThreshold + 5, lpSplit: 75, gpSplit: 25 };
+    const newTiers = last?.irrThreshold === null
+      ? [...existing.slice(0, -1), newTier, last]
+      : [...existing, newTier];
+    onChange({ ...inputs, waterfall: { ...wf, tiers: newTiers } });
+  };
+
+  const removeTier = (idx) => {
+    const tiers = (wf.tiers ?? []).filter((_, i) => i !== idx);
+    onChange({ ...inputs, waterfall: { ...wf, tiers } });
+  };
+
+  const gpPct = 100 - (wf.lpEquityPct ?? 90);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <SectionHeader title="LP / GP Waterfall" />
+        <button
+          type="button"
+          onClick={() => onChange({ ...inputs, waterfallEnabled: !enabled })}
+          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+            enabled ? "bg-blue-600" : "bg-gray-200"
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+              enabled ? "translate-x-4" : "translate-x-0"
+            }`}
+          />
+        </button>
+      </div>
+
+      {enabled && (
+        <div className="space-y-4">
+          {/* Equity split */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="LP Equity %"
+              value={wf.lpEquityPct ?? 90}
+              field="lpEquityPct"
+              suffix="%"
+              step={5}
+              onChange={setWF}
+            />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">GP Equity %</label>
+              <div className="flex items-center border border-gray-100 rounded-lg bg-gray-50 px-3 py-2">
+                <span className="text-sm text-gray-500 tabular-nums">{gpPct.toFixed(0)}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pref & catch-up */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="Pref. Return"
+              value={wf.preferredReturnPct ?? 8}
+              field="preferredReturnPct"
+              suffix="% / yr"
+              step={0.5}
+              onChange={setWF}
+            />
+            <Field
+              label="GP Catch-Up"
+              value={wf.catchUpGpPct ?? 100}
+              field="catchUpGpPct"
+              suffix="% of dist"
+              step={10}
+              onChange={setWF}
+            />
+          </div>
+
+          {/* Tier table */}
+          <div>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Profit Tiers (based on project IRR)</p>
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">IRR Up To</th>
+                    <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide w-20">LP %</th>
+                    <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide w-20">GP %</th>
+                    <th className="w-8" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {(wf.tiers ?? []).map((tier, idx) => {
+                    const isLast = tier.irrThreshold === null;
+                    return (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-2 py-1.5">
+                          {isLast ? (
+                            <span className="px-2 py-1 text-xs text-gray-400 italic">Above all thresholds</span>
+                          ) : (
+                            <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                              <input
+                                type="number"
+                                aria-label="IRR threshold"
+                                value={tier.irrThreshold ?? ""}
+                                step={1}
+                                min={0}
+                                onChange={(e) => setTier(idx, "irrThreshold", parseFloat(e.target.value) || 0)}
+                                className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-14"
+                              />
+                              <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                            <input
+                              type="number"
+                              aria-label="LP split %"
+                              value={tier.lpSplit ?? 80}
+                              step={5}
+                              min={0}
+                              max={100}
+                              onChange={(e) => {
+                                const lp = parseFloat(e.target.value) || 0;
+                                setTier(idx, "lpSplit", lp);
+                                setTier(idx, "gpSplit", Math.max(0, 100 - lp));
+                              }}
+                              className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-12"
+                            />
+                            <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                            <input
+                              type="number"
+                              aria-label="GP split %"
+                              value={tier.gpSplit ?? 20}
+                              step={5}
+                              min={0}
+                              max={100}
+                              onChange={(e) => {
+                                const gp = parseFloat(e.target.value) || 0;
+                                setTier(idx, "gpSplit", gp);
+                                setTier(idx, "lpSplit", Math.max(0, 100 - gp));
+                              }}
+                              className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-12"
+                            />
+                            <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          {!isLast && (
+                            <button
+                              type="button"
+                              aria-label="Remove tier"
+                              onClick={() => removeTier(idx)}
+                              className="text-gray-300 hover:text-red-500 transition-colors text-base leading-none"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <button
+              type="button"
+              onClick={addTier}
+              className="mt-2 w-full px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              + Add tier
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const LEASE_TYPES = [
   { id: "NNN",   label: "NNN",          description: "Tenant pays taxes, insurance, maintenance" },
   { id: "MG",    label: "Modified Gross", description: "Landlord pays taxes & insurance" },
@@ -579,6 +779,9 @@ export default function DealInputsPanel({ inputs, onChange }) {
           )}
         </div>
       </div>
+
+      {/* Waterfall / Promote */}
+      <WaterfallSection inputs={inputs} onChange={onChange} />
 
       {/* Exit */}
       <div>

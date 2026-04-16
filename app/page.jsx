@@ -103,6 +103,19 @@ const DEFAULT_INPUTS = {
     miscDispositionCosts: 5000,
   },
 
+  // LP / GP waterfall
+  waterfallEnabled: true,
+  waterfall: {
+    lpEquityPct: 90,
+    preferredReturnPct: 8.0,
+    catchUpGpPct: 100,
+    tiers: [
+      { irrThreshold: 12,   lpSplit: 80, gpSplit: 20 },
+      { irrThreshold: 18,   lpSplit: 70, gpSplit: 30 },
+      { irrThreshold: null, lpSplit: 60, gpSplit: 40 },
+    ],
+  },
+
   units: [],
 };
 
@@ -131,7 +144,7 @@ export default function Home() {
 
   const results = useMemo(() => underwrite(inputs), [inputs]);
 
-  const { debt, returns, annualCashFlows } = results;
+  const { debt, returns, annualCashFlows, waterfall } = results;
 
   const summaryItems = [
     { label: "IRR", value: fmtPct(returns.irr), good: returns.irr >= 14 },
@@ -220,7 +233,7 @@ export default function Home() {
             )}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} />}
             {activeTab === "returns" && (
-              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} />
+              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} />
             )}
             {activeTab === "sensitivity" && (
               <SensitivityTables
