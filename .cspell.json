@@ -1,0 +1,41 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "dscr",
+    "ltv",
+    "mgmt",
+    "noi",
+    "egr",
+    "irr",
+    "npv",
+    "psf",
+    "tiand",
+    "tabular",
+    "nums",
+    "whitespace",
+    "autofill",
+    "prelease",
+    "subleasing",
+    "leaseback",
+    "proptech",
+    "rollover",
+    "downtime",
+    "pretax",
+    "capex",
+    "caprate",
+    "leasingcommission",
+    "amortization",
+    "reversion",
+    "cotenancy",
+    "warehous",
+    "fmtk",
+    "sfperunit",
+    "sfremaining"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    ".next/**",
+    "*.json"
+  ]
+}
