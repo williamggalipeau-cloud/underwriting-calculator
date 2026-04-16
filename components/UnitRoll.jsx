@@ -10,6 +10,9 @@ function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0)
     name,
     squareFeet,
     tenantName: "",
+    businessDescription: "",
+    creditRating: "",
+    naicsCode: "",
     leaseStatus: occupied ? "occupied" : "vacant",
     currentRentPSF: inputs.rentPerSF,
     monthsRemaining: occupied ? Math.max(1, monthsRemaining) : 0,
@@ -138,6 +141,9 @@ const COL_HEADERS = [
   { key: "name",      label: "Unit",      width: "w-16", tip: "" },
   { key: "sf",        label: "SF",        width: "w-20", tip: "" },
   { key: "tenant",    label: "Tenant",    width: "w-28", tip: "" },
+  { key: "bizDesc",   label: "Business",  width: "w-36", tip: "Business description or tenant use type" },
+  { key: "credit",    label: "Credit",    width: "w-20", tip: "Tenant credit rating (e.g. A, BB+, Investment Grade)" },
+  { key: "naics",     label: "SIC/NAICS", width: "w-20", tip: "SIC or NAICS industry code" },
   { key: "status",    label: "Status",    width: "w-24", tip: "" },
   { key: "leaseType", label: "Lease",     width: "w-28", tip: "Lease type — determines landlord expense responsibility" },
   { key: "rent",      label: "Rent $/SF", width: "w-20", tip: "Contracted rent ($/SF/yr)" },
@@ -267,6 +273,15 @@ export default function UnitRoll({ units, inputs, onChange }) {
                     </td>
                     <td className="px-2 py-1.5">
                       <TextCell label="Tenant name" value={u.tenantName} placeholder={isOccupied ? "Tenant" : "Vacant"} onChange={(v) => update(u.id, "tenantName", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <TextCell label="Business description" value={u.businessDescription ?? ""} placeholder="e.g. Light mfg." onChange={(v) => update(u.id, "businessDescription", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <TextCell label="Credit rating" value={u.creditRating ?? ""} placeholder="e.g. A" onChange={(v) => update(u.id, "creditRating", v)} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <TextCell label="SIC/NAICS code" value={u.naicsCode ?? ""} placeholder="e.g. 3440" onChange={(v) => update(u.id, "naicsCode", v)} />
                     </td>
                     <td className="px-2 py-1.5">
                       <button
