@@ -124,10 +124,11 @@ function WaterfallSection({ wf }) {
 }
 
 export default function ReturnsAnalysis({ returns, cashFlows, waterfall }) {
-  const irrTier = tier(returns.irr, 18, 14, 10);
-  const emTier  = tier(returns.equityMultiple, 2.5, 2.0, 1.5);
-  const cocTier = tier(returns.yearOneCashOnCash, 9, 7, 5);
-  const capTier = tier(returns.goingInCapRate, 7, 5.5, 4.5);
+  const irrTier   = tier(returns.irr, 18, 14, 10);
+  const netIrrTier = waterfall ? tier(waterfall.lpIRR, 18, 14, 10) : null;
+  const emTier    = tier(returns.equityMultiple, 2.5, 2.0, 1.5);
+  const cocTier   = tier(returns.yearOneCashOnCash, 9, 7, 5);
+  const capTier   = tier(returns.goingInCapRate, 7, 5.5, 4.5);
 
   return (
     <div className="space-y-6">
@@ -135,11 +136,20 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall }) {
 
       {/* Top KPIs */}
       <div className="grid grid-cols-2 gap-3">
-        <KPI label="IRR" value={fmtPct(returns.irr)} sub="Levered" t={irrTier} />
-        <KPI label="Equity Multiple" value={`${fmt(returns.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
+        <KPI label="Gross IRR" value={fmtPct(returns.irr)} sub="Levered, before promote" t={irrTier} />
+        {waterfall
+          ? <KPI label="Net LP IRR" value={fmtPct(waterfall.lpIRR)} sub="After LP/GP waterfall" t={netIrrTier} />
+          : <KPI label="Equity Multiple" value={`${fmt(returns.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
+        }
         <KPI label="Year 1 Cash-on-Cash" value={fmtPct(returns.yearOneCashOnCash)} sub="Pre-tax cash flow ÷ equity" t={cocTier} />
         <KPI label="Going-In Cap Rate" value={fmtPct(returns.goingInCapRate)} sub="Year 1 NOI ÷ purchase price" t={capTier} />
       </div>
+      {waterfall && (
+        <div className="grid grid-cols-2 gap-3">
+          <KPI label="Equity Multiple" value={`${fmt(returns.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
+          <KPI label="LP Equity Multiple" value={`${fmt(waterfall.lpEquityMultiple, 2)}x`} sub="LP distributions ÷ LP equity" />
+        </div>
+      )}
 
       {/* Secondary metrics */}
       <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">

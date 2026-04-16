@@ -10,6 +10,7 @@ import SensitivityTables from "@/components/SensitivityTables";
 import UnitRoll from "@/components/UnitRoll";
 import CapitalAnalysis from "@/components/CapitalAnalysis";
 import FundAnalysis from "@/components/FundAnalysis";
+import StressTest from "@/components/StressTest";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -175,6 +176,7 @@ const TABS = [
   { id: "capital",     label: "Capital" },
   { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
+  { id: "stress",      label: "Return Stress Testing" },
   { id: "fund",        label: "Portfolio Return" },
 ];
 
@@ -461,6 +463,13 @@ export default function Home() {
                 inputs={inputs}
                 baseIRR={returns.irr}
                 baseEM={returns.equityMultiple}
+              />
+            )}
+            {activeTab === "stress" && (
+              <StressTest
+                inputs={inputs}
+                results={results}
+                savedDeals={savedDeals}
               />
             )}
             {activeTab === "fund" && (

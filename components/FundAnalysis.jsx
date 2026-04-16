@@ -291,10 +291,18 @@ function DealRow({ deal, onRemove }) {
 
 function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   const combinedFlows = aggregateFlows(deals);
-  const fundIRR = calcIRR(combinedFlows);
+  const fundIRR = calcIRR(combinedFlows);   // gross IRR (before waterfall)
   const totalEquity = deals.reduce((s, d) => s + (d.metrics.equityRequired ?? 0), 0);
   const totalPurchasePrice = deals.reduce((s, d) => s + (d.inputs.purchasePrice ?? 0), 0);
   const totalSF = deals.reduce((s, d) => s + (d.inputs.squareFootage ?? 0), 0);
+
+  // Net LP IRR — compute waterfall if any deal has it enabled
+  const waterfallDealForIRR = deals.find((d) => d.inputs.waterfallEnabled);
+  const netLpIRR = (() => {
+    if (!waterfallDealForIRR) return NaN;
+    const wf = computeWaterfall(combinedFlows, totalEquity, waterfallDealForIRR.inputs.waterfall);
+    return wf.lpIRR;
+  })();
 
   // Weighted average equity multiple: total proceeds / total equity
   // proceeds = irrFlows[0] (negative equity) + sum of positive flows
@@ -328,11 +336,19 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <p className="text-xs text-gray-500">Fund IRR</p>
+            <p className="text-xs text-gray-500">Gross IRR</p>
             <p className={`text-lg font-bold tabular-nums ${isFinite(fundIRR) && fundIRR >= 14 ? "text-emerald-700" : isFinite(fundIRR) ? "text-red-600" : "text-gray-400"}`}>
               {fmtPct(fundIRR)}
             </p>
           </div>
+          {isFinite(netLpIRR) && (
+            <div className="text-right">
+              <p className="text-xs text-gray-500">Net LP IRR</p>
+              <p className={`text-lg font-bold tabular-nums ${netLpIRR >= 12 ? "text-emerald-700" : "text-red-600"}`}>
+                {fmtPct(netLpIRR)}
+              </p>
+            </div>
+          )}
           <div className="text-right">
             <p className="text-xs text-gray-500">Eq. Multiple</p>
             <p className={`text-lg font-bold tabular-nums ${isFinite(weightedEM) && weightedEM >= 2 ? "text-emerald-700" : isFinite(weightedEM) ? "text-red-600" : "text-gray-400"}`}>
@@ -453,7 +469,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   );
 }
 
-export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, onRemoveFund }) {
+export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove }) {
   const groups = groupByFund(savedDeals);
   const fundNames = Object.keys(groups);
 
