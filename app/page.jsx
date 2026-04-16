@@ -8,6 +8,7 @@ import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import UnitRoll from "@/components/UnitRoll";
 import CapitalAnalysis from "@/components/CapitalAnalysis";
+import FundAnalysis from "@/components/FundAnalysis";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -176,8 +177,9 @@ const TABS = [
   { id: "units",       label: "Unit Roll" },
   { id: "debt",        label: "Debt" },
   { id: "capital",     label: "Capital" },
-  { id: "returns",     label: "Returns" },
+  { id: "returns",     label: "Asset Return" },
   { id: "sensitivity", label: "Sensitivity" },
+  { id: "fund",        label: "Portfolio Return" },
 ];
 
 function fmtPct(n) {
@@ -195,10 +197,34 @@ function fmtDollarM(n) {
 export default function Home() {
   const [inputs, setInputs] = useState(DEFAULT_INPUTS);
   const [activeTab, setActiveTab] = useState("units");
+  const [savedDeals, setSavedDeals] = useState([]);
 
   const results = useMemo(() => underwrite(inputs), [inputs]);
 
-  const { debt, returns, annualCashFlows, waterfall } = results;
+  const { debt, returns, annualCashFlows, waterfall, irrFlows } = results;
+
+  function handleSaveDeal() {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setSavedDeals((prev) => [
+      ...prev,
+      {
+        id,
+        inputs: { ...inputs },
+        irrFlows: [...(irrFlows ?? [])],
+        metrics: {
+          irr: returns.irr,
+          equityMultiple: returns.equityMultiple,
+          yearOneCashOnCash: returns.yearOneCashOnCash,
+          equityRequired: debt.equityRequired,
+          loanAmount: debt.loanAmount,
+        },
+      },
+    ]);
+  }
+
+  function handleRemoveDeal(id) {
+    setSavedDeals((prev) => prev.filter((d) => d.id !== id));
+  }
 
   const summaryItems = [
     { label: "IRR", value: fmtPct(returns.irr), good: returns.irr >= 14 },
@@ -251,7 +277,11 @@ export default function Home() {
         {/* Left: inputs */}
         <aside className="w-80 shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sticky top-[73px] max-h-[calc(100vh-90px)] overflow-y-auto">
           <h2 className="text-base font-semibold text-gray-900 mb-5">Deal Inputs</h2>
-          <DealInputsPanel inputs={inputs} onChange={setInputs} />
+          <DealInputsPanel
+            inputs={inputs}
+            onChange={setInputs}
+            fundNames={[...new Set(savedDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))]}
+          />
         </aside>
 
         {/* Right: results */}
@@ -273,6 +303,11 @@ export default function Home() {
                 {tab.id === "units" && inputs.units.length > 0 && (
                   <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "units" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
                     {inputs.units.length}
+                  </span>
+                )}
+                {tab.id === "fund" && savedDeals.length > 0 && (
+                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "fund" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
+                    {savedDeals.length}
                   </span>
                 )}
               </button>
@@ -298,6 +333,14 @@ export default function Home() {
                 inputs={inputs}
                 baseIRR={returns.irr}
                 baseEM={returns.equityMultiple}
+              />
+            )}
+            {activeTab === "fund" && (
+              <FundAnalysis
+                savedDeals={savedDeals}
+                currentDeal={{ inputs, irrFlows: irrFlows ?? [], metrics: { irr: returns.irr, equityMultiple: returns.equityMultiple, yearOneCashOnCash: returns.yearOneCashOnCash, equityRequired: debt.equityRequired, loanAmount: debt.loanAmount } }}
+                onSave={handleSaveDeal}
+                onRemove={handleRemoveDeal}
               />
             )}
           </div>

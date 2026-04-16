@@ -723,7 +723,7 @@ function fmtK(n) {
   return `$${n.toFixed(0)}`;
 }
 
-export default function DealInputsPanel({ inputs, onChange }) {
+export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
 
   const setCC = (field, value) =>
@@ -742,7 +742,26 @@ export default function DealInputsPanel({ inputs, onChange }) {
         <SectionHeader title="Property" />
         <div className="grid grid-cols-1 gap-3">
           <Field label="Property Name" value={inputs.propertyName} field="propertyName" onChange={set} />
-          <Field label="Fund" value={inputs.fundName ?? ""} field="fundName" onChange={set} />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fund</label>
+            <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden">
+              <input
+                type="text"
+                list="fund-names-list"
+                value={inputs.fundName ?? ""}
+                onChange={(e) => set("fundName", e.target.value)}
+                placeholder={fundNames.length > 0 ? "Type or select a fund…" : "e.g. Fund I"}
+                className="flex-1 px-3 py-2 text-sm text-gray-900 bg-white outline-none min-w-0"
+              />
+            </div>
+            {fundNames.length > 0 && (
+              <datalist id="fund-names-list">
+                {fundNames.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Square Footage" value={inputs.squareFootage} field="squareFootage" suffix="SF" step={1000} onChange={set} />
             <Field label="Purchase Price" value={inputs.purchasePrice} field="purchasePrice" prefix="$" step={100000} onChange={set} />
