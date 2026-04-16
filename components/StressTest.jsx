@@ -74,6 +74,9 @@ function applyStress(inputs, factors) {
   stressed.capitalReservesPSF = (inputs.capitalReservesPSF ?? 0) * opexMult;
   stressed.leasingFeesPSF = (inputs.leasingFeesPSF ?? 0) * opexMult;
 
+  // ── Exit cap rate expansion ───────────────────────────────────────────────
+  stressed.exitCapRatePct = (inputs.exitCapRatePct ?? 0) + factors.exitCapDelta;
+
   // ── Construction / TI overrun ─────────────────────────────────────────────
   const conMult = 1 + factors.constructionDelta / 100;
   if (inputs.constructionCosts) {
@@ -196,6 +199,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
     vacancyDelta:       0,  // %, added to vacancy rate
     rentEscDelta:       0,  // %, subtracted from annual escalation
     rateDelta:          0,  // bps, added to interest rate
+    exitCapDelta:       0,  // %, added to exit cap rate
     opexDelta:          0,  // %, multiplied to all opex line items
     constructionDelta:  0,  // %, multiplied to construction & TI items
   });
@@ -203,6 +207,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
   const setFactor = (key) => (val) => setFactors((f) => ({ ...f, [key]: val }));
 
   const isBaseCase = Object.values(factors).every((v) => v === 0);
+  const baseExitCap = inputs.exitCapRatePct ?? 0;
 
   // ── Stress current (active) deal ─────────────────────────────────────────
   const stressedCurrentInputs = useMemo(
@@ -262,7 +267,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         {!isBaseCase && (
           <button
             type="button"
-            onClick={() => setFactors({ vacancyDelta: 0, rentEscDelta: 0, rateDelta: 0, opexDelta: 0, constructionDelta: 0 })}
+            onClick={() => setFactors({ vacancyDelta: 0, rentEscDelta: 0, rateDelta: 0, exitCapDelta: 0, opexDelta: 0, constructionDelta: 0 })}
             className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
           >
             Reset to base
@@ -296,6 +301,14 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           value={factors.rateDelta}
           onChange={setFactor("rateDelta")}
           min={0} max={300} step={25} suffix=" bps"
+        />
+        <div className="border-t border-gray-200" />
+        <FactorRow
+          label="Exit Cap Rate Expansion"
+          sublabel={`Base: ${baseExitCap.toFixed(2)}% → stressed: ${(baseExitCap + factors.exitCapDelta).toFixed(2)}%`}
+          value={factors.exitCapDelta}
+          onChange={setFactor("exitCapDelta")}
+          min={0} max={3} step={0.25} suffix="%"
         />
         <div className="border-t border-gray-200" />
         <FactorRow
