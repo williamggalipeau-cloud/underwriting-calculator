@@ -1,6 +1,6 @@
 "use client";
 
-import { computeConstructionCostPSF } from "@/lib/calculations";
+import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
 
 function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
   return (
@@ -240,6 +240,73 @@ function ConstructionCostsSection({ cc, avgUnitSF, onChange }) {
               <td className="px-3 py-1.5 text-right tabular-nums text-xs font-bold text-blue-800">{fmtK(totalPerUnit)}</td>
             </tr>
           </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ExitCostsSection({ sc, onChange }) {
+  if (!sc) return null;
+
+  const rows = [
+    { label: "Broker Commission",   field: "brokerCommissionPct",  basis: "pct", step: 0.25 },
+    { label: "Transfer / Recording Tax", field: "transferTaxPct",  basis: "pct", step: 0.05 },
+    { label: "Title Insurance",     field: "titleInsurancePct",    basis: "pct", step: 0.05 },
+    { label: "Legal Fees",          field: "legalFees",            basis: "fixed", step: 1000 },
+    { label: "Misc / Other",        field: "miscDispositionCosts", basis: "fixed", step: 1000 },
+  ];
+
+  // Estimate exit value for display using a placeholder note
+  // (actual exit value is computed in calculations; we show $/unit for reference)
+  const totalPct = rows.filter(r => r.basis === "pct").reduce((s, r) => s + (sc[r.field] ?? 0), 0);
+  const totalFixed = rows.filter(r => r.basis === "fixed").reduce((s, r) => s + (sc[r.field] ?? 0), 0);
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-gray-700 mb-2">
+        Disposition Costs
+        <span className="ml-2 text-gray-400 font-normal">
+          {totalPct.toFixed(2)}% of exit value + {fmtK(totalFixed)} fixed
+        </span>
+      </p>
+      <div className="rounded-xl border border-gray-200 overflow-hidden">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-3 py-1.5 text-left font-semibold text-gray-500 uppercase tracking-wide">Item</th>
+              <th className="px-3 py-1.5 text-center font-semibold text-gray-500 uppercase tracking-wide w-32">Input</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {rows.map((row) => {
+              const val = sc[row.field] ?? 0;
+              return (
+                <tr key={row.field} className="hover:bg-gray-50">
+                  <td className="px-3 py-1.5 text-gray-700 font-medium whitespace-nowrap">{row.label}</td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                      {row.basis === "fixed" && (
+                        <span className="px-2 py-1 bg-gray-50 border-r border-gray-200 text-gray-400 text-xs">$</span>
+                      )}
+                      <input
+                        type="number"
+                        aria-label={row.label}
+                        value={val}
+                        step={row.step}
+                        min={0}
+                        onChange={(e) => onChange(row.field, parseFloat(e.target.value) || 0)}
+                        className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-20"
+                      />
+                      {row.basis === "pct" && (
+                        <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">% of sale</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
         </table>
       </div>
     </div>
@@ -516,11 +583,16 @@ export default function DealInputsPanel({ inputs, onChange }) {
       {/* Exit */}
       <div>
         <SectionHeader title="Exit Assumptions" />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <Field label="Hold Period" value={inputs.holdPeriodYears} field="holdPeriodYears" suffix="yrs" step={1} min={1} onChange={set} />
           <Field label="Exit Cap Rate" value={inputs.exitCapRatePct} field="exitCapRatePct" suffix="%" step={0.25} onChange={set} />
-          <Field label="Selling Costs" value={inputs.sellingCostsPct} field="sellingCostsPct" suffix="%" step={0.25} onChange={set} />
         </div>
+        <ExitCostsSection
+          sc={inputs.sellingCosts}
+          onChange={(field, value) =>
+            onChange({ ...inputs, sellingCosts: { ...inputs.sellingCosts, [field]: value } })
+          }
+        />
       </div>
     </div>
   );

@@ -94,7 +94,14 @@ const DEFAULT_INPUTS = {
 
   holdPeriodYears: 7,
   exitCapRatePct: 6.75,
-  sellingCostsPct: 2.0,
+  sellingCostsPct: 2.0,   // fallback if sellingCosts breakdown not present
+  sellingCosts: {
+    brokerCommissionPct:  2.00,
+    transferTaxPct:       0.50,
+    titleInsurancePct:    0.20,
+    legalFees:            15000,
+    miscDispositionCosts: 5000,
+  },
 
   units: [],
 };

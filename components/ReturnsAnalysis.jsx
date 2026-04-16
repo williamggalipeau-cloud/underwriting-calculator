@@ -65,6 +65,7 @@ export default function ReturnsAnalysis({ returns, cashFlows }) {
           { label: "Avg. Annual TI + LC", value: fmtM(returns.annualRolloverCosts), sub: "Normalized rollover costs over hold period" },
           { label: "Avg. Cash-on-Cash", value: fmtPct(returns.averageCashOnCash), sub: "Average over hold period" },
           { label: "Exit Value", value: fmtM(returns.exitValue), sub: `At ${returns.exitCapRate}% exit cap rate` },
+          { label: "Disposition Costs", value: fmtM(returns.sellingCosts), sub: `${returns.sellingCostsPct?.toFixed(2) ?? "—"}% of exit value` },
           { label: "Equity Reversion", value: fmtM(returns.equityReversion), sub: "After loan payoff & selling costs" },
           { label: "Total Equity Invested", value: fmtM(returns.totalEquityInvested) },
           { label: "NPV (8% hurdle)", value: fmtM(returns.npv), sub: returns.npv > 0 ? "Positive — clears hurdle" : "Negative — below hurdle" },
