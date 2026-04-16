@@ -145,6 +145,107 @@ function FundWaterfall({ combinedFlows, totalEquity, waterfallConfig }) {
   );
 }
 
+function PerformanceAttribution({ deals, fundIRR, totalEquity, totalDistributions }) {
+  const rows = deals.map((d) => {
+    const equity    = d.metrics.equityRequired ?? 0;
+    const equityWt  = totalEquity > 0 ? equity / totalEquity : 0;
+    const assetIRR  = d.metrics.irr;
+    const assetDist = d.irrFlows.slice(1).reduce((s, v) => s + Math.max(v, 0), 0);
+    const distWt    = totalDistributions > 0 ? assetDist / totalDistributions : 0;
+    const irrSpread = isFinite(assetIRR) && isFinite(fundIRR) ? assetIRR - fundIRR : NaN;
+    const wtdContrib = isFinite(assetIRR) ? equityWt * assetIRR : NaN; // equity-weighted IRR contribution
+    return { deal: d, equity, equityWt, assetIRR, assetDist, distWt, irrSpread, wtdContrib };
+  });
+
+  const maxWt = Math.max(...rows.map((r) => r.equityWt));
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">Performance Attribution</h3>
+        <span className="text-xs text-gray-400">Equity-weighted contribution to fund IRR</span>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {["Asset", "Equity", "Equity Weight", "Asset IRR", "vs. Fund IRR", "EM", "Distributions", "Dist. Share", "IRR Contribution"].map((h) => (
+                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {rows.map(({ deal, equity, equityWt, assetIRR, assetDist, distWt, irrSpread, wtdContrib }) => {
+              const barW = maxWt > 0 ? (equityWt / maxWt) * 100 : 0;
+              const spreadColor = !isFinite(irrSpread) ? "text-gray-400"
+                : irrSpread > 0.5  ? "text-emerald-600 font-semibold"
+                : irrSpread < -0.5 ? "text-red-600 font-semibold"
+                : "text-gray-500";
+              return (
+                <tr key={deal.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-3 py-2.5">
+                    <p className="font-medium text-gray-800 whitespace-nowrap">{deal.inputs.propertyName || "Unnamed"}</p>
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-gray-600">{fmtM(equity)}</td>
+                  <td className="px-3 py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="w-16 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                        <div className="h-full bg-blue-400 rounded-full" style={{ width: `${barW}%` }} />
+                      </div>
+                      <span className="tabular-nums text-gray-600 w-10 text-right">{fmtPct(equityWt * 100, 1)}</span>
+                    </div>
+                  </td>
+                  <td className={`px-3 py-2.5 text-right tabular-nums font-semibold ${isFinite(assetIRR) && assetIRR >= 14 ? "text-emerald-700" : "text-red-600"}`}>
+                    {fmtPct(assetIRR)}
+                  </td>
+                  <td className={`px-3 py-2.5 text-right tabular-nums ${spreadColor}`}>
+                    {isFinite(irrSpread) ? `${irrSpread >= 0 ? "+" : ""}${irrSpread.toFixed(1)}%` : "—"}
+                  </td>
+                  <td className={`px-3 py-2.5 text-right tabular-nums font-semibold ${isFinite(deal.metrics.equityMultiple) && deal.metrics.equityMultiple >= 2 ? "text-emerald-700" : "text-red-600"}`}>
+                    {fmtX(deal.metrics.equityMultiple)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-gray-600">{fmtM(assetDist)}</td>
+                  <td className="px-3 py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="w-16 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                        <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${distWt * 100}%` }} />
+                      </div>
+                      <span className="tabular-nums text-gray-600 w-10 text-right">{fmtPct(distWt * 100, 1)}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-blue-700">
+                    {isFinite(wtdContrib) ? `${fmtPct(wtdContrib, 2)} pts` : "—"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-gray-50 border-t-2 border-gray-200">
+              <td className="px-3 py-2 font-semibold text-gray-700">Fund Total</td>
+              <td className="px-3 py-2 text-right tabular-nums font-semibold text-gray-900">{fmtM(totalEquity)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-500">100%</td>
+              <td className="px-3 py-2 text-right tabular-nums font-bold text-emerald-700">{fmtPct(fundIRR)}</td>
+              <td className="px-3 py-2 text-right text-gray-300">—</td>
+              <td className="px-3 py-2" />
+              <td className="px-3 py-2 text-right tabular-nums font-semibold text-gray-900">{fmtM(totalDistributions)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-gray-500">100%</td>
+              <td className="px-3 py-2 text-right tabular-nums font-bold text-blue-700">
+                {fmtPct(rows.reduce((s, r) => s + (isFinite(r.wtdContrib) ? r.wtdContrib : 0), 0), 2)} pts
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p className="text-xs text-gray-400">
+        IRR Contribution = equity weight × asset IRR. Sum of contributions equals the equity-weighted average IRR (≠ fund IRR, which also reflects cash flow timing across assets).
+      </p>
+    </div>
+  );
+}
+
 function DealRow({ deal, onRemove }) {
   const { inputs, metrics } = deal;
   const good = (v, threshold) => isFinite(v) && v >= threshold;
@@ -200,6 +301,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   const totalInvested = deals.reduce((s, d) => s + Math.abs(d.irrFlows[0] ?? 0), 0);
   const totalProceeds = deals.reduce((s, d) => s + d.irrFlows.slice(1).reduce((a, v) => a + Math.max(v, 0), 0), 0);
   const weightedEM = totalInvested > 0 ? (totalInvested + totalProceeds) / totalInvested : NaN;
+  const totalDistributions = totalProceeds;
 
   // Build year-by-year combined table (years 1..N, excluding year-0 equity outflow)
   const maxYears = Math.max(...deals.map((d) => d.irrFlows.length - 1));
@@ -275,6 +377,16 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
         </table>
       </div>
 
+      {/* Performance attribution */}
+      <div className="border-t border-gray-200 pt-5">
+        <PerformanceAttribution
+          deals={deals}
+          fundIRR={fundIRR}
+          totalEquity={totalEquity}
+          totalDistributions={totalDistributions}
+        />
+      </div>
+
       {/* Fund-level waterfall */}
       {(() => {
         const waterfallDeal = deals.find((d) => d.inputs.waterfallEnabled);
@@ -344,8 +456,6 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
 export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, onRemoveFund }) {
   const groups = groupByFund(savedDeals);
   const fundNames = Object.keys(groups);
-  const currentFund = currentDeal.inputs.fundName?.trim() || "(No Fund)";
-  const alreadySaved = false; // deals are snapshots; user explicitly saves
 
   return (
     <div className="space-y-6">
