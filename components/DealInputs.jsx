@@ -742,6 +742,7 @@ export default function DealInputsPanel({ inputs, onChange }) {
         <SectionHeader title="Property" />
         <div className="grid grid-cols-1 gap-3">
           <Field label="Property Name" value={inputs.propertyName} field="propertyName" onChange={set} />
+          <Field label="Fund" value={inputs.fundName ?? ""} field="fundName" onChange={set} />
           <div className="grid grid-cols-2 gap-3">
             <Field label="Square Footage" value={inputs.squareFootage} field="squareFootage" suffix="SF" step={1000} onChange={set} />
             <Field label="Purchase Price" value={inputs.purchasePrice} field="purchasePrice" prefix="$" step={100000} onChange={set} />

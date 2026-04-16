@@ -11,6 +11,7 @@ import CapitalAnalysis from "@/components/CapitalAnalysis";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
+  fundName: "",
   squareFootage: 60000,
   purchasePrice: 9000000,
   closingCosts: {
@@ -221,7 +222,10 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-sm font-bold text-gray-900 leading-tight">Industrial UW</h1>
-              <p className="text-xs text-gray-400 leading-tight">{inputs.propertyName || "Unnamed Deal"}</p>
+              <p className="text-xs text-gray-400 leading-tight">
+                {inputs.propertyName || "Unnamed Deal"}
+                {inputs.fundName && <span className="ml-1.5 text-gray-300">· {inputs.fundName}</span>}
+              </p>
             </div>
           </div>
 
