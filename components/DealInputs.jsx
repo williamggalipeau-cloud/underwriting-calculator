@@ -1,5 +1,7 @@
 "use client";
 
+import { computeConstructionCostPSF } from "@/lib/calculations";
+
 function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
   return (
     <div className="flex flex-col gap-1">
@@ -120,6 +122,122 @@ function ClosingCostsSection({ cc, purchasePrice, loanAmount, onChange }) {
             <tr className="bg-gray-50 border-t-2 border-gray-300">
               <td className="px-3 py-2 font-semibold text-gray-900 text-xs" colSpan={2}>Total Closing Costs</td>
               <td className="px-3 py-2 text-right font-bold text-gray-900 tabular-nums text-xs">{fmtK(total)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ConstructionCostsSection({ cc, avgUnitSF, onChange }) {
+  if (!cc) return null;
+
+  const lineItems = [
+    { label: "Demolition & cleanup",     field: "demolition",      step: 0.05 },
+    { label: "Partition walls",          field: "partitionWalls",  step: 0.05 },
+    { label: "Electrical",               field: "electrical",      step: 0.10 },
+    { label: "Plumbing",                 field: "plumbing",        step: 0.05 },
+    { label: "HVAC / mechanical",        field: "hvac",            step: 0.10 },
+    { label: "Flooring",                 field: "flooring",        step: 0.05 },
+    { label: "Painting",                 field: "painting",        step: 0.05 },
+    { label: "Lighting",                 field: "lighting",        step: 0.05 },
+    { label: "Doors & hardware",         field: "doorsHardware",   step: 0.05 },
+    { label: "Overhead / dock doors",    field: "overheadDoors",   step: 0.05 },
+    { label: "Misc / allowance",         field: "miscConstruction", step: 0.05 },
+  ];
+
+  const markups = [
+    { label: "General conditions",  field: "generalConditionsPct", step: 1 },
+    { label: "Overhead & profit",   field: "overheadProfitPct",    step: 1 },
+    { label: "Contingency",         field: "contingencyPct",       step: 1 },
+  ];
+
+  const base    = lineItems.reduce((s, r) => s + (cc[r.field] ?? 0), 0);
+  const totalPSF = computeConstructionCostPSF(cc);
+  const totalPerUnit = totalPSF * avgUnitSF;
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-gray-700 mb-2">
+        Construction Costs — New Lease TI
+        <span className="ml-2 font-bold text-blue-700">${totalPSF.toFixed(2)}/SF · {fmtK(totalPerUnit)}/unit</span>
+      </p>
+      <div className="rounded-xl border border-gray-200 overflow-hidden mb-2">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-3 py-1.5 text-left font-semibold text-gray-500 uppercase tracking-wide">Item</th>
+              <th className="px-3 py-1.5 text-center font-semibold text-gray-500 uppercase tracking-wide w-24">$/SF</th>
+              <th className="px-3 py-1.5 text-right font-semibold text-gray-500 uppercase tracking-wide w-20">$/Unit</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {lineItems.map((row) => {
+              const val = cc[row.field] ?? 0;
+              return (
+                <tr key={row.field} className="hover:bg-gray-50">
+                  <td className="px-3 py-1 text-gray-700 font-medium">{row.label}</td>
+                  <td className="px-2 py-1">
+                    <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                      <span className="px-2 py-1 bg-gray-50 border-r border-gray-200 text-gray-400 text-xs">$</span>
+                      <input
+                        type="number"
+                        aria-label={row.label}
+                        value={val}
+                        step={row.step}
+                        min={0}
+                        onChange={(e) => onChange(row.field, parseFloat(e.target.value) || 0)}
+                        className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-14"
+                      />
+                    </div>
+                  </td>
+                  <td className="px-3 py-1 text-right tabular-nums text-gray-500">{fmtK(val * avgUnitSF)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-gray-50 border-t border-gray-200">
+              <td className="px-3 py-1.5 text-xs font-semibold text-gray-700" colSpan={2}>Base subtotal</td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-xs font-semibold text-gray-700">{fmtK(base * avgUnitSF)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Markup inputs */}
+      <div className="rounded-xl border border-gray-200 overflow-hidden">
+        <table className="w-full text-xs">
+          <tbody className="divide-y divide-gray-100">
+            {markups.map((row) => {
+              const val = cc[row.field] ?? 0;
+              return (
+                <tr key={row.field} className="hover:bg-gray-50">
+                  <td className="px-3 py-1.5 text-gray-700 font-medium">{row.label}</td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
+                      <input
+                        type="number"
+                        aria-label={row.label}
+                        value={val}
+                        step={row.step}
+                        min={0}
+                        onChange={(e) => onChange(row.field, parseFloat(e.target.value) || 0)}
+                        className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-14"
+                      />
+                      <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-1.5 text-right tabular-nums text-gray-400 text-xs">applied on total</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-blue-50 border-t-2 border-blue-200">
+              <td className="px-3 py-1.5 text-xs font-bold text-blue-800" colSpan={2}>Total TI (new lease)</td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-xs font-bold text-blue-800">{fmtK(totalPerUnit)}</td>
             </tr>
           </tfoot>
         </table>
@@ -285,9 +403,16 @@ export default function DealInputsPanel({ inputs, onChange }) {
       {/* Rollover Costs */}
       <div>
         <SectionHeader title="Rollover Costs" subtitle="Normalized annually over avg lease term" />
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="TI — New Lease" value={inputs.tiPerSFNew} field="tiPerSFNew" prefix="$" suffix="/SF" step={0.5} onChange={set} />
+        <ConstructionCostsSection
+          cc={inputs.constructionCosts}
+          avgUnitSF={inputs.unitCount > 0 ? Math.round(inputs.squareFootage / inputs.unitCount) : inputs.squareFootage}
+          onChange={(field, value) =>
+            onChange({ ...inputs, constructionCosts: { ...inputs.constructionCosts, [field]: value } })
+          }
+        />
+        <div className="grid grid-cols-2 gap-3 mt-3">
           <Field label="TI — Renewal" value={inputs.tiPerSFRenewal} field="tiPerSFRenewal" prefix="$" suffix="/SF" step={0.5} onChange={set} />
+          <div />
           <Field label="LC — New Lease" value={inputs.leasingCommissionNewPct} field="leasingCommissionNewPct" suffix="% lease val" step={0.5} onChange={set} />
           <Field label="LC — Renewal" value={inputs.leasingCommissionRenewalPct} field="leasingCommissionRenewalPct" suffix="% lease val" step={0.5} onChange={set} />
         </div>
@@ -298,9 +423,93 @@ export default function DealInputsPanel({ inputs, onChange }) {
         <SectionHeader title="Financing" />
         <div className="grid grid-cols-2 gap-3">
           <Field label="LTV" value={inputs.ltvPct} field="ltvPct" suffix="%" step={5} onChange={set} />
-          <Field label="Interest Rate" value={inputs.interestRatePct} field="interestRatePct" suffix="%" step={0.25} onChange={set} />
           <Field label="Amortization" value={inputs.amortizationYears} field="amortizationYears" suffix="yrs" step={5} onChange={set} />
           <Field label="I/O Period" value={inputs.ioPeriodYears} field="ioPeriodYears" suffix="yrs" step={1} onChange={set} />
+        </div>
+
+        {/* Loan term + extensions */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-2">
+            Loan Term
+            <span className="ml-2 font-bold text-blue-700">
+              {inputs.loanTermYears}
+              {inputs.extensionCount > 0
+                ? " + " + Array(inputs.extensionCount).fill(`${inputs.extensionTermYears}`).join("+")
+                : ""} yrs
+            </span>
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Initial Term" value={inputs.loanTermYears} field="loanTermYears" suffix="yrs" step={1} onChange={set} />
+            <Field label="Extensions" value={inputs.extensionCount} field="extensionCount" suffix="options" step={1} onChange={set} />
+            <Field label="Ext. Length" value={inputs.extensionTermYears} field="extensionTermYears" suffix="yrs" step={1} onChange={set} />
+            <Field label="Ext. Fee" value={inputs.extensionFeePct} field="extensionFeePct" suffix="% / ext" step={0.05} onChange={set} />
+          </div>
+        </div>
+
+        {/* Rate type */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="flex gap-2 mb-3">
+            {["fixed", "floating"].map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => onChange({ ...inputs, floatingRate: t === "floating" })}
+                className={`flex-1 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
+                  (t === "floating") === !!inputs.floatingRate
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                {t === "fixed" ? "Fixed Rate" : "Floating Rate"}
+              </button>
+            ))}
+          </div>
+          {inputs.floatingRate ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Index Rate" value={inputs.indexRatePct} field="indexRatePct" suffix="%" step={0.05} onChange={set} />
+              <Field label="Spread" value={inputs.spreadPct} field="spreadPct" suffix="%" step={0.10} onChange={set} />
+              <div className="col-span-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700 font-medium">
+                Effective rate: {((inputs.indexRatePct ?? 0) + (inputs.spreadPct ?? 0)).toFixed(2)}%
+                {inputs.hedgingType === "cap" && inputs.capStrikeRatePct
+                  ? ` (capped at ${inputs.capStrikeRatePct}%)`
+                  : inputs.hedgingType === "swap" && inputs.swapFixedRatePct
+                  ? ` → swapped to ${inputs.swapFixedRatePct}% fixed`
+                  : ""}
+              </div>
+            </div>
+          ) : (
+            <Field label="Interest Rate" value={inputs.interestRatePct} field="interestRatePct" suffix="%" step={0.25} onChange={set} />
+          )}
+        </div>
+
+        {/* Hedging */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-2">Hedging</p>
+          <div className="flex gap-2 mb-3">
+            {["none", "cap", "swap"].map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => onChange({ ...inputs, hedgingType: t })}
+                className={`flex-1 px-2 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                  inputs.hedgingType === t
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                {t === "none" ? "None" : t === "cap" ? "Rate Cap" : "Swap"}
+              </button>
+            ))}
+          </div>
+          {inputs.hedgingType === "cap" && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Cap Strike" value={inputs.capStrikeRatePct} field="capStrikeRatePct" suffix="%" step={0.25} onChange={set} />
+              <Field label="Cap Premium" value={inputs.capPremiumPct} field="capPremiumPct" suffix="% of loan" step={0.10} onChange={set} />
+            </div>
+          )}
+          {inputs.hedgingType === "swap" && (
+            <Field label="Swap Fixed Rate" value={inputs.swapFixedRatePct} field="swapFixedRatePct" suffix="%" step={0.25} onChange={set} />
+          )}
         </div>
       </div>
 

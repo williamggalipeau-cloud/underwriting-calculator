@@ -132,6 +132,18 @@ export default function DebtSizingPanel({ debt }) {
           status={ls.status}
           statusLabel={ls.label}
         />
+        <MetricRow
+          label="Effective Interest Rate"
+          sub={debt.capPremium > 0 ? `Incl. $${fmt(debt.capPremium)} cap premium at close` : undefined}
+          value={fmtPct(debt.effectiveRate, 2)}
+        />
+        {debt.capPremium > 0 && (
+          <MetricRow
+            label="Rate Cap Premium"
+            sub="Upfront cost added to equity at close"
+            value={fmtDollar(debt.capPremium)}
+          />
+        )}
       </div>
     </div>
   );

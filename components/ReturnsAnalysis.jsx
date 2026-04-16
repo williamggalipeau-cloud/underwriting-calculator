@@ -89,7 +89,7 @@ export default function ReturnsAnalysis({ returns, cashFlows }) {
                 {[
                   "Year", "Gross Rev.", "Vacancy", "Credit Loss",
                   "EGR", "Op. Exp.", "NOI", "TI + LC", "Adj. NOI",
-                  "Debt Svc.", "Pre-Tax CF",
+                  "Debt Svc.", "Ext. Fee", "Pre-Tax CF",
                 ].map((h) => (
                   <th
                     key={h}
@@ -113,6 +113,9 @@ export default function ReturnsAnalysis({ returns, cashFlows }) {
                   <td className="px-3 py-2 text-right tabular-nums text-orange-600">({fmtM(cf.tiAndLeasing)})</td>
                   <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-700">{fmtM(cf.adjustedNOI)}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-red-500">({fmtM(cf.debtService)})</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-orange-500">
+                    {cf.extensionFee > 0 ? `(${fmtM(cf.extensionFee)})` : "—"}
+                  </td>
                   <td className={`px-3 py-2 text-right tabular-nums font-semibold ${cf.pretaxCashFlow >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                     {cf.pretaxCashFlow >= 0
                       ? fmtM(cf.pretaxCashFlow)

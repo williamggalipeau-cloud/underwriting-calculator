@@ -50,17 +50,47 @@ const DEFAULT_INPUTS = {
   leasingFeesPSF: 0.10,
   capitalReservesPSF: 0.30,
 
-  // Rollover costs (higher than big box due to short leases)
-  tiPerSFNew: 8.0,
+  // Rollover costs — construction cost breakdown drives tiPerSFNew
+  constructionCosts: {
+    demolition:           0.25,
+    partitionWalls:       0.75,
+    electrical:           1.50,
+    plumbing:             0.50,
+    hvac:                 1.25,
+    flooring:             0.75,
+    painting:             0.30,
+    lighting:             0.60,
+    doorsHardware:        0.35,
+    overheadDoors:        0.50,
+    miscConstruction:     0.25,
+    generalConditionsPct: 10,
+    overheadProfitPct:    10,
+    contingencyPct:        5,
+  },
+  tiPerSFNew: 8.0,       // fallback if constructionCosts not present
   tiPerSFRenewal: 2.0,
   leasingCommissionNewPct: 6.0,
   leasingCommissionRenewalPct: 2.0,
 
-  ltvPct: 60,
-  interestRatePct: 6.75,
+  ltvPct: 65,
+  interestRatePct: 7.50,   // fixed rate (used when floatingRate is false)
   amortizationYears: 25,
-  loanTermYears: 10,
-  ioPeriodYears: 1,
+  loanTermYears: 3,         // initial term (3+1+1)
+  extensionCount: 2,
+  extensionTermYears: 1,
+  extensionFeePct: 0.25,    // % of loan balance per extension
+  ioPeriodYears: 0,
+
+  // Floating rate (index + spread)
+  floatingRate: true,
+  indexRatePct: 5.25,       // e.g., SOFR
+  spreadPct: 2.50,          // spread over index
+
+  // Hedging
+  hedgingType: "cap",       // "none" | "cap" | "swap"
+  capStrikeRatePct: 9.50,   // rate cap strike
+  capPremiumPct: 1.00,      // upfront cap premium (% of loan)
+  swapFixedRatePct: 7.75,   // used only if hedgingType = "swap"
 
   holdPeriodYears: 7,
   exitCapRatePct: 6.75,
