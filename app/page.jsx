@@ -372,27 +372,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Test scenario buttons */}
-          <div className="flex items-center gap-2 ml-auto">
-            {testLoaded ? (
-              <button
-                type="button"
-                onClick={handleClearTest}
-                className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 rounded-lg px-3 py-1.5 transition-colors"
-              >
-                Clear test data
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleLoadTest}
-                className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors font-medium"
-              >
-                Load test scenario
-              </button>
-            )}
-          </div>
-
           {/* Summary bar */}
           <div className="flex flex-wrap items-center gap-1">
             {summaryItems.map(({ label, value, good }) => (
@@ -409,6 +388,27 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Test scenario button */}
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4">
+        {testLoaded ? (
+          <button
+            type="button"
+            onClick={handleClearTest}
+            className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
+          >
+            Clear test data
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleLoadTest}
+            className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
+          >
+            Load test scenario
+          </button>
+        )}
+      </div>
 
       {/* Body */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex gap-6 items-start">
