@@ -77,6 +77,17 @@ const DEFAULT_INPUTS = {
   leasingCommissionNewPct: 6.0,
   leasingCommissionRenewalPct: 2.0,
 
+  loanCovenants: {
+    dscrEnabled:      true,
+    dscrMin:          1.25,
+    debtYieldEnabled: false,
+    debtYieldMin:     8.0,
+    ltvEnabled:       false,
+    ltvMax:           75,
+    occupancyEnabled: false,
+    occupancyMin:     85,
+  },
+
   loanSizingConstraints: {
     minDSCREnabled:     false,
     minDSCR:            1.25,

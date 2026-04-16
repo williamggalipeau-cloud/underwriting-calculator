@@ -1027,6 +1027,51 @@ export default function DealInputsPanel({ inputs, onChange }) {
           )}
         </div>
 
+        {/* Loan covenants */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-600 mb-1">Loan Covenants</p>
+          <p className="text-xs text-gray-400 mb-2">Year-by-year compliance is shown in the Capital tab.</p>
+          {[
+            { label: "Min DSCR",       enabledField: "dscrEnabled",      valueField: "dscrMin",        suffix: "x",   step: 0.05, defaultVal: 1.25 },
+            { label: "Min Debt Yield", enabledField: "debtYieldEnabled", valueField: "debtYieldMin",   suffix: "%",   step: 0.25, defaultVal: 8.0 },
+            { label: "Max LTV",        enabledField: "ltvEnabled",       valueField: "ltvMax",         suffix: "%",   step: 1,    defaultVal: 75 },
+            { label: "Min Occupancy",  enabledField: "occupancyEnabled", valueField: "occupancyMin",   suffix: "%",   step: 1,    defaultVal: 85 },
+          ].map(({ label, enabledField, valueField, suffix, step, defaultVal }) => {
+            const cv = inputs.loanCovenants ?? {};
+            const enabled = !!cv[enabledField];
+            const val = cv[valueField] ?? defaultVal;
+            const setCV = (f, v) => onChange({
+              ...inputs,
+              loanCovenants: { ...(inputs.loanCovenants ?? {}), [f]: v },
+            });
+            return (
+              <div key={enabledField} className="flex items-center gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setCV(enabledField, !enabled)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${enabled ? "bg-blue-600" : "bg-gray-200"}`}
+                >
+                  <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ${enabled ? "translate-x-4" : "translate-x-0"}`} />
+                </button>
+                <span className={`text-xs font-medium w-24 shrink-0 ${enabled ? "text-gray-700" : "text-gray-400"}`}>{label}</span>
+                <div className={`flex items-center border rounded-lg overflow-hidden flex-1 ${enabled ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"}`}>
+                  <input
+                    type="number"
+                    aria-label={label}
+                    value={val}
+                    step={step}
+                    min={0}
+                    disabled={!enabled}
+                    onChange={(e) => setCV(valueField, parseFloat(e.target.value) || 0)}
+                    className="flex-1 px-3 py-2 text-sm text-gray-900 bg-transparent outline-none min-w-0 disabled:text-gray-400"
+                  />
+                  <span className={`px-3 py-2 bg-gray-50 border-l border-gray-200 text-xs ${enabled ? "text-gray-500" : "text-gray-300"}`}>{suffix}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Loan term + extensions */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-600 mb-2">
