@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { underwrite } from "@/lib/calculations";
+import { generateTestScenario } from "@/lib/testScenario";
 import DealInputsPanel from "@/components/DealInputs";
 import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
@@ -316,6 +317,32 @@ export default function Home() {
     setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("demo-")));
   }
 
+  const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
+
+  function handleLoadTest() {
+    const { activeDealInputs, savedDeals: testDeals } = generateTestScenario();
+    const testDealId = "test-active";
+    setDeals((prev) => {
+      const existing = prev.filter((d) => d.id !== testDealId);
+      return [{ id: testDealId, inputs: activeDealInputs }, ...existing];
+    });
+    setActiveDealId(testDealId);
+    setActiveTab("units");
+    setSavedDeals((prev) => [
+      ...prev.filter((d) => !d.id.startsWith("test-")),
+      ...testDeals,
+    ]);
+  }
+
+  function handleClearTest() {
+    setDeals((prev) => {
+      const next = prev.filter((d) => d.id !== "test-active");
+      return next.length > 0 ? next : [{ id: "deal-1", inputs: { ...DEFAULT_INPUTS } }];
+    });
+    setActiveDealId((prev) => prev === "test-active" ? "deal-1" : prev);
+    setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-")));
+  }
+
   const summaryItems = [
     { label: "IRR", value: fmtPct(returns.irr), good: returns.irr >= 14 },
     { label: "Eq. Multiple", value: fmtX(returns.equityMultiple), good: returns.equityMultiple >= 2 },
@@ -343,6 +370,27 @@ export default function Home() {
                 {inputs.fundName && <span className="ml-1.5 text-gray-300">· {inputs.fundName}</span>}
               </p>
             </div>
+          </div>
+
+          {/* Test scenario buttons */}
+          <div className="flex items-center gap-2 ml-auto">
+            {testLoaded ? (
+              <button
+                type="button"
+                onClick={handleClearTest}
+                className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 rounded-lg px-3 py-1.5 transition-colors"
+              >
+                Clear test data
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleLoadTest}
+                className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors font-medium"
+              >
+                Load test scenario
+              </button>
+            )}
           </div>
 
           {/* Summary bar */}
