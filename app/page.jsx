@@ -28,13 +28,11 @@ const DEFAULT_INPUTS = {
     miscClosingCosts:        2500,
   },
 
-  // Multi-tenant: 20 units @ ~3,000 SF avg, 2-yr leases, 60% renewal
   unitCount: 20,
   avgLeaseTerm: 2,
   renewalProbabilityPct: 60,
   downtimeBetweenLeases: 2,
 
-  // Modified Gross — landlord pays taxes + insurance
   leaseType: "NNN",
 
   rentPerSF: 14.0,
@@ -43,7 +41,6 @@ const DEFAULT_INPUTS = {
   creditLossPct: 1.0,
   otherIncomePSF: 0.25,
 
-  // Landlord-paid operating expenses
   realEstateTaxPSF: 1.20,
   insurancePSF: 0.35,
   utilitiesPSF: 0.50,
@@ -54,7 +51,6 @@ const DEFAULT_INPUTS = {
   leasingFeesPSF: 0.10,
   capitalReservesPSF: 0.30,
 
-  // Rollover costs — construction cost breakdown drives tiPerSFNew
   constructionCosts: {
     demolition:           0.25,
     partitionWalls:       0.75,
@@ -74,7 +70,7 @@ const DEFAULT_INPUTS = {
     overheadProfitPct:    10,
     contingencyPct:        5,
   },
-  tiPerSFNew: 8.0,       // fallback if constructionCosts not present
+  tiPerSFNew: 8.0,
   tiPerSFRenewal: 2.0,
   leasingCommissionNewPct: 6.0,
   leasingCommissionRenewalPct: 2.0,
@@ -108,30 +104,28 @@ const DEFAULT_INPUTS = {
   },
 
   ltvPct: 65,
-  interestRatePct: 7.50,   // fixed rate (used when floatingRate is false)
+  interestRatePct: 7.50,
   amortizationYears: 25,
-  loanTermYears: 3,         // initial term (3+1+1)
+  loanTermYears: 3,
   extensionCount: 2,
   extensionTermYears: 1,
-  extensionFeePct: 0.25,    // % of loan balance per extension
+  extensionFeePct: 0.25,
   ioPeriodYears: 0,
 
-  // Floating rate (index + spread)
   floatingRate: true,
-  indexRatePct: 5.25,       // e.g., SOFR
-  spreadPct: 2.50,          // spread over index
+  indexRatePct: 5.25,
+  spreadPct: 2.50,
 
-  // Hedging
-  hedgingType: "cap",       // "none" | "cap" | "swap"
-  capStrikeRatePct: 9.50,   // rate cap strike
-  capTermYears: 3,          // cap term in years (typically = initial loan term)
-  capPremiumPct: 1.00,      // upfront cap premium (% of loan)
-  swapFixedRatePct: 7.75,   // used only if hedgingType = "swap"
-  swapTermYears: 3,         // swap term in years
+  hedgingType: "cap",
+  capStrikeRatePct: 9.50,
+  capTermYears: 3,
+  capPremiumPct: 1.00,
+  swapFixedRatePct: 7.75,
+  swapTermYears: 3,
 
   holdPeriodYears: 7,
   exitCapRatePct: 6.75,
-  sellingCostsPct: 2.0,   // fallback if sellingCosts breakdown not present
+  sellingCostsPct: 2.0,
   sellingCosts: {
     brokerCommissionPct:  2.00,
     transferTaxPct:       0.50,
@@ -140,24 +134,17 @@ const DEFAULT_INPUTS = {
     miscDispositionCosts: 5000,
   },
 
-  // Concessions
-  freeRentMonthsNew: 1,         // free rent months given to new tenants
-  freeRentMonthsRenewal: 0,     // free rent months given on renewals
-  tiConcessionPSFNew: 0,        // TI allowance as income concession — new lease ($/SF)
-  tiConcessionPSFRenewal: 0,    // TI allowance as income concession — renewal ($/SF)
+  freeRentMonthsNew: 1,
+  freeRentMonthsRenewal: 0,
+  tiConcessionPSFNew: 0,
+  tiConcessionPSFRenewal: 0,
 
-  // Asset management fee allocations (charged by AM to the asset)
-  amFeeItems: [],  // [{ id, label, basis: "psf"|"fixed"|"pctEGR", value }]
+  amFeeItems: [],
+  customRolloverItems: [],
+  customIncomeItems: [],
+  customExpenseItems: [],
+  customDispositionItems: [],
 
-  // Custom rollover costs (charged at each lease rollover event, per SF)
-  customRolloverItems: [],  // [{ id, label, psf }]
-
-  // User-defined custom line items
-  customIncomeItems: [],       // [{ id, label, psf }]
-  customExpenseItems: [],      // [{ id, label, psf }]
-  customDispositionItems: [],  // [{ id, label, basis: "pct"|"fixed", value }]
-
-  // LP / GP waterfall
   waterfallEnabled: true,
   waterfall: {
     lpEquityPct: 90,
@@ -172,6 +159,13 @@ const DEFAULT_INPUTS = {
 
   units: [],
 };
+
+function newDeal(overrides = {}) {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    inputs: { ...DEFAULT_INPUTS, propertyName: "New Deal", ...overrides },
+  };
+}
 
 const TABS = [
   { id: "units",       label: "Unit Roll" },
@@ -195,9 +189,47 @@ function fmtDollarM(n) {
 }
 
 export default function Home() {
-  const [inputs, setInputs] = useState(DEFAULT_INPUTS);
+  const [deals, setDeals] = useState([
+    { id: "deal-1", inputs: { ...DEFAULT_INPUTS } },
+  ]);
+  const [activeDealId, setActiveDealId] = useState("deal-1");
   const [activeTab, setActiveTab] = useState("units");
   const [savedDeals, setSavedDeals] = useState([]);
+
+  const activeDeal = deals.find((d) => d.id === activeDealId) ?? deals[0];
+  const inputs = activeDeal.inputs;
+
+  function setInputs(updater) {
+    setDeals((prev) =>
+      prev.map((d) =>
+        d.id === activeDealId
+          ? { ...d, inputs: typeof updater === "function" ? updater(d.inputs) : updater }
+          : d
+      )
+    );
+  }
+
+  function handleAddDeal() {
+    const d = newDeal();
+    setDeals((prev) => [...prev, d]);
+    setActiveDealId(d.id);
+    setActiveTab("units");
+  }
+
+  function handleCloseDeal(id) {
+    setDeals((prev) => {
+      const next = prev.filter((d) => d.id !== id);
+      if (next.length === 0) {
+        const fresh = newDeal({ propertyName: "Small Bay Industrial" });
+        setActiveDealId(fresh.id);
+        return [fresh];
+      }
+      if (id === activeDealId) {
+        setActiveDealId(next[next.length - 1].id);
+      }
+      return next;
+    });
+  }
 
   const results = useMemo(() => underwrite(inputs), [inputs]);
 
@@ -275,13 +307,63 @@ export default function Home() {
       {/* Body */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex gap-6 items-start">
         {/* Left: inputs */}
-        <aside className="w-80 shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sticky top-[73px] max-h-[calc(100vh-90px)] overflow-y-auto">
-          <h2 className="text-base font-semibold text-gray-900 mb-5">Deal Inputs</h2>
-          <DealInputsPanel
-            inputs={inputs}
-            onChange={setInputs}
-            fundNames={[...new Set(savedDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))]}
-          />
+        <aside className="w-80 shrink-0 sticky top-[73px] max-h-[calc(100vh-90px)] flex flex-col gap-0">
+          {/* Deal switcher */}
+          <div className="bg-white rounded-t-2xl border border-b-0 border-gray-200 shadow-sm px-3 pt-3 pb-0">
+            <div className="flex items-center gap-1 overflow-x-auto pb-0 scrollbar-hide">
+              {deals.map((deal) => {
+                const isActive = deal.id === activeDealId;
+                return (
+                  <div
+                    key={deal.id}
+                    className={`flex items-center gap-1 shrink-0 rounded-t-lg px-3 py-2 cursor-pointer border-b-2 transition-all ${
+                      isActive
+                        ? "border-blue-600 bg-blue-50 text-blue-700"
+                        : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                    }`}
+                    onClick={() => setActiveDealId(deal.id)}
+                  >
+                    <span className="text-xs font-medium max-w-[100px] truncate">
+                      {deal.inputs.propertyName || "Unnamed"}
+                    </span>
+                    {deals.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleCloseDeal(deal.id); }}
+                        className={`ml-0.5 rounded-full w-4 h-4 flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition-colors ${isActive ? "text-blue-400" : "text-gray-300"}`}
+                        title="Close deal"
+                      >
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {/* New deal button */}
+              <button
+                type="button"
+                onClick={handleAddDeal}
+                title="Add new deal"
+                className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors ml-0.5"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Inputs panel */}
+          <div className="bg-white rounded-b-2xl border border-gray-200 shadow-sm p-5 overflow-y-auto flex-1">
+            <DealInputsPanel
+              key={activeDealId}
+              inputs={inputs}
+              onChange={setInputs}
+              fundNames={[...new Set(savedDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))]}
+            />
+          </div>
         </aside>
 
         {/* Right: results */}
