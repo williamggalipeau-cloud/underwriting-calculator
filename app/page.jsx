@@ -88,6 +88,8 @@ const DEFAULT_INPUTS = {
     occupancyMin:     85,
   },
 
+  lenderName: "",
+
   loanSizingConstraints: {
     minDSCREnabled:     false,
     minDSCR:            1.25,
@@ -171,7 +173,7 @@ const DEFAULT_INPUTS = {
 
 const TABS = [
   { id: "units",       label: "Unit Roll" },
-  { id: "debt",        label: "Debt Sizing" },
+  { id: "debt",        label: "Debt" },
   { id: "capital",     label: "Capital" },
   { id: "returns",     label: "Returns" },
   { id: "sensitivity", label: "Sensitivity" },
@@ -282,7 +284,7 @@ export default function Home() {
                 onChange={(units) => setInputs((prev) => ({ ...prev, units }))}
               />
             )}
-            {activeTab === "debt" && <DebtSizingPanel debt={debt} />}
+            {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
             {activeTab === "capital" && <CapitalAnalysis debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
             {activeTab === "returns" && (
               <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} />

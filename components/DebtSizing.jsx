@@ -76,7 +76,138 @@ const constraintColors = {
   "Debt Yield": "bg-teal-50 text-teal-700 border-teal-200",
 };
 
-export default function DebtSizingPanel({ debt }) {
+// ─── Covenant compliance ──────────────────────────────────────────────────────
+
+function covenantStatus(value, threshold, isMax) {
+  if (!isFinite(value)) return "—";
+  const breach = isMax ? value > threshold : value < threshold;
+  const margin = isMax
+    ? (threshold - value) / threshold
+    : (value - threshold) / threshold;
+  if (breach)        return "breach";
+  if (margin < 0.05) return "warn";
+  return "pass";
+}
+
+const statusStyles = {
+  pass:   { cell: "text-emerald-700 font-medium", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  warn:   { cell: "text-yellow-700 font-medium",  badge: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  breach: { cell: "text-red-700 font-bold",        badge: "bg-red-50 text-red-700 border-red-200" },
+  "—":    { cell: "text-gray-300",                 badge: "bg-gray-50 text-gray-400 border-gray-200" },
+};
+
+function CovenantCompliance({ cashFlows, inputs }) {
+  const cv = inputs.loanCovenants ?? {};
+
+  const covenants = [
+    cv.dscrEnabled      && { key: "dscr", label: "DSCR",       threshold: cv.dscrMin      ?? 1.25, isMax: false, fmtV: (v) => `${fmt(v, 2)}x`    },
+    cv.debtYieldEnabled && { key: "dy",   label: "Debt Yield", threshold: cv.debtYieldMin ?? 8.0,  isMax: false, fmtV: (v) => fmtPct(v, 2)        },
+    cv.ltvEnabled       && { key: "ltv",  label: "LTV",        threshold: cv.ltvMax       ?? 75,   isMax: true,  fmtV: (v) => fmtPct(v, 1)        },
+    cv.occupancyEnabled && { key: "occ",  label: "Occupancy",  threshold: cv.occupancyMin ?? 85,   isMax: false, fmtV: (v) => fmtPct(v, 1)        },
+  ].filter(Boolean);
+
+  if (covenants.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 p-5 text-center">
+        <p className="text-sm font-medium text-gray-400">No covenants configured</p>
+        <p className="text-xs text-gray-300 mt-1">Enable covenants in Deal Inputs → Financing → Loan Covenants.</p>
+      </div>
+    );
+  }
+
+  const rows = cashFlows.map((cf) => {
+    const dscr = cf.debtService > 0 ? cf.noi / cf.debtService : null;
+    const dy   = cf.loanBalance  > 0 ? (cf.noi / cf.loanBalance) * 100 : null;
+    const imp  = cf.noi > 0 && inputs.exitCapRatePct > 0 ? cf.noi / (inputs.exitCapRatePct / 100) : null;
+    const ltv  = imp && cf.loanBalance > 0 ? (cf.loanBalance / imp) * 100 : null;
+    const occ  = cf.grossRevenue > 0 ? ((cf.grossRevenue - cf.physicalVacancy) / cf.grossRevenue) * 100 : null;
+    return { year: cf.year, dscr, dy, ltv, occ };
+  });
+
+  const breachYears = rows.filter((r) =>
+    covenants.some(({ key, threshold, isMax }) => {
+      const v = r[key]; return v != null && covenantStatus(v, threshold, isMax) === "breach";
+    })
+  );
+  const warnYears = rows.filter((r) =>
+    covenants.some(({ key, threshold, isMax }) => {
+      const v = r[key]; return v != null && covenantStatus(v, threshold, isMax) === "warn";
+    })
+  );
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-gray-700">Covenant Compliance</h3>
+
+      <div className={`rounded-xl border px-4 py-3 text-sm ${
+        breachYears.length > 0  ? "border-red-200 bg-red-50 text-red-800" :
+        warnYears.length   > 0  ? "border-yellow-200 bg-yellow-50 text-yellow-800" :
+                                   "border-emerald-200 bg-emerald-50 text-emerald-800"
+      }`}>
+        {breachYears.length > 0 ? (
+          <><span className="font-semibold">Covenant breach</span> in {breachYears.length === 1 ? `Year ${breachYears[0].year}` : `${breachYears.length} years`}.{warnYears.length > 0 && ` Warning zone in ${warnYears.length} additional year${warnYears.length > 1 ? "s" : ""}.`}</>
+        ) : warnYears.length > 0 ? (
+          <><span className="font-semibold">Covenant warning</span> — within 5% of threshold in {warnYears.length} year{warnYears.length > 1 ? "s" : ""}. No outright breaches.</>
+        ) : (
+          <><span className="font-semibold">All covenants met</span> — full hold period compliance.</>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {covenants.map(({ key, label, threshold, isMax, fmtV }) => (
+          <div key={key} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs">
+            <span className="text-gray-500">{label} </span>
+            <span className="font-semibold text-gray-700">{isMax ? "≤" : "≥"} {fmtV(threshold)}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Year</th>
+              {covenants.map(({ key, label, threshold, isMax, fmtV }) => (
+                <th key={key} className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                  {label}
+                  <span className="ml-1 text-gray-300 font-normal normal-case">({isMax ? "≤" : "≥"}{fmtV(threshold)})</span>
+                </th>
+              ))}
+              <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {rows.map((r) => {
+              const ys = covenants.map(({ key, threshold, isMax }) => {
+                const v = r[key]; return v != null ? covenantStatus(v, threshold, isMax) : "—";
+              });
+              const worst = ys.includes("breach") ? "breach" : ys.includes("warn") ? "warn" : ys.every((s) => s === "pass") ? "pass" : "—";
+              const rowBg = worst === "breach" ? "bg-red-50" : worst === "warn" ? "bg-yellow-50/60" : "";
+              return (
+                <tr key={r.year} className={`transition-colors hover:brightness-95 ${rowBg}`}>
+                  <td className="px-3 py-2 font-medium text-gray-700">Y{r.year}</td>
+                  {covenants.map(({ key, fmtV }, ci) => {
+                    const v = r[key]; const s = statusStyles[ys[ci]] ?? statusStyles["—"];
+                    return <td key={key} className={`px-3 py-2 text-right tabular-nums ${s.cell}`}>{v != null ? fmtV(v) : "—"}</td>;
+                  })}
+                  <td className="px-3 py-2 text-center">
+                    {worst === "breach" ? <span className="text-xs font-bold px-2 py-0.5 rounded-full border bg-red-50 text-red-700 border-red-200">Breach</span>
+                     : worst === "warn" ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-yellow-50 text-yellow-700 border-yellow-200">Warning</span>
+                     : worst === "pass" ? <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">Pass</span>
+                     : <span className="text-xs text-gray-300">—</span>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-gray-400">LTV estimated as loan balance ÷ (NOI ÷ exit cap rate). Occupancy = (scheduled − vacancy) ÷ scheduled.</p>
+    </div>
+  );
+}
+
+export default function DebtSizingPanel({ debt, cashFlows, inputs }) {
   const { dscr } = debt;
   const ds = dscrStatus(dscr);
   const ls = ltvStatus(debt.ltv);
@@ -84,9 +215,10 @@ export default function DebtSizingPanel({ debt }) {
   const bindingColor = constraintColors[binding] ?? constraintColors.LTV;
 
   return (
-    <div>
+    <div className="space-y-8">
+      <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-gray-900">Debt Sizing</h2>
+        <h2 className="text-base font-semibold text-gray-900">Debt</h2>
         <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${bindingColor}`}>
           Sized by {binding}
         </span>
@@ -240,6 +372,20 @@ export default function DebtSizingPanel({ debt }) {
             </table>
           </div>
         </div>
+      )}
+      </div>
+
+      {/* Lender name */}
+      {inputs?.lenderName && (
+        <div className="rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-3">
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Lender</span>
+          <span className="text-sm font-semibold text-gray-900">{inputs.lenderName}</span>
+        </div>
+      )}
+
+      {/* Covenant compliance */}
+      {cashFlows && inputs && (
+        <CovenantCompliance cashFlows={cashFlows} inputs={inputs} />
       )}
     </div>
   );

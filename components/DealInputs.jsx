@@ -954,6 +954,9 @@ export default function DealInputsPanel({ inputs, onChange }) {
       {/* Financing */}
       <div>
         <SectionHeader title="Financing" />
+        <div className="mb-3">
+          <Field label="Lender" value={inputs.lenderName ?? ""} field="lenderName" onChange={set} />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="LTV" value={inputs.ltvPct} field="ltvPct" suffix="%" step={5} onChange={set} />
           <Field label="Amortization" value={inputs.amortizationYears} field="amortizationYears" suffix="yrs" step={5} onChange={set} />
