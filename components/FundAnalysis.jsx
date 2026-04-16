@@ -341,7 +341,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   );
 }
 
-export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, onRemoveFund }) {
+export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, onRemoveFund, onLoadDemo }) {
   const groups = groupByFund(savedDeals);
   const fundNames = Object.keys(groups);
   const currentFund = currentDeal.inputs.fundName?.trim() || "(No Fund)";
@@ -382,6 +382,15 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
           <p className="text-xs text-gray-400 mt-1">
             Set a Fund name in Deal Inputs, then click <span className="font-medium">Add to Fund</span> to snapshot this deal.
           </p>
+          {onLoadDemo && (
+            <button
+              type="button"
+              onClick={onLoadDemo}
+              className="mt-4 text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              Load demo fund (10 assets)
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-10">
