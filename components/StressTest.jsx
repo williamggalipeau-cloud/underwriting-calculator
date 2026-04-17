@@ -194,35 +194,52 @@ function MetricPair({ base, stressed, format = "pct", threshold, higherIsBetter 
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+const DEFAULT_FACTORS = {
+  vacancyDelta: 0, rentEscDelta: 0, rateDelta: 0,
+  exitCapDelta: 0, opexDelta: 0, constructionDelta: 0,
+};
+
 export default function StressTest({ inputs, results, savedDeals, onStressedDealsChange }) {
-  const [factors, setFactors] = useState({
-    vacancyDelta:       0,  // %, added to vacancy rate
-    rentEscDelta:       0,  // %, subtracted from annual escalation
-    rateDelta:          0,  // bps, added to interest rate
-    exitCapDelta:       0,  // %, added to exit cap rate
-    opexDelta:          0,  // %, multiplied to all opex line items
-    constructionDelta:  0,  // %, multiplied to construction & TI items
-  });
+  const [selectedId, setSelectedId] = useState("active");
+  const [factorsById, setFactorsById] = useState({});
 
-  const setFactor = (key) => (val) => setFactors((f) => ({ ...f, [key]: val }));
+  const currentFactors = factorsById[selectedId] ?? DEFAULT_FACTORS;
+  const setFactor = (key) => (val) => setFactorsById((prev) => ({
+    ...prev,
+    [selectedId]: { ...(prev[selectedId] ?? DEFAULT_FACTORS), [key]: val },
+  }));
+  const resetCurrentFactors = () => setFactorsById((prev) => ({ ...prev, [selectedId]: DEFAULT_FACTORS }));
 
-  const isBaseCase = Object.values(factors).every((v) => v === 0);
-  const baseExitCap = inputs.exitCapRatePct ?? 0;
+  const isBaseCase = Object.values(currentFactors).every((v) => v === 0);
 
-  // ── Stress current (active) deal ─────────────────────────────────────────
-  const stressedCurrentInputs = useMemo(
-    () => applyStress(inputs, factors),
-    [inputs, factors]
+  // ── Selected asset base inputs & results ─────────────────────────────────
+  const selectedInputs = useMemo(() => {
+    if (selectedId === "active") return inputs;
+    return savedDeals.find((d) => d.id === selectedId)?.inputs ?? inputs;
+  }, [selectedId, savedDeals, inputs]);
+
+  const selectedBaseResults = useMemo(() => {
+    if (selectedId === "active") return results;
+    return underwrite(selectedInputs);
+  }, [selectedId, selectedInputs, results]);
+
+  const baseExitCap = selectedInputs.exitCapRatePct ?? 0;
+
+  // ── Stress selected asset ─────────────────────────────────────────────────
+  const stressedSelectedInputs = useMemo(
+    () => applyStress(selectedInputs, currentFactors),
+    [selectedInputs, currentFactors]
   );
-  const stressedCurrentResults = useMemo(
-    () => underwrite(stressedCurrentInputs),
-    [stressedCurrentInputs]
+  const stressedSelectedResults = useMemo(
+    () => underwrite(stressedSelectedInputs),
+    [stressedSelectedInputs]
   );
 
-  // ── Stress each saved deal ────────────────────────────────────────────────
+  // ── Stress each saved deal (per-deal factors) ─────────────────────────────
   const stressedSavedDeals = useMemo(() => {
     return savedDeals.map((deal) => {
-      const si = applyStress(deal.inputs, factors);
+      const dealFactors = factorsById[deal.id] ?? DEFAULT_FACTORS;
+      const si = applyStress(deal.inputs, dealFactors);
       const sr = underwrite(si);
       return {
         ...deal,
@@ -237,7 +254,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         },
       };
     });
-  }, [savedDeals, factors]);
+  }, [savedDeals, factorsById]);
 
   // Portfolio-level aggregate flows
   const basePortfolioFlows = useMemo(
@@ -256,7 +273,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900">Return Stress Testing</h2>
           <p className="text-xs text-gray-400 mt-0.5">
@@ -264,15 +281,27 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
             Base case values shown in grey; stressed values in colour.
           </p>
         </div>
-        {!isBaseCase && (
-          <button
-            type="button"
-            onClick={() => setFactors({ vacancyDelta: 0, rentEscDelta: 0, rateDelta: 0, exitCapDelta: 0, opexDelta: 0, constructionDelta: 0 })}
-            className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+        <div className="flex items-center gap-2 shrink-0">
+          {!isBaseCase && (
+            <button
+              type="button"
+              onClick={resetCurrentFactors}
+              className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              Reset
+            </button>
+          )}
+          <select
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Reset to base
-          </button>
-        )}
+            <option value="active">{inputs.propertyName || "Active Deal"}</option>
+            {savedDeals.map((d) => (
+              <option key={d.id} value={d.id}>{d.inputs?.propertyName || "Unnamed"}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* ── Risk Factor Controls ─────────────────────────────────────────────── */}
@@ -282,7 +311,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         <FactorRow
           label="Higher Unit Vacancy"
           sublabel="Added to base vacancy rate"
-          value={factors.vacancyDelta}
+          value={currentFactors.vacancyDelta}
           onChange={setFactor("vacancyDelta")}
           min={0} max={30} step={1} suffix="%"
         />
@@ -290,7 +319,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         <FactorRow
           label="Lower Rent Increases"
           sublabel="Subtracted from annual escalation"
-          value={factors.rentEscDelta}
+          value={currentFactors.rentEscDelta}
           onChange={setFactor("rentEscDelta")}
           min={0} max={5} step={0.25} suffix="%"
         />
@@ -298,15 +327,15 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         <FactorRow
           label="Interest Rate Rise"
           sublabel="Added to rate (floating spread or fixed rate)"
-          value={factors.rateDelta}
+          value={currentFactors.rateDelta}
           onChange={setFactor("rateDelta")}
           min={0} max={300} step={25} suffix=" bps"
         />
         <div className="border-t border-gray-200" />
         <FactorRow
           label="Exit Cap Rate Expansion"
-          sublabel={`Base: ${baseExitCap.toFixed(2)}% → stressed: ${(baseExitCap + factors.exitCapDelta).toFixed(2)}%`}
-          value={factors.exitCapDelta}
+          sublabel={`Base: ${baseExitCap.toFixed(2)}% → stressed: ${(baseExitCap + currentFactors.exitCapDelta).toFixed(2)}%`}
+          value={currentFactors.exitCapDelta}
           onChange={setFactor("exitCapDelta")}
           min={0} max={3} step={0.25} suffix="%"
         />
@@ -314,7 +343,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         <FactorRow
           label="Operating Expense Overrun"
           sublabel="Applied to all opex line items"
-          value={factors.opexDelta}
+          value={currentFactors.opexDelta}
           onChange={setFactor("opexDelta")}
           min={0} max={50} step={5} suffix="%"
         />
@@ -322,16 +351,16 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         <FactorRow
           label="Construction / TI Overrun"
           sublabel="Applied to construction and TI costs"
-          value={factors.constructionDelta}
+          value={currentFactors.constructionDelta}
           onChange={setFactor("constructionDelta")}
           min={0} max={50} step={5} suffix="%"
         />
       </div>
 
-      {/* ── Active Deal: Base vs. Stressed ──────────────────────────────────── */}
+      {/* ── Selected Asset: Base vs. Stressed ──────────────────────────────── */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-gray-700">
-          Active Deal — {inputs.propertyName || "Unnamed"}
+          {selectedInputs.propertyName || "Unnamed"}
           {isBaseCase && <span className="ml-2 text-xs font-normal text-gray-400">(no stress applied)</span>}
         </h3>
 
@@ -339,29 +368,29 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           {[
             {
               label: "IRR",
-              base: results.returns.irr,
-              stressed: stressedCurrentResults.returns.irr,
+              base: selectedBaseResults.returns.irr,
+              stressed: stressedSelectedResults.returns.irr,
               format: "pct",
               threshold: 14,
             },
             {
               label: "Eq. Multiple",
-              base: results.returns.equityMultiple,
-              stressed: stressedCurrentResults.returns.equityMultiple,
+              base: selectedBaseResults.returns.equityMultiple,
+              stressed: stressedSelectedResults.returns.equityMultiple,
               format: "x",
               threshold: 2,
             },
             {
               label: "CoC Year 1",
-              base: results.returns.yearOneCashOnCash,
-              stressed: stressedCurrentResults.returns.yearOneCashOnCash,
+              base: selectedBaseResults.returns.yearOneCashOnCash,
+              stressed: stressedSelectedResults.returns.yearOneCashOnCash,
               format: "pct",
               threshold: 7,
             },
             {
               label: "DSCR",
-              base: results.debt.dscr,
-              stressed: stressedCurrentResults.debt.dscr,
+              base: selectedBaseResults.debt.dscr,
+              stressed: stressedSelectedResults.debt.dscr,
               format: "x",
               threshold: 1.25,
             },
