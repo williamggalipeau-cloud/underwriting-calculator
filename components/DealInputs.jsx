@@ -68,6 +68,44 @@ function useSofr() {
   return { sofr, loading, error, refresh: doFetch };
 }
 
+// Fetches CME 3-Month SOFR December futures from Yahoo Finance for each hold year.
+// Ticker format: SR3Z{2-digit year}.CME  (Dec contract = annual proxy rate)
+// Implied rate = 100 - price
+async function fetchSofrCurve(holdPeriodYears) {
+  const currentYear = new Date().getFullYear();
+
+  async function fetchContract(year) {
+    const yy = String(year).slice(-2);
+    const ticker = `SR3Z${yy}.CME`;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+    const proxies = [
+      url,
+      `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    ];
+    for (const proxy of proxies) {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(proxy, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (!res.ok) continue;
+        let body = await res.json();
+        // allorigins wraps payload in .contents
+        if (body?.contents) body = JSON.parse(body.contents);
+        const price = body?.chart?.result?.[0]?.meta?.regularMarketPrice;
+        if (price != null && price > 80) return +(100 - price).toFixed(4);
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  const results = await Promise.all(
+    Array.from({ length: holdPeriodYears }, (_, i) => fetchContract(currentYear + i))
+  );
+  return results; // array of rates (null if unavailable)
+}
+
 function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
   return (
     <div className="flex flex-col gap-1">
@@ -771,6 +809,23 @@ function fmtK(n) {
 export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
   const { sofr, loading: sofrLoading, error: sofrError, refresh: sofrRefresh } = useSofr();
+  const [curveLoading, setCurveLoading] = useState(false);
+  const [curveError, setCurveError] = useState(null);
+
+  async function handleFetchCurve() {
+    setCurveLoading(true);
+    setCurveError(null);
+    const holdYears = inputs.holdPeriodYears ?? 7;
+    const rates = await fetchSofrCurve(holdYears);
+    // Fill any nulls (far-dated contracts) by forward-filling last known rate
+    let last = inputs.indexRatePct ?? 0;
+    const filled = rates.map((r) => { if (r != null) last = r; return last; });
+    if (filled.every((r) => r === (inputs.indexRatePct ?? 0))) {
+      setCurveError("Could not fetch — check connection");
+    }
+    onChange({ ...inputs, sofrForwardCurve: filled });
+    setCurveLoading(false);
+  }
 
   const setCC = (field, value) =>
     onChange({ ...inputs, closingCosts: { ...inputs.closingCosts, [field]: value } });
@@ -1233,10 +1288,6 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                   set("sofrForwardCurve", next);
                 }
 
-                function fillFlat() {
-                  set("sofrForwardCurve", Array(holdYears).fill(inputs.indexRatePct ?? 0));
-                }
-
                 function clearCurve() {
                   set("sofrForwardCurve", []);
                 }
@@ -1244,26 +1295,32 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                 return (
                   <div className="col-span-2 mt-1 space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-gray-600">SOFR Forward Curve</p>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600">SOFR Forward Curve</p>
+                        {curveError && <p className="text-xs text-red-400 mt-0.5">{curveError}</p>}
+                      </div>
                       <div className="flex items-center gap-2">
-                        {hasCurve ? (
+                        {hasCurve && (
                           <button type="button" onClick={clearCurve}
                             className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
                             Use flat rate
                           </button>
-                        ) : (
-                          <button type="button" onClick={fillFlat}
-                            className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 bg-white rounded-md px-2 py-1 transition-colors">
-                            Set curve
-                          </button>
                         )}
-                        <a href="https://www.pensford.com/forward-curve" target="_blank" rel="noreferrer"
-                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-0.5">
-                          Pensford
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
+                        <button
+                          type="button"
+                          onClick={handleFetchCurve}
+                          disabled={curveLoading}
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 bg-white rounded-md px-2 py-1 transition-colors disabled:opacity-50 flex items-center gap-1"
+                        >
+                          {curveLoading ? (
+                            <>
+                              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Fetching…
+                            </>
+                          ) : "Fetch from market"}
+                        </button>
                       </div>
                     </div>
 
@@ -1324,7 +1381,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                     ) : (
                       <p className="text-xs text-gray-400">
                         Flat rate ({((inputs.indexRatePct ?? 0) + (inputs.spreadPct ?? 0)).toFixed(2)}%) applied to all years.
-                        Click <span className="font-medium">Set curve</span> to enter year-by-year projections.
+                        Click <span className="font-medium">Fetch from market</span> to pull CME SOFR futures.
                       </p>
                     )}
                   </div>
