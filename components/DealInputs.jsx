@@ -823,7 +823,8 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
     if (filled.every((r) => r === (inputs.indexRatePct ?? 0))) {
       setCurveError("Could not fetch — check connection");
     }
-    onChange({ ...inputs, sofrForwardCurve: filled });
+    // Sync index rate with Y1 from the curve
+    onChange({ ...inputs, sofrForwardCurve: filled, indexRatePct: filled[0] ?? inputs.indexRatePct });
     setCurveLoading(false);
   }
 
@@ -1222,81 +1223,144 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
             ))}
           </div>
           {inputs.floatingRate ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2 flex items-center justify-between rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
-                <div className="text-xs text-gray-500">
-                  <span className="font-medium text-gray-700">SOFR</span>
-                  {sofr && (
-                    <span className="ml-2 font-semibold text-gray-900 tabular-nums">{sofr.rate.toFixed(2)}%</span>
-                  )}
-                  {sofr && (
-                    <span className="ml-1.5 text-gray-400">as of {sofr.date}</span>
-                  )}
-                  {sofrLoading && <span className="ml-2 text-gray-400">Loading…</span>}
-                  {sofrError && <span className="ml-2 text-red-400">{sofrError}</span>}
-                </div>
-                <div className="flex items-center gap-2">
-                  {sofr && (
-                    <button
-                      type="button"
-                      onClick={() => set("indexRatePct", sofr.rate)}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 hover:border-blue-300 bg-white rounded-md px-2 py-1 transition-colors"
-                    >
-                      Use SOFR
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={sofrRefresh}
-                    disabled={sofrLoading}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
-                    title="Refresh SOFR"
-                  >
-                    <svg className={`w-3.5 h-3.5 ${sofrLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <Field label="Index Rate (SOFR)" value={inputs.indexRatePct} field="indexRatePct" suffix="%" step={0.05} onChange={set} />
-              <Field label="Spread" value={inputs.spreadPct} field="spreadPct" suffix="%" step={0.10} onChange={set} />
-              <div className="col-span-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700 font-medium">
-                Effective rate: {((inputs.indexRatePct ?? 0) + (inputs.spreadPct ?? 0)).toFixed(2)}%
-                {inputs.hedgingType === "cap" && inputs.capStrikeRatePct
-                  ? ` (capped at ${inputs.capStrikeRatePct}%)`
-                  : inputs.hedgingType === "swap" && inputs.swapFixedRatePct
-                  ? ` → swapped to ${inputs.swapFixedRatePct}% fixed`
-                  : ""}
-              </div>
+            (() => {
+              const curve = inputs.sofrForwardCurve ?? [];
+              const holdYears = inputs.holdPeriodYears ?? 7;
+              const spread = inputs.spreadPct ?? 0;
+              const capStrike = inputs.capStrikeRatePct ?? Infinity;
+              const capTerm = inputs.capTermYears ?? inputs.loanTermYears ?? 999;
+              const swapRate = inputs.swapFixedRatePct ?? 0;
+              const swapTerm = inputs.swapTermYears ?? inputs.loanTermYears ?? 999;
+              const hasCurve = curve.length > 0;
 
-              {/* SOFR Forward Curve */}
-              {(() => {
-                const curve = inputs.sofrForwardCurve ?? [];
-                const holdYears = inputs.holdPeriodYears ?? 7;
-                const spread = inputs.spreadPct ?? 0;
-                const capStrike = inputs.capStrikeRatePct ?? Infinity;
-                const capTerm = inputs.capTermYears ?? inputs.loanTermYears ?? 999;
-                const swapRate = inputs.swapFixedRatePct ?? 0;
-                const swapTerm = inputs.swapTermYears ?? inputs.loanTermYears ?? 999;
-                const hasCurve = curve.length > 0;
+              // Compute all-in rates for display
+              const allInRates = Array.from({ length: holdYears }, (_, i) => {
+                const yr = i + 1;
+                const s = hasCurve && curve[i] != null ? curve[i] : (inputs.indexRatePct ?? 0);
+                const raw = s + spread;
+                if (inputs.hedgingType === "cap" && yr <= capTerm && raw > capStrike) return capStrike;
+                if (inputs.hedgingType === "swap" && yr <= swapTerm) return swapRate;
+                return raw;
+              });
+              const rateMin = Math.min(...allInRates);
+              const rateMax = Math.max(...allInRates);
+              const y1Rate = allInRates[0];
 
-                function updateCurveYear(idx, val) {
-                  const next = Array.from({ length: holdYears }, (_, i) =>
-                    curve[i] != null ? curve[i] : (inputs.indexRatePct ?? 0)
-                  );
-                  next[idx] = val;
-                  set("sofrForwardCurve", next);
+              function handleUseSofr() {
+                const rate = sofr?.rate;
+                if (rate == null) return;
+                const updates = { ...inputs, indexRatePct: rate };
+                // Also update Y1 of forward curve if active
+                if (hasCurve) {
+                  const next = [...curve];
+                  while (next.length < holdYears) next.push(inputs.indexRatePct ?? 0);
+                  next[0] = rate;
+                  updates.sofrForwardCurve = next;
                 }
+                onChange(updates);
+              }
 
-                function clearCurve() {
-                  set("sofrForwardCurve", []);
-                }
+              function updateCurveYear(idx, val) {
+                const next = Array.from({ length: holdYears }, (_, i) =>
+                  curve[i] != null ? curve[i] : (inputs.indexRatePct ?? 0)
+                );
+                next[idx] = val;
+                // Keep index rate synced with Y1
+                const updates = { ...inputs, sofrForwardCurve: next };
+                if (idx === 0) updates.indexRatePct = val;
+                onChange(updates);
+              }
 
-                return (
-                  <div className="col-span-2 mt-1 space-y-2">
+              function clearCurve() {
+                set("sofrForwardCurve", []);
+              }
+
+              return (
+                <div className="space-y-3">
+                  {/* Live SOFR + links */}
+                  <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
+                        <span className="font-semibold text-gray-700">Live SOFR</span>
+                        {sofr && (
+                          <span className="ml-2 font-bold text-gray-900 tabular-nums text-sm">{sofr.rate.toFixed(2)}%</span>
+                        )}
+                        {sofr && (
+                          <span className="ml-1.5 text-gray-400">({sofr.date})</span>
+                        )}
+                        {sofrLoading && <span className="ml-2 text-gray-400">Loading…</span>}
+                        {sofrError && <span className="ml-2 text-red-400">{sofrError}</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a href="https://www.pensford.com/forward-curve" target="_blank" rel="noreferrer"
+                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-0.5">
+                          Pensford
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                        <button type="button" onClick={sofrRefresh} disabled={sofrLoading}
+                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40" title="Refresh SOFR">
+                          <svg className={`w-3.5 h-3.5 ${sofrLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    {sofr && (
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={handleUseSofr}
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 hover:border-blue-300 bg-white rounded-md px-2 py-1 transition-colors">
+                          {hasCurve ? "Set as Y1 rate" : "Use as index rate"}
+                        </button>
+                        <span className="text-xs text-gray-400">
+                          {hasCurve
+                            ? `Current Y1: ${(curve[0] ?? inputs.indexRatePct ?? 0).toFixed(2)}%`
+                            : `Current: ${(inputs.indexRatePct ?? 0).toFixed(2)}%`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Index Rate + Spread */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label={hasCurve ? "Index (Y1 SOFR)" : "Index Rate (SOFR)"} value={inputs.indexRatePct} field="indexRatePct" suffix="%" step={0.05}
+                      onChange={(field, val) => {
+                        const updates = { ...inputs, [field]: val };
+                        // Sync Y1 of curve with index rate
+                        if (hasCurve) {
+                          const next = [...curve];
+                          while (next.length < holdYears) next.push(inputs.indexRatePct ?? 0);
+                          next[0] = val;
+                          updates.sofrForwardCurve = next;
+                        }
+                        onChange(updates);
+                      }}
+                    />
+                    <Field label="Spread" value={inputs.spreadPct} field="spreadPct" suffix="%" step={0.10} onChange={set} />
+                  </div>
+
+                  {/* Effective rate summary */}
+                  <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700 font-medium">
+                    {hasCurve ? (
+                      rateMin === rateMax
+                        ? `Effective rate: ${rateMin.toFixed(2)}% (flat curve)`
+                        : `Effective rate: ${rateMin.toFixed(2)}% – ${rateMax.toFixed(2)}% (Y1: ${y1Rate.toFixed(2)}%)`
+                    ) : (
+                      `Effective rate: ${((inputs.indexRatePct ?? 0) + spread).toFixed(2)}%`
+                    )}
+                    {inputs.hedgingType === "cap" && inputs.capStrikeRatePct
+                      ? ` (capped at ${inputs.capStrikeRatePct}%)`
+                      : inputs.hedgingType === "swap" && inputs.swapFixedRatePct
+                      ? ` → swapped to ${inputs.swapFixedRatePct}% fixed`
+                      : ""}
+                  </div>
+
+                  {/* Forward Curve */}
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-gray-600">SOFR Forward Curve</p>
+                        <p className="text-xs font-semibold text-gray-600">Forward Curve</p>
                         {curveError && <p className="text-xs text-red-400 mt-0.5">{curveError}</p>}
                       </div>
                       <div className="flex items-center gap-2">
@@ -1306,12 +1370,8 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                             Use flat rate
                           </button>
                         )}
-                        <button
-                          type="button"
-                          onClick={handleFetchCurve}
-                          disabled={curveLoading}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 bg-white rounded-md px-2 py-1 transition-colors disabled:opacity-50 flex items-center gap-1"
-                        >
+                        <button type="button" onClick={handleFetchCurve} disabled={curveLoading}
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 bg-white rounded-md px-2 py-1 transition-colors disabled:opacity-50 flex items-center gap-1">
                           {curveLoading ? (
                             <>
                               <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1319,7 +1379,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                               </svg>
                               Fetching…
                             </>
-                          ) : "Fetch from market"}
+                          ) : hasCurve ? "Refresh curve" : "Fetch from market"}
                         </button>
                       </div>
                     </div>
@@ -1342,33 +1402,22 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                               let allin = raw;
                               let note = "";
                               if (inputs.hedgingType === "cap" && year <= capTerm && raw > capStrike) {
-                                allin = capStrike;
-                                note = "capped";
+                                allin = capStrike; note = "capped";
                               } else if (inputs.hedgingType === "swap" && year <= swapTerm) {
-                                allin = swapRate;
-                                note = "swap";
+                                allin = swapRate; note = "swap";
                               }
-                              const isCapped = note === "capped";
-                              const isSwap = note === "swap";
                               return (
                                 <tr key={year} className="hover:bg-gray-50">
                                   <td className="px-2 py-1.5 font-medium text-gray-600">Y{year}</td>
                                   <td className="px-2 py-1.5 text-right">
-                                    <input
-                                      type="number"
-                                      value={sofrVal}
-                                      step={0.05}
-                                      min={0}
-                                      max={20}
+                                    <input type="number" value={sofrVal} step={0.05} min={0} max={20}
                                       onChange={(e) => updateCurveYear(i, Number(e.target.value))}
                                       className="w-16 text-right text-xs font-mono border border-gray-200 rounded-md px-1.5 py-0.5 focus:ring-1 focus:ring-blue-500 focus:border-transparent outline-none"
                                     />
                                     <span className="ml-0.5 text-gray-400">%</span>
                                   </td>
-                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">
-                                    +{spread.toFixed(2)}%
-                                  </td>
-                                  <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${isCapped ? "text-orange-600" : isSwap ? "text-purple-600" : "text-gray-800"}`}>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">+{spread.toFixed(2)}%</td>
+                                  <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${note === "capped" ? "text-orange-600" : note === "swap" ? "text-purple-600" : "text-gray-800"}`}>
                                     {allin.toFixed(2)}%
                                     {note && <span className="ml-1 text-xs font-normal opacity-70">({note})</span>}
                                   </td>
@@ -1380,14 +1429,15 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                       </div>
                     ) : (
                       <p className="text-xs text-gray-400">
-                        Flat rate ({((inputs.indexRatePct ?? 0) + (inputs.spreadPct ?? 0)).toFixed(2)}%) applied to all years.
-                        Click <span className="font-medium">Fetch from market</span> to pull CME SOFR futures.
+                        Flat {((inputs.indexRatePct ?? 0) + spread).toFixed(2)}% all years.
+                        <span className="font-medium ml-1">Fetch from market</span> pulls CME SOFR futures per year.
                       </p>
                     )}
+                    <p className="text-xs text-gray-400">Source: CME 3-Month SOFR Futures (SR3) via Yahoo Finance</p>
                   </div>
-                );
-              })()}
-            </div>
+                </div>
+              );
+            })()
           ) : (
             <Field label="Interest Rate" value={inputs.interestRatePct} field="interestRatePct" suffix="%" step={0.25} onChange={set} />
           )}
