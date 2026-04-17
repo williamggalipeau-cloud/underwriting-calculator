@@ -8,28 +8,71 @@ function useSofr() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  async function fetch_() {
-    setLoading(true);
-    setError(null);
+  async function fetchWithTimeout(url, ms = 6000) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
     try {
-      const res = await fetch(
-        "https://markets.newyorkfed.org/api/rates/sofr/last/1.json"
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const entry = data?.refRates?.[0];
-      if (!entry) throw new Error("No data");
-      setSofr({ rate: entry.percentRate, date: entry.effectiveDate });
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(t);
+      return res;
     } catch (e) {
-      setError("Could not fetch SOFR");
-    } finally {
-      setLoading(false);
+      clearTimeout(t);
+      throw e;
     }
   }
 
-  useEffect(() => { fetch_(); }, []);
+  async function doFetch() {
+    setLoading(true);
+    setError(null);
 
-  return { sofr, loading, error, refresh: fetch_ };
+    // 1. Try NY Fed SOFR API
+    try {
+      const res = await fetchWithTimeout(
+        "https://markets.newyorkfed.org/api/rates/sofr/last/1.json"
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const entry = data?.refRates?.[0];
+        if (entry?.percentRate != null) {
+          setSofr({ rate: entry.percentRate, date: entry.effectiveDate });
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback: FRED SOFR series (no API key needed for graph endpoint)
+    try {
+      const res = await fetchWithTimeout(
+        "https://fred.stlouisfed.org/graph/fredgraph.json?id=SOFR"
+      );
+      if (res.ok) {
+        const raw = await res.json();
+        // fredgraph returns { observations: [[timestamp_ms, value], ...] }
+        const obs = Array.isArray(raw) ? raw : raw?.observations ?? [];
+        if (obs.length > 0) {
+          const last = obs[obs.length - 1];
+          const rate = parseFloat(Array.isArray(last) ? last[1] : last?.value);
+          const ts = Array.isArray(last) ? last[0] : last?.date;
+          const date = typeof ts === "number"
+            ? new Date(ts).toISOString().split("T")[0]
+            : String(ts);
+          if (isFinite(rate)) {
+            setSofr({ rate, date });
+            setLoading(false);
+            return;
+          }
+        }
+      }
+    } catch (_) {}
+
+    setError("Could not fetch SOFR");
+    setLoading(false);
+  }
+
+  useEffect(() => { doFetch(); }, []);
+
+  return { sofr, loading, error, refresh: doFetch };
 }
 
 function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
