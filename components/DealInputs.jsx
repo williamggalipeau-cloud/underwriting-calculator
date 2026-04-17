@@ -1,72 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
-
-function useSofr() {
-  const [sofr, setSofr] = useState(null);   // { rate: number, date: string }
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const NY_FED = "https://markets.newyorkfed.org/api/rates/sofr/last/1.json";
-
-  function parseNyFed(data) {
-    const e = data?.refRates?.[0];
-    if (e?.percentRate != null) return { rate: e.percentRate, date: e.effectiveDate };
-    return null;
-  }
-
-  async function tryFetch(url, ms = 7000) {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    try {
-      const res = await fetch(url, { signal: ctrl.signal });
-      clearTimeout(t);
-      return res.ok ? res : null;
-    } catch (_) { clearTimeout(t); return null; }
-  }
-
-  async function doFetch() {
-    setLoading(true);
-    setError(null);
-
-    // 1. Direct NY Fed
-    try {
-      const res = await tryFetch(NY_FED);
-      if (res) {
-        const parsed = parseNyFed(await res.json());
-        if (parsed) { setSofr(parsed); setLoading(false); return; }
-      }
-    } catch (_) {}
-
-    // 2. Via corsproxy.io (bypasses CORS restriction)
-    try {
-      const res = await tryFetch(`https://corsproxy.io/?${encodeURIComponent(NY_FED)}`);
-      if (res) {
-        const parsed = parseNyFed(await res.json());
-        if (parsed) { setSofr(parsed); setLoading(false); return; }
-      }
-    } catch (_) {}
-
-    // 3. Via allorigins (second CORS proxy fallback)
-    try {
-      const res = await tryFetch(`https://api.allorigins.win/get?url=${encodeURIComponent(NY_FED)}`);
-      if (res) {
-        const wrapper = await res.json();
-        const inner = JSON.parse(wrapper?.contents ?? "{}");
-        const parsed = parseNyFed(inner);
-        if (parsed) { setSofr(parsed); setLoading(false); return; }
-      }
-    } catch (_) {}
-
-    setError("Could not fetch SOFR");
-    setLoading(false);
-  }
-
-  useEffect(() => { doFetch(); }, []);
-
-  return { sofr, loading, error, refresh: doFetch };
-}
 
 // Fetches CME 3-Month SOFR December futures from Yahoo Finance for each hold year.
 // Ticker format: SR3Z{2-digit year}.CME  (Dec contract = annual proxy rate)
@@ -808,7 +743,6 @@ function fmtK(n) {
 
 export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
-  const { sofr, loading: sofrLoading, error: sofrError, refresh: sofrRefresh } = useSofr();
   const [curveLoading, setCurveLoading] = useState(false);
   const [curveError, setCurveError] = useState(null);
 
@@ -1246,20 +1180,6 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
               const rateMax = Math.max(...allInRates);
               const y1Rate = allInRates[0];
 
-              function handleUseSofr() {
-                const rate = sofr?.rate;
-                if (rate == null) return;
-                const updates = { ...inputs, indexRatePct: rate };
-                // Also update Y1 of forward curve if active
-                if (hasCurve) {
-                  const next = [...curve];
-                  while (next.length < holdYears) next.push(inputs.indexRatePct ?? 0);
-                  next[0] = rate;
-                  updates.sofrForwardCurve = next;
-                }
-                onChange(updates);
-              }
-
               function updateCurveYear(idx, val) {
                 const next = Array.from({ length: holdYears }, (_, i) =>
                   curve[i] != null ? curve[i] : (inputs.indexRatePct ?? 0)
@@ -1277,51 +1197,6 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
 
               return (
                 <div className="space-y-3">
-                  {/* Live SOFR + links */}
-                  <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2.5 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-gray-500">
-                        <span className="font-semibold text-gray-700">Live SOFR</span>
-                        {sofr && (
-                          <span className="ml-2 font-bold text-gray-900 tabular-nums text-sm">{sofr.rate.toFixed(2)}%</span>
-                        )}
-                        {sofr && (
-                          <span className="ml-1.5 text-gray-400">({sofr.date})</span>
-                        )}
-                        {sofrLoading && <span className="ml-2 text-gray-400">Loading…</span>}
-                        {sofrError && <span className="ml-2 text-red-400">{sofrError}</span>}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <a href="https://www.pensford.com/forward-curve" target="_blank" rel="noreferrer"
-                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-0.5">
-                          Pensford
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
-                        <button type="button" onClick={sofrRefresh} disabled={sofrLoading}
-                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40" title="Refresh SOFR">
-                          <svg className={`w-3.5 h-3.5 ${sofrLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    {sofr && (
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={handleUseSofr}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 hover:border-blue-300 bg-white rounded-md px-2 py-1 transition-colors">
-                          {hasCurve ? "Set as Y1 rate" : "Use as index rate"}
-                        </button>
-                        <span className="text-xs text-gray-400">
-                          {hasCurve
-                            ? `Current Y1: ${(curve[0] ?? inputs.indexRatePct ?? 0).toFixed(2)}%`
-                            : `Current: ${(inputs.indexRatePct ?? 0).toFixed(2)}%`}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Index Rate + Spread */}
                   <div className="grid grid-cols-2 gap-3">
                     <Field label={hasCurve ? "Index (Y1 SOFR)" : "Index Rate (SOFR)"} value={inputs.indexRatePct} field="indexRatePct" suffix="%" step={0.05}
