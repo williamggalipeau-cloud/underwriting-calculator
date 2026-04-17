@@ -1,5 +1,8 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { underwrite } from "@/lib/calculations";
+
 function fmt(n, decimals = 0) {
   if (!isFinite(n)) return "—";
   return n.toLocaleString("en-US", {
@@ -123,49 +126,82 @@ function WaterfallSection({ wf }) {
   );
 }
 
-export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs }) {
-  const totalCapEx = cashFlows.reduce((s, cf) => s + (cf.tiAndLeasing ?? 0), 0);
-  const capExPct   = inputs?.purchasePrice > 0 ? (totalCapEx / inputs.purchasePrice) * 100 : null;
+export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs, savedDeals = [] }) {
+  const [selectedId, setSelectedId] = useState("active");
 
-  const irrTier   = tier(returns.irr, 18, 14, 10);
-  const netIrrTier = waterfall ? tier(waterfall.lpIRR, 18, 14, 10) : null;
-  const emTier    = tier(returns.equityMultiple, 2.5, 2.0, 1.5);
-  const cocTier   = tier(returns.yearOneCashOnCash, 9, 7, 5);
-  const capTier   = tier(returns.goingInCapRate, 7, 5.5, 4.5);
+  const selectedInputs = useMemo(() => {
+    if (selectedId === "active") return inputs;
+    return savedDeals.find((d) => d.id === selectedId)?.inputs ?? inputs;
+  }, [selectedId, savedDeals, inputs]);
+
+  const selectedResults = useMemo(() => {
+    if (selectedId === "active") return { returns, cashFlows, waterfall };
+    const r = underwrite(selectedInputs);
+    return { returns: r.returns, cashFlows: r.annualCashFlows, waterfall: r.waterfall };
+  }, [selectedId, selectedInputs, returns, cashFlows, waterfall]);
+
+  const { returns: r, cashFlows: cfs, waterfall: wf } = selectedResults;
+
+  const totalCapEx = cfs.reduce((s, cf) => s + (cf.tiAndLeasing ?? 0), 0);
+  const capExPct   = selectedInputs?.purchasePrice > 0 ? (totalCapEx / selectedInputs.purchasePrice) * 100 : null;
+
+  const irrTier    = tier(r.irr, 18, 14, 10);
+  const netIrrTier = wf ? tier(wf.lpIRR, 18, 14, 10) : null;
+  const emTier     = tier(r.equityMultiple, 2.5, 2.0, 1.5);
+  const cocTier    = tier(r.yearOneCashOnCash, 9, 7, 5);
+  const capTier    = tier(r.goingInCapRate, 7, 5.5, 4.5);
+
+  const dealOptions = [
+    { id: "active", label: inputs?.propertyName || "Active Deal" },
+    ...savedDeals.map((d) => ({ id: d.id, label: d.inputs?.propertyName || "Unnamed" })),
+  ];
 
   return (
     <div className="space-y-6">
-      <h2 className="text-base font-semibold text-gray-900">Returns Analysis</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-900">Returns Analysis</h2>
+        {dealOptions.length > 1 && (
+          <select
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            {dealOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>{opt.label}</option>
+            ))}
+          </select>
+        )}
+      </div>
 
       {/* Top KPIs */}
       <div className="grid grid-cols-2 gap-3">
-        <KPI label="Gross IRR" value={fmtPct(returns.irr)} sub="Levered, before promote" t={irrTier} />
-        {waterfall
-          ? <KPI label="Net LP IRR" value={fmtPct(waterfall.lpIRR)} sub="After LP/GP waterfall" t={netIrrTier} />
-          : <KPI label="Equity Multiple" value={`${fmt(returns.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
+        <KPI label="Gross IRR" value={fmtPct(r.irr)} sub="Levered, before promote" t={irrTier} />
+        {wf
+          ? <KPI label="Net LP IRR" value={fmtPct(wf.lpIRR)} sub="After LP/GP waterfall" t={netIrrTier} />
+          : <KPI label="Equity Multiple" value={`${fmt(r.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
         }
-        <KPI label="Year 1 Cash-on-Cash" value={fmtPct(returns.yearOneCashOnCash)} sub="Pre-tax cash flow ÷ equity" t={cocTier} />
-        <KPI label="Going-In Cap Rate" value={fmtPct(returns.goingInCapRate)} sub="Year 1 NOI ÷ purchase price" t={capTier} />
+        <KPI label="Year 1 Cash-on-Cash" value={fmtPct(r.yearOneCashOnCash)} sub="Pre-tax cash flow ÷ equity" t={cocTier} />
+        <KPI label="Going-In Cap Rate" value={fmtPct(r.goingInCapRate)} sub="Year 1 NOI ÷ purchase price" t={capTier} />
       </div>
-      {waterfall && (
+      {wf && (
         <div className="grid grid-cols-2 gap-3">
-          <KPI label="Equity Multiple" value={`${fmt(returns.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
-          <KPI label="LP Equity Multiple" value={`${fmt(waterfall.lpEquityMultiple, 2)}x`} sub="LP distributions ÷ LP equity" />
+          <KPI label="Equity Multiple" value={`${fmt(r.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
+          <KPI label="LP Equity Multiple" value={`${fmt(wf.lpEquityMultiple, 2)}x`} sub="LP distributions ÷ LP equity" />
         </div>
       )}
 
       {/* Secondary metrics */}
       <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
         {[
-          { label: "Adjusted Cap Rate", value: fmtPct(returns.adjustedGoingInCapRate), sub: "Year 1 NOI after TI & leasing commissions" },
-          { label: "Avg. Annual TI + LC", value: fmtM(returns.annualRolloverCosts), sub: "Normalized rollover costs over hold period" },
-          { label: "Total CapEx", value: fmtM(totalCapEx), sub: capExPct != null ? `${capExPct.toFixed(1)}% of purchase price` : "TI + LC over hold period" },
-          { label: "Avg. Cash-on-Cash", value: fmtPct(returns.averageCashOnCash), sub: "Average over hold period" },
-          { label: "Exit Value", value: fmtM(returns.exitValue), sub: `At ${returns.exitCapRate}% exit cap rate` },
-          { label: "Disposition Costs", value: fmtM(returns.sellingCosts), sub: `${returns.sellingCostsPct?.toFixed(2) ?? "—"}% of exit value` },
-          { label: "Equity Reversion", value: fmtM(returns.equityReversion), sub: "After loan payoff & selling costs" },
-          { label: "Total Equity Invested", value: fmtM(returns.totalEquityInvested) },
-          { label: "NPV (8% hurdle)", value: fmtM(returns.npv), sub: returns.npv > 0 ? "Positive — clears hurdle" : "Negative — below hurdle" },
+          { label: "Adjusted Cap Rate",     value: fmtPct(r.adjustedGoingInCapRate), sub: "Year 1 NOI after TI & leasing commissions" },
+          { label: "Avg. Annual TI + LC",   value: fmtM(r.annualRolloverCosts),      sub: "Normalized rollover costs over hold period" },
+          { label: "Total CapEx",           value: fmtM(totalCapEx),                 sub: capExPct != null ? `${capExPct.toFixed(1)}% of purchase price` : "TI + LC over hold period" },
+          { label: "Avg. Cash-on-Cash",     value: fmtPct(r.averageCashOnCash),      sub: "Average over hold period" },
+          { label: "Exit Value",            value: fmtM(r.exitValue),                sub: `At ${r.exitCapRate}% exit cap rate` },
+          { label: "Disposition Costs",     value: fmtM(r.sellingCosts),             sub: `${r.sellingCostsPct?.toFixed(2) ?? "—"}% of exit value` },
+          { label: "Equity Reversion",      value: fmtM(r.equityReversion),          sub: "After loan payoff & selling costs" },
+          { label: "Total Equity Invested", value: fmtM(r.totalEquityInvested) },
+          { label: "NPV (8% hurdle)",       value: fmtM(r.npv),                      sub: r.npv > 0 ? "Positive — clears hurdle" : "Negative — below hurdle" },
         ].map(({ label, value, sub }) => (
           <div key={label} className="flex items-center justify-between px-4 py-3">
             <div>
@@ -184,22 +220,13 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs 
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {[
-                  "Year", "Gross Rev.", "Vacancy", "Credit Loss",
-                  "EGR", "Op. Exp.", "NOI", "TI + LC", "Adj. NOI",
-                  "Debt Svc.", "Ext. Fee", "Pre-Tax CF",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
+                {["Year", "Gross Rev.", "Vacancy", "Credit Loss", "EGR", "Op. Exp.", "NOI", "TI + LC", "Adj. NOI", "Debt Svc.", "Ext. Fee", "Pre-Tax CF"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {cashFlows.map((cf) => (
+              {cfs.map((cf) => (
                 <tr key={cf.year} className="hover:bg-gray-50 transition-colors">
                   <td className="px-3 py-2 font-medium text-gray-700">Y{cf.year}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-gray-600">{fmtM(cf.grossRevenue)}</td>
@@ -215,9 +242,7 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs 
                     {cf.extensionFee > 0 ? `(${fmtM(cf.extensionFee)})` : "—"}
                   </td>
                   <td className={`px-3 py-2 text-right tabular-nums font-semibold ${cf.pretaxCashFlow >= 0 ? "text-emerald-700" : "text-red-700"}`}>
-                    {cf.pretaxCashFlow >= 0
-                      ? fmtM(cf.pretaxCashFlow)
-                      : `(${fmtM(Math.abs(cf.pretaxCashFlow))})`}
+                    {cf.pretaxCashFlow >= 0 ? fmtM(cf.pretaxCashFlow) : `(${fmtM(Math.abs(cf.pretaxCashFlow))})`}
                   </td>
                 </tr>
               ))}
@@ -230,7 +255,7 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs 
       </div>
 
       {/* LP / GP waterfall */}
-      {waterfall && <WaterfallSection wf={waterfall} />}
+      {wf && <WaterfallSection wf={wf} />}
     </div>
   );
 }

@@ -454,7 +454,7 @@ export default function Home() {
             )}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
 {activeTab === "returns" && (
-              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} />
+              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={savedDeals} />
             )}
             {activeTab === "sensitivity" && (
               <SensitivityTables
