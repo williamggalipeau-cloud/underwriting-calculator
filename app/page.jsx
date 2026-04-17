@@ -8,7 +8,6 @@ import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import UnitRoll from "@/components/UnitRoll";
-import CapitalAnalysis from "@/components/CapitalAnalysis";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
 
@@ -174,7 +173,6 @@ function newDeal(overrides = {}) {
 const TABS = [
   { id: "units",       label: "Unit Roll" },
   { id: "debt",        label: "Debt" },
-  { id: "capital",     label: "Capital" },
   { id: "stress",      label: "Return Stress Testing" },
   { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
@@ -455,8 +453,7 @@ export default function Home() {
               />
             )}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
-            {activeTab === "capital" && <CapitalAnalysis debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
-            {activeTab === "returns" && (
+{activeTab === "returns" && (
               <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} />
             )}
             {activeTab === "sensitivity" && (
