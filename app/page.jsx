@@ -117,6 +117,7 @@ const DEFAULT_INPUTS = {
   floatingRate: true,
   indexRatePct: 5.25,
   spreadPct: 2.50,
+  sofrForwardCurve: [],   // [] = use flat indexRatePct; populated = per-year SOFR
 
   hedgingType: "cap",
   capStrikeRatePct: 9.50,

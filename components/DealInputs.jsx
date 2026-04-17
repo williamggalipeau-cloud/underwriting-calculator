@@ -1213,6 +1213,123 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
                   ? ` → swapped to ${inputs.swapFixedRatePct}% fixed`
                   : ""}
               </div>
+
+              {/* SOFR Forward Curve */}
+              {(() => {
+                const curve = inputs.sofrForwardCurve ?? [];
+                const holdYears = inputs.holdPeriodYears ?? 7;
+                const spread = inputs.spreadPct ?? 0;
+                const capStrike = inputs.capStrikeRatePct ?? Infinity;
+                const capTerm = inputs.capTermYears ?? inputs.loanTermYears ?? 999;
+                const swapRate = inputs.swapFixedRatePct ?? 0;
+                const swapTerm = inputs.swapTermYears ?? inputs.loanTermYears ?? 999;
+                const hasCurve = curve.length > 0;
+
+                function updateCurveYear(idx, val) {
+                  const next = Array.from({ length: holdYears }, (_, i) =>
+                    curve[i] != null ? curve[i] : (inputs.indexRatePct ?? 0)
+                  );
+                  next[idx] = val;
+                  set("sofrForwardCurve", next);
+                }
+
+                function fillFlat() {
+                  set("sofrForwardCurve", Array(holdYears).fill(inputs.indexRatePct ?? 0));
+                }
+
+                function clearCurve() {
+                  set("sofrForwardCurve", []);
+                }
+
+                return (
+                  <div className="col-span-2 mt-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-gray-600">SOFR Forward Curve</p>
+                      <div className="flex items-center gap-2">
+                        {hasCurve ? (
+                          <button type="button" onClick={clearCurve}
+                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                            Use flat rate
+                          </button>
+                        ) : (
+                          <button type="button" onClick={fillFlat}
+                            className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 bg-white rounded-md px-2 py-1 transition-colors">
+                            Set curve
+                          </button>
+                        )}
+                        <a href="https://www.pensford.com/forward-curve" target="_blank" rel="noreferrer"
+                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-0.5">
+                          Pensford
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      </div>
+                    </div>
+
+                    {hasCurve ? (
+                      <div className="overflow-x-auto rounded-xl border border-gray-200">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              {["Yr", "SOFR", "+ Sprd", "All-in"].map((h) => (
+                                <th key={h} className="px-2 py-1.5 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {Array.from({ length: holdYears }, (_, i) => {
+                              const year = i + 1;
+                              const sofrVal = curve[i] != null ? curve[i] : (inputs.indexRatePct ?? 0);
+                              const raw = sofrVal + spread;
+                              let allin = raw;
+                              let note = "";
+                              if (inputs.hedgingType === "cap" && year <= capTerm && raw > capStrike) {
+                                allin = capStrike;
+                                note = "capped";
+                              } else if (inputs.hedgingType === "swap" && year <= swapTerm) {
+                                allin = swapRate;
+                                note = "swap";
+                              }
+                              const isCapped = note === "capped";
+                              const isSwap = note === "swap";
+                              return (
+                                <tr key={year} className="hover:bg-gray-50">
+                                  <td className="px-2 py-1.5 font-medium text-gray-600">Y{year}</td>
+                                  <td className="px-2 py-1.5 text-right">
+                                    <input
+                                      type="number"
+                                      value={sofrVal}
+                                      step={0.05}
+                                      min={0}
+                                      max={20}
+                                      onChange={(e) => updateCurveYear(i, Number(e.target.value))}
+                                      className="w-16 text-right text-xs font-mono border border-gray-200 rounded-md px-1.5 py-0.5 focus:ring-1 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    />
+                                    <span className="ml-0.5 text-gray-400">%</span>
+                                  </td>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">
+                                    +{spread.toFixed(2)}%
+                                  </td>
+                                  <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${isCapped ? "text-orange-600" : isSwap ? "text-purple-600" : "text-gray-800"}`}>
+                                    {allin.toFixed(2)}%
+                                    {note && <span className="ml-1 text-xs font-normal opacity-70">({note})</span>}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400">
+                        Flat rate ({((inputs.indexRatePct ?? 0) + (inputs.spreadPct ?? 0)).toFixed(2)}%) applied to all years.
+                        Click <span className="font-medium">Set curve</span> to enter year-by-year projections.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <Field label="Interest Rate" value={inputs.interestRatePct} field="interestRatePct" suffix="%" step={0.25} onChange={set} />
