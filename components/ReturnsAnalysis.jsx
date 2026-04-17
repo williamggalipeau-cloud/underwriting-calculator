@@ -123,7 +123,10 @@ function WaterfallSection({ wf }) {
   );
 }
 
-export default function ReturnsAnalysis({ returns, cashFlows, waterfall }) {
+export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs }) {
+  const totalCapEx = cashFlows.reduce((s, cf) => s + (cf.tiAndLeasing ?? 0), 0);
+  const capExPct   = inputs?.purchasePrice > 0 ? (totalCapEx / inputs.purchasePrice) * 100 : null;
+
   const irrTier   = tier(returns.irr, 18, 14, 10);
   const netIrrTier = waterfall ? tier(waterfall.lpIRR, 18, 14, 10) : null;
   const emTier    = tier(returns.equityMultiple, 2.5, 2.0, 1.5);
@@ -156,6 +159,7 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall }) {
         {[
           { label: "Adjusted Cap Rate", value: fmtPct(returns.adjustedGoingInCapRate), sub: "Year 1 NOI after TI & leasing commissions" },
           { label: "Avg. Annual TI + LC", value: fmtM(returns.annualRolloverCosts), sub: "Normalized rollover costs over hold period" },
+          { label: "Total CapEx", value: fmtM(totalCapEx), sub: capExPct != null ? `${capExPct.toFixed(1)}% of purchase price` : "TI + LC over hold period" },
           { label: "Avg. Cash-on-Cash", value: fmtPct(returns.averageCashOnCash), sub: "Average over hold period" },
           { label: "Exit Value", value: fmtM(returns.exitValue), sub: `At ${returns.exitCapRate}% exit cap rate` },
           { label: "Disposition Costs", value: fmtM(returns.sellingCosts), sub: `${returns.sellingCostsPct?.toFixed(2) ?? "—"}% of exit value` },
