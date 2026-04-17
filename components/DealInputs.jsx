@@ -8,61 +8,54 @@ function useSofr() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  async function fetchWithTimeout(url, ms = 6000) {
+  const NY_FED = "https://markets.newyorkfed.org/api/rates/sofr/last/1.json";
+
+  function parseNyFed(data) {
+    const e = data?.refRates?.[0];
+    if (e?.percentRate != null) return { rate: e.percentRate, date: e.effectiveDate };
+    return null;
+  }
+
+  async function tryFetch(url, ms = 7000) {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
     try {
       const res = await fetch(url, { signal: ctrl.signal });
       clearTimeout(t);
-      return res;
-    } catch (e) {
-      clearTimeout(t);
-      throw e;
-    }
+      return res.ok ? res : null;
+    } catch (_) { clearTimeout(t); return null; }
   }
 
   async function doFetch() {
     setLoading(true);
     setError(null);
 
-    // 1. Try NY Fed SOFR API
+    // 1. Direct NY Fed
     try {
-      const res = await fetchWithTimeout(
-        "https://markets.newyorkfed.org/api/rates/sofr/last/1.json"
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const entry = data?.refRates?.[0];
-        if (entry?.percentRate != null) {
-          setSofr({ rate: entry.percentRate, date: entry.effectiveDate });
-          setLoading(false);
-          return;
-        }
+      const res = await tryFetch(NY_FED);
+      if (res) {
+        const parsed = parseNyFed(await res.json());
+        if (parsed) { setSofr(parsed); setLoading(false); return; }
       }
     } catch (_) {}
 
-    // 2. Fallback: FRED SOFR series (no API key needed for graph endpoint)
+    // 2. Via corsproxy.io (bypasses CORS restriction)
     try {
-      const res = await fetchWithTimeout(
-        "https://fred.stlouisfed.org/graph/fredgraph.json?id=SOFR"
-      );
-      if (res.ok) {
-        const raw = await res.json();
-        // fredgraph returns { observations: [[timestamp_ms, value], ...] }
-        const obs = Array.isArray(raw) ? raw : raw?.observations ?? [];
-        if (obs.length > 0) {
-          const last = obs[obs.length - 1];
-          const rate = parseFloat(Array.isArray(last) ? last[1] : last?.value);
-          const ts = Array.isArray(last) ? last[0] : last?.date;
-          const date = typeof ts === "number"
-            ? new Date(ts).toISOString().split("T")[0]
-            : String(ts);
-          if (isFinite(rate)) {
-            setSofr({ rate, date });
-            setLoading(false);
-            return;
-          }
-        }
+      const res = await tryFetch(`https://corsproxy.io/?${encodeURIComponent(NY_FED)}`);
+      if (res) {
+        const parsed = parseNyFed(await res.json());
+        if (parsed) { setSofr(parsed); setLoading(false); return; }
+      }
+    } catch (_) {}
+
+    // 3. Via allorigins (second CORS proxy fallback)
+    try {
+      const res = await tryFetch(`https://api.allorigins.win/get?url=${encodeURIComponent(NY_FED)}`);
+      if (res) {
+        const wrapper = await res.json();
+        const inner = JSON.parse(wrapper?.contents ?? "{}");
+        const parsed = parseNyFed(inner);
+        if (parsed) { setSofr(parsed); setLoading(false); return; }
       }
     } catch (_) {}
 
