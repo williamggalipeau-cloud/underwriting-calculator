@@ -232,7 +232,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         stressedIrrFlows: sr.irrFlows ?? [],
         stressedOpFlows: sr.annualCashFlows.map((cf) => cf.pretaxCashFlow),
         stressedReversion: sr.returns.equityReversion,
-        stressedReserveBasis: sr.annualCashFlows.map((cf) => (cf.debtService ?? 0) + (cf.tiAndLeasing ?? 0) + (cf.assetMgmtFees ?? cf.belowLineAMFees ?? 0)),
+        stressedReserveBasis: sr.annualCashFlows.map((cf) => (cf.debtService ?? 0) + (cf.tiAndLeasing ?? 0) + (cf.assetMgmtFees ?? cf.belowLineAMFees ?? 0) + (cf.managementFee ?? 0) + (cf.constructionMgmtFee ?? 0)),
         stressedMetrics: {
           irr: sr.returns.irr,
           equityMultiple: sr.returns.equityMultiple,

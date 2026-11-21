@@ -803,6 +803,18 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
             <div className="grid grid-cols-2 gap-3">
               <Field label="Year 1 NOI" value={inputs.noiYear1 ?? 0} field="noiYear1" prefix="$" step={10000} onChange={set} />
               <Field label="NOI Growth" value={inputs.noiGrowthPct ?? 0} field="noiGrowthPct" suffix="%/yr" step={1} onChange={set} />
+              <Field label="Property Mgmt" value={inputs.pmFeePct ?? 0} field="pmFeePct" suffix={inputs.pmFeeBasis === "value" ? "% value" : "% NOI"} step={0.25} onChange={set} />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">PM Basis</label>
+                <select
+                  value={inputs.pmFeeBasis ?? "noi"}
+                  onChange={(e) => set("pmFeeBasis", e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"
+                >
+                  <option value="value">Asset value</option>
+                  <option value="noi">NOI</option>
+                </select>
+              </div>
             </div>
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               Rent, vacancy, expense and rollover inputs below are ignored while Direct NOI is on.
@@ -945,6 +957,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
 
         <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-100">
           <Field label="Mgmt. Fee" value={inputs.managementFeePct} field="managementFeePct" suffix="% EGR" step={0.5} onChange={set} />
+          <Field label="Constr. Mgmt" value={inputs.cmFeePct ?? 0} field="cmFeePct" suffix="% value/yr" step={0.25} onChange={set} />
           <Field label="Leasing Fees" value={inputs.leasingFeesPSF} field="leasingFeesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
           <Field label="Capital Reserves" value={inputs.capitalReservesPSF} field="capitalReservesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
         </div>

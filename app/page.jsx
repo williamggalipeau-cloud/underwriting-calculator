@@ -69,7 +69,8 @@ const DEFAULT_INPUTS = {
   maintenancePSF: 0.40,
   janitorialPSF: 0.20,
 
-  managementFeePct: 6,
+  managementFeePct: 5,
+  cmFeePct: 1.5, // construction management, % of purchase price per year
   leasingFeesPSF: 0.10,
   capitalReservesPSF: 0.30,
 
@@ -490,7 +491,7 @@ export default function Home() {
         irrFlows: [...(irrFlows ?? [])],
         opFlows: annualCashFlows.map((cf) => cf.pretaxCashFlow),
         reversion: returns.equityReversion,
-        reserveBasis: annualCashFlows.map((cf) => (cf.debtService ?? 0) + (cf.tiAndLeasing ?? 0) + (cf.assetMgmtFees ?? cf.belowLineAMFees ?? 0)),
+        reserveBasis: annualCashFlows.map((cf) => (cf.debtService ?? 0) + (cf.tiAndLeasing ?? 0) + (cf.assetMgmtFees ?? cf.belowLineAMFees ?? 0) + (cf.managementFee ?? 0) + (cf.constructionMgmtFee ?? 0)),
         metrics: {
           irr: returns.irr,
           equityMultiple: returns.equityMultiple,

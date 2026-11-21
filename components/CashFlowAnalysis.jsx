@@ -58,11 +58,13 @@ export function buildCashFlowStatement(inputs, results) {
       noi: cf.noi,
       tiLC: cf.tiAndLeasing ?? 0,
       tiNet,
-      unleveredOp: cf.noi - (cf.tiAndLeasing ?? 0),
+      unleveredOp: cf.noi - (cf.tiAndLeasing ?? 0) - (cf.constructionMgmtFee ?? 0),
       debtService: cf.debtService,
       extensionFee: cf.extensionFee ?? 0,
       capReplacement: cf.capReplacement ?? 0,
       amFees: cf.belowLineAMFees ?? 0,
+      cmFee: cf.constructionMgmtFee ?? 0,
+      pmFee: cf.managementFee ?? 0,
       operatingCF: cf.pretaxCashFlow,
       sale,
       saleCosts,
@@ -217,8 +219,10 @@ export default function CashFlowAnalysis({ inputs, results }) {
   // Statement lines: [label, values for Y0..YN, style]
   const line = (label, y0, perYear, opts = {}) => ({ label, y0, perYear, ...opts });
   const L = [
+    line("Property management (in NOI)", null, s.rows.map((r) => -r.pmFee), { hideIfZero: true, note: true }),
     line("Net operating income", null, s.rows.map((r) => r.noi), { bold: true }),
     line("TI / leasing commissions", null, s.rows.map((r) => -r.tiLC), { hideIfZero: true }),
+    line("Construction management fees", null, s.rows.map((r) => -r.cmFee), { hideIfZero: true }),
     line("Cash flow before debt (unlevered)", null, s.rows.map((r) => r.unleveredOp), { subtotal: true }),
     line("TI funded from lender reserve", null, s.rows.map((r) => r.tiLC - r.tiNet), { hideIfZero: true }),
     line("Debt service", null, s.rows.map((r) => -r.debtService)),
