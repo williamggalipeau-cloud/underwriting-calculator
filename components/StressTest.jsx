@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { underwrite } from "@/lib/calculations";
-import { datedFlows, xirr } from "@/lib/fundTimeline";
+import { assetQuarterlyEvents, xirr } from "@/lib/fundTimeline";
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 function fmt(n, d = 0) {
@@ -230,6 +230,9 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         ...deal,
         stressedInputs: si,
         stressedIrrFlows: sr.irrFlows ?? [],
+        stressedOpFlows: sr.annualCashFlows.map((cf) => cf.pretaxCashFlow),
+        stressedReversion: sr.returns.equityReversion,
+        stressedReserveBasis: sr.annualCashFlows.map((cf) => (cf.debtService ?? 0) + (cf.tiAndLeasing ?? 0) + (cf.assetMgmtFees ?? cf.belowLineAMFees ?? 0) + (cf.managementFee ?? 0) + (cf.constructionMgmtFee ?? 0)),
         stressedMetrics: {
           irr: sr.returns.irr,
           equityMultiple: sr.returns.equityMultiple,
@@ -241,13 +244,18 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
     });
   }, [savedDeals, factorsById]);
 
-  // Portfolio IRR on dated flows (each asset from its acquisition date), matching Portfolio Return.
+  // Portfolio IRR on quarterly dated flows (each asset from its acquisition date), matching Portfolio Return.
   const basePortfolioIRR = useMemo(
-    () => xirr(savedDeals.flatMap((d) => datedFlows(d, d.irrFlows))) * 100,
+    () => xirr(savedDeals.flatMap((d) => assetQuarterlyEvents(d).gross)) * 100,
     [savedDeals]
   );
   const stressedPortfolioIRR = useMemo(
-    () => xirr(stressedSavedDeals.flatMap((d) => datedFlows(d, d.stressedIrrFlows))) * 100,
+    () =>
+      xirr(
+        stressedSavedDeals.flatMap(
+          (d) => assetQuarterlyEvents({ ...d, irrFlows: d.stressedIrrFlows, opFlows: d.stressedOpFlows, reversion: d.stressedReversion, reserveBasis: d.stressedReserveBasis }).gross
+        )
+      ) * 100,
     [stressedSavedDeals]
   );
 

@@ -164,6 +164,33 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
               <Num label="GP commitment" suffix="% of equity" step={0.5} value={t.gpCommitPct} onChange={set("gpCommitPct")} />
               <Num label="Preferred return" suffix="%/yr" step={0.25} value={t.prefPct} onChange={set("prefPct")} />
               <Num label="GP catch-up" suffix="%" step={5} value={t.catchUpGpPct} onChange={set("catchUpGpPct")} />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution policy</span>
+                <select
+                  value={t.distributionPolicy ?? "reserve"}
+                  onChange={(e) => set("distributionPolicy")(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm bg-white"
+                >
+                  <option value="reserve">Income above reserve</option>
+                  <option value="payout">Payout % of income</option>
+                </select>
+              </label>
+              {(t.distributionPolicy ?? "reserve") === "reserve" ? (
+                <Num label="Reserve" suffix="yrs" step={0.25} value={t.reserveYears} onChange={set("reserveYears")} hint="× debt service + TI + mgmt fees" />
+              ) : (
+                <Num label="Quarterly income payout" suffix="%" step={5} value={t.incomePayoutPct} onChange={set("incomePayoutPct")} hint="Rest is reserved, returned at exit" />
+              )}
+              <label className="flex flex-col gap-1 col-span-2">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Income distributions</span>
+                <select
+                  value={t.incomeTreatment ?? "prefThenROC"}
+                  onChange={(e) => set("incomeTreatment")(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm bg-white"
+                >
+                  <option value="prefThenROC">Pref, then return of capital (promote only from sales)</option>
+                  <option value="full">Full waterfall each quarter</option>
+                </select>
+              </label>
             </div>
             <div className="rounded-xl border border-gray-200 overflow-hidden">
               <table className="w-full text-sm">

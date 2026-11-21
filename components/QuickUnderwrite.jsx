@@ -290,9 +290,12 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
   const grid = useMemo(() => quickSensitivity(inputs, GROWTH_STEPS, EXIT_CAP_STEPS), [inputs]);
 
   const rows = [
+    { label: "NOI before property mgmt", key: "noiGross" },
+    { label: "Property mgmt fee", key: "pmFee", neg: true },
     { label: "NOI", key: "noi" },
     { label: "Debt service", key: "debtService", neg: true },
     { label: "Asset mgmt fee", key: "amFee", neg: true },
+    { label: "Construction mgmt fee", key: "cmFee", neg: true },
     { label: "Rate cap", key: "capCost", neg: true },
     { label: "Extension fee", key: "extFee", neg: true },
     { label: "Sale price", key: "salePrice" },
@@ -366,6 +369,19 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
           <NumField label="Exit cap" suffix="%" step={0.25} value={inputs.exitCapPct} onChange={set("exitCapPct")} />
           <NumField label="Sale costs" suffix="%" step={0.5} value={inputs.saleCostPct} onChange={set("saleCostPct")} />
           <NumField label="AM fee (on equity)" suffix="%" step={0.25} value={inputs.amFeePct} onChange={set("amFeePct")} />
+          <NumField label="Property mgmt" suffix="%/yr" step={0.25} value={inputs.pmFeePct ?? 0} onChange={set("pmFeePct")} />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">PM fee basis</label>
+            <select
+              value={inputs.pmFeeBasis ?? "noi"}
+              onChange={(e) => set("pmFeeBasis")(e.target.value)}
+              className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm bg-white"
+            >
+              <option value="value">Asset value</option>
+              <option value="noi">NOI</option>
+            </select>
+          </div>
+          <NumField label="Construction mgmt" suffix="% value/yr" step={0.25} value={inputs.cmFeePct ?? 0} onChange={set("cmFeePct")} />
         </Group>
 
         <Group title="Loan">
