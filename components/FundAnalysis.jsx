@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import {
-  DEFAULT_FUND,
   acquisitionDate,
   byCalendarYear,
   computeDatedWaterfall,
@@ -12,16 +10,13 @@ import {
   parseDate,
   xirr,
 } from "@/lib/fundTimeline";
+import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName, termsToCSV, termsToXlsx } from "@/lib/fundTerms";
 
 function fmtDate(iso) {
   const d = parseDate(iso);
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`;
 }
 
-// Default fund-level GP commitment (% of total fund equity).
-const DEFAULT_GP_COMMIT_PCT = 5;
-// Default fund-level preferred return to LPs (% per year).
-const DEFAULT_PREF_PCT = 9;
 
 function fmt(n, decimals = 0) {
   if (!isFinite(n) || n == null) return "—";
@@ -366,11 +361,14 @@ function DealRow({ deal, onRemove, fund }) {
   );
 }
 
-function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
-  // Fund-level GP commitment overrides each deal's LP/GP equity split.
-  const [gpCommitPct, setGpCommitPct] = useState(DEFAULT_GP_COMMIT_PCT);
-  const [prefPct, setPrefPct] = useState(DEFAULT_PREF_PCT);
-  const [fund, setFund] = useState(DEFAULT_FUND);
+function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemove, onRemoveFund }) {
+  // Fund terms (timeline, GP commitment, pref, catch-up, tiers, fee) come
+  // from the fund's saved terms; the inline inputs below edit them.
+  const fund = terms;
+  const gpCommitPct = terms.gpCommitPct;
+  const prefPct = terms.prefPct;
+  const setGpCommitPct = (v) => onTermsChange({ gpCommitPct: v });
+  const setPrefPct = (v) => onTermsChange({ prefPct: v });
   const fd = fundDates(fund);
   // Dated cash flows: each asset's flows on its acquisition date + t years.
   const allFlows = deals.flatMap((d) => datedFlows(d, d.irrFlows, fund));
@@ -380,13 +378,17 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   const totalPurchasePrice = deals.reduce((s, d) => s + (d.inputs.purchasePrice ?? 0), 0);
   const totalSF = deals.reduce((s, d) => s + (d.inputs.squareFootage ?? 0), 0);
 
-  // Net LP IRR — compute waterfall if any deal has it enabled
-  const waterfallDealForIRR = deals.find((d) => d.inputs.waterfallEnabled);
-  const fundWaterfallConfig = waterfallDealForIRR
-    ? { ...waterfallDealForIRR.inputs.waterfall, lpEquityPct: 100 - gpCommitPct, preferredReturnPct: prefPct }
-    : null;
+  // Net LP IRR from the fund's own waterfall terms.
+  const fundWaterfallConfig = {
+    lpEquityPct: 100 - gpCommitPct,
+    preferredReturnPct: prefPct,
+    catchUpGpPct: terms.catchUpGpPct,
+    tiers: terms.tiers,
+    mgmtFeePct: terms.mgmtFeePct,
+    feeStartISO: terms.finalClose,
+  };
   const gpCommitAmount = totalEquity * (gpCommitPct / 100);
-  const fundWf = fundWaterfallConfig ? computeDatedWaterfall(allFlows, fundWaterfallConfig) : null;
+  const fundWf = computeDatedWaterfall(allFlows, fundWaterfallConfig);
   const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
   const outsideIP = deals.filter((d) => {
     const acq = acquisitionDate(d, fund);
@@ -415,7 +417,13 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   const setFundField = (field) => (e) => {
     const v = e.target.type === "date" ? e.target.value : parseFloat(e.target.value);
     if (e.target.type === "date" ? !v : !isFinite(v) || v < 0) return;
-    setFund((prev) => ({ ...prev, [field]: v }));
+    onTermsChange({ [field]: v });
+  };
+  const exportTerms = (kind) => {
+    const t = { ...terms, name: fundName };
+    const base = `${safeFileName(fundName)}_fund_terms`;
+    if (kind === "xlsx") downloadBlob(termsToXlsx(t), `${base}.xlsx`);
+    else downloadBlob(new Blob([termsToCSV(t)], { type: "text/csv" }), `${base}.csv`);
   };
 
   return (
@@ -431,6 +439,18 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
             className="mt-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
           >
             Remove fund
+          </button>
+          <span className="mx-2 text-gray-300">·</span>
+          <button type="button" onClick={onEditTerms} className="mt-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium">
+            Edit all terms
+          </button>
+          <span className="mx-2 text-gray-300">·</span>
+          <button type="button" onClick={() => exportTerms("xlsx")} className="mt-1.5 text-xs text-blue-600 hover:text-blue-700">
+            Export terms (Excel)
+          </button>
+          <span className="mx-1 text-gray-300">/</span>
+          <button type="button" onClick={() => exportTerms("csv")} className="mt-1.5 text-xs text-blue-600 hover:text-blue-700">
+            CSV
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -457,6 +477,11 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
           <div className="text-right">
             <p className="text-xs text-gray-500">Total Equity</p>
             <p className="text-lg font-bold tabular-nums text-gray-900">{fmtM(totalEquity)}</p>
+            {terms.targetEquity > 0 && (
+              <p className="text-[11px] text-gray-400 tabular-nums">
+                {fmt((totalEquity / terms.targetEquity) * 100, 0)}% of {fmtM(terms.targetEquity)} target
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -599,19 +624,14 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
       </div>
 
       {/* Fund-level waterfall */}
-      {(() => {
-        const waterfallDeal = waterfallDealForIRR;
-        if (!waterfallDeal) return null;
-        return (
-          <div className="border-t border-gray-200 pt-5">
-            <FundWaterfall wf={fundWf} yearTotals={yearTotals} />
-            <p className="text-xs text-gray-400 mt-2">
-              Catch-up and promote tiers from <span className="font-medium">{waterfallDeal.inputs.propertyName || "first deal"}</span>;
-              GP commitment ({fmt(gpCommitPct, 1)}%) and preferred return ({fmt(prefPct, 1)}%) set at the fund level.
-            </p>
-          </div>
-        );
-      })()}
+      <div className="border-t border-gray-200 pt-5">
+        <FundWaterfall wf={fundWf} yearTotals={yearTotals} />
+        <p className="text-xs text-gray-400 mt-2">
+          Fund terms: {fmt(gpCommitPct, 1)}% GP commitment, {fmt(prefPct, 1)}% pref, {fmt(terms.catchUpGpPct, 0)}% GP catch-up,
+          tiers {terms.tiers.map((t) => `${t.irrThreshold == null ? "above" : `≤${t.irrThreshold}%`} ${t.lpSplit}/${t.gpSplit}`).join(" · ")}
+          {terms.mgmtFeePct > 0 ? ` · ${fmt(terms.mgmtFeePct, 2)}% management fee (${fmtM(fundWf.mgmtFees)} total)` : " · no fund-level management fee"}.
+        </p>
+      </div>
 
       {/* Combined cash flow table */}
       <div>
@@ -651,9 +671,11 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   );
 }
 
-export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove }) {
+export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, funds = {}, onFundTermsChange, onNewFund, onEditFund, onDeleteFund }) {
   const groups = groupByFund(savedDeals);
-  const fundNames = Object.keys(groups);
+  // Funds with terms but no deals yet still show (as empty cards).
+  const fundNames = [...new Set([...Object.keys(funds), ...Object.keys(groups)])];
+  const termsFor = (name) => ({ ...DEFAULT_FUND_TERMS, ...(funds[name] ?? {}), name });
 
   return (
     <div className="space-y-6">
@@ -664,6 +686,16 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
             Open deals with a Fund name are included live. Add to Fund saves a fixed snapshot.
           </p>
         </div>
+        <div className="flex items-center gap-2">
+        {onNewFund && (
+          <button
+            type="button"
+            onClick={onNewFund}
+            className="text-sm font-medium text-blue-600 border border-blue-200 hover:border-blue-300 bg-white px-4 py-2 rounded-lg"
+          >
+            New fund
+          </button>
+        )}
         <button
           type="button"
           onClick={onSave}
@@ -677,9 +709,10 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
             <span className="ml-1 text-blue-200">· {currentDeal.inputs.fundName}</span>
           )}
         </button>
+        </div>
       </div>
 
-      {savedDeals.length === 0 ? (
+      {fundNames.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 p-10 text-center">
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -695,7 +728,37 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
         <div className="space-y-10">
           {fundNames.map((name) => (
             <div key={name} className="bg-gray-50 rounded-2xl border border-gray-200 p-5 space-y-5">
-              <FundGroup fundName={name} deals={groups[name]} onRemove={onRemove} onRemoveFund={(ids) => ids.forEach(onRemove)} />
+              {groups[name]?.length ? (
+                <FundGroup
+                  fundName={name}
+                  deals={groups[name]}
+                  terms={termsFor(name)}
+                  onTermsChange={(patch) => onFundTermsChange?.(name, patch)}
+                  onEditTerms={() => onEditFund?.(name)}
+                  onRemove={onRemove}
+                  onRemoveFund={(ids) => {
+                    ids.forEach(onRemove);
+                    onDeleteFund?.(name);
+                  }}
+                />
+              ) : (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">{name}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      No deals yet. Type <span className="font-medium">{name}</span> in a deal&apos;s Fund field (left panel) to add it.
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={() => onEditFund?.(name)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                      Edit terms
+                    </button>
+                    <button type="button" onClick={() => onDeleteFund?.(name)} className="text-xs text-gray-400 hover:text-red-500">
+                      Delete fund
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
