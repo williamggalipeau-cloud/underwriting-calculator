@@ -153,7 +153,7 @@ const DEFAULT_INPUTS = {
   waterfallEnabled: true,
   waterfall: {
     lpEquityPct: 90,
-    preferredReturnPct: 8.0,
+    preferredReturnPct: 9.0,
     catchUpGpPct: 100,
     tiers: [
       { irrThreshold: 12,   lpSplit: 80, gpSplit: 20 },
