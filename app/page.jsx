@@ -488,6 +488,9 @@ export default function Home() {
           ? { ...inputs, propertyName: `${inputs.propertyName || "Deal"} (snapshot)` }
           : { ...inputs },
         irrFlows: [...(irrFlows ?? [])],
+        opFlows: annualCashFlows.map((cf) => cf.pretaxCashFlow),
+        reversion: returns.equityReversion,
+        reserveBasis: annualCashFlows.map((cf) => (cf.debtService ?? 0) + (cf.tiAndLeasing ?? 0) + (cf.assetMgmtFees ?? cf.belowLineAMFees ?? 0)),
         metrics: {
           irr: returns.irr,
           equityMultiple: returns.equityMultiple,

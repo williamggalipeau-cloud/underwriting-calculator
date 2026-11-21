@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import {
   acquisitionDate,
+  assetQuarterlyEvents,
   byCalendarYear,
   computeDatedWaterfall,
-  datedFlows,
   exitDate,
   fundDates,
   parseDate,
@@ -42,7 +43,68 @@ function groupByFund(deals) {
   return groups;
 }
 
-function FundWaterfall({ wf, yearTotals }) {
+// Quarterly distribution schedule from the dated waterfall ledger.
+function QuarterlySchedule({ wf, terms }) {
+  const rows = wf.quarterly.reduce((acc, r) => {
+    const prev = acc[acc.length - 1] ?? { lpCumul: 0, gpCumul: 0 };
+    acc.push({ ...r, lpCumul: prev.lpCumul + r.lp, gpCumul: prev.gpCumul + r.gp });
+    return acc;
+  }, []);
+  const cell = (v, cls = "text-gray-700") =>
+    Math.abs(v) < 0.5 ? <span className="text-gray-300">—</span> : <span className={v < 0 ? "text-red-600" : cls}>{fmtM(v)}</span>;
+  return (
+    <div className="space-y-2">
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-xs tabular-nums">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {["Quarter", "Capital calls", "Income dist.", "Sale proceeds", "LP pref", "Return of capital", "Held for next sale", "GP catch-up", "LP split", "GP promote", "LP total", "GP total", "LP yield (ann.)", "LP cumul."].map((h) => (
+                <th key={h} className="px-2.5 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {rows.map((r) => {
+              const yieldPct = r.lpCapOut > 0 && r.lpIncome > 0 ? ((r.lpIncome * 4) / r.lpCapOut) * 100 : NaN;
+              return (
+                <tr key={r.quarter} className="hover:bg-gray-50">
+                  <td className="px-2.5 py-1.5 font-medium text-gray-700 whitespace-nowrap">{r.quarter.replace("-", " ")}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.calls)}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.income, "text-emerald-700")}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.capital, "text-emerald-700")}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.pref)}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.roc)}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.held, "text-amber-700")}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.catchUp)}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.splitLp)}</td>
+                  <td className="px-2.5 py-1.5 text-right">{cell(r.promoteGp)}</td>
+                  <td className="px-2.5 py-1.5 text-right font-medium">{cell(r.lp, "text-blue-700")}</td>
+                  <td className="px-2.5 py-1.5 text-right font-medium">{cell(r.gp, "text-purple-700")}</td>
+                  <td className="px-2.5 py-1.5 text-right text-gray-600">{isFinite(yieldPct) ? fmtPct(yieldPct) : <span className="text-gray-300">—</span>}</td>
+                  <td className={`px-2.5 py-1.5 text-right ${r.lpCumul < 0 ? "text-red-500" : "text-blue-600"}`}>{fmtM(r.lpCumul)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-gray-400">
+        Operating cash is earned evenly through each hold year and paid at calendar quarter ends.{" "}
+        {(terms.distributionPolicy ?? "reserve") === "payout"
+          ? `${fmt(terms.incomePayoutPct ?? 100, 0)}% is distributed and the rest reserved.`
+          : `Each asset keeps a reserve of ${fmt(terms.reserveYears ?? 1, 2)} year(s) of debt service, TI/leasing and asset-management fees; income above it is distributed.`}{" "}
+        The reserve covers shortfalls before capital calls and is returned at the asset&apos;s sale as return of capital.{" "}
+        {terms.incomeTreatment === "full"
+          ? "Income runs the full waterfall each quarter."
+          : "Income pays the LP pref, then returns capital; once both are current, income is held and paid with the next sale, where promote applies."}{" "}
+        LP yield = quarter&apos;s LP income × 4 ÷ LP capital outstanding.
+      </p>
+    </div>
+  );
+}
+
+function FundWaterfall({ wf, yearTotals, terms }) {
+  const [view, setView] = useState("quarterly");
   const lpGood  = (v, t) => isFinite(v) && v >= t;
 
   const kpis = [
@@ -83,7 +145,26 @@ function FundWaterfall({ wf, yearTotals }) {
         ))}
       </div>
 
+      <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs w-fit">
+        {[
+          ["quarterly", "Quarterly distributions"],
+          ["annual", "Annual summary"],
+        ].map(([k, l]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setView(k)}
+            className={`px-3 py-1.5 font-medium ${view === k ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {view === "quarterly" && <QuarterlySchedule wf={wf} terms={terms} />}
+
       {/* Calendar-year table: capital calls (negative) and distributions */}
+      {view === "annual" && (<>
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs">
           <thead>
@@ -123,8 +204,9 @@ function FundWaterfall({ wf, yearTotals }) {
       </div>
       <p className="text-xs text-gray-400">
         Capital calls (negative) are split by commitment on their dates; the LP pref compounds annually from each call.
-        Distributions run pref → return of capital → GP catch-up → promote, in date order.
+        Sale proceeds run pref → return of capital → GP catch-up → promote, in date order.
       </p>
+      </>)}
     </div>
   );
 }
@@ -371,7 +453,15 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
   const setPrefPct = (v) => onTermsChange({ prefPct: v });
   const fd = fundDates(fund);
   // Dated cash flows: each asset's flows on its acquisition date + t years.
-  const allFlows = deals.flatMap((d) => datedFlows(d, d.irrFlows, fund));
+  // Quarterly cash flows per asset: waterfall events (after the payout /
+  // reserve policy) and gross flows (for the fund's gross IRR and tables).
+  const distPolicy =
+    (terms.distributionPolicy ?? "reserve") === "payout"
+      ? { mode: "payout", payoutPct: terms.incomePayoutPct ?? 100 }
+      : { mode: "reserve", reserveYears: terms.reserveYears ?? 1 };
+  const assetFlows = deals.map((d) => assetQuarterlyEvents(d, fund, distPolicy));
+  const allFlows = assetFlows.flatMap((a) => a.gross);
+  const waterfallEvents = assetFlows.flatMap((a) => a.events);
   const yearTotals = byCalendarYear(allFlows);
   const fundIRR = xirr(allFlows) * 100;   // gross IRR (before waterfall), XIRR
   const totalEquity = deals.reduce((s, d) => s + (d.metrics.equityRequired ?? 0), 0);
@@ -385,10 +475,11 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
     catchUpGpPct: terms.catchUpGpPct,
     tiers: terms.tiers,
     mgmtFeePct: terms.mgmtFeePct,
+    incomeTreatment: terms.incomeTreatment ?? "prefThenROC",
     feeStartISO: terms.finalClose,
   };
   const gpCommitAmount = totalEquity * (gpCommitPct / 100);
-  const fundWf = computeDatedWaterfall(allFlows, fundWaterfallConfig);
+  const fundWf = computeDatedWaterfall(waterfallEvents, fundWaterfallConfig);
   const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
   const outsideIP = deals.filter((d) => {
     const acq = acquisitionDate(d, fund);
@@ -406,7 +497,7 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
   const totalDistributions = totalProceeds;
 
   // Calendar-year combined table: each asset's flows bucketed by calendar year.
-  const dealYearTotals = deals.map((d) => byCalendarYear(datedFlows(d, d.irrFlows, fund)));
+  const dealYearTotals = assetFlows.map((a) => byCalendarYear(a.gross));
   const calendarYears = [...yearTotals.keys()].sort((a, b) => a - b);
   const yearRows = calendarYears.map((year) => ({
     year,
@@ -625,7 +716,7 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
 
       {/* Fund-level waterfall */}
       <div className="border-t border-gray-200 pt-5">
-        <FundWaterfall wf={fundWf} yearTotals={yearTotals} />
+        <FundWaterfall wf={fundWf} yearTotals={yearTotals} terms={terms} />
         <p className="text-xs text-gray-400 mt-2">
           Fund terms: {fmt(gpCommitPct, 1)}% GP commitment, {fmt(prefPct, 1)}% pref, {fmt(terms.catchUpGpPct, 0)}% GP catch-up,
           tiers {terms.tiers.map((t) => `${t.irrThreshold == null ? "above" : `≤${t.irrThreshold}%`} ${t.lpSplit}/${t.gpSplit}`).join(" · ")}
