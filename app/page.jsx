@@ -14,7 +14,7 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
+import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -26,7 +26,7 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calculator/blob/main/docs/USER_MANUAL.md";
 
 function initialFunds() {
-  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME } };
+  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS } };
 }
 
 function fmtISODate(iso) {
@@ -609,13 +609,13 @@ export default function Home() {
         .map((d) => (d.id === activeDealId ? { ...d, inputs: { ...d.inputs, fundName: SAMPLE_FUND_NAME } } : d)),
       ...buildSampleDeals(DEFAULT_INPUTS),
     ]);
-    // Make sure the fund has terms; a workspace saved before the rename
-    // keeps the terms it had under the old name.
-    setFunds((prev) =>
-      prev[SAMPLE_FUND_NAME]
-        ? prev
-        : { ...prev, [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME } }
-    );
+    // Make sure the fund has terms (a workspace saved before the rename
+    // keeps the terms it had under the old name) and $100M of commitments
+    // unless commitments were already entered.
+    setFunds((prev) => {
+      const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS } };
+    });
     setActiveTab("fund");
   }
 

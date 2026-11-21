@@ -533,7 +533,8 @@ Simulated day by day from final close:
 
 ### 7.13 Sample portfolio (`lib/samplePortfolio.js`)
 
-Nine illustrative assets, acquired 4/30/2026 – 12/15/2027:
+Model Fund I has **$100M of total commitments** (LP + GP). It holds your
+deal plus nine illustrative assets, acquired 4/30/2026 – 12/15/2027:
 
 | Assumption | Value |
 |---|---|
