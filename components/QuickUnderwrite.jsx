@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { quickUnderwrite, quickSensitivity } from "@/lib/quickUnderwrite";
+import { useMemo, useState } from "react";
+import { quickUnderwrite, quickSensitivity, sofrForYear } from "@/lib/quickUnderwrite";
+import { fetchSofrCurve } from "@/lib/sofr";
 
 const GROWTH_STEPS = [0, 5, 10, 15, 20, 25, 30, 35];
 const EXIT_CAP_STEPS = [4.0, 5.0, 6.0, 6.5, 7.0, 7.5];
@@ -69,6 +70,97 @@ function irrCellClass(v) {
   return "bg-emerald-500 text-white";
 }
 
+function ForwardCurve({ inputs, onChange }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const hold = Math.max(1, Math.round(inputs.holdYears));
+  const curve = inputs.sofrCurve ?? [];
+  const hasCurve = curve.length > 0;
+  const startYear = new Date().getFullYear();
+
+  function setYear(idx, val) {
+    onChange((prev) => {
+      const next = Array.from({ length: hold }, (_, i) => sofrForYear(prev, i + 1));
+      next[idx] = val;
+      return { ...prev, sofrCurve: next };
+    });
+  }
+
+  async function handleFetch() {
+    setLoading(true);
+    setError(null);
+    const rates = await fetchSofrCurve(hold);
+    if (rates.every((r) => r == null)) {
+      setError("Could not fetch the CME curve. Enter rates manually.");
+      setLoading(false);
+      return;
+    }
+    // Forward-fill gaps (far-dated contracts) from the last known rate.
+    onChange((prev) => {
+      let last = prev.sofrPct;
+      const filled = rates.map((r) => (r != null ? (last = r) : last));
+      return { ...prev, sofrCurve: filled };
+    });
+    setLoading(false);
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">SOFR forward curve</h3>
+          <p className="text-xs text-gray-500">
+            {hasCurve
+              ? "Per-year SOFR. All-in rate = min(SOFR, cap strike) + spread."
+              : `Flat at ${inputs.sofrPct.toFixed(2)}%. Edit a year or fetch the CME curve to vary it.`}
+          </p>
+          {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleFetch}
+            disabled={loading}
+            className="text-xs font-medium text-blue-600 border border-blue-200 hover:border-blue-300 rounded-lg px-3 py-1.5 bg-white disabled:opacity-50"
+          >
+            {loading ? "Fetching…" : "Fetch CME SOFR futures"}
+          </button>
+          {hasCurve && (
+            <button
+              type="button"
+              onClick={() => onChange((prev) => ({ ...prev, sofrCurve: [] }))}
+              className="text-xs text-gray-500 hover:text-red-500 border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+            >
+              Reset to flat
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+        {Array.from({ length: hold }, (_, i) => {
+          const sofr = sofrForYear(inputs, i + 1);
+          const capped = inputs.capStrikePct > 0 && sofr > inputs.capStrikePct;
+          const allIn = (capped ? inputs.capStrikePct : sofr) + inputs.spreadPct;
+          return (
+            <div key={i} className="flex flex-col gap-1">
+              <NumField
+                label={`Yr ${i + 1} (Dec ${startYear + i})`}
+                suffix="%"
+                step={0.05}
+                value={+sofr.toFixed(4)}
+                onChange={(v) => setYear(i, v)}
+              />
+              <span className={`text-xs tabular-nums ${capped ? "text-blue-700 font-medium" : "text-gray-500"}`}>
+                All-in {allIn.toFixed(2)}%{capped ? " (capped)" : ""}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function QuickUnderwrite({ inputs, onChange }) {
   const set = (field) => (v) => onChange((prev) => ({ ...prev, [field]: v }));
   const r = useMemo(() => quickUnderwrite(inputs), [inputs]);
@@ -126,7 +218,7 @@ export default function QuickUnderwrite({ inputs, onChange }) {
         <Group title="Loan">
           <NumField label="LTV (of price)" suffix="%" step={1} value={inputs.ltvPct} onChange={set("ltvPct")} />
           <NumField label="Amortization" suffix="yrs" step={5} value={inputs.amortYears} onChange={set("amortYears")} />
-          <NumField label="SOFR" suffix="%" step={0.05} value={inputs.sofrPct} onChange={set("sofrPct")} />
+          <NumField label="SOFR (flat / spot)" suffix="%" step={0.05} value={inputs.sofrPct} onChange={set("sofrPct")} />
           <NumField label="Spread" suffix="%" step={0.05} value={inputs.spreadPct} onChange={set("spreadPct")} />
           <NumField label="Initial term" suffix="yrs" step={1} value={inputs.initialTermYears} onChange={set("initialTermYears")} />
           <NumField label="Extensions (count)" step={1} value={inputs.extensionCount} onChange={set("extensionCount")} />
@@ -135,12 +227,17 @@ export default function QuickUnderwrite({ inputs, onChange }) {
         </Group>
 
         <Group title="Rate cap">
+          <NumField label="Cap strike (0 = none)" suffix="%" step={0.05} value={inputs.capStrikePct} onChange={set("capStrikePct")} />
           <NumField label="Initial cap cost" prefix="$" step={10000} value={inputs.initialCapCost} onChange={set("initialCapCost")} />
           <NumField label="Cap term" suffix="yrs" step={1} value={inputs.capTermYears} onChange={set("capTermYears")} />
           <NumField label="Replacement cap" prefix="$" step={10000} value={inputs.replacementCapCost} onChange={set("replacementCapCost")} />
         </Group>
       </div>
-      <p className="text-xs text-gray-400 -mt-3">Amortization 0 = interest-only. SOFR is held flat for the hold period.</p>
+      <p className="text-xs text-gray-400 -mt-3">
+        Amortization 0 = interest-only. Caps are held every year of the hold, so SOFR above the strike is capped.
+      </p>
+
+      <ForwardCurve inputs={inputs} onChange={onChange} />
 
       {/* Headline */}
       <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3">
@@ -149,7 +246,10 @@ export default function QuickUnderwrite({ inputs, onChange }) {
         <Stat label="Profit" value={usd(r.profit)} tone={r.profit < 0 ? "bad" : "default"} />
         <Stat label="Equity" value={usd(r.equity)} />
         <Stat label="Loan" value={usd(r.loan)} />
-        <Stat label="All-in rate" value={pct(r.rate * 100, 2)} />
+        <Stat
+          label="All-in rate"
+          value={r.rateMin === r.rateMax ? pct(r.rate * 100, 2) : `${(r.rateMin * 100).toFixed(2)}–${pct(r.rateMax * 100, 2)}`}
+        />
         <Stat label="Going-in cap" value={pct(r.goingInCap, 2)} />
         <Stat label="Yr 1 DSCR" value={mult(r.years[0].dscr)} tone={r.years[0].dscr < 1.25 ? "bad" : "default"} />
       </div>
@@ -199,6 +299,15 @@ export default function QuickUnderwrite({ inputs, onChange }) {
               <td className="py-2 pr-4 text-gray-900">Net cash flow</td>
               {r.flows.map((f, i) => (
                 <td key={i} className={`py-2 px-3 text-right ${f < 0 ? "text-red-600" : "text-gray-900"}`}>{usd(f)}</td>
+              ))}
+            </tr>
+            <tr className="text-xs text-gray-500">
+              <td className="py-1 pr-4">SOFR / all-in rate</td>
+              <td />
+              {r.years.map((y) => (
+                <td key={y.year} className="py-1 px-3 text-right">
+                  {pct(y.sofr, 2)} / {pct(y.rate * 100, 2)}
+                </td>
               ))}
             </tr>
             <tr className="text-xs text-gray-500">
