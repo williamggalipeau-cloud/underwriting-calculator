@@ -11,6 +11,7 @@ import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
+import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
 import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
 
@@ -177,6 +178,7 @@ function linkedDeal(id = "deal-1") {
       ...DEFAULT_INPUTS,
       propertyName: "Light Industrial (30k SF)",
       squareFootage: 30000,
+      acquisitionDate: "2026-02-13",
       fundName: SAMPLE_FUND_NAME,
     }),
   };
@@ -199,6 +201,7 @@ const TABS = [
   { id: "quick",       label: "Quick Underwrite" },
   { id: "units",       label: "Unit Roll" },
   { id: "debt",        label: "Debt" },
+  { id: "cashflow",    label: "Cash Flow" },
   { id: "stress",      label: "Return Stress Testing" },
   { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
@@ -556,6 +559,7 @@ export default function Home() {
                 onLinkChange={setLinked}
               />
             )}
+            {activeTab === "cashflow" && <CashFlowAnalysis inputs={inputs} results={results} />}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
 {activeTab === "returns" && (
               <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={fundDeals.filter((d) => d.id !== activeDealId)} />

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { underwrite } from "@/lib/calculations";
+import { datedFlows, xirr } from "@/lib/fundTimeline";
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 function fmt(n, d = 0) {
@@ -15,22 +16,6 @@ function fmtM(n) {
   if (Math.abs(n) >= 1_000_000) return `$${fmt(n / 1_000_000, 2)}M`;
   if (Math.abs(n) >= 1_000) return `$${fmt(n / 1_000, 1)}k`;
   return `$${fmt(n)}`;
-}
-
-// Bisection IRR
-function calcIRR(cashFlows) {
-  const hasPos = cashFlows.some((v) => v > 0);
-  const hasNeg = cashFlows.some((v) => v < 0);
-  if (!hasPos || !hasNeg) return NaN;
-  function npv(r) { return cashFlows.reduce((s, cf, i) => s + cf / Math.pow(1 + r, i), 0); }
-  let lo = -0.9999, hi = 10;
-  if (npv(lo) * npv(hi) > 0) return NaN;
-  for (let i = 0; i < 200; i++) {
-    const mid = (lo + hi) / 2;
-    if (Math.abs(hi - lo) < 1e-10) return mid * 100;
-    if (npv(lo) * npv(mid) <= 0) hi = mid; else lo = mid;
-  }
-  return ((lo + hi) / 2) * 100;
 }
 
 // Apply stress factors to a copy of inputs
@@ -102,15 +87,6 @@ function applyStress(inputs, factors) {
   stressed.tiPerSFRenewal = (inputs.tiPerSFRenewal ?? 0) * conMult;
 
   return stressed;
-}
-
-// Sum irrFlows year-by-year
-function aggregateFlows(deals) {
-  if (!deals.length) return [];
-  const maxLen = Math.max(...deals.map((d) => d.irrFlows.length));
-  const combined = Array(maxLen).fill(0);
-  for (const deal of deals) deal.irrFlows.forEach((v, i) => { combined[i] += v; });
-  return combined;
 }
 
 // ── Factor slider input ───────────────────────────────────────────────────────
@@ -265,17 +241,15 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
     });
   }, [savedDeals, factorsById]);
 
-  // Portfolio-level aggregate flows
-  const basePortfolioFlows = useMemo(
-    () => aggregateFlows(savedDeals.map((d) => ({ irrFlows: d.irrFlows }))),
+  // Portfolio IRR on dated flows (each asset from its acquisition date), matching Portfolio Return.
+  const basePortfolioIRR = useMemo(
+    () => xirr(savedDeals.flatMap((d) => datedFlows(d, d.irrFlows))) * 100,
     [savedDeals]
   );
-  const stressedPortfolioFlows = useMemo(
-    () => aggregateFlows(stressedSavedDeals.map((d) => ({ irrFlows: d.stressedIrrFlows }))),
+  const stressedPortfolioIRR = useMemo(
+    () => xirr(stressedSavedDeals.flatMap((d) => datedFlows(d, d.stressedIrrFlows))) * 100,
     [stressedSavedDeals]
   );
-  const basePortfolioIRR   = useMemo(() => calcIRR(basePortfolioFlows), [basePortfolioFlows]);
-  const stressedPortfolioIRR = useMemo(() => calcIRR(stressedPortfolioFlows), [stressedPortfolioFlows]);
 
   const hasPortfolio = savedDeals.length > 0;
 
