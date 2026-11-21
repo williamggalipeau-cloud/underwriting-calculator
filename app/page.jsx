@@ -14,7 +14,7 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
+import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -205,7 +205,7 @@ function linkedDeal(id = "deal-1") {
 }
 
 // The app opens with a live fund: the linked deal plus nine sample assets,
-// all editable deals in Light Industrial Fund I.
+// all editable deals in Model Fund I.
 function initialDeals() {
   return [linkedDeal(), ...buildSampleDeals(DEFAULT_INPUTS)];
 }
@@ -609,6 +609,13 @@ export default function Home() {
         .map((d) => (d.id === activeDealId ? { ...d, inputs: { ...d.inputs, fundName: SAMPLE_FUND_NAME } } : d)),
       ...buildSampleDeals(DEFAULT_INPUTS),
     ]);
+    // Make sure the fund has terms; a workspace saved before the rename
+    // keeps the terms it had under the old name.
+    setFunds((prev) =>
+      prev[SAMPLE_FUND_NAME]
+        ? prev
+        : { ...prev, [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME } }
+    );
     setActiveTab("fund");
   }
 
@@ -747,7 +754,7 @@ export default function Home() {
           onClick={handleLoadSamplePortfolio}
           className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
         >
-          Load sample portfolio
+          Load Model Fund I
         </button>
         <button
           type="button"

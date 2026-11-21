@@ -67,9 +67,9 @@ full model (`toMainInputs`, §7.3), so every tab analyses the same deal.
 Edits to the same fields in the left panel are overwritten by the next Quick
 Underwrite edit. Unlink the deal to edit the full model directly.
 
-**Sample portfolio.** The app opens with "Light Industrial Fund I": your deal
-plus nine illustrative light-industrial assets (§7.13). **Load sample
-portfolio** restores them and **Clear test data** removes them.
+**Sample portfolio.** The app opens with "Model Fund I": your deal
+plus nine illustrative light-industrial assets (§7.13). **Load Model
+Fund I** restores them and **Clear test data** removes them.
 
 ---
 
