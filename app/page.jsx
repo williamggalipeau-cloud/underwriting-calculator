@@ -12,6 +12,7 @@ import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
+import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
 import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -223,6 +224,7 @@ const TABS = [
   { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
   { id: "fund",        label: "Portfolio Return" },
+  { id: "comps",       label: "Sales Comps" },
 ];
 
 function fmtPct(n) {
@@ -246,6 +248,7 @@ export default function Home() {
   const [funds, setFunds] = useState(initialFunds);
   const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
   const [savedAt, setSavedAt] = useState(null);
+  const [comps, setComps] = useState(DEFAULT_COMPS_STATE);
   const hydrated = useRef(false);
   // Quick Underwrite inputs live on each deal. When a deal is linked, every
   // change is mapped onto its full-model inputs so all tabs stay in sync.
@@ -341,6 +344,7 @@ export default function Home() {
         setAnchorToLive(restoredAnchor);
         if (saved.deals.some((d) => d.id === saved.activeDealId)) setActiveDealId(saved.activeDealId);
         setSavedAt(saved.savedAt ?? null);
+        if (saved.comps) setComps({ ...DEFAULT_COMPS_STATE, ...saved.comps });
       })
       .finally(() => {
         hydrated.current = true;
@@ -367,7 +371,7 @@ export default function Home() {
         const at = new Date().toISOString();
         window.localStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId })
+          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps })
         );
         setSavedAt(at);
       } catch {
@@ -375,7 +379,7 @@ export default function Home() {
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId]);
+  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps]);
 
   function handleResetWorkspace() {
     if (!window.confirm("Reset the workspace? This removes your saved deals, funds and imported curve from this browser.")) return;
@@ -386,6 +390,7 @@ export default function Home() {
     }
     const fresh = initialDeals();
     setSavedDeals([]);
+    setComps(DEFAULT_COMPS_STATE);
     setFunds(initialFunds());
     setBaseCurve(DEFAULT_CURVE);
     setAnchorToLive(true);
@@ -445,6 +450,13 @@ export default function Home() {
           : d
       )
     );
+  }
+
+  // Exit cap from the Sales Comps tab: linked deals change the Quick
+  // Underwrite input (which re-maps to every tab); others change the model.
+  function handleSetExitCap(pct) {
+    if (activeDeal.linked) setQuick((q) => ({ ...q, exitCapPct: pct }));
+    else setInputs((prev) => ({ ...prev, exitCapRatePct: pct }));
   }
 
   function handleAddDeal() {
@@ -839,6 +851,24 @@ export default function Home() {
                 onEditFund={(name) => setFundEditor({ mode: "edit", name })}
                 onDeleteFund={handleDeleteFund}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
+              />
+            )}
+            {activeTab === "comps" && (
+              <SalesComps
+                state={comps}
+                onChange={setComps}
+                subject={{
+                  name: inputs.propertyName,
+                  price: inputs.purchasePrice,
+                  sf: inputs.squareFootage,
+                  noi1: annualCashFlows[0]?.noi ?? 0,
+                  exitNOI: annualCashFlows[(inputs.holdPeriodYears ?? annualCashFlows.length) - 1]?.noi ?? 0,
+                  exitValue: returns.exitValue,
+                  exitCap: returns.exitCapRate,
+                  holdYears: inputs.holdPeriodYears,
+                  acquisitionDate: inputs.acquisitionDate || activeDeal.quick?.acquisitionDate,
+                }}
+                onSetExitCap={handleSetExitCap}
               />
             )}
             {fundEditor && (
