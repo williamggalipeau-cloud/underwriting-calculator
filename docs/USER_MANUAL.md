@@ -30,8 +30,10 @@ a dry-powder calculation. It also has a sales comps tool.
   comps) are read in the browser and never sent anywhere.
 - **Your work is saved in your browser** (`localStorage`, key
   `uw-workspace-v1`): deals, fund terms, comps and the imported curve. The
-  save does not move to another browser or device. **Reset workspace**
-  clears it.
+  save does not move to another browser or device on its own. To move it,
+  click **Export workspace** (downloads a `.json` file), then **Import
+  workspace** in the other browser. Importing replaces that browser's
+  workspace. **Reset workspace** clears it.
 - **Live data:** the only automatic outside calls are to the New York Fed for
   current SOFR, and an optional one for CME SOFR futures (see §5).
 
@@ -65,9 +67,9 @@ full model (`toMainInputs`, §7.3), so every tab analyses the same deal.
 Edits to the same fields in the left panel are overwritten by the next Quick
 Underwrite edit. Unlink the deal to edit the full model directly.
 
-**Sample portfolio.** The app opens with "Light Industrial Fund I": your deal
-plus nine illustrative light-industrial assets (§7.13). **Load sample
-portfolio** restores them and **Clear test data** removes them.
+**Sample portfolio.** The app opens with "Model Fund I": your deal
+plus nine illustrative light-industrial assets (§7.13). **Load Model
+Fund I** restores them and **Clear test data** removes them.
 
 ---
 
@@ -671,8 +673,8 @@ The inputs are the Quick Underwrite defaults:
 9. **Recycling** of returned capital is not in dry powder.
 10. **Sample assets and example comps are illustrative.** Replace them with
     real deals and comps.
-11. **Saved data lives in one browser.** Export funds and comps if you need
-    copies.
+11. **Saved data lives in one browser.** Use Export / Import workspace to
+    back it up or move it to another computer.
 
 ---
 

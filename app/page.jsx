@@ -14,14 +14,15 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
+import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
-import { DEFAULT_FUND_TERMS } from "@/lib/fundTerms";
+import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
 import FundTermsEditor from "@/components/FundTermsEditor";
 
 // Workspace saved in this browser (deals, funds, snapshots, curve).
 const STORAGE_KEY = "uw-workspace-v1";
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calculator/blob/main/docs/USER_MANUAL.md";
 
 function initialFunds() {
@@ -204,7 +205,7 @@ function linkedDeal(id = "deal-1") {
 }
 
 // The app opens with a live fund: the linked deal plus nine sample assets,
-// all editable deals in Light Industrial Fund I.
+// all editable deals in Model Fund I.
 function initialDeals() {
   return [linkedDeal(), ...buildSampleDeals(DEFAULT_INPUTS)];
 }
@@ -251,6 +252,8 @@ export default function Home() {
   const [savedAt, setSavedAt] = useState(null);
   const [comps, setComps] = useState(DEFAULT_COMPS_STATE);
   const hydrated = useRef(false);
+  const importRef = useRef(null);
+  const [importMsg, setImportMsg] = useState(null); // { ok, text }
   // Quick Underwrite inputs live on each deal. When a deal is linked, every
   // change is mapped onto its full-model inputs so all tabs stay in sync.
   function setQuick(updater) {
@@ -381,6 +384,50 @@ export default function Home() {
     }, 400);
     return () => clearTimeout(t);
   }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps]);
+
+  // ── Export / import the workspace as a JSON file (to move it between
+  // browsers or computers). Same content as the browser save.
+  function handleExportWorkspace() {
+    const at = new Date().toISOString();
+    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps };
+    downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `underwriting-workspace-${at.slice(0, 10)}.json`);
+    setImportMsg({ ok: true, text: `Exported ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
+  }
+
+  async function handleImportWorkspace(file) {
+    let saved;
+    try {
+      saved = JSON.parse(await file.text());
+    } catch {
+      setImportMsg({ ok: false, text: "That file isn't a workspace export (it couldn't be read as JSON)." });
+      return;
+    }
+    if (!Array.isArray(saved?.deals) || !saved.deals.length || !saved.deals.every((d) => d && d.id && d.inputs)) {
+      setImportMsg({ ok: false, text: "That file isn't a workspace export (no deals found)." });
+      return;
+    }
+    if (!window.confirm(`Replace this browser's workspace with the file (${saved.deals.length} deals)? Your current deals, funds and comps here will be overwritten.`)) return;
+    // Same migration as the browser restore: fill new settings with defaults
+    // and re-map linked deals onto the full model.
+    setDeals(
+      saved.deals.map((d) => {
+        if (!d.quick) return d;
+        const quick = { ...QUICK_DEFAULTS, ...d.quick };
+        return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
+      })
+    );
+    setSavedDeals(Array.isArray(saved.savedDeals) ? saved.savedDeals : []);
+    setFunds(saved.funds && typeof saved.funds === "object" ? saved.funds : initialFunds());
+    const base = saved.baseCurve?.points?.length ? saved.baseCurve : DEFAULT_CURVE;
+    const anchor = typeof saved.anchorToLive === "boolean" ? saved.anchorToLive : true;
+    setBaseCurve(base);
+    setAnchorToLive(anchor);
+    setActiveDealId(saved.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : saved.deals[0].id);
+    setComps({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
+    // Re-anchor the imported curve to today's live rate, as on page load.
+    if (anchor && live?.avg30) applyCurveToDeals(anchorCurveToLive(base, live.avg30.rate).curve);
+    setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
+  }
 
   function handleResetWorkspace() {
     if (!window.confirm("Reset the workspace? This removes your saved deals, funds and imported curve from this browser.")) return;
@@ -562,6 +609,13 @@ export default function Home() {
         .map((d) => (d.id === activeDealId ? { ...d, inputs: { ...d.inputs, fundName: SAMPLE_FUND_NAME } } : d)),
       ...buildSampleDeals(DEFAULT_INPUTS),
     ]);
+    // Make sure the fund has terms; a workspace saved before the rename
+    // keeps the terms it had under the old name.
+    setFunds((prev) =>
+      prev[SAMPLE_FUND_NAME]
+        ? prev
+        : { ...prev, [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME } }
+    );
     setActiveTab("fund");
   }
 
@@ -687,7 +741,7 @@ export default function Home() {
       </div>
 
       {/* Test scenario buttons */}
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex items-center gap-2">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={handleLoadTest}
@@ -700,7 +754,7 @@ export default function Home() {
           onClick={handleLoadSamplePortfolio}
           className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
         >
-          Load sample portfolio
+          Load Model Fund I
         </button>
         <button
           type="button"
@@ -712,6 +766,33 @@ export default function Home() {
         <span className="ml-auto text-[11px] text-gray-400">
           {savedAt ? `Saved in this browser ${new Date(savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Not saved yet"}
         </span>
+        <input
+          ref={importRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleImportWorkspace(f);
+            e.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleExportWorkspace}
+          title="Download your deals, funds, comps and curve as a file"
+          className="text-xs text-gray-600 hover:text-blue-700 border border-gray-200 hover:border-blue-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
+        >
+          Export workspace
+        </button>
+        <button
+          type="button"
+          onClick={() => importRef.current?.click()}
+          title="Load a workspace file exported from another browser or computer"
+          className="text-xs text-gray-600 hover:text-blue-700 border border-gray-200 hover:border-blue-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
+        >
+          Import workspace
+        </button>
         <button
           type="button"
           onClick={handleResetWorkspace}
@@ -719,6 +800,12 @@ export default function Home() {
         >
           Reset workspace
         </button>
+        {importMsg && (
+          <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
+            {importMsg.text}
+            <button type="button" onClick={() => setImportMsg(null)} className="ml-2 text-gray-400 hover:text-gray-700" aria-label="Dismiss">✕</button>
+          </p>
+        )}
       </div>
 
       {/* Body */}
