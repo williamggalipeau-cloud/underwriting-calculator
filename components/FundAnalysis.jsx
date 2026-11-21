@@ -481,6 +481,20 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
   const gpCommitAmount = totalEquity * (gpCommitPct / 100);
   const fundWf = computeDatedWaterfall(waterfallEvents, fundWaterfallConfig);
   const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
+
+  // Header returns, all on one basis: multiple = total distributions ÷ total
+  // capital contributed (later capital calls count as capital).
+  //   Gross:    asset-level equity cash flows, before fund fees and promote.
+  //   Net fund: all investors (LP + GP) after the waterfall and fund fees;
+  //             promote moves money between LP and GP, so only fund-level
+  //             fees and distribution timing separate it from gross.
+  //   Net LP:   LPs after pref, catch-up, promote and fees.
+  const grossIn = -allFlows.filter((f) => f.amount < 0).reduce((s, f) => s + f.amount, 0);
+  const grossOut = allFlows.filter((f) => f.amount > 0).reduce((s, f) => s + f.amount, 0);
+  const grossMultiple = grossIn > 0 ? grossOut / grossIn : NaN;
+  const netFundIRR = xirr([...fundWf.lpFlows, ...fundWf.gpFlows]) * 100;
+  const netFundIn = fundWf.lpEquity + fundWf.gpEquity;
+  const netFundMultiple = netFundIn > 0 ? (fundWf.lpTotalDistributions + fundWf.gpTotalDistributions) / netFundIn : NaN;
   const outsideIP = deals.filter((d) => {
     const acq = acquisitionDate(d, fund);
     return acq <= fund.finalClose || acq > fd.investmentPeriodEnd;
@@ -544,27 +558,24 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
             CSV
           </button>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Gross IRR</p>
-            <p className={`text-lg font-bold tabular-nums ${isFinite(fundIRR) && fundIRR >= 14 ? "text-emerald-700" : isFinite(fundIRR) ? "text-red-600" : "text-gray-400"}`}>
-              {fmtPct(fundIRR)}
-            </p>
-          </div>
-          {isFinite(netLpIRR) && (
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Net LP IRR</p>
-              <p className={`text-lg font-bold tabular-nums ${netLpIRR >= 12 ? "text-emerald-700" : "text-red-600"}`}>
-                {fmtPct(netLpIRR)}
+        <div className="flex flex-wrap items-start gap-3">
+          {[
+            { label: "Gross", irr: fundIRR, mult: grossMultiple, note: "Assets, before fund fees & promote", irrGood: 14 },
+            { label: "Net fund", irr: netFundIRR, mult: netFundMultiple, note: "All investors, after fund fees", irrGood: 14 },
+            { label: "Net LP", irr: netLpIRR, mult: fundWf.lpEquityMultiple, note: "After pref, promote & fees", irrGood: 12 },
+          ].map((m) => (
+            <div key={m.label} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-right" title={m.note}>
+              <p className="text-[11px] font-medium text-gray-500">{m.label}</p>
+              <p className="text-base font-bold tabular-nums leading-tight">
+                <span className={isFinite(m.irr) && m.irr >= m.irrGood ? "text-emerald-700" : isFinite(m.irr) ? "text-red-600" : "text-gray-400"}>
+                  {fmtPct(m.irr)}
+                </span>
+                <span className="text-gray-300 font-normal"> · </span>
+                <span className="text-gray-900">{fmtX(m.mult)}</span>
               </p>
+              <p className="text-[10px] text-gray-400">IRR · multiple</p>
             </div>
-          )}
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Eq. Multiple</p>
-            <p className={`text-lg font-bold tabular-nums ${isFinite(weightedEM) && weightedEM >= 2 ? "text-emerald-700" : isFinite(weightedEM) ? "text-red-600" : "text-gray-400"}`}>
-              {fmtX(weightedEM)}
-            </p>
-          </div>
+          ))}
           <div className="text-right">
             <p className="text-xs text-gray-500">Total Equity</p>
             <p className="text-lg font-bold tabular-nums text-gray-900">{fmtM(totalEquity)}</p>
