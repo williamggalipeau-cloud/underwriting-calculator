@@ -237,6 +237,17 @@ export default function Home() {
     );
   }
 
+  // An imported Pensford curve replaces the curve on every deal; deals using
+  // the Pensford source re-price, and linked deals re-map onto every tab.
+  function handleCurveImport(curve) {
+    setDeals((prev) =>
+      prev.map((d) => {
+        const quick = { ...(d.quick ?? QUICK_DEFAULTS), forwardCurve: curve, sofrCurveSource: "pensford" };
+        return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
+      })
+    );
+  }
+
   function setLinked(linked) {
     setDeals((prev) =>
       prev.map((d) =>
@@ -556,6 +567,7 @@ export default function Home() {
                 onChange={setQuick}
                 linked={!!activeDeal.linked}
                 onLinkChange={setLinked}
+                onCurveImport={handleCurveImport}
               />
             )}
             {activeTab === "cashflow" && <CashFlowAnalysis inputs={inputs} results={results} />}
