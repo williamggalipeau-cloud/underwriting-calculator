@@ -324,7 +324,15 @@ export default function Home() {
           saved = null;
         }
         if (cancelled || !saved?.deals?.length) return;
-        setDeals(saved.deals);
+        // Fill settings added since the workspace was saved (e.g. new fees)
+        // with their defaults, and re-map linked deals onto the full model.
+        setDeals(
+          saved.deals.map((d) => {
+            if (!d.quick) return d;
+            const quick = { ...QUICK_DEFAULTS, ...d.quick };
+            return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
+          })
+        );
         setSavedDeals(saved.savedDeals ?? []);
         setFunds(saved.funds ?? initialFunds());
         if (saved.baseCurve?.points?.length) restoredBase = saved.baseCurve;
