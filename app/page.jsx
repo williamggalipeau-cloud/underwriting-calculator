@@ -11,7 +11,7 @@ import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
-import { QUICK_DEFAULTS } from "@/lib/quickUnderwrite";
+import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -165,6 +165,21 @@ const DEFAULT_INPUTS = {
 };
 
 
+// The starting deal: driven by the Quick Underwrite tab (direct NOI), so
+// every tab analyses the same light-industrial acquisition.
+function linkedDeal(id = "deal-1") {
+  return {
+    id,
+    linked: true,
+    quick: QUICK_DEFAULTS,
+    inputs: toMainInputs(QUICK_DEFAULTS, {
+      ...DEFAULT_INPUTS,
+      propertyName: "Light Industrial (30k SF)",
+      squareFootage: 30000,
+    }),
+  };
+}
+
 function newDeal(overrides = {}) {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -196,12 +211,39 @@ function fmtDollarM(n) {
 
 export default function Home() {
   const [deals, setDeals] = useState([
-    { id: "deal-1", inputs: { ...DEFAULT_INPUTS } },
+    linkedDeal(),
   ]);
   const [activeDealId, setActiveDealId] = useState("deal-1");
-  const [activeTab, setActiveTab] = useState("units");
+  const [activeTab, setActiveTab] = useState("quick");
   const [savedDeals, setSavedDeals] = useState([]);
-  const [quickInputs, setQuickInputs] = useState(QUICK_DEFAULTS);
+  // Quick Underwrite inputs live on each deal. When a deal is linked, every
+  // change is mapped onto its full-model inputs so all tabs stay in sync.
+  function setQuick(updater) {
+    setDeals((prev) =>
+      prev.map((d) => {
+        if (d.id !== activeDealId) return d;
+        const current = d.quick ?? QUICK_DEFAULTS;
+        const quick = typeof updater === "function" ? updater(current) : updater;
+        return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
+      })
+    );
+  }
+
+  function setLinked(linked) {
+    setDeals((prev) =>
+      prev.map((d) =>
+        d.id === activeDealId
+          ? {
+              ...d,
+              linked,
+              inputs: linked
+                ? toMainInputs(d.quick ?? QUICK_DEFAULTS, d.inputs)
+                : { ...d.inputs, noiOverrideEnabled: d.inputs.noiOverrideEnabled },
+            }
+          : d
+      )
+    );
+  }
 
   const activeDeal = deals.find((d) => d.id === activeDealId) ?? deals[0];
   const inputs = activeDeal.inputs;
@@ -285,7 +327,7 @@ export default function Home() {
   function handleClearTest() {
     setDeals((prev) => {
       const next = prev.filter((d) => d.id !== "test-active");
-      return next.length > 0 ? next : [{ id: "deal-1", inputs: { ...DEFAULT_INPUTS } }];
+      return next.length > 0 ? next : [linkedDeal()];
     });
     setActiveDealId((prev) => prev === "test-active" ? "deal-1" : prev);
     setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-")));
@@ -409,6 +451,7 @@ export default function Home() {
           {/* Inputs panel */}
           <div className="bg-white rounded-b-2xl border border-gray-200 shadow-sm p-5 overflow-y-auto flex-1">
             <DealInputsPanel
+              linked={!!activeDeal.linked}
               key={activeDealId}
               inputs={inputs}
               onChange={setInputs}
@@ -457,7 +500,12 @@ export default function Home() {
               />
             )}
             {activeTab === "quick" && (
-              <QuickUnderwrite inputs={quickInputs} onChange={setQuickInputs} />
+              <QuickUnderwrite
+                inputs={activeDeal.quick ?? QUICK_DEFAULTS}
+                onChange={setQuick}
+                linked={!!activeDeal.linked}
+                onLinkChange={setLinked}
+              />
             )}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
 {activeTab === "returns" && (

@@ -74,6 +74,15 @@ function applyStress(inputs, factors) {
   stressed.capitalReservesPSF = (inputs.capitalReservesPSF ?? 0) * opexMult;
   stressed.leasingFeesPSF = (inputs.leasingFeesPSF ?? 0) * opexMult;
 
+  // ── Direct-NOI deals: rent-roll levers don't drive NOI, so apply the
+  // vacancy shock as a % cut to NOI and the escalation cut to NOI growth.
+  // (Opex overrun has no rent-roll expenses to act on in this mode.)
+  if (inputs.noiOverrideEnabled) {
+    stressed.noiYear1 = (inputs.noiYear1 ?? 0) * (1 - factors.vacancyDelta / 100);
+    stressed.noiGrowthPct = (inputs.noiGrowthPct ?? 0) - factors.rentEscDelta;
+  }
+  stressed.capexBudget = (inputs.capexBudget ?? 0) * (1 + factors.constructionDelta / 100);
+
   // ── Exit cap rate expansion ───────────────────────────────────────────────
   stressed.exitCapRatePct = (inputs.exitCapRatePct ?? 0) + factors.exitCapDelta;
 

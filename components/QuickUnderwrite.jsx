@@ -161,7 +161,7 @@ function ForwardCurve({ inputs, onChange }) {
   );
 }
 
-export default function QuickUnderwrite({ inputs, onChange }) {
+export default function QuickUnderwrite({ inputs, onChange, linked = false, onLinkChange }) {
   const set = (field) => (v) => onChange((prev) => ({ ...prev, [field]: v }));
   const r = useMemo(() => quickUnderwrite(inputs), [inputs]);
   const grid = useMemo(() => quickSensitivity(inputs, GROWTH_STEPS, EXIT_CAP_STEPS), [inputs]);
@@ -186,6 +186,27 @@ export default function QuickUnderwrite({ inputs, onChange }) {
           final-year NOI ÷ exit cap. Independent of the rent-roll inputs on the left.
         </p>
       </div>
+
+      {onLinkChange && (
+        <div
+          className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${
+            linked ? "bg-blue-50 border-blue-200 text-blue-800" : "bg-gray-50 border-gray-200 text-gray-600"
+          }`}
+        >
+          <span>
+            {linked
+              ? "Linked: Debt, Stress Testing, Sensitivity, Asset Return and Portfolio Return all use this deal (direct NOI)."
+              : "Not linked: the other tabs use this deal's rent-roll inputs from the left panel."}
+          </span>
+          <button
+            type="button"
+            onClick={() => onLinkChange(!linked)}
+            className="font-medium text-blue-700 border border-blue-200 bg-white hover:border-blue-300 rounded-md px-2.5 py-1"
+          >
+            {linked ? "Unlink" : "Use this deal on all tabs"}
+          </button>
+        </div>
+      )}
 
       {/* Inputs */}
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">

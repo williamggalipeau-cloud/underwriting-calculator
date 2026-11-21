@@ -510,7 +510,7 @@ function AMFeeItems({ items = [], onChange }) {
   const remove = (id)               => onChange(items.filter((it) => it.id !== id));
   const add    = ()                 => onChange([...items, newAMFeeItem()]);
 
-  const basisLabel = { psf: "$/SF/yr", fixed: "$/yr", pctEGR: "% EGR" };
+  const basisLabel = { psf: "$/SF/yr", fixed: "$/yr", pctEGR: "% EGR", pctEquity: "% Equity" };
 
   return (
     <div className="space-y-2">
@@ -524,14 +524,14 @@ function AMFeeItems({ items = [], onChange }) {
             className="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden w-40 shrink-0">
-            {item.basis !== "pctEGR" && (
+            {item.basis !== "pctEGR" && item.basis !== "pctEquity" && (
               <span className="px-2 py-2 bg-gray-50 border-r border-gray-200 text-gray-500 text-sm">$</span>
             )}
             <input
               type="number"
               aria-label={`${item.label || "fee"} value`}
               value={item.value}
-              step={item.basis === "psf" ? 0.05 : item.basis === "pctEGR" ? 0.25 : 500}
+              step={item.basis === "psf" ? 0.05 : item.basis === "pctEGR" || item.basis === "pctEquity" ? 0.25 : 500}
               min={0}
               onChange={(e) => set(item.id, "value", parseFloat(e.target.value) || 0)}
               className="flex-1 px-2 py-2 text-sm text-gray-900 bg-white outline-none min-w-0"
@@ -545,6 +545,7 @@ function AMFeeItems({ items = [], onChange }) {
               <option value="psf">$/SF/yr</option>
               <option value="fixed">$/yr</option>
               <option value="pctEGR">% EGR</option>
+              <option value="pctEquity">% Equity</option>
             </select>
           </div>
           <button
@@ -705,7 +706,7 @@ function fmtK(n) {
   return `$${n.toFixed(0)}`;
 }
 
-export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
+export default function DealInputsPanel({ inputs, onChange, fundNames = [], linked = false }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
   const [curveLoading, setCurveLoading] = useState(false);
   const [curveError, setCurveError] = useState(null);
@@ -737,6 +738,12 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
 
   return (
     <div className="space-y-7">
+      {linked && (
+        <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+          Linked to <span className="font-semibold">Quick Underwrite</span>. Edit price, NOI, loan, caps, fees and
+          exit there; changing those fields here is overwritten by the next Quick Underwrite edit.
+        </p>
+      )}
       {/* Property */}
       <div>
         <SectionHeader title="Property" />
@@ -765,6 +772,55 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
           <div className="grid grid-cols-2 gap-3">
             <Field label="Square Footage" value={inputs.squareFootage} field="squareFootage" suffix="SF" step={1000} onChange={set} />
             <Field label="Purchase Price" value={inputs.purchasePrice} field="purchasePrice" prefix="$" step={100000} onChange={set} />
+          </div>
+        </div>
+      </div>
+
+      {/* NOI source + capex */}
+      <div>
+        <SectionHeader title="NOI Source" subtitle="Build NOI from the rent roll, or enter it directly" />
+        <div className="flex gap-2 mb-3">
+          {[
+            { id: false, label: "Rent roll" },
+            { id: true, label: "Direct NOI" },
+          ].map((o) => (
+            <button
+              key={String(o.id)}
+              type="button"
+              onClick={() => set("noiOverrideEnabled", o.id)}
+              className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${
+                !!inputs.noiOverrideEnabled === o.id
+                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  : "border-gray-200 text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        {inputs.noiOverrideEnabled && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Year 1 NOI" value={inputs.noiYear1 ?? 0} field="noiYear1" prefix="$" step={10000} onChange={set} />
+              <Field label="NOI Growth" value={inputs.noiGrowthPct ?? 0} field="noiGrowthPct" suffix="%/yr" step={1} onChange={set} />
+            </div>
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Rent, vacancy, expense and rollover inputs below are ignored while Direct NOI is on.
+            </p>
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <Field label="Capex Budget" value={inputs.capexBudget ?? 0} field="capexBudget" prefix="$" step={10000} onChange={set} />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Capex Funded By</label>
+            <select
+              value={inputs.capexLenderFunded ? "lender" : "equity"}
+              onChange={(e) => set("capexLenderFunded", e.target.value === "lender")}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"
+            >
+              <option value="equity">Equity</option>
+              <option value="lender">Lender (added to loan)</option>
+            </select>
           </div>
         </div>
       </div>
@@ -1098,7 +1154,11 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
             <Field label="Initial Term" value={inputs.loanTermYears} field="loanTermYears" suffix="yrs" step={1} onChange={set} />
             <Field label="Extensions" value={inputs.extensionCount} field="extensionCount" suffix="options" step={1} onChange={set} />
             <Field label="Ext. Length" value={inputs.extensionTermYears} field="extensionTermYears" suffix="yrs" step={1} onChange={set} />
-            <Field label="Ext. Fee" value={inputs.extensionFeePct} field="extensionFeePct" suffix="% / ext" step={0.05} onChange={set} />
+            {(inputs.extensionFeeAmount ?? 0) > 0 ? (
+              <Field label="Ext. Fee ($, 0 = use %)" value={inputs.extensionFeeAmount} field="extensionFeeAmount" prefix="$" step={10000} onChange={set} />
+            ) : (
+              <Field label="Ext. Fee" value={inputs.extensionFeePct} field="extensionFeePct" suffix="% / ext" step={0.05} onChange={set} />
+            )}
           </div>
         </div>
 
@@ -1305,7 +1365,12 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [] }) {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Cap Strike" value={inputs.capStrikeRatePct} field="capStrikeRatePct" suffix="%" step={0.25} onChange={set} />
               <Field label="Cap Term" value={inputs.capTermYears ?? inputs.loanTermYears} field="capTermYears" suffix="yrs" step={1} onChange={set} />
-              <Field label="Cap Premium" value={inputs.capPremiumPct} field="capPremiumPct" suffix="% of loan" step={0.10} onChange={set} />
+              {(inputs.capPremiumAmount ?? 0) > 0 ? (
+                <Field label="Cap Premium ($, 0 = use %)" value={inputs.capPremiumAmount} field="capPremiumAmount" prefix="$" step={10000} onChange={set} />
+              ) : (
+                <Field label="Cap Premium" value={inputs.capPremiumPct} field="capPremiumPct" suffix="% of loan" step={0.10} onChange={set} />
+              )}
+              <Field label="Replacement Cap" value={inputs.capReplacementCost ?? 0} field="capReplacementCost" prefix="$" suffix="/ term" step={10000} onChange={set} />
             </div>
           )}
           {inputs.hedgingType === "swap" && (
