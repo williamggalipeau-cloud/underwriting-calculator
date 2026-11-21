@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { underwrite } from "@/lib/calculations";
 import { generateTestScenario } from "@/lib/testScenario";
 import DealInputsPanel from "@/components/DealInputs";
@@ -16,6 +16,15 @@ import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
 import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
+import { DEFAULT_FUND_TERMS } from "@/lib/fundTerms";
+import FundTermsEditor from "@/components/FundTermsEditor";
+
+// Workspace saved in this browser (deals, funds, snapshots, curve).
+const STORAGE_KEY = "uw-workspace-v1";
+
+function initialFunds() {
+  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME } };
+}
 
 function fmtISODate(iso) {
   if (!iso) return "—";
@@ -232,6 +241,11 @@ export default function Home() {
   const [activeDealId, setActiveDealId] = useState("deal-1");
   const [activeTab, setActiveTab] = useState("quick");
   const [savedDeals, setSavedDeals] = useState([]);
+  // Fund terms by fund name (timeline, waterfall, fee).
+  const [funds, setFunds] = useState(initialFunds);
+  const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
+  const [savedAt, setSavedAt] = useState(null);
+  const hydrated = useRef(false);
   // Quick Underwrite inputs live on each deal. When a deal is linked, every
   // change is mapped onto its full-model inputs so all tabs stay in sync.
   function setQuick(updater) {
@@ -294,15 +308,40 @@ export default function Home() {
       });
   }
 
-  // Fetch live NY Fed rates once on load and re-anchor the curve.
+  // On load: restore the saved workspace (if any), then fetch live NY Fed
+  // rates and re-anchor the restored curve.
   useEffect(() => {
     let cancelled = false;
-    fetchNyFedRates()
+    let restoredBase = DEFAULT_CURVE;
+    let restoredAnchor = true;
+    Promise.resolve()
+      .then(() => {
+        let saved = null;
+        try {
+          saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "null");
+        } catch {
+          saved = null;
+        }
+        if (cancelled || !saved?.deals?.length) return;
+        setDeals(saved.deals);
+        setSavedDeals(saved.savedDeals ?? []);
+        setFunds(saved.funds ?? initialFunds());
+        if (saved.baseCurve?.points?.length) restoredBase = saved.baseCurve;
+        if (typeof saved.anchorToLive === "boolean") restoredAnchor = saved.anchorToLive;
+        setBaseCurve(restoredBase);
+        setAnchorToLive(restoredAnchor);
+        if (saved.deals.some((d) => d.id === saved.activeDealId)) setActiveDealId(saved.activeDealId);
+        setSavedAt(saved.savedAt ?? null);
+      })
+      .finally(() => {
+        hydrated.current = true;
+      })
+      .then(() => fetchNyFedRates())
       .then((r) => {
         if (cancelled) return;
         setLive(r);
         setLiveStatus("ok");
-        if (r.avg30) applyCurveToDeals(anchorCurveToLive(DEFAULT_CURVE, r.avg30.rate).curve);
+        if (r.avg30 && restoredAnchor) applyCurveToDeals(anchorCurveToLive(restoredBase, r.avg30.rate).curve);
       })
       .catch(() => !cancelled && setLiveStatus("error"));
     return () => {
@@ -310,6 +349,63 @@ export default function Home() {
     };
     // Runs once on mount; later updates go through the handlers above.
   }, []);
+
+  // Save the workspace whenever it changes (after the initial restore).
+  useEffect(() => {
+    if (!hydrated.current) return;
+    const t = setTimeout(() => {
+      try {
+        const at = new Date().toISOString();
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId })
+        );
+        setSavedAt(at);
+      } catch {
+        // Storage full or blocked: the app keeps working, unsaved.
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId]);
+
+  function handleResetWorkspace() {
+    if (!window.confirm("Reset the workspace? This removes your saved deals, funds and imported curve from this browser.")) return;
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    const fresh = initialDeals();
+    setSavedDeals([]);
+    setFunds(initialFunds());
+    setBaseCurve(DEFAULT_CURVE);
+    setAnchorToLive(true);
+    setActiveDealId(fresh[0].id);
+    setDeals(live?.avg30 ? fresh.map((d) => {
+      const quick = { ...d.quick, forwardCurve: anchorCurveToLive(DEFAULT_CURVE, live.avg30.rate).curve };
+      return { ...d, quick, inputs: toMainInputs(quick, d.inputs) };
+    }) : fresh);
+    setSavedAt(null);
+  }
+
+  // ── Fund terms ──
+  function handleFundTermsChange(name, patch) {
+    setFunds((prev) => ({ ...prev, [name]: { ...DEFAULT_FUND_TERMS, ...(prev[name] ?? {}), name, ...patch } }));
+  }
+
+  function handleFundSave(terms, { addCurrentDeal } = {}) {
+    setFunds((prev) => ({ ...prev, [terms.name]: terms }));
+    if (addCurrentDeal) setInputs((prev) => ({ ...prev, fundName: terms.name }));
+    setFundEditor(null);
+  }
+
+  function handleDeleteFund(name) {
+    setFunds((prev) => {
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }
 
   const curveShiftBp = live?.avg30 ? anchorCurveToLive(baseCurve, live.avg30.rate).shiftBp : null;
 
@@ -577,6 +673,16 @@ export default function Home() {
         >
           Clear test data
         </button>
+        <span className="ml-auto text-[11px] text-gray-400">
+          {savedAt ? `Saved in this browser ${new Date(savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Not saved yet"}
+        </span>
+        <button
+          type="button"
+          onClick={handleResetWorkspace}
+          className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
+        >
+          Reset workspace
+        </button>
       </div>
 
       {/* Body */}
@@ -637,7 +743,7 @@ export default function Home() {
               key={activeDealId}
               inputs={inputs}
               onChange={setInputs}
-              fundNames={[...new Set(fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))]}
+              fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
             />
           </div>
         </aside>
@@ -715,6 +821,22 @@ export default function Home() {
                 currentDeal={{ inputs, irrFlows: irrFlows ?? [], metrics: { irr: returns.irr, equityMultiple: returns.equityMultiple, yearOneCashOnCash: returns.yearOneCashOnCash, equityRequired: debt.equityRequired, loanAmount: debt.loanAmount } }}
                 onSave={handleSaveDeal}
                 onRemove={handleRemoveDeal}
+                funds={funds}
+                onFundTermsChange={handleFundTermsChange}
+                onNewFund={() => setFundEditor({ mode: "new" })}
+                onEditFund={(name) => setFundEditor({ mode: "edit", name })}
+                onDeleteFund={handleDeleteFund}
+              />
+            )}
+            {fundEditor && (
+              <FundTermsEditor
+                key={fundEditor.mode + (fundEditor.name ?? "")}
+                mode={fundEditor.mode}
+                initial={fundEditor.mode === "edit" ? { ...DEFAULT_FUND_TERMS, ...(funds[fundEditor.name] ?? {}), name: fundEditor.name } : undefined}
+                existingNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
+                currentDealName={inputs.propertyName}
+                onSave={handleFundSave}
+                onClose={() => setFundEditor(null)}
               />
             )}
           </div>
