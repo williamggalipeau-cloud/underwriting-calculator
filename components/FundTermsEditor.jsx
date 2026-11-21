@@ -132,7 +132,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                   className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </label>
-              <Num label="Target equity" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint="Optional" />
+              <Num label="Total commitments" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint="Fund size; drives dry powder" />
               <Num label="Mgmt fee" suffix="%/yr" step={0.25} value={t.mgmtFeePct} onChange={set("mgmtFeePct")} hint="On LP invested capital" />
             </div>
           </section>

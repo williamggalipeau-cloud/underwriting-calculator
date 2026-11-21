@@ -481,6 +481,44 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
   const gpCommitAmount = totalEquity * (gpCommitPct / 100);
   const fundWf = computeDatedWaterfall(waterfallEvents, fundWaterfallConfig);
   const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
+
+  // Header returns, all on one basis: multiple = total distributions ÷ total
+  // capital contributed (later capital calls count as capital).
+  //   Gross:    asset-level equity cash flows, before fund fees and promote.
+  //   Net fund: all investors (LP + GP) after the waterfall and fund fees;
+  //             promote moves money between LP and GP, so only fund-level
+  //             fees and distribution timing separate it from gross.
+  //   Net LP:   LPs after pref, catch-up, promote and fees.
+  const grossIn = -allFlows.filter((f) => f.amount < 0).reduce((s, f) => s + f.amount, 0);
+  const grossOut = allFlows.filter((f) => f.amount > 0).reduce((s, f) => s + f.amount, 0);
+  const grossMultiple = grossIn > 0 ? grossOut / grossIn : NaN;
+  const netFundIRR = xirr([...fundWf.lpFlows, ...fundWf.gpFlows]) * 100;
+  const netFundIn = fundWf.lpEquity + fundWf.gpEquity;
+  const netFundMultiple = netFundIn > 0 ? (fundWf.lpTotalDistributions + fundWf.gpTotalDistributions) / netFundIn : NaN;
+
+  // ── Capital called & dry powder ──
+  // Capital calls from the waterfall ledger (purchases, later shortfall calls
+  // and fund-fee calls), LP + GP, by date.
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const calls = fundWf.ledger
+    .filter((r) => r.kind === "call" || r.kind === "fee")
+    .map((r) => ({ date: r.date, amount: -(r.lp + r.gp) }))
+    .filter((c) => c.amount > 0);
+  const calledBy = (iso) => calls.filter((c) => c.date <= iso).reduce((s, c) => s + c.amount, 0);
+  const commitments = terms.targetEquity ?? 0;
+  const calledToDate = calledBy(todayISO);
+  const calledThroughIP = calledBy(fd.investmentPeriodEnd);
+  const projectedCalls = calls.reduce((s, c) => s + c.amount, 0);
+  const capital = {
+    commitments,
+    calledToDate,
+    dryPowderToday: commitments - calledToDate,
+    projectedCalls,
+    uncommitted: commitments - projectedCalls,
+    dryPowderAtIPEnd: commitments - calledThroughIP,
+    pctCalledToDate: commitments > 0 ? (calledToDate / commitments) * 100 : NaN,
+    ipOpen: todayISO <= fd.investmentPeriodEnd,
+  };
   const outsideIP = deals.filter((d) => {
     const acq = acquisitionDate(d, fund);
     return acq <= fund.finalClose || acq > fd.investmentPeriodEnd;
@@ -544,33 +582,30 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
             CSV
           </button>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Gross IRR</p>
-            <p className={`text-lg font-bold tabular-nums ${isFinite(fundIRR) && fundIRR >= 14 ? "text-emerald-700" : isFinite(fundIRR) ? "text-red-600" : "text-gray-400"}`}>
-              {fmtPct(fundIRR)}
-            </p>
-          </div>
-          {isFinite(netLpIRR) && (
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Net LP IRR</p>
-              <p className={`text-lg font-bold tabular-nums ${netLpIRR >= 12 ? "text-emerald-700" : "text-red-600"}`}>
-                {fmtPct(netLpIRR)}
+        <div className="flex flex-wrap items-start gap-3">
+          {[
+            { label: "Gross", irr: fundIRR, mult: grossMultiple, note: "Assets, before fund fees & promote", irrGood: 14 },
+            { label: "Net fund", irr: netFundIRR, mult: netFundMultiple, note: "All investors, after fund fees", irrGood: 14 },
+            { label: "Net LP", irr: netLpIRR, mult: fundWf.lpEquityMultiple, note: "After pref, promote & fees", irrGood: 12 },
+          ].map((m) => (
+            <div key={m.label} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-right" title={m.note}>
+              <p className="text-[11px] font-medium text-gray-500">{m.label}</p>
+              <p className="text-base font-bold tabular-nums leading-tight">
+                <span className={isFinite(m.irr) && m.irr >= m.irrGood ? "text-emerald-700" : isFinite(m.irr) ? "text-red-600" : "text-gray-400"}>
+                  {fmtPct(m.irr)}
+                </span>
+                <span className="text-gray-300 font-normal"> · </span>
+                <span className="text-gray-900">{fmtX(m.mult)}</span>
               </p>
+              <p className="text-[10px] text-gray-400">IRR · multiple</p>
             </div>
-          )}
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Eq. Multiple</p>
-            <p className={`text-lg font-bold tabular-nums ${isFinite(weightedEM) && weightedEM >= 2 ? "text-emerald-700" : isFinite(weightedEM) ? "text-red-600" : "text-gray-400"}`}>
-              {fmtX(weightedEM)}
-            </p>
-          </div>
+          ))}
           <div className="text-right">
             <p className="text-xs text-gray-500">Total Equity</p>
             <p className="text-lg font-bold tabular-nums text-gray-900">{fmtM(totalEquity)}</p>
             {terms.targetEquity > 0 && (
               <p className="text-[11px] text-gray-400 tabular-nums">
-                {fmt((totalEquity / terms.targetEquity) * 100, 0)}% of {fmtM(terms.targetEquity)} target
+                {fmt((totalEquity / terms.targetEquity) * 100, 0)}% of {fmtM(terms.targetEquity)} commitments
               </p>
             )}
           </div>
@@ -620,6 +655,54 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
           />
           <span className="px-2 py-1.5 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">% / yr</span>
         </div>
+      </div>
+
+      {/* Capital called & dry powder */}
+      <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h4 className="text-xs font-semibold text-gray-700">Capital &amp; dry powder</h4>
+          <span className="text-[11px] text-gray-400">
+            As of {fmtDate(todayISO)} · investment period {capital.ipOpen ? `open until ${fmtDate(fd.investmentPeriodEnd)}` : `ended ${fmtDate(fd.investmentPeriodEnd)}`}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+          <label className="flex flex-col gap-1">
+            <span className="text-gray-500">Total commitments</span>
+            <span className="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+              <span className="px-2 py-1 bg-gray-50 border-r border-gray-200 text-gray-500">$</span>
+              <input
+                type="number"
+                min={0}
+                step={1_000_000}
+                value={commitments || ""}
+                placeholder="Enter fund size"
+                onChange={(e) => onTermsChange({ targetEquity: Math.max(0, Number(e.target.value) || 0) })}
+                className="w-full min-w-0 px-2 py-1 text-sm text-gray-900 outline-none tabular-nums"
+              />
+            </span>
+          </label>
+          {[
+            ["Called to date", fmtM(capital.calledToDate), capital.commitments > 0 ? `${fmtPct(capital.pctCalledToDate, 0)} of commitments` : "LP + GP, incl. fees"],
+            ["Dry powder today", capital.commitments > 0 ? fmtM(capital.dryPowderToday) : "—", "Commitments − called to date", capital.dryPowderToday < 0],
+            ["Planned deals will call", fmtM(capital.projectedCalls), "All calls for the fund's current deals"],
+            ["Uncommitted capital", capital.commitments > 0 ? fmtM(capital.uncommitted) : "—", "Left for new deals after planned ones", capital.uncommitted < 0],
+            ["Dry powder at IP end", capital.commitments > 0 ? fmtM(capital.dryPowderAtIPEnd) : "—", `If no other deals by ${fmtDate(fd.investmentPeriodEnd)}`, capital.dryPowderAtIPEnd < 0],
+          ].map(([label, value, sub, bad]) => (
+            <div key={label}>
+              <p className="text-gray-500">{label}</p>
+              <p className={`text-sm font-bold tabular-nums ${bad ? "text-red-600" : "text-gray-900"}`}>{value}</p>
+              <p className="text-[10px] text-gray-400">{sub}</p>
+            </div>
+          ))}
+        </div>
+        {capital.commitments > 0 && capital.uncommitted < 0 && (
+          <p className="mt-2 text-[11px] text-red-600">
+            {`Planned deals need ${fmtM(-capital.uncommitted)} more than the fund's commitments.`}
+          </p>
+        )}
+        {!(capital.commitments > 0) && (
+          <p className="mt-2 text-[11px] text-gray-500">Enter the fund&apos;s total commitments to see dry powder.</p>
+        )}
       </div>
 
       {/* Fund terms */}
