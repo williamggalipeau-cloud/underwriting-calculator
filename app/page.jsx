@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { underwrite } from "@/lib/calculations";
 import { generateTestScenario } from "@/lib/testScenario";
 import DealInputsPanel from "@/components/DealInputs";
@@ -14,6 +14,14 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
 import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
+import { DEFAULT_CURVE } from "@/lib/forwardCurve";
+import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
+
+function fmtISODate(iso) {
+  if (!iso) return "—";
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  return `${m}/${d}/${y}`;
+}
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -237,6 +245,74 @@ export default function Home() {
     );
   }
 
+  // ── Forward curve + live NY Fed rates ──
+  // baseCurve: the Pensford curve (built-in snapshot or latest import).
+  // When anchoring is on and live rates are in, deals use the curve shifted
+  // in parallel so it starts at today's NY Fed 30-day average SOFR.
+  const [baseCurve, setBaseCurve] = useState(DEFAULT_CURVE);
+  const [anchorToLive, setAnchorToLive] = useState(true);
+  const [live, setLive] = useState(null);
+  const [liveStatus, setLiveStatus] = useState("loading"); // loading | ok | error
+
+  function effectiveCurve(curve, anchor, liveRates) {
+    return anchor && liveRates?.avg30 ? anchorCurveToLive(curve, liveRates.avg30.rate).curve : curve;
+  }
+
+  // Puts a curve on every deal; linked deals re-map onto every tab.
+  function applyCurveToDeals(curve, forcePensford = false) {
+    setDeals((prev) =>
+      prev.map((d) => {
+        const q = d.quick ?? QUICK_DEFAULTS;
+        const quick = { ...q, forwardCurve: curve, sofrCurveSource: forcePensford ? "pensford" : q.sofrCurveSource };
+        return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
+      })
+    );
+  }
+
+  // An imported Pensford curve replaces the base curve on every deal.
+  function handleCurveImport(curve) {
+    setBaseCurve(curve);
+    applyCurveToDeals(effectiveCurve(curve, anchorToLive, live), true);
+  }
+
+  function handleAnchorToggle(on) {
+    setAnchorToLive(on);
+    applyCurveToDeals(effectiveCurve(baseCurve, on, live));
+  }
+
+  function loadLiveRates() {
+    setLiveStatus("loading");
+    return fetchNyFedRates()
+      .then((r) => {
+        setLive(r);
+        setLiveStatus("ok");
+        return r;
+      })
+      .catch(() => {
+        setLiveStatus("error");
+        return null;
+      });
+  }
+
+  // Fetch live NY Fed rates once on load and re-anchor the curve.
+  useEffect(() => {
+    let cancelled = false;
+    fetchNyFedRates()
+      .then((r) => {
+        if (cancelled) return;
+        setLive(r);
+        setLiveStatus("ok");
+        if (r.avg30) applyCurveToDeals(anchorCurveToLive(DEFAULT_CURVE, r.avg30.rate).curve);
+      })
+      .catch(() => !cancelled && setLiveStatus("error"));
+    return () => {
+      cancelled = true;
+    };
+    // Runs once on mount; later updates go through the handlers above.
+  }, []);
+
+  const curveShiftBp = live?.avg30 ? anchorCurveToLive(baseCurve, live.avg30.rate).shiftBp : null;
+
   function setLinked(linked) {
     setDeals((prev) =>
       prev.map((d) =>
@@ -423,6 +499,61 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Live rates */}
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-600">
+          <span className="flex items-center gap-1.5 font-semibold text-gray-800">
+            <span className={`w-2 h-2 rounded-full ${liveStatus === "ok" ? "bg-emerald-500" : liveStatus === "loading" ? "bg-gray-300" : "bg-red-500"}`} />
+            NY Fed live
+          </span>
+          {liveStatus === "ok" && live ? (
+            <>
+              {live.sofr && (
+                <span>
+                  SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.sofr.rate.toFixed(2)}%</span>{" "}
+                  <span className="text-gray-400">({fmtISODate(live.sofr.date)})</span>
+                </span>
+              )}
+              {live.avg30 && (
+                <span>
+                  30D avg SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.avg30.rate.toFixed(5)}%</span>{" "}
+                  <span className="text-gray-400">({fmtISODate(live.avg30.date)})</span>
+                </span>
+              )}
+            </>
+          ) : liveStatus === "loading" ? (
+            <span className="text-gray-400">Loading…</span>
+          ) : (
+            <span className="text-red-600">Couldn&apos;t reach the NY Fed API; using the curve as published.</span>
+          )}
+          <span className="text-gray-300">|</span>
+          <span>
+            Forward curve: {baseCurve.source} as of <span className="font-medium text-gray-800">{fmtISODate(baseCurve.asOf)}</span>
+            {curveShiftBp != null && (
+              <span className="text-gray-400">
+                {" "}· live 30D avg {curveShiftBp >= 0 ? "+" : "−"}{Math.abs(curveShiftBp).toFixed(1)} bp vs. curve start
+              </span>
+            )}
+          </span>
+          <label className={`flex items-center gap-1.5 ${live?.avg30 ? "" : "opacity-40"}`}>
+            <input
+              type="checkbox"
+              checked={anchorToLive}
+              disabled={!live?.avg30}
+              onChange={(e) => handleAnchorToggle(e.target.checked)}
+            />
+            Shift curve to live rate
+          </label>
+          <button
+            type="button"
+            onClick={() => loadLiveRates().then((r) => r && applyCurveToDeals(effectiveCurve(baseCurve, anchorToLive, r)))}
+            className="ml-auto text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
       {/* Test scenario buttons */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex items-center gap-2">
         <button
@@ -556,6 +687,7 @@ export default function Home() {
                 onChange={setQuick}
                 linked={!!activeDeal.linked}
                 onLinkChange={setLinked}
+                onCurveImport={handleCurveImport}
               />
             )}
             {activeTab === "cashflow" && <CashFlowAnalysis inputs={inputs} results={results} />}

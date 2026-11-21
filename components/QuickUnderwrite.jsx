@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { quickUnderwrite, quickSensitivity, sofrForYear } from "@/lib/quickUnderwrite";
 import { fetchSofrCurve } from "@/lib/sofr";
-import { FORWARD_CURVE_AS_OF, FORWARD_CURVE_SOURCE } from "@/lib/forwardCurve";
+import { CURVE_INDICES, DEFAULT_CURVE } from "@/lib/forwardCurve";
+import { curveFromFile, curveFromText, PENSFORD_URL } from "@/lib/pensfordImport";
 
 function fmtISO(iso) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -76,14 +77,93 @@ function irrCellClass(v) {
   return "bg-emerald-500 text-white";
 }
 
-function ForwardCurve({ inputs, onChange }) {
+// Import a Pensford export (Excel / CSV / pasted table) and apply it to all deals.
+function PensfordImport({ onImport, onClose }) {
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState(null);
+
+  async function run(getCurve) {
+    setStatus({ busy: true });
+    try {
+      const curve = await getCurve();
+      onImport(curve);
+      setStatus({
+        ok: `Imported ${curve.points.length} monthly resets (${fmtISO(curve.points[0][0])}–${fmtISO(curve.points[curve.points.length - 1][0])}), as of ${fmtISO(curve.asOf)}. Applied to every deal on the Pensford curve.`,
+      });
+    } catch (e) {
+      setStatus({ error: e.message || "Couldn't read that file." });
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50/50 p-4 space-y-3 text-xs text-gray-700">
+      <div className="flex items-start justify-between gap-3">
+        <ol className="list-decimal ml-4 space-y-1">
+          <li>
+            Open{" "}
+            <a href={PENSFORD_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-700 underline">
+              Pensford&apos;s forward curve
+            </a>{" "}
+            and switch to <span className="font-medium">Table</span> (keep 1-Month Term SOFR and 30D Average SOFR ticked).
+          </li>
+          <li>
+            Choose <span className="font-medium">Download &amp; Share → Excel → Download Vertically</span>.
+          </li>
+          <li>Select the downloaded file below, or paste the copied table.</li>
+        </ol>
+        <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-700" aria-label="Close">
+          ✕
+        </button>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="inline-flex items-center gap-2 font-medium text-blue-700 border border-blue-200 bg-white rounded-lg px-3 py-1.5 cursor-pointer hover:border-blue-300">
+          Choose Excel or CSV file
+          <input
+            type="file"
+            accept=".xlsx,.csv,.txt"
+            className="sr-only"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) run(() => curveFromFile(f));
+              e.target.value = "";
+            }}
+          />
+        </label>
+        <span className="text-gray-400">or</span>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Paste the table (Reset Date, 1M Term SOFR, 30D Average SOFR)"
+          rows={2}
+          className="flex-1 min-w-[240px] border border-gray-200 rounded-lg px-2 py-1.5 bg-white font-mono"
+        />
+        <button
+          type="button"
+          disabled={!text.trim()}
+          onClick={() => run(async () => curveFromText(text, new Date().toISOString().slice(0, 10)))}
+          className="font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-3 py-1.5 disabled:opacity-40"
+        >
+          Import pasted
+        </button>
+      </div>
+      {status?.busy && <p className="text-gray-500">Reading…</p>}
+      {status?.ok && <p className="text-emerald-700">{status.ok}</p>}
+      {status?.error && <p className="text-red-600">{status.error}</p>}
+      <p className="text-gray-400">The file is read in your browser and isn&apos;t uploaded anywhere. Imported curves last until the page reloads.</p>
+    </div>
+  );
+}
+
+function ForwardCurve({ inputs, onChange, onCurveImport }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const curveData = inputs.forwardCurve ?? DEFAULT_CURVE;
   const hold = Math.max(1, Math.round(inputs.holdYears));
   const pensford = inputs.sofrCurveSource === "pensford";
   const curve = inputs.sofrCurve ?? [];
   const hasCurve = pensford || curve.length > 0;
-  const acq = inputs.acquisitionDate || FORWARD_CURVE_AS_OF;
+  const acq = inputs.acquisitionDate || curveData.asOf;
   const acqYear = Number(acq.slice(0, 4));
 
   // Editing a year switches to a manual curve seeded with the current values.
@@ -120,7 +200,7 @@ function ForwardCurve({ inputs, onChange }) {
           <h3 className="text-sm font-semibold text-gray-900">SOFR forward curve</h3>
           <p className="text-xs text-gray-500">
             {pensford
-              ? `${FORWARD_CURVE_SOURCE} 1-Month Term SOFR forward curve (${fmtISO(FORWARD_CURVE_AS_OF)}), averaged over each hold year from the ${fmtISO(acq)} acquisition. All-in = min(SOFR, cap strike) + spread.`
+              ? `${curveData.source} ${CURVE_INDICES[inputs.sofrIndex ?? "avgSofr30D"].label} forward curve (as of ${fmtISO(curveData.asOf)}), averaged over each hold year from the ${fmtISO(acq)} acquisition. All-in = min(SOFR, cap strike) + spread.`
               : hasCurve
               ? "Manual per-year SOFR. All-in rate = min(SOFR, cap strike) + spread."
               : `Flat at ${inputs.sofrPct.toFixed(2)}%. Edit a year, use the Pensford curve, or fetch CME futures.`}
@@ -128,13 +208,32 @@ function ForwardCurve({ inputs, onChange }) {
           {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
         </div>
         <div className="flex gap-2">
+          <select
+            aria-label="SOFR index"
+            value={inputs.sofrIndex ?? "avgSofr30D"}
+            onChange={(e) => onChange((prev) => ({ ...prev, sofrIndex: e.target.value, sofrCurveSource: "pensford" }))}
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+          >
+            {Object.entries(CURVE_INDICES).map(([k, v]) => (
+              <option key={k} value={k}>{v.label}</option>
+            ))}
+          </select>
           {!pensford && (
             <button
               type="button"
               onClick={() => onChange((prev) => ({ ...prev, sofrCurveSource: "pensford" }))}
               className="text-xs font-medium text-blue-600 border border-blue-200 hover:border-blue-300 rounded-lg px-3 py-1.5 bg-white"
             >
-              Use {FORWARD_CURVE_SOURCE} curve ({fmtISO(FORWARD_CURVE_AS_OF)})
+              Use {curveData.source} curve ({fmtISO(curveData.asOf)})
+            </button>
+          )}
+          {onCurveImport && (
+            <button
+              type="button"
+              onClick={() => setShowImport((v) => !v)}
+              className="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-3 py-1.5"
+            >
+              Update from Pensford
             </button>
           )}
           <button
@@ -156,7 +255,10 @@ function ForwardCurve({ inputs, onChange }) {
           )}
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+      {showImport && onCurveImport && (
+        <PensfordImport onImport={onCurveImport} onClose={() => setShowImport(false)} />
+      )}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 mt-3">
         {Array.from({ length: hold }, (_, i) => {
           const sofr = sofrForYear(inputs, i + 1);
           const capped = inputs.capStrikePct > 0 && sofr > inputs.capStrikePct;
@@ -181,7 +283,7 @@ function ForwardCurve({ inputs, onChange }) {
   );
 }
 
-export default function QuickUnderwrite({ inputs, onChange, linked = false, onLinkChange }) {
+export default function QuickUnderwrite({ inputs, onChange, linked = false, onLinkChange, onCurveImport }) {
   const set = (field) => (v) => onChange((prev) => ({ ...prev, [field]: v }));
   const r = useMemo(() => quickUnderwrite(inputs), [inputs]);
   const grid = useMemo(() => quickSensitivity(inputs, GROWTH_STEPS, EXIT_CAP_STEPS), [inputs]);
@@ -287,7 +389,7 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
         Amortization 0 = interest-only. Caps are held every year of the hold, so SOFR above the strike is capped.
       </p>
 
-      <ForwardCurve inputs={inputs} onChange={onChange} />
+      <ForwardCurve inputs={inputs} onChange={onChange} onCurveImport={onCurveImport} />
 
       {/* Headline */}
       <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3">
