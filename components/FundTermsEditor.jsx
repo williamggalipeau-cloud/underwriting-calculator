@@ -249,6 +249,25 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
             </p>
           </section>
 
+          {/* Subscription line */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">Subscription line</h3>
+              <label className="flex items-center gap-2 text-xs text-gray-700">
+                <input type="checkbox" checked={t.subLineEnabled !== false} onChange={(e) => set("subLineEnabled")(e.target.checked)} />
+                Fund has a subscription line
+              </label>
+            </div>
+            {t.subLineEnabled !== false && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Num label="Size" suffix="% of commitments" step={5} value={t.subLineSizePct} onChange={set("subLineSizePct")} />
+                <Num label="Spread over SOFR" suffix="%" step={0.05} value={t.subLineSpreadPct} onChange={set("subLineSpreadPct")} hint="30-day average SOFR" />
+                <Num label="Unused fee" suffix="%/yr" step={0.05} value={t.subLineUnusedFeePct} onChange={set("subLineUnusedFeePct")} />
+                <Num label="Max days outstanding" suffix="days" step={30} value={t.subLineMaxDays} onChange={set("subLineMaxDays")} hint="Then repaid by an LP call" />
+              </div>
+            )}
+          </section>
+
           {issues.length > 0 && (
             <ul className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 list-disc ml-0 pl-6">
               {issues.map((w) => <li key={w}>{w}</li>)}

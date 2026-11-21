@@ -838,6 +838,7 @@ export default function Home() {
                 onNewFund={() => setFundEditor({ mode: "new" })}
                 onEditFund={(name) => setFundEditor({ mode: "edit", name })}
                 onDeleteFund={handleDeleteFund}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
             )}
             {fundEditor && (
