@@ -3,6 +3,12 @@
 import { useMemo, useState } from "react";
 import { quickUnderwrite, quickSensitivity, sofrForYear } from "@/lib/quickUnderwrite";
 import { fetchSofrCurve } from "@/lib/sofr";
+import { FORWARD_CURVE_AS_OF, FORWARD_CURVE_SOURCE } from "@/lib/forwardCurve";
+
+function fmtISO(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${m}/${d}/${y}`;
+}
 
 const GROWTH_STEPS = [0, 5, 10, 15, 20, 25, 30, 35];
 const EXIT_CAP_STEPS = [4.0, 5.0, 6.0, 6.5, 7.0, 7.5];
@@ -74,15 +80,18 @@ function ForwardCurve({ inputs, onChange }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const hold = Math.max(1, Math.round(inputs.holdYears));
+  const pensford = inputs.sofrCurveSource === "pensford";
   const curve = inputs.sofrCurve ?? [];
-  const hasCurve = curve.length > 0;
-  const startYear = new Date().getFullYear();
+  const hasCurve = pensford || curve.length > 0;
+  const acq = inputs.acquisitionDate || FORWARD_CURVE_AS_OF;
+  const acqYear = Number(acq.slice(0, 4));
 
+  // Editing a year switches to a manual curve seeded with the current values.
   function setYear(idx, val) {
     onChange((prev) => {
       const next = Array.from({ length: hold }, (_, i) => sofrForYear(prev, i + 1));
       next[idx] = val;
-      return { ...prev, sofrCurve: next };
+      return { ...prev, sofrCurveSource: "manual", sofrCurve: next };
     });
   }
 
@@ -99,7 +108,7 @@ function ForwardCurve({ inputs, onChange }) {
     onChange((prev) => {
       let last = prev.sofrPct;
       const filled = rates.map((r) => (r != null ? (last = r) : last));
-      return { ...prev, sofrCurve: filled };
+      return { ...prev, sofrCurveSource: "manual", sofrCurve: filled };
     });
     setLoading(false);
   }
@@ -110,13 +119,24 @@ function ForwardCurve({ inputs, onChange }) {
         <div>
           <h3 className="text-sm font-semibold text-gray-900">SOFR forward curve</h3>
           <p className="text-xs text-gray-500">
-            {hasCurve
-              ? "Per-year SOFR. All-in rate = min(SOFR, cap strike) + spread."
-              : `Flat at ${inputs.sofrPct.toFixed(2)}%. Edit a year or fetch the CME curve to vary it.`}
+            {pensford
+              ? `${FORWARD_CURVE_SOURCE} 1-Month Term SOFR forward curve (${fmtISO(FORWARD_CURVE_AS_OF)}), averaged over each hold year from the ${fmtISO(acq)} acquisition. All-in = min(SOFR, cap strike) + spread.`
+              : hasCurve
+              ? "Manual per-year SOFR. All-in rate = min(SOFR, cap strike) + spread."
+              : `Flat at ${inputs.sofrPct.toFixed(2)}%. Edit a year, use the Pensford curve, or fetch CME futures.`}
           </p>
           {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
         </div>
         <div className="flex gap-2">
+          {!pensford && (
+            <button
+              type="button"
+              onClick={() => onChange((prev) => ({ ...prev, sofrCurveSource: "pensford" }))}
+              className="text-xs font-medium text-blue-600 border border-blue-200 hover:border-blue-300 rounded-lg px-3 py-1.5 bg-white"
+            >
+              Use {FORWARD_CURVE_SOURCE} curve ({fmtISO(FORWARD_CURVE_AS_OF)})
+            </button>
+          )}
           <button
             type="button"
             onClick={handleFetch}
@@ -128,7 +148,7 @@ function ForwardCurve({ inputs, onChange }) {
           {hasCurve && (
             <button
               type="button"
-              onClick={() => onChange((prev) => ({ ...prev, sofrCurve: [] }))}
+              onClick={() => onChange((prev) => ({ ...prev, sofrCurveSource: "manual", sofrCurve: [] }))}
               className="text-xs text-gray-500 hover:text-red-500 border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
             >
               Reset to flat
@@ -144,7 +164,7 @@ function ForwardCurve({ inputs, onChange }) {
           return (
             <div key={i} className="flex flex-col gap-1">
               <NumField
-                label={`Yr ${i + 1} (Dec ${startYear + i})`}
+                label={`Yr ${i + 1} (${acqYear + i}–${String(acqYear + i + 1).slice(2)})`}
                 suffix="%"
                 step={0.05}
                 value={+sofr.toFixed(4)}
@@ -213,6 +233,15 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
         <Group title="Acquisition">
           <NumField label="Purchase price" prefix="$" step={100000} value={inputs.purchasePrice} onChange={set("purchasePrice")} />
           <NumField label="Closing costs" prefix="$" step={10000} value={inputs.closingCosts} onChange={set("closingCosts")} />
+          <div className="flex flex-col gap-1 col-span-2">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Acquisition date</label>
+            <input
+              type="date"
+              value={inputs.acquisitionDate ?? ""}
+              onChange={(e) => e.target.value && set("acquisitionDate")(e.target.value)}
+              className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900 bg-white"
+            />
+          </div>
           <NumField label="Capex" prefix="$" step={10000} value={inputs.capex} onChange={set("capex")} />
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Capex funded by</label>
