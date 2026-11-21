@@ -12,6 +12,14 @@ import {
   xirr,
 } from "@/lib/fundTimeline";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName, termsToCSV, termsToXlsx } from "@/lib/fundTerms";
+import { applySubLine } from "@/lib/subLine";
+import { DEFAULT_CURVE } from "@/lib/forwardCurve";
+
+// Last day of a "YYYY-Qn" quarter as ISO.
+function quarterEndISO(q) {
+  const [y, n] = q.split("-Q").map(Number);
+  return new Date(Date.UTC(y, n * 3, 0)).toISOString().slice(0, 10);
+}
 
 function fmtDate(iso) {
   const d = parseDate(iso);
@@ -44,7 +52,7 @@ function groupByFund(deals) {
 }
 
 // Quarterly distribution schedule from the dated waterfall ledger.
-function QuarterlySchedule({ wf, terms }) {
+function QuarterlySchedule({ wf, terms, lineBalanceAt }) {
   const rows = wf.quarterly.reduce((acc, r) => {
     const prev = acc[acc.length - 1] ?? { lpCumul: 0, gpCumul: 0 };
     acc.push({ ...r, lpCumul: prev.lpCumul + r.lp, gpCumul: prev.gpCumul + r.gp });
@@ -58,7 +66,7 @@ function QuarterlySchedule({ wf, terms }) {
         <table className="w-full text-xs tabular-nums">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              {["Quarter", "Capital calls", "Income dist.", "Sale proceeds", "LP pref", "Return of capital", "Held for next sale", "GP catch-up", "LP split", "GP promote", "LP total", "GP total", "LP yield (ann.)", "LP cumul."].map((h) => (
+              {["Quarter", "Capital calls", "Income dist.", "Sale proceeds", "LP pref", "Return of capital", "Held for next sale", "GP catch-up", "LP split", "GP promote", "LP total", "GP total", "LP yield (ann.)", "LP cumul.", ...(lineBalanceAt ? ["Sub line bal."] : [])].map((h) => (
                 <th key={h} className="px-2.5 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
@@ -82,6 +90,7 @@ function QuarterlySchedule({ wf, terms }) {
                   <td className="px-2.5 py-1.5 text-right font-medium">{cell(r.gp, "text-purple-700")}</td>
                   <td className="px-2.5 py-1.5 text-right text-gray-600">{isFinite(yieldPct) ? fmtPct(yieldPct) : <span className="text-gray-300">—</span>}</td>
                   <td className={`px-2.5 py-1.5 text-right ${r.lpCumul < 0 ? "text-red-500" : "text-blue-600"}`}>{fmtM(r.lpCumul)}</td>
+                  {lineBalanceAt && <td className="px-2.5 py-1.5 text-right text-gray-600">{cell(lineBalanceAt(quarterEndISO(r.quarter)))}</td>}
                 </tr>
               );
             })}
@@ -103,7 +112,7 @@ function QuarterlySchedule({ wf, terms }) {
   );
 }
 
-function FundWaterfall({ wf, yearTotals, terms }) {
+function FundWaterfall({ wf, yearTotals, terms, lineBalanceAt }) {
   const [view, setView] = useState("quarterly");
   const lpGood  = (v, t) => isFinite(v) && v >= t;
 
@@ -161,7 +170,7 @@ function FundWaterfall({ wf, yearTotals, terms }) {
         ))}
       </div>
 
-      {view === "quarterly" && <QuarterlySchedule wf={wf} terms={terms} />}
+      {view === "quarterly" && <QuarterlySchedule wf={wf} terms={terms} lineBalanceAt={lineBalanceAt} />}
 
       {/* Calendar-year table: capital calls (negative) and distributions */}
       {view === "annual" && (<>
@@ -443,7 +452,7 @@ function DealRow({ deal, onRemove, fund }) {
   );
 }
 
-function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemove, onRemoveFund }) {
+function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChange, onEditTerms, onRemove, onRemoveFund }) {
   // Fund terms (timeline, GP commitment, pref, catch-up, tiers, fee) come
   // from the fund's saved terms; the inline inputs below edit them.
   const fund = terms;
@@ -479,7 +488,24 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
     feeStartISO: terms.finalClose,
   };
   const gpCommitAmount = totalEquity * (gpCommitPct / 100);
-  const fundWf = computeDatedWaterfall(waterfallEvents, fundWaterfallConfig);
+  // Subscription line: capital needs draw on the line first; LP calls repay
+  // each draw after maxDays (plus interest and unused fees).
+  const subLine = applySubLine(waterfallEvents, {
+    line: {
+      enabled: terms.subLineEnabled !== false,
+      sizePct: terms.subLineSizePct,
+      spreadPct: terms.subLineSpreadPct,
+      unusedFeePct: terms.subLineUnusedFeePct,
+      maxDays: terms.subLineMaxDays,
+    },
+    commitments: terms.targetEquity ?? 0,
+    finalClose: terms.finalClose,
+    investmentPeriodEnd: fd.investmentPeriodEnd,
+    curve,
+  });
+  const line = subLine.stats;
+  const fundWf = computeDatedWaterfall(subLine.events, fundWaterfallConfig);
+  const fundWfNoLine = line ? computeDatedWaterfall(waterfallEvents, fundWaterfallConfig) : fundWf;
   const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
 
   // Header returns, all on one basis: multiple = total distributions ÷ total
@@ -509,15 +535,20 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
   const calledToDate = calledBy(todayISO);
   const calledThroughIP = calledBy(fd.investmentPeriodEnd);
   const projectedCalls = calls.reduce((s, c) => s + c.amount, 0);
+  // Sub line draws are repaid from future LP calls, so the outstanding
+  // balance is already spoken for: dry powder = commitments − LP capital
+  // called − line outstanding.
+  const lineAt = (iso) => (line ? line.balanceAt(iso) : 0);
   const capital = {
     commitments,
     calledToDate,
-    dryPowderToday: commitments - calledToDate,
+    dryPowderToday: commitments - calledToDate - lineAt(todayISO),
     projectedCalls,
     uncommitted: commitments - projectedCalls,
-    dryPowderAtIPEnd: commitments - calledThroughIP,
+    dryPowderAtIPEnd: commitments - calledThroughIP - lineAt(fd.investmentPeriodEnd),
     pctCalledToDate: commitments > 0 ? (calledToDate / commitments) * 100 : NaN,
     ipOpen: todayISO <= fd.investmentPeriodEnd,
+    lineToday: lineAt(todayISO),
   };
   const outsideIP = deals.filter((d) => {
     const acq = acquisitionDate(d, fund);
@@ -657,6 +688,39 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
         </div>
       </div>
 
+      {/* Subscription line */}
+      {line && (
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h4 className="text-xs font-semibold text-gray-700">Subscription line</h4>
+            <span className="text-[11px] text-gray-400">
+              {fmtM(line.size)} facility ({fmt(terms.subLineSizePct, 0)}% of {line.sizedOn === "commitments" ? "commitments" : "planned calls — enter commitments to size on fund size"})
+              {" "}· 30D avg SOFR + {fmt(terms.subLineSpreadPct, 2)}% · {fmt(terms.subLineUnusedFeePct, 2)}% unused · repaid within {fmt(terms.subLineMaxDays, 0)} days
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+            {[
+              ["Peak balance", fmtM(line.peak), `${fmtPct((line.peak / line.size) * 100, 0)} of facility`],
+              ["Interest", fmtM(line.interest), `Avg draw outstanding ${fmt(line.avgDays, 0)} days`],
+              ["Unused fees", fmtM(line.unusedFees), `Through ${fmtDate(line.endDate)}`],
+              ["Net LP IRR", `${fmtPct(fundWf.lpIRR)}`, `${fmtPct(fundWfNoLine.lpIRR)} without the line`],
+              ["Net LP multiple", fmtX(fundWf.lpEquityMultiple), `${fmtX(fundWfNoLine.lpEquityMultiple)} without the line`],
+              ["Net fund IRR", fmtPct(netFundIRR), `${fmtPct(xirr([...fundWfNoLine.lpFlows, ...fundWfNoLine.gpFlows]) * 100)} without the line`],
+            ].map(([label, value, sub]) => (
+              <div key={label}>
+                <p className="text-gray-500">{label}</p>
+                <p className="text-sm font-bold tabular-nums text-gray-900">{value}</p>
+                <p className="text-[10px] text-gray-400">{sub}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[10px] text-gray-400">
+            Purchases and shortfalls draw on the line first; each draw is repaid by an LP capital call after the max days outstanding
+            (or called directly if the line is full). Interest and unused fees are paid with those calls, so they reduce LP returns.
+          </p>
+        </div>
+      )}
+
       {/* Capital called & dry powder */}
       <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -683,8 +747,8 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
           </label>
           {[
             ["Called to date", fmtM(capital.calledToDate), capital.commitments > 0 ? `${fmtPct(capital.pctCalledToDate, 0)} of commitments` : "LP + GP, incl. fees"],
-            ["Dry powder today", capital.commitments > 0 ? fmtM(capital.dryPowderToday) : "—", "Commitments − called to date", capital.dryPowderToday < 0],
-            ["Planned deals will call", fmtM(capital.projectedCalls), "All calls for the fund's current deals"],
+            ["Dry powder today", capital.commitments > 0 ? fmtM(capital.dryPowderToday) : "—", line ? "Commitments − called − sub line outstanding" : "Commitments − called to date", capital.dryPowderToday < 0],
+            ["Planned deals will call", fmtM(capital.projectedCalls), line ? "LP calls incl. sub line repayments & costs" : "All calls for the fund's current deals"],
             ["Uncommitted capital", capital.commitments > 0 ? fmtM(capital.uncommitted) : "—", "Left for new deals after planned ones", capital.uncommitted < 0],
             ["Dry powder at IP end", capital.commitments > 0 ? fmtM(capital.dryPowderAtIPEnd) : "—", `If no other deals by ${fmtDate(fd.investmentPeriodEnd)}`, capital.dryPowderAtIPEnd < 0],
           ].map(([label, value, sub, bad]) => (
@@ -698,6 +762,12 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
         {capital.commitments > 0 && capital.uncommitted < 0 && (
           <p className="mt-2 text-[11px] text-red-600">
             {`Planned deals need ${fmtM(-capital.uncommitted)} more than the fund's commitments.`}
+          </p>
+        )}
+        {line && (
+          <p className="mt-2 text-[11px] text-gray-500">
+            Sub line outstanding today: <span className="font-semibold text-gray-800">{fmtM(capital.lineToday)}</span>. It is repaid with
+            future LP calls, so it is deducted from dry powder alongside capital already called.
           </p>
         )}
         {!(capital.commitments > 0) && (
@@ -799,7 +869,7 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
 
       {/* Fund-level waterfall */}
       <div className="border-t border-gray-200 pt-5">
-        <FundWaterfall wf={fundWf} yearTotals={yearTotals} terms={terms} />
+        <FundWaterfall wf={fundWf} yearTotals={yearTotals} terms={terms} lineBalanceAt={line?.balanceAt} />
         <p className="text-xs text-gray-400 mt-2">
           Fund terms: {fmt(gpCommitPct, 1)}% GP commitment, {fmt(prefPct, 1)}% pref, {fmt(terms.catchUpGpPct, 0)}% GP catch-up,
           tiers {terms.tiers.map((t) => `${t.irrThreshold == null ? "above" : `≤${t.irrThreshold}%`} ${t.lpSplit}/${t.gpSplit}`).join(" · ")}
@@ -845,7 +915,7 @@ function FundGroup({ fundName, deals, terms, onTermsChange, onEditTerms, onRemov
   );
 }
 
-export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, funds = {}, onFundTermsChange, onNewFund, onEditFund, onDeleteFund }) {
+export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, funds = {}, onFundTermsChange, onNewFund, onEditFund, onDeleteFund, curve }) {
   const groups = groupByFund(savedDeals);
   // Funds with terms but no deals yet still show (as empty cards).
   const fundNames = [...new Set([...Object.keys(funds), ...Object.keys(groups)])];
@@ -904,6 +974,7 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
             <div key={name} className="bg-gray-50 rounded-2xl border border-gray-200 p-5 space-y-5">
               {groups[name]?.length ? (
                 <FundGroup
+                  curve={curve}
                   fundName={name}
                   deals={groups[name]}
                   terms={termsFor(name)}
