@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { quickUnderwrite, quickSensitivity, sofrForYear } from "@/lib/quickUnderwrite";
+import { capStrikeByYear, quickUnderwrite, quickSensitivity, sofrForYear } from "@/lib/quickUnderwrite";
 import { fetchSofrCurve } from "@/lib/sofr";
 import { CURVE_INDICES, DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { curveFromFile, curveFromText, PENSFORD_URL } from "@/lib/pensfordImport";
@@ -261,8 +261,9 @@ function ForwardCurve({ inputs, onChange, onCurveImport }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 mt-3">
         {Array.from({ length: hold }, (_, i) => {
           const sofr = sofrForYear(inputs, i + 1);
-          const capped = inputs.capStrikePct > 0 && sofr > inputs.capStrikePct;
-          const allIn = (capped ? inputs.capStrikePct : sofr) + inputs.spreadPct;
+          const strike = capStrikeByYear(inputs)[i] ?? 0;
+          const capped = strike > 0 && sofr > strike;
+          const allIn = (capped ? strike : sofr) + inputs.spreadPct;
           return (
             <div key={i} className="flex flex-col gap-1">
               <NumField
@@ -379,8 +380,26 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
         </Group>
 
         <Group title="Rate cap">
-          <NumField label="Cap strike (0 = none)" suffix="%" step={0.05} value={inputs.capStrikePct} onChange={set("capStrikePct")} />
+          <NumField label="Initial strike (0 = none)" suffix="%" step={0.05} value={inputs.capStrikePct} onChange={set("capStrikePct")} />
           <NumField label="Cap term" suffix="yrs" step={1} value={inputs.capTermYears} onChange={set("capTermYears")} />
+          <div className="flex flex-col gap-1 col-span-2">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Renewal strike</label>
+            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
+              {[
+                ["reset", "Reset to market"],
+                ["same", "Same as initial"],
+              ].map(([k, l]) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => set("capRenewalStrike")(k)}
+                  className={`flex-1 py-1.5 font-medium ${(inputs.capRenewalStrike ?? "reset") === k ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="flex flex-col gap-1 col-span-2">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Cap pricing</label>
             <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
@@ -403,12 +422,12 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
             <>
               <div className="col-span-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 space-y-0.5">
                 <div className="flex justify-between">
-                  <span>Initial cap ({fmtISO(inputs.acquisitionDate ?? r.caps.valuationDate)})</span>
+                  <span>Initial, {fmtISO(inputs.acquisitionDate ?? r.caps.valuationDate)} @ {r.caps.initialStrike.toFixed(2)}%</span>
                   <span className="font-semibold tabular-nums">{usd(r.caps.initial)}</span>
                 </div>
                 {r.caps.replacements.map((x) => (
                   <div key={x.year} className="flex justify-between">
-                    <span>Replacement, {fmtISO(x.date)}</span>
+                    <span>Renewal, {fmtISO(x.date)} @ {x.strike.toFixed(2)}%</span>
                     <span className="font-semibold tabular-nums">{usd(x.cost)}</span>
                   </div>
                 ))}
