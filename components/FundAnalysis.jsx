@@ -1,7 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { computeWaterfall } from "@/lib/calculations";
+import {
+  DEFAULT_FUND,
+  acquisitionDate,
+  byCalendarYear,
+  computeDatedWaterfall,
+  datedFlows,
+  exitDate,
+  fundDates,
+  parseDate,
+  xirr,
+} from "@/lib/fundTimeline";
+
+function fmtDate(iso) {
+  const d = parseDate(iso);
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`;
+}
 
 // Default fund-level GP commitment (% of total fund equity).
 const DEFAULT_GP_COMMIT_PCT = 5;
@@ -21,35 +36,6 @@ function fmtM(n) {
   return `$${fmt(n)}`;
 }
 
-// Bisection IRR matching calcIRR in calculations.js
-function calcIRR(cashFlows) {
-  const hasPos = cashFlows.some((v) => v > 0);
-  const hasNeg = cashFlows.some((v) => v < 0);
-  if (!hasPos || !hasNeg) return NaN;
-  function npv(r) {
-    return cashFlows.reduce((s, cf, i) => s + cf / Math.pow(1 + r, i), 0);
-  }
-  let lo = -0.9999, hi = 10;
-  if (npv(lo) * npv(hi) > 0) return NaN;
-  for (let i = 0; i < 200; i++) {
-    const mid = (lo + hi) / 2;
-    if (Math.abs(hi - lo) < 1e-10) return mid * 100;
-    if (npv(lo) * npv(mid) <= 0) hi = mid; else lo = mid;
-  }
-  return ((lo + hi) / 2) * 100;
-}
-
-// Sum irrFlows arrays year-by-year (arrays may differ in length)
-function aggregateFlows(deals) {
-  if (deals.length === 0) return [];
-  const maxLen = Math.max(...deals.map((d) => d.irrFlows.length));
-  const combined = Array(maxLen).fill(0);
-  for (const deal of deals) {
-    deal.irrFlows.forEach((v, i) => { combined[i] += v; });
-  }
-  return combined;
-}
-
 // Group deals by fund name (empty string → "(No Fund)")
 function groupByFund(deals) {
   const groups = {};
@@ -61,20 +47,27 @@ function groupByFund(deals) {
   return groups;
 }
 
-function FundWaterfall({ combinedFlows, totalEquity, waterfallConfig }) {
-  const wf = computeWaterfall(combinedFlows, totalEquity, waterfallConfig);
+function FundWaterfall({ wf, yearTotals }) {
   const lpGood  = (v, t) => isFinite(v) && v >= t;
 
   const kpis = [
     { label: "LP IRR",       value: fmtPct(wf.lpIRR),                      good: lpGood(wf.lpIRR, 12) },
     { label: "LP Multiple",  value: fmtX(wf.lpEquityMultiple),              good: lpGood(wf.lpEquityMultiple, 1.8) },
-    { label: "LP Equity",    value: fmtM(wf.lpEquity),                      good: true },
+    { label: "LP Capital",   value: fmtM(wf.lpEquity),                      good: true },
     { label: "LP Dist.",     value: fmtM(wf.lpTotalDistributions),          good: true },
     { label: "GP IRR",       value: fmtPct(wf.gpIRR),                      good: lpGood(wf.gpIRR, 18) },
     { label: "GP Multiple",  value: fmtX(wf.gpEquityMultiple),              good: lpGood(wf.gpEquityMultiple, 2.5) },
-    { label: "GP Equity",    value: fmtM(wf.gpEquity),                      good: true },
+    { label: "GP Capital",   value: fmtM(wf.gpEquity),                      good: true },
     { label: "GP Promote",   value: fmtM(wf.gpPromote),                     good: true },
   ];
+
+  // Running LP / GP totals per calendar year (computed up front, not during render).
+  const rows = wf.yearlyDist.reduce((acc, r) => {
+    const prev = acc[acc.length - 1] ?? { lpCumul: 0, gpCumul: 0 };
+    acc.push({ ...r, lpCumul: prev.lpCumul + r.lp, gpCumul: prev.gpCumul + r.gp });
+    return acc;
+  }, []);
+  const totalAll = [...yearTotals.values()].reduce((s, v) => s + v, 0);
 
   return (
     <div className="space-y-4">
@@ -95,12 +88,12 @@ function FundWaterfall({ combinedFlows, totalEquity, waterfallConfig }) {
         ))}
       </div>
 
-      {/* Year-by-year distribution table */}
+      {/* Calendar-year table: capital calls (negative) and distributions */}
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              {["Year", "Total CF", "LP", "GP", "LP Cumul.", "GP Cumul."].map((h) => (
+              {["Year", "Fund CF", "LP", "GP", "LP Cumul.", "GP Cumul."].map((h) => (
                 <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                   {h}
                 </th>
@@ -108,44 +101,105 @@ function FundWaterfall({ combinedFlows, totalEquity, waterfallConfig }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            <tr className="bg-red-50">
-              <td className="px-3 py-2 font-medium text-gray-700">Y0</td>
-              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(combinedFlows[0])}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.lpEquity)}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.gpEquity)}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.lpEquity)}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(-wf.gpEquity)}</td>
-            </tr>
-            {(() => {
-              let lpCumul = -wf.lpEquity;
-              let gpCumul = -wf.gpEquity;
-              return wf.yearlyDist.map(({ year, lp, gp }) => {
-                lpCumul += lp;
-                gpCumul += gp;
-                const total = combinedFlows[year] ?? 0;
-                return (
-                  <tr key={year} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2 font-medium text-gray-700">Y{year}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums ${total < 0 ? "text-red-600" : "text-gray-600"}`}>{fmtM(total)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-blue-700 font-medium">{fmtM(lp)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-purple-700 font-medium">{fmtM(gp)}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums ${lpCumul < 0 ? "text-red-500" : "text-blue-600"}`}>{fmtM(lpCumul)}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums ${gpCumul < 0 ? "text-red-500" : "text-purple-600"}`}>{fmtM(gpCumul)}</td>
-                  </tr>
-                );
-              });
-            })()}
+            {rows.map(({ year, lp, gp, lpCumul, gpCumul }) => {
+              const total = yearTotals.get(year) ?? 0;
+              return (
+                <tr key={year} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-3 py-2 font-medium text-gray-700">{year}</td>
+                  <td className={`px-3 py-2 text-right tabular-nums ${total < 0 ? "text-red-600" : "text-gray-600"}`}>{fmtM(total)}</td>
+                  <td className={`px-3 py-2 text-right tabular-nums font-medium ${lp < 0 ? "text-red-600" : "text-blue-700"}`}>{fmtM(lp)}</td>
+                  <td className={`px-3 py-2 text-right tabular-nums font-medium ${gp < 0 ? "text-red-600" : "text-purple-700"}`}>{fmtM(gp)}</td>
+                  <td className={`px-3 py-2 text-right tabular-nums ${lpCumul < 0 ? "text-red-500" : "text-blue-600"}`}>{fmtM(lpCumul)}</td>
+                  <td className={`px-3 py-2 text-right tabular-nums ${gpCumul < 0 ? "text-red-500" : "text-purple-600"}`}>{fmtM(gpCumul)}</td>
+                </tr>
+              );
+            })}
           </tbody>
           <tfoot>
             <tr className="bg-gray-50 border-t-2 border-gray-200">
-              <td className="px-3 py-2 font-semibold text-gray-700 text-xs">Total</td>
-              <td className="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 text-xs">{fmtM(combinedFlows.reduce((s, v) => s + v, 0))}</td>
-              <td className="px-3 py-2 text-right tabular-nums font-bold text-blue-700 text-xs">{fmtM(wf.lpTotalDistributions)}</td>
-              <td className="px-3 py-2 text-right tabular-nums font-bold text-purple-700 text-xs">{fmtM(wf.gpTotalDistributions)}</td>
+              <td className="px-3 py-2 font-semibold text-gray-700 text-xs">Net</td>
+              <td className="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 text-xs">{fmtM(totalAll)}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-bold text-blue-700 text-xs">{fmtM(wf.lpTotalDistributions - wf.lpEquity)}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-bold text-purple-700 text-xs">{fmtM(wf.gpTotalDistributions - wf.gpEquity)}</td>
               <td colSpan={2} />
             </tr>
           </tfoot>
         </table>
+      </div>
+      <p className="text-xs text-gray-400">
+        Capital calls (negative) are split by commitment on their dates; the LP pref compounds annually from each call.
+        Distributions run pref → return of capital → GP catch-up → promote, in date order.
+      </p>
+    </div>
+  );
+}
+
+// ── Fund timeline: each asset's hold against the investment period, term and extensions ──
+function FundTimeline({ deals, fund }) {
+  const fd = fundDates(fund);
+  const start = parseDate(fund.finalClose).getTime();
+  const lastExit = Math.max(...deals.map((d) => parseDate(exitDate(d, fund)).getTime()));
+  const end = Math.max(parseDate(fd.extendedEnd).getTime(), lastExit);
+  const x = (iso) => ((parseDate(iso).getTime() - start) / (end - start)) * 100;
+  const firstYear = parseDate(fund.finalClose).getUTCFullYear() + 1;
+  const lastYear = new Date(end).getUTCFullYear();
+  const years = Array.from({ length: lastYear - firstYear + 1 }, (_, i) => firstYear + i);
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-4 mb-2 text-xs text-gray-600">
+        <h4 className="text-xs font-semibold text-gray-700 mr-2">Fund timeline</h4>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm bg-blue-100 border border-blue-200" />Investment period</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm bg-amber-50 border border-amber-200" />Extensions</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded-sm bg-[#2a78d6]" />Hold</span>
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white px-3 py-3">
+        <div className="relative ml-40 h-5 text-[10px] text-gray-400">
+          {years.map((y) => (
+            <span key={y} className="absolute -translate-x-1/2" style={{ left: `${x(`${y}-01-01`)}%` }}>{y}</span>
+          ))}
+        </div>
+        <div className="relative">
+          {/* bands */}
+          <div className="absolute inset-y-0 left-40 right-0 pointer-events-none">
+            <div className="absolute inset-y-0 bg-blue-50 border-x border-blue-100" style={{ left: 0, width: `${x(fd.investmentPeriodEnd)}%` }} />
+            <div className="absolute inset-y-0 bg-amber-50/70 border-r border-amber-200" style={{ left: `${x(fd.fundEnd)}%`, width: `${x(fd.extendedEnd) - x(fd.fundEnd)}%` }} />
+            <div className="absolute inset-y-0 border-l-2 border-gray-400" style={{ left: `${x(fd.fundEnd)}%` }} title={`Term ends ${fmtDate(fd.fundEnd)}`} />
+          </div>
+          {deals.map((d) => {
+            const acq = acquisitionDate(d, fund);
+            const ex = exitDate(d, fund);
+            const late = ex > fd.extendedEnd;
+            const ext = ex > fd.fundEnd && !late;
+            return (
+              <div key={d.id} className="relative flex items-center h-6">
+                <span className="w-40 shrink-0 truncate pr-2 text-xs text-gray-700" title={d.inputs.propertyName}>{d.inputs.propertyName || "Unnamed"}</span>
+                <div className="relative flex-1 h-full">
+                  <div
+                    className={`absolute top-1.5 h-3 rounded ${late ? "bg-[#e34948]" : "bg-[#2a78d6]"}`}
+                    style={{ left: `${x(acq)}%`, width: `${Math.max(0.5, x(ex) - x(acq))}%` }}
+                    title={`${fmtDate(acq)} → ${fmtDate(ex)}`}
+                  />
+                  {(ext || late) && (
+                    <span
+                      className={`absolute top-0.5 whitespace-nowrap text-[10px] font-medium ${
+                        x(ex) > 85 ? "text-white" : late ? "text-red-600" : "text-amber-700"
+                      }`}
+                      // Near the right edge, sit the label inside the bar's end instead of past it.
+                      style={x(ex) > 85 ? { right: `calc(${100 - x(ex)}% + 4px)` } : { left: `calc(${x(ex)}% + 4px)` }}
+                    >
+                      {late ? "past extensions" : "uses extension"}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-gray-400 mt-2 ml-40">
+          Final close {fmtDate(fund.finalClose)} · investment period to {fmtDate(fd.investmentPeriodEnd)} · term to {fmtDate(fd.fundEnd)} ·
+          fully extended {fmtDate(fd.extendedEnd)}
+        </p>
       </div>
     </div>
   );
@@ -252,7 +306,11 @@ function PerformanceAttribution({ deals, fundIRR, totalEquity, totalDistribution
   );
 }
 
-function DealRow({ deal, onRemove }) {
+function DealRow({ deal, onRemove, fund }) {
+  const fd = fundDates(fund);
+  const acq = acquisitionDate(deal, fund);
+  const ex = exitDate(deal, fund);
+  const outsideIP = acq <= fund.finalClose || acq > fd.investmentPeriodEnd;
   const { inputs, metrics } = deal;
   const good = (v, threshold) => isFinite(v) && v >= threshold;
   return (
@@ -286,6 +344,12 @@ function DealRow({ deal, onRemove }) {
       <td className={`px-3 py-2.5 text-right text-xs font-semibold tabular-nums ${good(metrics.yearOneCashOnCash, 7) ? "text-emerald-700" : "text-red-600"}`}>
         {fmtPct(metrics.yearOneCashOnCash)}
       </td>
+      <td className={`px-3 py-2.5 text-right text-xs tabular-nums ${outsideIP ? "text-amber-700 font-medium" : "text-gray-600"}`} title={outsideIP ? "Outside the investment period" : undefined}>
+        {fmtDate(acq)}
+      </td>
+      <td className={`px-3 py-2.5 text-right text-xs tabular-nums ${ex > fd.extendedEnd ? "text-red-600 font-medium" : ex > fd.fundEnd ? "text-amber-700" : "text-gray-600"}`}>
+        {fmtDate(ex)}
+      </td>
       <td className="px-3 py-2.5 text-right text-xs text-gray-500 tabular-nums">
         {inputs.holdPeriodYears}yr
       </td>
@@ -306,8 +370,12 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   // Fund-level GP commitment overrides each deal's LP/GP equity split.
   const [gpCommitPct, setGpCommitPct] = useState(DEFAULT_GP_COMMIT_PCT);
   const [prefPct, setPrefPct] = useState(DEFAULT_PREF_PCT);
-  const combinedFlows = aggregateFlows(deals);
-  const fundIRR = calcIRR(combinedFlows);   // gross IRR (before waterfall)
+  const [fund, setFund] = useState(DEFAULT_FUND);
+  const fd = fundDates(fund);
+  // Dated cash flows: each asset's flows on its acquisition date + t years.
+  const allFlows = deals.flatMap((d) => datedFlows(d, d.irrFlows, fund));
+  const yearTotals = byCalendarYear(allFlows);
+  const fundIRR = xirr(allFlows) * 100;   // gross IRR (before waterfall), XIRR
   const totalEquity = deals.reduce((s, d) => s + (d.metrics.equityRequired ?? 0), 0);
   const totalPurchasePrice = deals.reduce((s, d) => s + (d.inputs.purchasePrice ?? 0), 0);
   const totalSF = deals.reduce((s, d) => s + (d.inputs.squareFootage ?? 0), 0);
@@ -318,11 +386,14 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
     ? { ...waterfallDealForIRR.inputs.waterfall, lpEquityPct: 100 - gpCommitPct, preferredReturnPct: prefPct }
     : null;
   const gpCommitAmount = totalEquity * (gpCommitPct / 100);
-  const netLpIRR = (() => {
-    if (!fundWaterfallConfig) return NaN;
-    const wf = computeWaterfall(combinedFlows, totalEquity, fundWaterfallConfig);
-    return wf.lpIRR;
-  })();
+  const fundWf = fundWaterfallConfig ? computeDatedWaterfall(allFlows, fundWaterfallConfig) : null;
+  const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
+  const outsideIP = deals.filter((d) => {
+    const acq = acquisitionDate(d, fund);
+    return acq <= fund.finalClose || acq > fd.investmentPeriodEnd;
+  });
+  const pastExtensions = deals.filter((d) => exitDate(d, fund) > fd.extendedEnd);
+  const usingExtensions = deals.filter((d) => exitDate(d, fund) > fd.fundEnd && exitDate(d, fund) <= fd.extendedEnd);
 
   // Fund equity multiple: net distributions after closing / equity invested at
   // closing — the same definition as each asset's multiple (interim capital
@@ -332,13 +403,20 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
   const weightedEM = totalInvested > 0 ? totalProceeds / totalInvested : NaN;
   const totalDistributions = totalProceeds;
 
-  // Build year-by-year combined table (years 1..N, excluding year-0 equity outflow)
-  const maxYears = Math.max(...deals.map((d) => d.irrFlows.length - 1));
-  const yearRows = Array.from({ length: maxYears }, (_, i) => {
-    const year = i + 1;
-    const total = deals.reduce((s, d) => s + (d.irrFlows[year] ?? 0), 0);
-    return { year, total, byDeal: deals.map((d) => d.irrFlows[year] ?? 0) };
-  });
+  // Calendar-year combined table: each asset's flows bucketed by calendar year.
+  const dealYearTotals = deals.map((d) => byCalendarYear(datedFlows(d, d.irrFlows, fund)));
+  const calendarYears = [...yearTotals.keys()].sort((a, b) => a - b);
+  const yearRows = calendarYears.map((year) => ({
+    year,
+    total: yearTotals.get(year) ?? 0,
+    byDeal: dealYearTotals.map((m) => m.get(year) ?? 0),
+  }));
+
+  const setFundField = (field) => (e) => {
+    const v = e.target.type === "date" ? e.target.value : parseFloat(e.target.value);
+    if (e.target.type === "date" ? !v : !isFinite(v) || v < 0) return;
+    setFund((prev) => ({ ...prev, [field]: v }));
+  };
 
   return (
     <div className="space-y-5">
@@ -428,12 +506,63 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
         </div>
       </div>
 
+      {/* Fund terms */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
+        <span className="font-semibold text-gray-700">Fund terms</span>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Final close
+          <input type="date" value={fund.finalClose} onChange={setFundField("finalClose")} className="border border-gray-200 rounded-md px-2 py-1 text-gray-900" />
+        </label>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Investment period
+          <input type="number" min={0} step={0.5} value={fund.investmentPeriodYears} onChange={setFundField("investmentPeriodYears")} className="w-14 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          yrs
+        </label>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Term
+          <input type="number" min={1} step={1} value={fund.termYears} onChange={setFundField("termYears")} className="w-14 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          yrs
+        </label>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Extensions
+          <input type="number" min={0} step={1} value={fund.extensionCount} onChange={setFundField("extensionCount")} className="w-12 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          ×
+          <input type="number" min={0} step={1} value={fund.extensionYears} onChange={setFundField("extensionYears")} className="w-12 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          yr
+        </label>
+        <span className="text-gray-400">
+          Term ends {fmtDate(fd.fundEnd)} · fully extended {fmtDate(fd.extendedEnd)}
+        </span>
+      </div>
+
+      {(outsideIP.length > 0 || pastExtensions.length > 0 || usingExtensions.length > 0) && (
+        <ul className="space-y-1.5 text-xs">
+          {outsideIP.length > 0 && (
+            <li className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Acquired outside the investment period: {outsideIP.map((d) => d.inputs.propertyName).join(", ")}.
+            </li>
+          )}
+          {usingExtensions.length > 0 && (
+            <li className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Sold after the {fund.termYears}-year term, using extensions: {usingExtensions.map((d) => d.inputs.propertyName).join(", ")}.
+            </li>
+          )}
+          {pastExtensions.length > 0 && (
+            <li className="text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              Sold after the fully extended term: {pastExtensions.map((d) => d.inputs.propertyName).join(", ")}.
+            </li>
+          )}
+        </ul>
+      )}
+
+      <FundTimeline deals={deals} fund={fund} />
+
       {/* Deal roster */}
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              {["Property", "SF", "Purchase Price", "Equity", "IRR", "EM", "CoC Y1", "Hold", ""].map((h) => (
+              {["Property", "SF", "Purchase Price", "Equity", "IRR", "EM", "CoC Y1", "Acquired", "Exit", "Hold", ""].map((h) => (
                 <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap last:w-16">
                   {h}
                 </th>
@@ -442,7 +571,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
           </thead>
           <tbody>
             {deals.map((deal) => (
-              <DealRow key={deal.id} deal={deal} onRemove={onRemove} />
+              <DealRow key={deal.id} deal={deal} onRemove={onRemove} fund={fund} />
             ))}
           </tbody>
           <tfoot>
@@ -453,7 +582,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
               <td className="px-3 py-2.5 text-right text-xs font-semibold text-gray-700 tabular-nums">{fmtM(totalEquity)}</td>
               <td className={`px-3 py-2.5 text-right text-xs font-bold tabular-nums ${isFinite(fundIRR) && fundIRR >= 14 ? "text-emerald-700" : "text-red-600"}`}>{fmtPct(fundIRR)}</td>
               <td className={`px-3 py-2.5 text-right text-xs font-bold tabular-nums ${isFinite(weightedEM) && weightedEM >= 2 ? "text-emerald-700" : "text-red-600"}`}>{fmtX(weightedEM)}</td>
-              <td className="px-3 py-2.5" colSpan={3} />
+              <td className="px-3 py-2.5" colSpan={5} />
             </tr>
           </tfoot>
         </table>
@@ -475,11 +604,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
         if (!waterfallDeal) return null;
         return (
           <div className="border-t border-gray-200 pt-5">
-            <FundWaterfall
-              combinedFlows={combinedFlows}
-              totalEquity={totalEquity}
-              waterfallConfig={fundWaterfallConfig}
-            />
+            <FundWaterfall wf={fundWf} yearTotals={yearTotals} />
             <p className="text-xs text-gray-400 mt-2">
               Catch-up and promote tiers from <span className="font-medium">{waterfallDeal.inputs.propertyName || "first deal"}</span>;
               GP commitment ({fmt(gpCommitPct, 1)}%) and preferred return ({fmt(prefPct, 1)}%) set at the fund level.
@@ -490,7 +615,7 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
 
       {/* Combined cash flow table */}
       <div>
-        <h4 className="text-xs font-semibold text-gray-600 mb-2">Combined Cash Flows</h4>
+        <h4 className="text-xs font-semibold text-gray-600 mb-2">Combined Cash Flows by Calendar Year</h4>
         <div className="overflow-x-auto rounded-xl border border-gray-200">
           <table className="w-full text-xs">
             <thead>
@@ -505,19 +630,9 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {/* Year 0: equity outflows */}
-              <tr className="bg-red-50">
-                <td className="px-3 py-2 font-medium text-gray-700">Y0</td>
-                {deals.map((d) => (
-                  <td key={d.id} className="px-3 py-2 text-right tabular-nums text-red-600">{fmtM(d.irrFlows[0] ?? 0)}</td>
-                ))}
-                <td className="px-3 py-2 text-right tabular-nums font-semibold text-red-700">
-                  {fmtM(deals.reduce((s, d) => s + (d.irrFlows[0] ?? 0), 0))}
-                </td>
-              </tr>
               {yearRows.map(({ year, total, byDeal }) => (
                 <tr key={year} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-3 py-2 font-medium text-gray-700">Y{year}</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">{year}</td>
                   {byDeal.map((v, i) => (
                     <td key={deals[i].id} className={`px-3 py-2 text-right tabular-nums ${v === 0 ? "text-gray-300" : v < 0 ? "text-red-600" : "text-gray-600"}`}>
                       {v !== 0 ? fmtM(v) : "—"}
