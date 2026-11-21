@@ -1,6 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { computeWaterfall } from "@/lib/calculations";
+
+// Default fund-level GP commitment (% of total fund equity).
+const DEFAULT_GP_COMMIT_PCT = 5;
+// Default fund-level preferred return to LPs (% per year).
+const DEFAULT_PREF_PCT = 9;
 
 function fmt(n, decimals = 0) {
   if (!isFinite(n) || n == null) return "—";
@@ -290,6 +296,9 @@ function DealRow({ deal, onRemove }) {
 }
 
 function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
+  // Fund-level GP commitment overrides each deal's LP/GP equity split.
+  const [gpCommitPct, setGpCommitPct] = useState(DEFAULT_GP_COMMIT_PCT);
+  const [prefPct, setPrefPct] = useState(DEFAULT_PREF_PCT);
   const combinedFlows = aggregateFlows(deals);
   const fundIRR = calcIRR(combinedFlows);   // gross IRR (before waterfall)
   const totalEquity = deals.reduce((s, d) => s + (d.metrics.equityRequired ?? 0), 0);
@@ -298,17 +307,22 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
 
   // Net LP IRR — compute waterfall if any deal has it enabled
   const waterfallDealForIRR = deals.find((d) => d.inputs.waterfallEnabled);
+  const fundWaterfallConfig = waterfallDealForIRR
+    ? { ...waterfallDealForIRR.inputs.waterfall, lpEquityPct: 100 - gpCommitPct, preferredReturnPct: prefPct }
+    : null;
+  const gpCommitAmount = totalEquity * (gpCommitPct / 100);
   const netLpIRR = (() => {
-    if (!waterfallDealForIRR) return NaN;
-    const wf = computeWaterfall(combinedFlows, totalEquity, waterfallDealForIRR.inputs.waterfall);
+    if (!fundWaterfallConfig) return NaN;
+    const wf = computeWaterfall(combinedFlows, totalEquity, fundWaterfallConfig);
     return wf.lpIRR;
   })();
 
-  // Weighted average equity multiple: total proceeds / total equity
-  // proceeds = irrFlows[0] (negative equity) + sum of positive flows
+  // Fund equity multiple: net distributions after closing / equity invested at
+  // closing — the same definition as each asset's multiple (interim capital
+  // calls count against distributions).
   const totalInvested = deals.reduce((s, d) => s + Math.abs(d.irrFlows[0] ?? 0), 0);
-  const totalProceeds = deals.reduce((s, d) => s + d.irrFlows.slice(1).reduce((a, v) => a + Math.max(v, 0), 0), 0);
-  const weightedEM = totalInvested > 0 ? (totalInvested + totalProceeds) / totalInvested : NaN;
+  const totalProceeds = deals.reduce((s, d) => s + d.irrFlows.slice(1).reduce((a, v) => a + v, 0), 0);
+  const weightedEM = totalInvested > 0 ? totalProceeds / totalInvested : NaN;
   const totalDistributions = totalProceeds;
 
   // Build year-by-year combined table (years 1..N, excluding year-0 equity outflow)
@@ -362,6 +376,51 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
         </div>
       </div>
 
+      {/* Fund-level GP commitment */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
+        <label htmlFor={`gp-commit-${fundName}`} className="text-xs font-semibold text-gray-700">
+          GP commitment
+        </label>
+        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+          <input
+            id={`gp-commit-${fundName}`}
+            type="number"
+            min={0}
+            max={100}
+            step={0.5}
+            value={gpCommitPct}
+            onChange={(e) => {
+              const v = parseFloat(e.target.value);
+              setGpCommitPct(isFinite(v) ? Math.min(100, Math.max(0, v)) : 0);
+            }}
+            className="w-16 px-2 py-1.5 text-sm text-gray-900 outline-none tabular-nums"
+          />
+          <span className="px-2 py-1.5 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">% of fund equity</span>
+        </div>
+        <span className="text-sm font-semibold text-gray-900 tabular-nums">{fmtM(gpCommitAmount)}</span>
+        <span className="text-xs text-gray-400">
+          GP · {fmtM(totalEquity - gpCommitAmount)} LP ({fmt(100 - gpCommitPct, 1)}%)
+        </span>
+        <label htmlFor={`pref-${fundName}`} className="text-xs font-semibold text-gray-700 ml-auto">
+          Preferred return
+        </label>
+        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+          <input
+            id={`pref-${fundName}`}
+            type="number"
+            min={0}
+            step={0.5}
+            value={prefPct}
+            onChange={(e) => {
+              const v = parseFloat(e.target.value);
+              setPrefPct(isFinite(v) ? Math.max(0, v) : 0);
+            }}
+            className="w-16 px-2 py-1.5 text-sm text-gray-900 outline-none tabular-nums"
+          />
+          <span className="px-2 py-1.5 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">% / yr</span>
+        </div>
+      </div>
+
       {/* Deal roster */}
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs">
@@ -405,17 +464,18 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
 
       {/* Fund-level waterfall */}
       {(() => {
-        const waterfallDeal = deals.find((d) => d.inputs.waterfallEnabled);
+        const waterfallDeal = waterfallDealForIRR;
         if (!waterfallDeal) return null;
         return (
           <div className="border-t border-gray-200 pt-5">
             <FundWaterfall
               combinedFlows={combinedFlows}
               totalEquity={totalEquity}
-              waterfallConfig={waterfallDeal.inputs.waterfall}
+              waterfallConfig={fundWaterfallConfig}
             />
             <p className="text-xs text-gray-400 mt-2">
-              Waterfall config from <span className="font-medium">{waterfallDeal.inputs.propertyName || "first deal"}</span>. All assets in the fund are assumed to share the same LP/GP structure.
+              Catch-up and promote tiers from <span className="font-medium">{waterfallDeal.inputs.propertyName || "first deal"}</span>;
+              GP commitment ({fmt(gpCommitPct, 1)}%) and preferred return ({fmt(prefPct, 1)}%) set at the fund level.
             </p>
           </div>
         );

@@ -12,6 +12,7 @@ import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
+import { buildSamplePortfolio, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -152,7 +153,7 @@ const DEFAULT_INPUTS = {
   waterfallEnabled: true,
   waterfall: {
     lpEquityPct: 90,
-    preferredReturnPct: 8.0,
+    preferredReturnPct: 9.0,
     catchUpGpPct: 100,
     tiers: [
       { irrThreshold: 12,   lpSplit: 80, gpSplit: 20 },
@@ -324,13 +325,26 @@ export default function Home() {
     ]);
   }
 
+  // Loads four light-industrial deals plus a snapshot of the current deal
+  // into one fund, and opens the Portfolio Return tab.
+  function handleLoadSamplePortfolio() {
+    const currentInputs = { ...inputs, fundName: SAMPLE_FUND_NAME };
+    setInputs((prev) => ({ ...prev, fundName: SAMPLE_FUND_NAME }));
+    setSavedDeals((prev) => [
+      ...prev.filter((d) => !d.id.startsWith("sample-")),
+      snapshotDeal(currentInputs, `sample-current-${Date.now()}`),
+      ...buildSamplePortfolio(DEFAULT_INPUTS),
+    ]);
+    setActiveTab("fund");
+  }
+
   function handleClearTest() {
     setDeals((prev) => {
       const next = prev.filter((d) => d.id !== "test-active");
       return next.length > 0 ? next : [linkedDeal()];
     });
     setActiveDealId((prev) => prev === "test-active" ? "deal-1" : prev);
-    setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-")));
+    setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-")));
   }
 
   const summaryItems = [
@@ -387,6 +401,13 @@ export default function Home() {
           className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
         >
           Load test scenario
+        </button>
+        <button
+          type="button"
+          onClick={handleLoadSamplePortfolio}
+          className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
+        >
+          Load sample portfolio
         </button>
         <button
           type="button"
