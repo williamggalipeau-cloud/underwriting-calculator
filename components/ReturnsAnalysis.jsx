@@ -142,7 +142,8 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
 
   const { returns: r, cashFlows: cfs, waterfall: wf } = selectedResults;
 
-  const totalCapEx = cfs.reduce((s, cf) => s + (cf.tiAndLeasing ?? 0), 0);
+  // Rollover TI/LC over the hold plus any up-front capex budget.
+  const totalCapEx = cfs.reduce((s, cf) => s + (cf.tiAndLeasing ?? 0), 0) + (selectedInputs?.capexBudget ?? 0);
   const capExPct   = selectedInputs?.purchasePrice > 0 ? (totalCapEx / selectedInputs.purchasePrice) * 100 : null;
 
   const irrTier    = tier(r.irr, 18, 14, 10);
@@ -220,7 +221,7 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {["Year", "Gross Rev.", "Vacancy", "Credit Loss", "EGR", "Op. Exp.", "NOI", "TI + LC", "Adj. NOI", "Debt Svc.", "Ext. Fee", "Pre-Tax CF"].map((h) => (
+                {["Year", "Gross Rev.", "Vacancy", "Credit Loss", "EGR", "Op. Exp.", "NOI", "TI + LC", "Adj. NOI", "Debt Svc.", "Ext. Fee", "Caps / AM Fee", "Pre-Tax CF"].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -241,6 +242,11 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
                   <td className="px-3 py-2 text-right tabular-nums text-orange-500">
                     {cf.extensionFee > 0 ? `(${fmtM(cf.extensionFee)})` : "—"}
                   </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-orange-500">
+                    {(cf.capReplacement ?? 0) + (cf.belowLineAMFees ?? 0) > 0
+                      ? `(${fmtM((cf.capReplacement ?? 0) + (cf.belowLineAMFees ?? 0))})`
+                      : "—"}
+                  </td>
                   <td className={`px-3 py-2 text-right tabular-nums font-semibold ${cf.pretaxCashFlow >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                     {cf.pretaxCashFlow >= 0 ? fmtM(cf.pretaxCashFlow) : `(${fmtM(Math.abs(cf.pretaxCashFlow))})`}
                   </td>
@@ -250,7 +256,9 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
           </table>
         </div>
         <p className="text-xs text-gray-400 mt-2">
-          TI + LC = normalized tenant improvements & leasing commissions. Op. Exp. reflects landlord-paid costs per lease type.
+          {cfs[0]?.noiOverride
+            ? "Direct NOI mode: NOI is entered directly, so revenue and expense build-up columns are not used. Caps / AM Fee = replacement rate caps plus asset-management fees charged below NOI."
+            : "TI + LC = normalized tenant improvements & leasing commissions. Op. Exp. reflects landlord-paid costs per lease type. Caps / AM Fee = replacement rate caps."}
         </p>
       </div>
 

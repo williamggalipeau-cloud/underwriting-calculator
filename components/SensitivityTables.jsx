@@ -7,6 +7,8 @@ const VAR_LABELS = {
   exitCapRatePct: "Exit Cap Rate",
   rentPerSF: "Rent / SF / yr",
   purchasePrice: "Purchase Price",
+  noiGrowthPct: "NOI Growth",
+  noiYear1: "Year 1 NOI",
 };
 
 const METRIC_LABELS = {
@@ -54,6 +56,8 @@ function fmtHeader(val, varKey) {
   if (varKey === "exitCapRatePct") return `${val.toFixed(2)}%`;
   if (varKey === "rentPerSF") return `$${val.toFixed(2)}`;
   if (varKey === "purchasePrice") return `$${(val / 1_000_000).toFixed(1)}M`;
+  if (varKey === "noiGrowthPct") return `${val.toFixed(1)}%`;
+  if (varKey === "noiYear1") return `$${(val / 1_000).toFixed(0)}k`;
   return String(val);
 }
 
@@ -61,15 +65,25 @@ function stepFor(varKey, base) {
   if (varKey === "exitCapRatePct") return 0.25;
   if (varKey === "rentPerSF") return 0.5;
   if (varKey === "purchasePrice") return base * 0.05;
+  if (varKey === "noiGrowthPct") return 5;
+  if (varKey === "noiYear1") return Math.max(1000, Math.round(base * 0.05));
   return 1;
 }
 
 export default function SensitivityTables({ inputs, baseIRR, baseEM }) {
   const [metric, setMetric] = useState("irr");
-  const [rowVar, setRowVar] = useState("exitCapRatePct");
-  const [colVar, setColVar] = useState("rentPerSF");
+  const [rowVarRaw, setRowVar] = useState("exitCapRatePct");
+  const [colVarRaw, setColVar] = useState("rentPerSF");
 
-  const varOptions = ["exitCapRatePct", "rentPerSF", "purchasePrice"];
+  // Direct-NOI deals ignore rent/SF, so offer NOI levers instead.
+  const direct = !!inputs.noiOverrideEnabled;
+  const varOptions = direct
+    ? ["exitCapRatePct", "noiGrowthPct", "noiYear1", "purchasePrice"]
+    : ["exitCapRatePct", "rentPerSF", "purchasePrice"];
+  const fallbackVar = (v, other) =>
+    varOptions.includes(v) ? v : varOptions.find((x) => x !== other && x !== "exitCapRatePct") ?? varOptions[1];
+  const rowVar = fallbackVar(rowVarRaw, colVarRaw);
+  const colVar = fallbackVar(colVarRaw, rowVar);
 
   const rowValues = useMemo(
     () => sensitivityRange(inputs[rowVar], 5, stepFor(rowVar, inputs[rowVar])),
