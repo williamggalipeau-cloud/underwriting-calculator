@@ -22,6 +22,7 @@ import FundTermsEditor from "@/components/FundTermsEditor";
 
 // Workspace saved in this browser (deals, funds, snapshots, curve).
 const STORAGE_KEY = "uw-workspace-v1";
+const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calculator/blob/main/docs/USER_MANUAL.md";
 
 function initialFunds() {
   return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME } };
@@ -615,6 +616,17 @@ export default function Home() {
                 </span>
               </div>
             ))}
+            <a
+              href={MANUAL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+            >
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+                <path d="M4 3.5A1.5 1.5 0 0 1 5.5 2H15a1 1 0 0 1 1 1v12.5a.5.5 0 0 1-.5.5H6a1 1 0 0 0 0 2h9.5a.5.5 0 0 1 0 1H6a2 2 0 0 1-2-2V3.5Z" />
+              </svg>
+              User manual
+            </a>
           </div>
         </div>
       </header>
@@ -775,13 +787,13 @@ export default function Home() {
         {/* Right: results */}
         <main className="flex-1 min-w-0 space-y-5">
           {/* Tab bar */}
-          <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit shadow-sm">
+          <div className="flex flex-wrap gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit max-w-full shadow-sm">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
                   activeTab === tab.id
                     ? "bg-blue-600 text-white shadow-sm"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
