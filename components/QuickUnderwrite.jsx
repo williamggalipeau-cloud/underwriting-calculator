@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { quickUnderwrite, quickSensitivity, sofrForYear } from "@/lib/quickUnderwrite";
 import { fetchSofrCurve } from "@/lib/sofr";
-import { FORWARD_CURVE_AS_OF, FORWARD_CURVE_SOURCE } from "@/lib/forwardCurve";
+import { CURVE_INDICES, FORWARD_CURVE_AS_OF, FORWARD_CURVE_SOURCE } from "@/lib/forwardCurve";
 
 function fmtISO(iso) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -120,7 +120,7 @@ function ForwardCurve({ inputs, onChange }) {
           <h3 className="text-sm font-semibold text-gray-900">SOFR forward curve</h3>
           <p className="text-xs text-gray-500">
             {pensford
-              ? `${FORWARD_CURVE_SOURCE} 1-Month Term SOFR forward curve (${fmtISO(FORWARD_CURVE_AS_OF)}), averaged over each hold year from the ${fmtISO(acq)} acquisition. All-in = min(SOFR, cap strike) + spread.`
+              ? `${FORWARD_CURVE_SOURCE} ${CURVE_INDICES[inputs.sofrIndex ?? "avgSofr30D"].label} forward curve (${fmtISO(FORWARD_CURVE_AS_OF)}), averaged over each hold year from the ${fmtISO(acq)} acquisition. All-in = min(SOFR, cap strike) + spread.`
               : hasCurve
               ? "Manual per-year SOFR. All-in rate = min(SOFR, cap strike) + spread."
               : `Flat at ${inputs.sofrPct.toFixed(2)}%. Edit a year, use the Pensford curve, or fetch CME futures.`}
@@ -128,6 +128,16 @@ function ForwardCurve({ inputs, onChange }) {
           {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
         </div>
         <div className="flex gap-2">
+          <select
+            aria-label="SOFR index"
+            value={inputs.sofrIndex ?? "avgSofr30D"}
+            onChange={(e) => onChange((prev) => ({ ...prev, sofrIndex: e.target.value, sofrCurveSource: "pensford" }))}
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+          >
+            {Object.entries(CURVE_INDICES).map(([k, v]) => (
+              <option key={k} value={k}>{v.label}</option>
+            ))}
+          </select>
           {!pensford && (
             <button
               type="button"
