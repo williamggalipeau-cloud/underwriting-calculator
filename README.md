@@ -1,3 +1,9 @@
+# Industrial Underwriting Calculator
+
+Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
+
+**User manual:** [docs/USER_MANUAL.md](docs/USER_MANUAL.md) — tabs, data sources, file structure and every calculation.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
