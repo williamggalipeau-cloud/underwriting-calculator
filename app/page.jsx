@@ -178,7 +178,6 @@ function linkedDeal(id = "deal-1") {
       ...DEFAULT_INPUTS,
       propertyName: "Light Industrial (30k SF)",
       squareFootage: 30000,
-      acquisitionDate: "2026-02-13",
       fundName: SAMPLE_FUND_NAME,
     }),
   };
