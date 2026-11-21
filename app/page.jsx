@@ -10,6 +10,8 @@ import SensitivityTables from "@/components/SensitivityTables";
 import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
+import QuickUnderwrite from "@/components/QuickUnderwrite";
+import { QUICK_DEFAULTS } from "@/lib/quickUnderwrite";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -171,6 +173,7 @@ function newDeal(overrides = {}) {
 }
 
 const TABS = [
+  { id: "quick",       label: "Quick Underwrite" },
   { id: "units",       label: "Unit Roll" },
   { id: "debt",        label: "Debt" },
   { id: "stress",      label: "Return Stress Testing" },
@@ -198,6 +201,7 @@ export default function Home() {
   const [activeDealId, setActiveDealId] = useState("deal-1");
   const [activeTab, setActiveTab] = useState("units");
   const [savedDeals, setSavedDeals] = useState([]);
+  const [quickInputs, setQuickInputs] = useState(QUICK_DEFAULTS);
 
   const activeDeal = deals.find((d) => d.id === activeDealId) ?? deals[0];
   const inputs = activeDeal.inputs;
@@ -451,6 +455,9 @@ export default function Home() {
                 inputs={inputs}
                 onChange={(units) => setInputs((prev) => ({ ...prev, units }))}
               />
+            )}
+            {activeTab === "quick" && (
+              <QuickUnderwrite inputs={quickInputs} onChange={setQuickInputs} />
             )}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
 {activeTab === "returns" && (
