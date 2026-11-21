@@ -12,7 +12,7 @@ import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSamplePortfolio, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
+import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME } from "@/lib/samplePortfolio";
 
 const DEFAULT_INPUTS = {
   propertyName: "Small Bay Industrial",
@@ -177,8 +177,15 @@ function linkedDeal(id = "deal-1") {
       ...DEFAULT_INPUTS,
       propertyName: "Light Industrial (30k SF)",
       squareFootage: 30000,
+      fundName: SAMPLE_FUND_NAME,
     }),
   };
+}
+
+// The app opens with a live fund: the linked deal plus nine sample assets,
+// all editable deals in Light Industrial Fund I.
+function initialDeals() {
+  return [linkedDeal(), ...buildSampleDeals(DEFAULT_INPUTS)];
 }
 
 function newDeal(overrides = {}) {
@@ -211,9 +218,7 @@ function fmtDollarM(n) {
 }
 
 export default function Home() {
-  const [deals, setDeals] = useState([
-    linkedDeal(),
-  ]);
+  const [deals, setDeals] = useState(initialDeals);
   const [activeDealId, setActiveDealId] = useState("deal-1");
   const [activeTab, setActiveTab] = useState("quick");
   const [savedDeals, setSavedDeals] = useState([]);
@@ -283,15 +288,31 @@ export default function Home() {
 
   const results = useMemo(() => underwrite(inputs), [inputs]);
 
+  // Live fund membership: every open deal with a fund name is in that fund
+  // and recalculates as it is edited. Saved snapshots ("Add to Fund") are
+  // fixed copies and sit alongside them.
+  const liveFundDeals = useMemo(
+    () =>
+      deals
+        .filter((d) => d.inputs.fundName?.trim())
+        .map((d) => ({ ...snapshotDeal(d.inputs, d.id), live: true })),
+    [deals]
+  );
+  const fundDeals = useMemo(() => [...liveFundDeals, ...savedDeals], [liveFundDeals, savedDeals]);
+
   const { debt, returns, annualCashFlows, waterfall, irrFlows } = results;
 
   function handleSaveDeal() {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    // A deal with a fund name is already in the fund live; label the copy.
+    const isLive = !!inputs.fundName?.trim();
     setSavedDeals((prev) => [
       ...prev,
       {
         id,
-        inputs: { ...inputs },
+        inputs: isLive
+          ? { ...inputs, propertyName: `${inputs.propertyName || "Deal"} (snapshot)` }
+          : { ...inputs },
         irrFlows: [...(irrFlows ?? [])],
         metrics: {
           irr: returns.irr,
@@ -305,6 +326,13 @@ export default function Home() {
   }
 
   function handleRemoveDeal(id) {
+    // Live deals leave the fund (fund name cleared) but stay open.
+    if (deals.some((d) => d.id === id)) {
+      setDeals((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, inputs: { ...d.inputs, fundName: "" } } : d))
+      );
+      return;
+    }
     setSavedDeals((prev) => prev.filter((d) => d.id !== id));
   }
 
@@ -319,31 +347,31 @@ export default function Home() {
     });
     setActiveDealId(testDealId);
     setActiveTab("units");
+    // The active test deal is in Fund I live, so drop its saved copy.
     setSavedDeals((prev) => [
       ...prev.filter((d) => !d.id.startsWith("test-")),
-      ...testDeals,
+      ...(activeDealInputs.fundName?.trim() ? testDeals.slice(1) : testDeals),
     ]);
   }
 
-  // Loads four light-industrial deals plus a snapshot of the current deal
-  // into one fund, and opens the Portfolio Return tab.
+  // Re-creates the nine sample deals (discarding edits to them), puts the
+  // active deal in the sample fund, and opens the Portfolio Return tab.
   function handleLoadSamplePortfolio() {
-    const currentInputs = { ...inputs, fundName: SAMPLE_FUND_NAME };
-    setInputs((prev) => ({ ...prev, fundName: SAMPLE_FUND_NAME }));
-    setSavedDeals((prev) => [
-      ...prev.filter((d) => !d.id.startsWith("sample-")),
-      snapshotDeal(currentInputs, `sample-current-${Date.now()}`),
-      ...buildSamplePortfolio(DEFAULT_INPUTS),
+    setDeals((prev) => [
+      ...prev
+        .filter((d) => !d.id.startsWith("sample-deal-"))
+        .map((d) => (d.id === activeDealId ? { ...d, inputs: { ...d.inputs, fundName: SAMPLE_FUND_NAME } } : d)),
+      ...buildSampleDeals(DEFAULT_INPUTS),
     ]);
     setActiveTab("fund");
   }
 
   function handleClearTest() {
     setDeals((prev) => {
-      const next = prev.filter((d) => d.id !== "test-active");
+      const next = prev.filter((d) => d.id !== "test-active" && !d.id.startsWith("sample-deal-"));
       return next.length > 0 ? next : [linkedDeal()];
     });
-    setActiveDealId((prev) => prev === "test-active" ? "deal-1" : prev);
+    setActiveDealId((prev) => (prev === "test-active" || prev.startsWith("sample-deal-") ? "deal-1" : prev));
     setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-")));
   }
 
@@ -476,7 +504,7 @@ export default function Home() {
               key={activeDealId}
               inputs={inputs}
               onChange={setInputs}
-              fundNames={[...new Set(savedDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))]}
+              fundNames={[...new Set(fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))]}
             />
           </div>
         </aside>
@@ -502,9 +530,9 @@ export default function Home() {
                     {inputs.units.length}
                   </span>
                 )}
-                {tab.id === "fund" && savedDeals.length > 0 && (
+                {tab.id === "fund" && fundDeals.length > 0 && (
                   <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "fund" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
-                    {savedDeals.length}
+                    {fundDeals.length}
                   </span>
                 )}
               </button>
@@ -530,7 +558,7 @@ export default function Home() {
             )}
             {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
 {activeTab === "returns" && (
-              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={savedDeals} />
+              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={fundDeals.filter((d) => d.id !== activeDealId)} />
             )}
             {activeTab === "sensitivity" && (
               <SensitivityTables
@@ -543,12 +571,12 @@ export default function Home() {
               <StressTest
                 inputs={inputs}
                 results={results}
-                savedDeals={savedDeals}
+                savedDeals={fundDeals}
               />
             )}
             {activeTab === "fund" && (
               <FundAnalysis
-                savedDeals={savedDeals}
+                savedDeals={fundDeals}
                 currentDeal={{ inputs, irrFlows: irrFlows ?? [], metrics: { irr: returns.irr, equityMultiple: returns.equityMultiple, yearOneCashOnCash: returns.yearOneCashOnCash, equityRequired: debt.equityRequired, loanAmount: debt.loanAmount } }}
                 onSave={handleSaveDeal}
                 onRemove={handleRemoveDeal}
