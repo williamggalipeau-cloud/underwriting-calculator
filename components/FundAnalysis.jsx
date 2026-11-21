@@ -304,11 +304,12 @@ function FundGroup({ fundName, deals, onRemove, onRemoveFund }) {
     return wf.lpIRR;
   })();
 
-  // Weighted average equity multiple: total proceeds / total equity
-  // proceeds = irrFlows[0] (negative equity) + sum of positive flows
+  // Fund equity multiple: net distributions after closing / equity invested at
+  // closing — the same definition as each asset's multiple (interim capital
+  // calls count against distributions).
   const totalInvested = deals.reduce((s, d) => s + Math.abs(d.irrFlows[0] ?? 0), 0);
-  const totalProceeds = deals.reduce((s, d) => s + d.irrFlows.slice(1).reduce((a, v) => a + Math.max(v, 0), 0), 0);
-  const weightedEM = totalInvested > 0 ? (totalInvested + totalProceeds) / totalInvested : NaN;
+  const totalProceeds = deals.reduce((s, d) => s + d.irrFlows.slice(1).reduce((a, v) => a + v, 0), 0);
+  const weightedEM = totalInvested > 0 ? totalProceeds / totalInvested : NaN;
   const totalDistributions = totalProceeds;
 
   // Build year-by-year combined table (years 1..N, excluding year-0 equity outflow)
