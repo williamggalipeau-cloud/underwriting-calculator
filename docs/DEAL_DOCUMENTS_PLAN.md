@@ -19,7 +19,7 @@ changes the model without the user clicking to apply it.
 | F | Loan agreement → Debt tab | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
-| I | Asset budget vs. plan | ⛓ Starts when H is complete |
+| I | Asset business plan (revisions, PDF) and budget vs. plan | ⛓ Starts when H is complete |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk reports | ⛓ Starts when K is complete |
@@ -249,18 +249,99 @@ statements for their baselines; J uses I's actuals and K rolls up I and J.
 Scheduled (11/22): each starts as soon as the previous phase is complete,
 following H.
 
-### Phase I: asset budget vs. plan (added 11/22)
+### Phase I: asset business plan and budget vs. plan (added 11/22)
 
-At closing, each asset gets a budget for its whole life (the "plan"). The
-current budget and actual results are then tracked against it.
+At closing, each asset gets a business plan for its whole hold, with a
+budget (the financial side of the plan). The plan, the current budget and
+actual results are then tracked against each other.
 
-- **Lock the plan at closing:** snapshot the closing underwriting as the
-  asset's plan, by year and month: rental income, recoveries, other income,
+- **Business plan** (added 11/22, user's request), one per asset, seeded
+  from the IC memo and closing underwriting:
+  - *Thesis and strategy*: why the asset was bought (core-plus, value-add,
+    lease-up, repositioning) and what must happen for it to work.
+  - *Leasing plan*, unit by unit: renew or re-tenant, target rent vs.
+    market, downtime, concessions, TI/LC, target tenant mix (from the Unit
+    Roll and lease abstracts).
+  - *Capital plan*: capex projects with scope, budget, timing and expected
+    return (roof, HVAC, paving, docks, unit splits, ESG).
+  - *Operating plan*: expense targets, recovery improvements, property
+    management, tax appeals and insurance.
+  - *Demising and combining units* (added 11/22, user's request): a plan
+    item that splits a unit into smaller units (or combines units), entered
+    once and reflected in both sections:
+    - Capital plan: the demising project with its scope and cost
+      (demising walls, separate HVAC, electrical and metering, doors, docks
+      or grade-level doors, restrooms, fire and life safety, permits, soft
+      costs, contingency), timing and the unit's downtime during the work.
+    - Leasing and operating plan: the new units with their SF (and any
+      area lost to corridors or walls), market rent per SF (small bays
+      often lease higher), downtime, concessions and TI/LC for each, and
+      lease-up dates; recalculated pro rata shares and recoveries; the
+      operating effects (more meters, separately metered utilities passed
+      to tenants, added management and leasing cost per unit, repairs).
+    - Returns: the project's cost, added NOI, yield on cost and payback,
+      and the effect on the asset's IRR and multiple.
+    - In the model: the cash flow runs the original unit until the work
+      starts, then downtime, then the new units from their lease-up dates.
+      Until the work is done the new units are *planned* (shown that way on
+      the Unit Roll and floor plan); once done, the user marks the split
+      complete and the rent roll gets the new units (a new plan revision).
+  - *Financing plan*: current loan, rate cap, covenants, refinance or recap
+    (from the Debt tab and phase F).
+  - *Exit plan*: target hold, exit timing and cap rate, sale or refinance
+    triggers (from Sell / Hold).
+  - *Milestones*: dated milestones with an owner and status (e.g. "lease
+    Units 4 and 7 by Q3 2027", "roof by Q2"); due dates go to critical
+    dates and late ones are flagged.
+  - *KPIs*: NOI, occupancy, rent per SF, WALT, capex vs. budget and returns
+    vs. underwriting, each with its target.
+  - *Risks and mitigants*, and a hold / sell / refinance recommendation at
+    each annual review.
+- **Photos, map and floor plan** (added 11/22, user's request):
+  - *Asset photos*: upload photos per asset (exterior, aerial, docks,
+    interior, capex before/after), each with a caption, date and order;
+    one marked as the cover photo. Stored in the private storage bucket;
+    owners and editors upload, viewers see them.
+  - *Location map*: a map of the asset from its address (Phase A asset
+    locations, geocoded once and saved), with a pin, the street map around
+    it, and optionally the fund's other assets nearby. Uses an open map
+    source with its attribution; the map is saved as an image with each
+    plan revision so the PDF does not depend on a live map.
+  - *Floor plan*: upload the building's floor or site plan (image or PDF),
+    then mark each unit on it (draw a box or outline and pick the unit);
+    the app labels every unit with its number, size (SF), tenant and lease
+    expiry, and colours it by status (leased, vacant, expiring within 12
+    months, under renovation). Where no plan is uploaded, the app draws a
+    simple schematic of the units sized by SF from the rent roll. Updates
+    as the rent roll changes (a new plan revision).
+  - Included in the business plan screen and its PDF (cover photo, photo
+    page, map, floor plan with the unit table), and reused for the asset
+    pages of phase L's performance report.
+- **Revisions:** the plan at closing is **revision 1** and is never
+  overwritten. While the asset is held, any change to the asset that
+  affects the plan creates a **new revision** rather than editing the last
+  one: a plan edit, an applied lease (phase C), a capex or budget change,
+  a new or changed loan, a changed exit or hold, or the annual review. Each
+  revision records who, when, what changed (a list of changes from the
+  previous revision) and an optional note. Edits made in one sitting are
+  saved together as one revision. Every revision stays readable and
+  revisions can be compared side by side; the current revision is the one
+  shown in the app and used for budget vs. plan, with revision 1 kept as
+  the original baseline.
+- **PDF export** (user's request): the business plan for any revision as a
+  PDF: cover (asset, fund, revision number and date, author), summary,
+  each section above, the budget, milestones and KPIs vs. target, and a
+  "changes since the previous revision" page. Exported PDFs always match
+  their revision. Excel export of the budget and milestones.
+
+- **Lock the budget at closing:** snapshot the closing underwriting as the
+  asset's budget, by year and month: rental income, recoveries, other income,
   vacancy and credit loss, each operating expense line, NOI, capex, TI/LC,
   debt service and cash flow. Leasing assumptions are included per unit
   (downtime, new rent, renewals). The IC-approved figures (phase E) can seed
-  it. The plan never changes after it is locked; a re-forecast is saved as a
-  new version (e.g. "2027 budget", "Q2 reforecast").
+  it. The locked budget never changes; a re-forecast is saved as a new
+  version (e.g. "2027 budget", "Q2 reforecast") and is part of a new plan
+  revision.
 - **Actuals:** monthly or quarterly actuals by line, entered by hand or
   imported from Excel/CSV (a T-12 or GL export; the phase E T-12 reader can
   help map lines).
@@ -522,4 +603,17 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     only: it never overwrites actual data. Scenarios are named and saved;
     a saved version is frozen and any change makes a new version; each
     version exports to Excel and PDF.
+19. **Asset business plan** (added 11/22) in phase I: thesis, leasing,
+    capital, operating, financing and exit plans, milestones, KPIs and risks
+    per asset; revision 1 at closing, and any change to the asset while held
+    creates a new revision (never overwritten); each revision exports to
+    PDF.
+20. **Photos, map and floor plan** (added 11/22) in phase I: uploaded asset
+    photos, a location map from the address, and a floor plan with each
+    unit marked (number, SF, tenant, expiry, status), all in the business
+    plan and its PDF, and in the phase L asset pages.
+21. **Demising and combining units** (added 11/22) in phase I: a plan item
+    that splits or combines units, with its capex, downtime, new units'
+    rents and lease-up, operating effects and yield on cost, modelled in
+    the cash flow as planned units until the user marks it complete.
 

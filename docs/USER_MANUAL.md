@@ -2393,7 +2393,7 @@ each phase and the decisions behind it are in
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
-| I. Asset budget vs. plan | Life-of-asset plan locked at closing; actuals; plan vs. budget vs. actual by line | ⛓ After H |
+| I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report | ⛓ After K |
@@ -2437,6 +2437,17 @@ not used. Nothing changes your data until you click to apply it.
   in 30, 60, 90, 180 and over-180-day buckets, delinquency % by asset and fund,
   a fund total of all amounts owed by aging bucket, default and cure terms, and
   deposit and guarantor coverage.
+- **I. Asset business plan.** A business plan for each asset (thesis,
+  leasing, capital, operating, financing and exit plans, milestones, KPIs and
+  risks), with your asset photos, a location map and a floor plan showing
+  each unit with its size, tenant and status. Demising a unit into smaller
+  units (or combining units) is planned once and flows through the capital
+  plan (cost, downtime), the leasing and operating plan (new units, rents,
+  recoveries, operating costs) and returns (yield on cost). The plan at
+  closing is
+  revision 1; any change to the asset while
+  it's held creates a new revision, so no revision is ever overwritten.
+  Export any revision to PDF.
 - **I–K.** Track each asset's budget, each deal's underwriting and the
   fund's plan against actual results, with variances explained.
 - **L. Performance and risk reporting.** A quarterly performance report in
