@@ -247,7 +247,7 @@ still counts it once. Return Stress Testing keeps its own asset dropdown.
 
 **Location.** The Property section of the inputs has **Location** (street
 address, city, state, ZIP). The Asset Summary shows city and state. Model
-Fund I's fourteen assets have fictional addresses in California, Nevada,
+Fund I's twelve assets have fictional addresses in California, Nevada,
 Washington and Texas, matching the sample leases (`docs/sample-leases`);
 workspaces saved before locations existed get them when they open.
 
@@ -274,13 +274,33 @@ field.
 - **Capital activity Purpose list:** shows this fund's assets first, then
   every other property in the workspace.
 
-**Sample portfolio.** The app opens with "Model Fund I": your deal
-plus nine illustrative light-industrial assets (§7.13). **Load Model
-Fund I** restores them and **Clear test data** removes them. **Load test
-scenario** adds four more deals to Model Fund I, all closed after the
-fund's final close: Small Bay Industrial — Phase I (acquired 2/27/26),
-Eastside Distribution Hub (5/29/26), Northgate Flex Center (8/31/26) and
-Riverside Commerce Park (10/30/26).
+**Sample portfolio.** The app opens with "Model Fund I": nine
+illustrative light-industrial assets (§7.13). **Load Model Fund I**
+restores them and **Clear test data** removes them. **Load test scenario**
+adds three more saved deals to Model Fund I, all closed after the fund's
+final close: Eastside Distribution Hub (5/29/26), Northgate Flex Center
+(8/31/26) and Riverside Commerce Park (10/30/26), for twelve assets.
+(The former opening deal "Light Industrial (30k SF)" and the test deal
+"Small Bay Industrial — Phase I" were removed from the sample and test
+data; saved workspaces drop them once when they open.)
+
+**Rent rolls and mark to market.** Every Model Fund I asset has a rent roll
+(`lib/sampleRentRolls.js`):
+- **Units:** the asset's unit count, about 90% leased (or 1 − the asset's
+  vacancy), sizes split evenly, fictional tenants, lease ends staggered over
+  the next five years.
+- **In-place rent:** from the asset's current income (year-1 NOI ÷ leased SF
+  for direct-NOI assets; its rent/SF otherwise), ±5% by unit.
+- **Market rent:** set 20–40% above in-place (each asset has its own target
+  in that range), so **mark to market** (market ÷ in-place − 1) is 20–40%.
+- **Effect:** for direct-NOI (Quick Underwrite) assets the rent roll is
+  reference data and returns don't change. For rent-roll assets (Eastside,
+  Northgate, Riverside) income now comes from the rent roll, and the higher
+  market rent raises rents on rollover.
+- Saved workspaces get these once when they open (`rentRollModel`), saved as
+  a new version. Vacancy, occupancy and WALT in the Asset Summary come from
+  the rent rolls and update whenever a unit's status changes or a unit is
+  added.
 
 **Acquisition dates and the fund terms.** Every fund asset needs an
 acquisition date: it places the asset's cash flows in the fund's timeline.
@@ -293,11 +313,11 @@ acquisition date: it places the asset's cash flows in the fund's timeline.
   the investment period ends (final close + investment period) or exiting
   after the fund term ends (final close + term, before extensions).
 - **Model Fund I** (final close 12/31/25, 2-year investment period, 5-year
-  term): all 14 assets were bought between 1/30/26 and 11/13/26 and, on
+  term): all 12 assets were bought between 1/30/26 and 11/13/26 and, on
   4-year holds, exit in 2030, inside the term (12/31/30).
 
 **Hold period.** Every deal defaults to a **4-year hold**: new deals, the
-opening deal, the nine sample assets and the four test-scenario deals. Change
+nine sample assets and the three test-scenario deals. Change
 it per deal under **Hold** (Quick Underwrite, for linked deals) or **Hold
 Period** (deal inputs, for unlinked deals). Deals you already have keep the
 hold they were saved with, except sample and test-scenario deals still on an
@@ -450,6 +470,7 @@ underwriting-calculator/
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
 │   ├── leaseDocs.js          Lease documents in Supabase (table + storage bucket)
 │   ├── assetLocations.js     Model Fund I asset addresses; state list
+│   ├── sampleRentRolls.js    Model Fund I rent rolls with a 20–40% mark to market
 │   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
@@ -1000,6 +1021,7 @@ One row per asset in the selected fund.
 | Location | City and state from the deal's Location |
 | Units | Rent roll unit count, else the deal's Units field |
 | Occupancy | Leased SF ÷ rent roll SF; — without a rent roll |
+| Vacancy | Vacant SF ÷ rent roll SF (100% − occupancy); — without a rent roll |
 | WALT | Rent-weighted remaining lease term from today (§7.19); — without a rent roll |
 | Loan, loan / price, equity | The full engine. The loan includes lender-funded capex, so loan / price can exceed the LTV input. |
 | Funding | From capital activity tags: Capital call, Sub line, Call + line, Not tagged, or — when the fund has no activity |
@@ -1008,8 +1030,8 @@ One row per asset in the selected fund.
 
 **Fund total row:**
 - **Summed:** SF, units and all dollar figures.
-- **Occupancy and WALT:** across assets with a rent roll only (occupancy
-  weighted by SF, WALT by annual rent).
+- **Occupancy, vacancy and WALT:** across assets with a rent roll only
+  (occupancy and vacancy weighted by SF, WALT by annual rent).
 - **Weighted:** $/SF = total price ÷ total SF; loan / price = total loan ÷
   total price; going-in cap = total year-1 NOI ÷ total price; exit cap =
   total exit NOI ÷ total exit value.
@@ -2102,14 +2124,14 @@ and doesn't bump the version.
 
 | Workspace | Created | Contents |
 |---|---|---|
-| **Model Fund I** | 11/22/2026, version 1, by the project owner (who is its owner) | The sample fund with the test scenario loaded: 14 assets, 621,000 SF, $135.9M total purchase price, $100M commitments. The 14 are the base deal "Light Industrial (30k SF)", the nine sample assets, and the four test scenario deals (Small Bay Industrial — Phase I, Eastside Distribution Hub, Northgate Flex Center, Riverside Commerce Park). No capital activity, valuations or comps yet. |
+| **Model Fund I** | 11/22/2026, version 1, by the project owner (who is its owner) | The sample fund with the test scenario loaded: created with 14 assets ($100M commitments). When it next opens it drops "Light Industrial (30k SF)" and "Small Bay Industrial — Phase I" (removed from the sample and test data), leaving 12: the nine sample assets and Eastside Distribution Hub, Northgate Flex Center and Riverside Commerce Park. No capital activity, valuations or comps yet. |
 
 It was created by Claude through the Supabase connector, using the same
 `create_workspace` function as the app's **Save to database** button and
 signed as the owner, so its audit row ("Created workspace") shows the
 owner's email.
 
-Its four test scenario deals were saved before they had acquisition dates
+Its test scenario deals were saved before they had acquisition dates
 and with their earlier holds (5–8 years, past the fund term). When the
 workspace next opens, the app gives them their acquisition dates (§2,
 Sample portfolio) and 4-year holds, re-runs the three saved snapshots, and
