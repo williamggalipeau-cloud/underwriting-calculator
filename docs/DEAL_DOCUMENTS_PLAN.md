@@ -305,8 +305,16 @@ I–K.
   - *Debt*: maturities and extension dates, covenant cushions (DSCR, debt
     yield, LTV) vs. tests, floating-rate exposure and rate cap expiries,
     refinance risk at current rates.
+  - *Geographic concentration* (added 11/22): exposure by state, metro
+    area (MSA), city and submarket, as % of fund value (NAV), equity, NOI,
+    rent, SF and asset count, using each asset's address (Phase A asset
+    locations; ZIP mapped to its MSA). User-set limits (e.g. no more than
+    30% of NAV in one state or 25% in one metro) with breaches flagged,
+    change vs. last quarter, and a map of the assets sized by value. Also
+    shows lease rollover and debt maturities by state and metro, so
+    clusters of risk in one market stand out.
   - *Valuation and market*: marks vs. cost and underwriting, cap rate
-    sensitivity, concentration by market and state.
+    sensitivity.
   - *Execution*: budget and capex variances (phase I), assets behind
     underwriting (phase J), fund plan gaps (phase K).
   - *Stress tests*: fund and asset results under rent, vacancy, exit cap
@@ -356,3 +364,5 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     tenant/guarantor financial statements on each lease, owners and editors
     only, with key figures, staleness and delivery-due flags, feeding the
     Unit Roll credit rating and the phase L risk report.
+12. **Geographic concentration** (added 11/22) in phase L's risk report:
+    by state, metro, city and submarket, with user-set limits and a map.
