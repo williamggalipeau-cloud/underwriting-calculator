@@ -605,14 +605,38 @@ Dry powder at IP end  = dry powder today − future needs up to the IP end
 ```
 
 - **Untagged purchases:** if the model dates a purchase on or before today
-  and no entry is tagged to that asset, the card flags it. Tag the call or
-  draw that funded it, or move the asset's acquisition date if it hasn't
-  closed.
+  and no entry is tagged to that asset, the card flags it. Until you tag it,
+  its equity is assumed called on the model date: it counts against dry
+  powder and appears as an LP call in fund returns. Tag the call or draw that
+  funded it, or move the asset's acquisition date if it hasn't closed.
 - **Model comparison:** the card also shows what the model alone assumed
   for called capital and the line balance, for comparison.
-- **What actuals don't change:** fund returns, the waterfall and the
-  Subscription line card still use the model. Actuals change the
-  capital-called and dry-powder figures only.
+**Net returns and valuations with actuals** (`lib/fundFlows.js`). The fund
+waterfall (§7.10), the header's Net fund / Net LP figures, the quarterly
+schedule and the Valuations tab's net LP interim returns (§7.15) all run on
+the same LP cash flows:
+
+- **Up to today:** the actual capital calls entered (including fee, line
+  repayment and line interest calls). The model's capital needs dated on or
+  before today are dropped, except untagged purchases (above).
+- **Line draws still outstanding today:** actual draws less repayments,
+  first in first out. Each is repaid by an LP call max days after its draw
+  date (or tomorrow if that has passed). Interest accrues from tomorrow at
+  the forward 30-day average SOFR + spread.
+- **After today:** the model's capital needs (unfunded purchases and
+  shortfalls) draw on the line's remaining capacity as in the model.
+- **Fund management fees:** charged only after today; earlier ones are in
+  your actual calls.
+- **Asset income and sale proceeds:** always the model's. Actual
+  distributions are not entered.
+- **Sub line balance:** the actual balance up to today, then the projection.
+  Valuations deducts it before the hypothetical liquidation.
+
+The Net fund and Net LP tiles and the Valuations net LP card show an
+**actual calls** tag in this mode. The Subscription line card shows the
+model-only figures for comparison, and its peak, interest and fees cover
+tomorrow onward.
+
 - **Saving:** entries are stored with the fund's terms and saved with the
   workspace.
 - **Not modeled:** recycling of returned capital.
