@@ -2454,5 +2454,8 @@ not used. Nothing changes your data until you click to apply it.
   a what-if (nothing changes until you choose Add to fund) and see the fund
   with and without them: net and gross IRR, multiple, promote, capital
   calls and dry powder, NOI and yield, leverage, concentration and fund
-  limits. Compare candidates, find the highest price that still meets the
-  fund's target, and export a one-page summary for the IC memo.
+  limits. Compare candidates and find the highest price that still meets
+  the fund's target. Modeling only: scenarios never change your actual
+  data. Each scenario is named and saved; a saved version is never
+  overwritten, and any change creates a new version. Every version exports
+  to Excel and PDF, marked "Scenario — not actual".

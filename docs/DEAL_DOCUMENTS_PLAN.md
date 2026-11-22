@@ -423,8 +423,27 @@ changing the fund.
   limit is breached).
 - **Sensitivity:** fund IRR impact across the candidate's price, exit cap
   and rent growth, and its timing (closing quarter).
-- **Output:** saved scenarios, Excel export and a one-page fund impact
-  summary for the IC memo. Reuses phase L's pre-acquisition limit check.
+- **Modeling only (user confirmed 11/22):** scenarios never change actual
+  data: deals, fund terms, rent rolls, valuations, actuals and reports stay
+  as they are. Scenarios are stored separately (their own table), work on a
+  copy of the fund, and are labelled "Scenario — not actual" on screen and
+  in every export. Adding a candidate to the fund for real is a separate,
+  deliberate step (Add to fund, which creates a normal deal and is logged),
+  never a side effect of saving a scenario.
+- **Named, saved, versioned:** each scenario has a name (e.g. "Q1 2027:
+  Reno + Boise"), the fund, the candidates and their inputs, who saved it
+  and when. A saved version is **frozen**: its inputs, results and reports
+  are never overwritten. Any change saves a **new version** (v1, v2, …) with
+  an optional note on what changed; earlier versions stay readable, can be
+  compared side by side, and can be copied as the start of a new scenario.
+  Results are stored with the version, so they don't shift later when the
+  fund's actuals change; a "re-run on today's fund" creates a new version.
+- **Reports for each scenario version:** Excel (inputs, fund with vs.
+  without by year, returns, capital, mix, limits, sensitivity, break-even)
+  and PDF (a summary page for the IC memo plus the detail pages), both
+  stamped with the scenario name, version, date, author and "Scenario — not
+  actual". An exported report always matches its version.
+- Reuses phase L's pre-acquisition limit check.
 
 ## Order and review
 
@@ -499,6 +518,8 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     statements also supply phase I's actuals.
 18. **Phase M, fund impact modeling** (added 11/22): after L; add candidate
     assets to a fund as a what-if and see the fund-level effect on returns,
-    capital, income, mix and limits, with break-even pricing. Nothing
-    changes the fund until the user adds the asset.
+    capital, income, mix and limits, with break-even pricing. Modeling
+    only: it never overwrites actual data. Scenarios are named and saved;
+    a saved version is frozen and any change makes a new version; each
+    version exports to Excel and PDF.
 
