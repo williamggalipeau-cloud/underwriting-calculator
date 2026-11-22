@@ -1027,17 +1027,18 @@ export default function Home() {
               </svg>
               User manual
             </a>
-            <button
-              type="button"
-              onClick={() => setCloudOpen(true)}
-              title={session ? `Signed in as ${session.user.email}. Open the database panel.` : "Sign in to save to the database: shared workspaces, version history and a verified change log"}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${
-                session ? "border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100" : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
-              }`}
-            >
-              <span aria-hidden="true">☁</span>
-              {!session ? "Sign in" : dbLink?.id ? `${dbLink.name}${dbLink.dirty ? " · unsaved" : ""}` : "Database"}
-            </button>
+            {/* Signed out, sign in from the View only banner; this button is only the database panel. */}
+            {session && (
+              <button
+                type="button"
+                onClick={() => setCloudOpen(true)}
+                title={`Signed in as ${session.user.email}. Open the database panel.`}
+                className="flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-800 hover:bg-sky-100"
+              >
+                <span aria-hidden="true">☁</span>
+                {dbLink?.id ? `${dbLink.name}${dbLink.dirty ? " · unsaved" : ""}` : "Database"}
+              </button>
+            )}
           </div>
         </div>
       </header>
