@@ -298,14 +298,21 @@ I–K.
   - *Leasing*: lease expirations by year (% of SF and rent) by asset and
     fund, near-term rollover, renewal and termination options, mark to
     market, vacancy and downtime vs. plan.
-  - *Tenants*: largest tenants by rent and SF, concentration by industry
-    (SIC), credit notes, personal guaranties, defaults and arrears.
+  - *Tenants*: largest tenants by rent and SF, credit (ratings, scores and
+    financials from phase D), personal guaranties, defaults and arrears.
+  - *Industry (SIC) concentration*, at **both levels**: for each asset
+    (share of the asset's rent and SF by SIC code and 2-digit industry
+    group, building on the Unit Roll's industry mix) and for the fund
+    (rolled up across all assets, weighted by rent, SF and NOI). User-set
+    limits at each level (e.g. no industry above 40% of an asset's rent or
+    20% of fund rent), breaches flagged, and change vs. last quarter.
   - *Lease risk flags* (phase D): relocation, termination rights, uncapped
     expenses, environmental duties, exclusives.
   - *Debt*: maturities and extension dates, covenant cushions (DSCR, debt
     yield, LTV) vs. tests, floating-rate exposure and rate cap expiries,
     refinance risk at current rates.
-  - *Geographic concentration* (added 11/22): exposure by state, metro
+  - *Geographic concentration* (added 11/22), at the **fund level** (each
+    asset sits in one place, so it is a fund measure): exposure by state, metro
     area (MSA), city and submarket, as % of fund value (NAV), equity, NOI,
     rent, SF and asset count, using each asset's address (Phase A asset
     locations; ZIP mapped to its MSA). User-set limits (e.g. no more than
@@ -365,4 +372,7 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     only, with key figures, staleness and delivery-due flags, feeding the
     Unit Roll credit rating and the phase L risk report.
 12. **Geographic concentration** (added 11/22) in phase L's risk report:
-    by state, metro, city and submarket, with user-set limits and a map.
+    fund level, by state, metro, city and submarket, with user-set limits
+    and a map.
+13. **Industry (SIC) concentration** (added 11/22) in phase L's risk
+    report: at the asset and the fund level, each with its own limits.

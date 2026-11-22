@@ -2432,8 +2432,9 @@ not used. Nothing changes your data until you click to apply it.
 - **L. Performance and risk reporting.** A quarterly performance report in
   a shareable version (to post to your investor portal) and an internal
   version with more detail, plus an internal-only risk report: lease
-  rollover, tenant, industry and geographic (state and metro) concentration
-  with limits and a map, lease risk flags, debt
+  rollover, tenant concentration and credit, industry (SIC) concentration
+  by asset and for the fund, geographic concentration for the fund (state
+  and metro, with a map), each with limits, lease risk flags, debt
   maturities and covenant cushions, valuation sensitivity, budget and
   underwriting variances, stress tests and a watch list. Investor records,
   capital accounts and notices stay in your CRM and investor portal.
