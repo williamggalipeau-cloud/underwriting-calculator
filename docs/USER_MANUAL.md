@@ -2469,7 +2469,7 @@ each phase and the decisions behind it are in
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report | ⛓ After K |
-| M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits | ⛓ After L |
+| M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Quick Underwrite folds in here and its tab is retired | ⛓ After L |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
@@ -2546,4 +2546,6 @@ not used. Nothing changes your data until you click to apply it.
   the fund's target. Modeling only: scenarios never change your actual
   data. Each scenario is named and saved; a saved version is never
   overwritten, and any change creates a new version. Every version exports
-  to Excel and PDF, marked "Scenario — not actual".
+  to Excel and PDF, marked "Scenario — not actual". Quick Underwrite
+  becomes the quick way to add a candidate here, and the separate Quick
+  Underwrite tab is then retired (deals and results unchanged).
