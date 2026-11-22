@@ -386,7 +386,7 @@ function newDeal(overrides = {}) {
 
 // Tab order. The Change Log opens from the header button (id "changes").
 const TABS = [
-  { id: "quick",       label: "Quick Underwrite" },
+  { id: "quick",       label: "Deal Screener" },
   { id: "assets",      label: "Asset Summary" },
   { id: "valuations",  label: "Valuations" },
   { id: "units",       label: "Unit Roll" },

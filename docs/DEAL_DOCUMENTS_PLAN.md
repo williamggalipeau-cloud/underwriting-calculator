@@ -15,15 +15,21 @@ changes the model without the user clicking to apply it.
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
 | C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ⏰ Scheduled 11/22 5:30am PT |
 | D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ⏰ Scheduled 11/22 10:30am PT |
-| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements | ⛓ Starts when D is complete |
-| F | Loan agreement → Debt tab | ⛓ Starts when E is complete |
+| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ⛓ Starts when D is complete |
+| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
-| I | Asset business plan (revisions, PDF) and budget vs. plan | ⛓ Starts when H is complete |
+| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ⛓ Starts when H is complete |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
-| L | Performance reporting (shareable and internal) and internal risk reports | ⛓ Starts when K is complete |
-| M | Fund impact modeling: add a candidate asset and see the fund-level effect | ⛓ Starts when L is complete |
+| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
+| M | Fund impact modeling (Deal Screener and Full Underwrite candidates, versioned scenarios); Deal Screener tab retired | ⛓ Starts when L is complete |
+
+**Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
+value change with exit cap and a PDF of valuation adjustments and their
+effect on returns (PR #65); the rate cap moved from Quick Underwrite to the
+Debt tab with a cap provider per cap (PR #66); Quick Underwrite renamed
+**Deal Screener**.
 
 Each finished phase is marked here (and in the user manual's §13 Roadmap)
 with what was built and how it was tested; the user gets a progress note in the Claude session after each one.
@@ -476,6 +482,29 @@ I–K.
   - *Debt*: maturities and extension dates, covenant cushions (DSCR, debt
     yield, LTV) vs. tests, floating-rate exposure and rate cap expiries,
     refinance risk at current rates.
+  - *Debt concentration by lender* (added 11/22, user's request): fund
+    debt grouped by lender (the loan's issuer: the deal's Lender field,
+    and the lender named in the loan agreement once phase F reads it):
+    outstanding balance and % of total fund debt, number of loans and
+    assets, weighted rate and spread, maturities and extension dates by
+    lender (the refinancing that falls on one lender in one year), any
+    recourse or guaranty to each lender, and cross-default or
+    cross-collateral links. Limits from the LPA/PPM or set by the user
+    (e.g. no lender over 35% of fund debt), with breaches flagged, change
+    vs. last quarter, and a concentration index (HHI) across lenders.
+  - *Rate cap counterparty exposure* (added 11/22, user's request): every
+    cap in force grouped by the institution that wrote it (the Debt tab's
+    Provider, and the counterparty from the executed confirmation once
+    phase F reads it): notional and % of total capped notional, number of
+    caps and assets, strike and expiry, and the **exposure**: the cap's
+    current market value (what the fund would lose if that counterparty
+    failed), from the cap pricer on today's curve, rising as SOFR nears or
+    passes the strike. Shows each counterparty's rating against the loans'
+    minimum counterparty rating (from phase F: a downgrade below it usually
+    requires replacing the cap), caps expiring in the next 12 months by
+    counterparty, and caps with no provider entered. Limits (e.g. no
+    counterparty over 50% of capped notional or of total cap value) with
+    breaches flagged, and an HHI across counterparties.
   - *Geographic concentration* (added 11/22), at the **fund level** (each
     asset sits in one place, so it is a fund measure): exposure by state, metro
     area (MSA), city and submarket, as % of fund value (NAV), equity, NOI,
@@ -520,7 +549,11 @@ I–K.
       their own cash flow; two that need the sub line; one that fails its
       draw test in a later quarter; and one quarter where the sub line is
       full or has expired and a capital call is needed. Fund I's existing
-      sub line terms are used as they are. Added through a one-time,
+      sub line terms are used as they are. The same update gives Fund I's
+      loans made-up lenders (several assets per lender, one lender over a
+      35% limit) and made-up cap providers (one provider writing most caps,
+      one asset with none entered), so the debt and cap counterparty
+      concentration sections show breaches to test. Added through a one-time,
       logged workspace update to the Model Fund I sample data (flag
       "tiFacility-v1"), and as Node test fixtures.
     - **Actions** (modeling only, saved as a phase M-style scenario, never
@@ -543,7 +576,7 @@ Model what adding a new asset would do to a fund before buying it, without
 changing the fund.
 
 - **Add a candidate:** pick a fund and add one or more candidate assets:
-  from a saved or pipeline deal, from Quick Underwrite, or from an OM read in
+  from a saved or pipeline deal, from Deal Screener, or from an OM read in
   phase E. Each candidate has its price, closing date, equity and loan,
   business plan and exit, using the same underwriting as any deal. Nothing
   is added to the fund until the user chooses **Add to fund**.
@@ -587,6 +620,19 @@ changing the fund.
   stamped with the scenario name, version, date, author and "Scenario — not
   actual". An exported report always matches its version.
 - Reuses phase L's pre-acquisition limit check.
+- **Deal Screener folds into phase M** (decided 11/22, user's request; the
+  Quick Underwrite tab was renamed Deal Screener the same night): the
+  candidate screen gets two ways to add a candidate: **Deal Screener** (the
+  same few inputs as today's Deal Screener tab: price,
+  closing costs, year-1 NOI and growth, hold, exit cap, loan, SOFR and
+  spread, fees, with the forward curve; the rate cap is set as on the Debt
+  tab) or **Full Underwrite** (a full rent-roll deal). A Deal Screener
+  candidate can later be converted to a Full Underwrite deal (its inputs carried over, as linking does today). Once
+  this works, the separate **Deal Screener tab is retired**: existing
+  deals keep their quick settings, linked deals are converted to full deals
+  with the same inputs (results unchanged, checked by a test), and the
+  forward curve controls move to the Debt tab next to the rate cap. Nothing
+  is retired until the candidate screen covers everything the tab does.
 
 ## Order and review
 
@@ -688,4 +734,13 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     counterparty, dates, notional, index, strike and premium, and applied to
     that cap's row (executed terms replace modeled ones); checked against
     the loan's cap requirement; expiry to critical dates.
+24. **Deal Screener folds into phase M** (decided 11/22; Quick Underwrite
+    renamed Deal Screener): Deal Screener becomes one of the two ways to add a
+    candidate (with Full Underwrite, a full rent-roll deal), and the separate tab is retired once the candidate
+    screen covers it; linked deals become full deals with unchanged results,
+    and the forward curve controls move to the Debt tab.
+25. **Debt concentration by lender and rate cap counterparty exposure**
+    (added 11/22) in phase L's risk report: fund debt and capped notional
+    and cap market value grouped by lender and by cap counterparty, with
+    maturities, ratings vs. loan requirements, limits, breaches and HHI.
 

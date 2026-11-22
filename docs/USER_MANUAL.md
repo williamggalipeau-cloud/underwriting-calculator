@@ -222,14 +222,14 @@ average SOFR.
 The left panel holds the deals (tabs across the top of the panel) and the
 full-model inputs for the active deal.
 
-Tabs, left to right: Quick Underwrite, Asset Summary, Valuations, Unit Roll,
+Tabs, left to right: Deal Screener, Asset Summary, Valuations, Unit Roll,
 Leases, Debt, Cash Flow, Asset Return, Portfolio Return, Sensitivity,
 Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 **Change log** button in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
+| **Deal Screener** (named Quick Underwrite until 11/22/2026) | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
@@ -244,7 +244,7 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 | **Change log** (header button, next to User manual) | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
 
-**Asset dropdown.** Quick Underwrite, Unit Roll, Debt, Cash Flow, Asset
+**Asset dropdown.** Deal Screener, Unit Roll, Debt, Cash Flow, Asset
 Return, Sensitivity and Sales Comps have an **Asset** dropdown at the top,
 grouped by fund, listing every open deal; choosing one switches the active
 deal (the same as clicking its tab in the left panel). Saved fund snapshots
@@ -261,7 +261,7 @@ workspaces saved before locations existed get them when they open.
 **Units.** The Property section of the inputs has a **Units** field. When a
 deal has a rent roll, the count comes from the rent roll instead.
 
-**Linked deals.** A linked deal's Quick Underwrite inputs are mapped onto the
+**Linked deals.** A linked deal's Deal Screener inputs are mapped onto the
 full model (`toMainInputs`, §7.3), so every tab analyses the same deal.
 Edits to the same fields in the left panel are overwritten by the next Quick
 Underwrite edit. Unlink the deal to edit the full model directly.
@@ -294,7 +294,7 @@ data; saved workspaces drop them once when they open.)
 **NOI source.** Every Model Fund I asset, and every new deal, runs on
 **rent-roll NOI**: the cash flow is built from the rent roll (§7.1). Direct
 NOI (an entered year-1 NOI and growth rate) is still available per deal
-(NOI Source in the deal inputs, or linking the deal to Quick Underwrite).
+(NOI Source in the deal inputs, or linking the deal to Deal Screener).
 
 **Rent rolls and mark to market.** Every Model Fund I asset has a rent roll
 (`lib/sampleRentRolls.js`):
@@ -306,7 +306,7 @@ NOI (an entered year-1 NOI and growth rate) is still available per deal
 - **Market rent:** set 20–40% above in-place (each asset has its own target
   in that range), so **mark to market** (market ÷ in-place − 1) is 20–40%.
 - **The nine sample assets** were moved from direct NOI to rent-roll NOI and
-  unlinked from Quick Underwrite (loan, cap, fee and exit terms unchanged).
+  unlinked from Deal Screener (loan, cap, fee and exit terms unchanged).
   Each rent roll is **calibrated to the asset's former NOI path**:
   - about 80% of leases roll 6–24 months after purchase, the rest at 36–48
     months, so most income re-prices during the 4-year hold;
@@ -328,7 +328,7 @@ NOI (an entered year-1 NOI and growth rate) is still available per deal
 
 **Acquisition dates and the fund terms.** Every fund asset needs an
 acquisition date: it places the asset's cash flows in the fund's timeline.
-- **Where to set it:** Quick Underwrite for linked deals; **Acquisition
+- **Where to set it:** Deal Screener for linked deals; **Acquisition
   date** in the deal inputs' Property section for unlinked deals.
 - **Missing date:** the fund assumes the asset was bought at its final
   close. The field turns amber, and the Asset Summary lists the asset and
@@ -342,7 +342,7 @@ acquisition date: it places the asset's cash flows in the fund's timeline.
 
 **Hold period.** Every deal defaults to a **4-year hold**: new deals, the
 nine sample assets and the three test-scenario deals. Change
-it per deal under **Hold** (Quick Underwrite, for linked deals) or **Hold
+it per deal under **Hold** (Deal Screener, for linked deals) or **Hold
 Period** (deal inputs, for unlinked deals). Deals you already have keep the
 hold they were saved with, except sample and test-scenario deals still on an
 earlier default hold, which move to 4 years when the workspace opens.
@@ -457,7 +457,7 @@ underwriting-calculator/
 │   ├── globals.css           Tailwind + base styles
 │   └── favicon.ico
 ├── components/               One file per tab or panel (React, client side)
-│   ├── QuickUnderwrite.jsx   Quick Underwrite tab, forward-curve and Pensford import panels
+│   ├── QuickUnderwrite.jsx   Deal Screener tab, forward-curve and Pensford import panels
 │   ├── DealInputs.jsx        Left-panel full-model inputs (NOI source, costs, loan, fees…)
 │   ├── UnitRoll.jsx          Rent roll editor and CSV import
 │   ├── RateCapSchedule.jsx   Rate cap settings and schedule (Debt tab)
@@ -541,7 +541,7 @@ Conventions used throughout:
 
 ### 7.1 Net operating income
 
-**Direct-NOI mode** (Quick Underwrite and all linked deals):
+**Direct-NOI mode** (Deal Screener and all linked deals):
 
 ```
 NOI_gross(y) = Year-1 NOI × (1 + g)^(y−1)          g = NOI growth %
@@ -593,7 +593,7 @@ NOI            = EGR − OpEx
   - The unit re-leases at market rent (market rent in force that month).
   - Credit loss is applied to net revenue.
 
-### 7.2 Quick Underwrite model (`lib/quickUnderwrite.js`)
+### 7.2 Deal Screener model (`lib/quickUnderwrite.js`)
 
 ```
 Loan at close    = purchase price × LTV
@@ -633,7 +633,7 @@ in the sale year.
 **Sensitivity grid:** NOI growth 0–35% (steps of 5) × exit cap
 4.0–7.5%.
 
-### 7.3 Linking Quick Underwrite to the full model (`toMainInputs`)
+### 7.3 Linking Deal Screener to the full model (`toMainInputs`)
 
 A linked deal runs the full engine in direct-NOI mode with:
 - closing costs as a single line;
@@ -667,12 +667,13 @@ a parity script during development).
 ### 7.5 Rate caps (`lib/capPricer.js`)
 
 **Where it's set.** The rate cap is set on the **Debt** tab (moved from
-Quick Underwrite on 11/22/2026; Quick Underwrite shows a one-line summary).
+Deal Screener, then called Quick Underwrite, on 11/22/2026; Deal Screener
+shows a one-line summary).
 The settings are initial strike (on SOFR), cap term, renewal strike (reset
 to market or same as initial), and pricing (market with an optional vol
 shift, or manual costs). A change reprices the caps and updates the cash
 flows and returns on every tab:
-- **Linked deals:** as before, through Quick Underwrite's mapping.
+- **Linked deals:** as before, through Deal Screener's mapping.
 - **Unlinked deals** (every Model Fund I asset): priced on the deal's own
   loan amount, hold, spread and acquisition date (`capEngineFields`,
   `capSettingsFor` in `lib/quickUnderwrite.js`).
@@ -728,7 +729,7 @@ Cost when bought = PV ÷ DF(start)        (forward value at purchase)
   Saved workspaces got them once when they opened (`sizingModel`, values
   already entered kept). At these levels LTV (65%) still sets every Fund I
   loan, so loans and returns did not change; the Asset Summary shows the
-  cushion to the next test. Deals linked to Quick Underwrite size on LTV
+  cushion to the next test. Deals linked to Deal Screener size on LTV
   only.
 - **Loan constant** = the rate if IO, else annual payment ÷ loan.
 - **Effective rate** = (SOFR(y) + spread), capped at the strike while a cap
@@ -1191,12 +1192,12 @@ previous save and records one entry per changed field:
 | Who | The name entered under **Change Log → Your name** in this browser ("Unknown user" if blank) |
 | Area | Deal, Saved deal, Fund terms, Capital activity, Valuation, Sales comps, Forward curve, or Workspace |
 | Item | The deal, fund, asset or comp |
-| Field | What changed, e.g. "Quick Underwrite › Exit cap (%)" or "2026-06-30 › Fair value ($)" |
+| Field | What changed, e.g. "Deal Screener › Exit cap (%)" or "2026-06-30 › Fair value ($)" |
 | From → To | Old and new value ("added" / "removed" for whole items) |
 
 **What is tracked:**
-- **Deals:** Quick Underwrite inputs and the deal's own inputs. For linked
-  deals, fields that come from Quick Underwrite are logged only on the Quick
+- **Deals:** Deal Screener inputs and the deal's own inputs. For linked
+  deals, fields that come from Deal Screener are logged only on the Quick
   side.
 - **Everything else:** saved copies, fund terms, capital activity entries,
   valuation marks, sales comps and the imported forward curve.
@@ -1587,7 +1588,7 @@ when the lease is applied to it, either replacing a unit or added as a new one
 
 ## 8. Worked example: the default deal
 
-The inputs are the Quick Underwrite defaults:
+The inputs are the Deal Screener defaults:
 - $10.0M price, $400K closing costs, 30,000 SF, acquired 2/13/2026;
 - $650K year-1 NOI before PM, growing 35%/yr;
 - 4-year hold, 4.0% exit cap, 6% sale costs;
@@ -1682,7 +1683,7 @@ http://localhost:3000/underwriting-calculator).
 publishes to GitHub Pages, usually within a few minutes.
 
 **Refresh the forward curve:**
-- **In the app:** Quick Underwrite → Update from Pensford, then upload
+- **In the app:** Deal Screener → Update from Pensford, then upload
   Pensford's Excel export (Table view → Download & Share → Excel).
 - **For everyone (new default snapshot):** replace the `FORWARD_CURVE` rows
   in `lib/forwardCurve.js` and update `FORWARD_CURVE_AS_OF`.
@@ -1772,11 +1773,11 @@ files hold the same object.
 | Field | Stored at (`workspaces.data`) | Type | Meaning |
 |---|---|---|---|
 | `id` | `deals[].id` | text | Unique id (`deal-1`, `sample-deal-1` … `sample-deal-9`, or generated) |
-| `linked` | `deals[].linked` | yes / no | Quick Underwrite drives every tab (§7.3) |
-| `quick` | `deals[].quick` | Quick Underwrite inputs (§11.3) | The deal's Quick Underwrite inputs |
+| `linked` | `deals[].linked` | yes / no | Deal Screener drives every tab (§7.3) |
+| `quick` | `deals[].quick` | Deal Screener inputs (§11.3) | The deal's Deal Screener inputs |
 | `inputs` | `deals[].inputs` | Full-model inputs (§11.4) | Inputs to the full engine. For linked deals, rebuilt from `quick`. |
 
-### 11.3 Quick Underwrite inputs (`quick`)
+### 11.3 Deal Screener inputs (`quick`)
 
 | Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
@@ -1817,7 +1818,7 @@ files hold the same object.
 
 ### 11.4 Full-model inputs (`inputs`)
 
-Fields set from Quick Underwrite on linked deals are marked **Q**.
+Fields set from Deal Screener on linked deals are marked **Q**.
 
 **Property and fund:**
 
@@ -2160,7 +2161,7 @@ desc).
 | `user_email` | text | **database** (sign-in email) | Their email |
 | `area` | text | app | Deal, Saved deal, Fund terms, Capital activity, Valuation, Sales comps, Forward curve, Workspace, Members |
 | `item` | text | app | Deal, fund, asset or member |
-| `field` | text | app | What changed, e.g. "Quick Underwrite › Exit cap (%)" |
+| `field` | text | app | What changed, e.g. "Deal Screener › Exit cap (%)" |
 | `path` | jsonb | app | Location in the workspace JSON |
 | `from_value` / `to_value` | jsonb | app | Old and new value |
 | `note` | text | app / function | Events: "Created workspace", "Added as editor", "Bulk change", imports … |
@@ -2467,9 +2468,9 @@ each phase and the decisions behind it are in
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
-| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report | ⛓ After K |
-| M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits | ⛓ After L |
+| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
+| M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; the Deal Screener tab is then retired | ⛓ After L |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
@@ -2532,7 +2533,9 @@ not used. Nothing changes your data until you click to apply it.
   and metro, with a map), each against the fund's limits from the LPA and
   PPM (actual vs. limit, headroom, breaches, and a check on pipeline deals
   before purchase), lease risk flags, insurance gaps and expiries, debt
-  maturities and covenant cushions, a TI funding heat map (whether each
+  maturities and covenant cushions, debt concentration by lender, rate cap
+  counterparty exposure (notional and market value by the institution that
+  wrote each cap, ratings against loan requirements), a TI funding heat map (whether each
   asset's TI is covered by its loan's TI facility and draw test, its own
   cash flow, the sub line or a capital call, quarter by quarter, with
   what-if actions), valuation sensitivity, budget and
@@ -2546,4 +2549,6 @@ not used. Nothing changes your data until you click to apply it.
   the fund's target. Modeling only: scenarios never change your actual
   data. Each scenario is named and saved; a saved version is never
   overwritten, and any change creates a new version. Every version exports
-  to Excel and PDF, marked "Scenario — not actual".
+  to Excel and PDF, marked "Scenario — not actual". Deal Screener
+  becomes the quick way to add a candidate here, and the separate Quick
+  Underwrite tab is then retired (deals and results unchanged).
