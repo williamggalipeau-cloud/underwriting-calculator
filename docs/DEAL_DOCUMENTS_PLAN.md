@@ -15,15 +15,21 @@ changes the model without the user clicking to apply it.
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
 | C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ⏰ Scheduled 11/22 5:30am PT |
 | D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ⏰ Scheduled 11/22 10:30am PT |
-| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements | ⛓ Starts when D is complete |
-| F | Loan agreement → Debt tab | ⛓ Starts when E is complete |
+| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ⛓ Starts when D is complete |
+| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
-| I | Asset business plan (revisions, PDF) and budget vs. plan | ⛓ Starts when H is complete |
+| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ⛓ Starts when H is complete |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
-| L | Performance reporting (shareable and internal) and internal risk reports | ⛓ Starts when K is complete |
-| M | Fund impact modeling: add a candidate asset and see the fund-level effect | ⛓ Starts when L is complete |
+| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
+| M | Fund impact modeling (Deal Screener and Full Underwrite candidates, versioned scenarios); Deal Screener tab retired | ⛓ Starts when L is complete |
+
+**Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
+value change with exit cap and a PDF of valuation adjustments and their
+effect on returns (PR #65); the rate cap moved from Quick Underwrite to the
+Debt tab with a cap provider per cap (PR #66); Quick Underwrite renamed
+**Deal Screener**.
 
 Each finished phase is marked here (and in the user manual's §13 Roadmap)
 with what was built and how it was tested; the user gets a progress note in the Claude session after each one.

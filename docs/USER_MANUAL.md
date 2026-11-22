@@ -2468,8 +2468,8 @@ each phase and the decisions behind it are in
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
-| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report | ⛓ After K |
+| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
 | M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; the Deal Screener tab is then retired | ⛓ After L |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
