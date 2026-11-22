@@ -1477,6 +1477,31 @@ validated by the connector (67 fields, 12 rent periods, 10 critical dates,
 it into **Save abstract** after uploading those two PDFs to Mill Creek to
 see a finished abstract.
 
+**Sample abstracts.** Validated abstracts of nine sample leases are in
+`docs/sample-leases/abstracts/`, one JSON file per lease, each with its
+connector draft id in `app.draft_id`:
+
+| File | Asset | Tenant | Notable terms |
+|---|---|---|---|
+| 03-route-9… | Route 9 Small Bay | Cascade Cabinet Works | Expires 5/31/2027; renewal notice due 11/30/2026 |
+| 05-ridgeway… | Ridgeway Trade Center | Lone Star HVAC Supply | Tenant termination right (effective 7/31/2027, notice by 1/31/2027); ROFO on Suite 310 |
+| 06-canal-street… | Canal Street Workshops | Bayou Fabrication Studio | Gross lease; personal guaranty |
+| 07-mill-creek… | Mill Creek Business Park | Snohomish Brewing Equipment | With the first amendment: extended to 3/31/2032, renewal option deleted |
+| 08-southpoint… | Southpoint Flex | Sunrise Solar Installers | Lithium battery storage; outside storage yard |
+| 09-granite-ave… | Granite Ave Industrial | Granite State Signs & Graphics | Landlord relocation right; 2 months' free rent |
+| 12-eastside… | Eastside Distribution Hub | Inland Northwest Grocery | 10-year term; ROFR on Dock Suite E |
+| 13-northgate… | Northgate Flex Center | Hill Country Robotics | Termination right and Suite 160 expansion option (both by 1/31/2027); 3 months' free rent |
+| 14-riverside… | Riverside Commerce Park | Citrus Belt Logistics | Landlord relocation right; 200% holdover |
+
+Each draft is produced by `scripts/sample-leases/abstract_all.py` (all 67
+template fields, rent schedule, critical dates and risk flags, with every
+quote checked against the PDF text) and then validated by the connector.
+Where the PDF's rent table splits a date across cells (free-rent rows), the
+row's dates are recorded as calculated from the Commencement Date. Airport
+Flex (02) and the two leases with amendments (Harbor Light 04, Lakeshore 10)
+are not yet abstracted. To use one, upload that lease's PDF on the asset's
+Leases tab and paste the JSON into **Save abstract**.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Quick Underwrite defaults:
