@@ -77,8 +77,8 @@ are reviewed.
 
 ## Open decisions
 
-1. A separate **Documents** tab (recommended) or one combined Leases and
-   Documents tab.
+1. ~~Separate Documents tab or combined with Leases~~ **Decided (11/22):
+   a separate Documents tab.**
 2. PSA abstracts without connector validation (checked locally): acceptable?
 3. Start E automatically after D, or after you review C and D (recommended).
 4. Deal Review quota: the lease connector shows 3 free documents left. Bulk use
