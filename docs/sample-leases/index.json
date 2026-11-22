@@ -1,22 +1,5 @@
 [
   {
-    "asset": "Light Industrial (30k SF)",
-    "state": "CA",
-    "city": "Ontario",
-    "address": "1450 Cedar Grove Court",
-    "zip": "91761",
-    "suite": "Suite C",
-    "rsf": 4800,
-    "tenant": "Inland Crate & Pallet Co.",
-    "lease_type": "NNN",
-    "commencement": "2023-09-01",
-    "expiration": "2028-08-31",
-    "rate": 16.2,
-    "files": [
-      "01-light-industrial-30k-inland-crate.pdf"
-    ]
-  },
-  {
     "asset": "Airport Flex Park",
     "state": "NV",
     "city": "Las Vegas",
@@ -174,25 +157,6 @@
       "10a-lakeshore-north-texas-fleet-first-amendment.pdf"
     ],
     "amendment": "First Amendment to Lease (Renewal Option)"
-  },
-  {
-    "asset": "Small Bay Industrial — Phase I",
-    "state": "NV",
-    "city": "Sparks",
-    "address": "1900 Greenbelt Industrial Way",
-    "zip": "89431",
-    "suite": "Unit 001",
-    "rsf": 3200,
-    "tenant": "Smith Metal Works",
-    "lease_type": "NNN",
-    "commencement": "2022-08-01",
-    "expiration": "2027-07-31",
-    "rate": 12.7,
-    "files": [
-      "11-small-bay-phase-i-smith-metal-works.pdf",
-      "11a-small-bay-phase-i-smith-metal-works-first-amendment.pdf"
-    ],
-    "amendment": "First Amendment to Lease (Extension and Renewal Option)"
   },
   {
     "asset": "Eastside Distribution Hub",

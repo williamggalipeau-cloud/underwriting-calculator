@@ -69,18 +69,6 @@ BASE = dict(
 
 LEASES = [
     dict(
-        asset="Light Industrial (30k SF)", file="01-light-industrial-30k-inland-crate",
-        landlord="Model Fund I — Cedar Grove Industrial LLC",
-        tenant="Inland Crate & Pallet Co., a California corporation",
-        suite="Suite C", rsf=4800, building_rsf=30000,
-        lease_type="NNN", commencement="2023-09-01", term_months=60, rate=16.20, escalation=3.5,
-        permitted_use="manufacture, repair, storage and distribution of wooden crates and pallets, and related office use",
-        outside_storage="storage of finished pallets, stacked no higher than ten (10) feet, within the 1,200 square foot fenced area shown on Exhibit B",
-        yard="non-exclusive use of the shared truck court for loading at the two (2) dock-high doors serving the Premises",
-        renewal=dict(count=1, years=5, notice_months=9, basis="95% of the Fair Market Rent"),
-        maintenance_cap="Tenant's share of roof repairs is capped at $0.15 per rentable square foot per year",
-    ),
-    dict(
         asset="Airport Flex Park", file="02-airport-flex-park-desert-aero",
         landlord="Model Fund I — Runway Vista LLC",
         tenant="Desert Aero Parts LLC, a Nevada limited liability company",
@@ -225,27 +213,6 @@ LEASES = [
                 ("Early Termination", "Section 17 (Early Termination) of the Lease is deleted in its entirety. Tenant has no right to terminate the Lease early."),
                 ("Renewal Option", "Tenant shall have one (1) option to extend the Term for five (5) years, exercisable by written notice to Landlord at least nine (9) months before the Expiration Date, at 95% of the Fair Market Rent."),
                 ("Base Rent Abatement", "Base Rent for February and March 2025 is abated in full ($5,463.33 in total)."),
-            ],
-        ),
-    ),
-    dict(
-        asset="Small Bay Industrial — Phase I", file="11-small-bay-phase-i-smith-metal-works",
-        landlord="Model Fund I — Greenbelt Industrial LLC",
-        tenant="Smith Metal Works, Inc., a Nevada corporation",
-        suite="Unit 001", rsf=3200, building_rsf=60000,
-        lease_type="NNN", commencement="2022-08-01", term_months=60, rate=12.70, escalation=3.0,
-        permitted_use="metal fabrication and the manufacture of custom metal parts, with related office use",
-        hazmat="Tenant may use welding gases, cutting oils and metal-finishing chemicals in quantities customary for a metal fabrication shop, stored in compliance with the local fire code.",
-        renewal=None,
-        amendment=dict(
-            file="11a-small-bay-phase-i-smith-metal-works-first-amendment", date="2026-09-15",
-            title="First Amendment to Lease (Extension and Renewal Option)",
-            recital="The Term is scheduled to expire July 31, 2027, and the parties wish to extend it on the terms below.",
-            changes=[
-                ("Extended Term", "The Term is extended for sixty (60) months, from August 1, 2027 through July 31, 2032 (the \"Extended Term\")."),
-                ("Base Rent — Extended Term", "Base Rent for the Extended Term is $15.40 per rentable square foot per year ($4,106.67 per month) from August 1, 2027, increasing by 3.5% on each August 1 thereafter."),
-                ("Renewal Option", "Tenant shall have one (1) option to extend the Term for five (5) years after the Extended Term, exercisable by written notice at least nine (9) months before July 31, 2032, at 95% of the Fair Market Rent."),
-                ("Improvement Allowance", "Landlord shall provide an allowance of $4.00 per rentable square foot ($12,800.00) for improvements to the Premises, to be requested by June 30, 2027."),
             ],
         ),
     ),

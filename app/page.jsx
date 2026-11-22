@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { underwrite } from "@/lib/calculations";
-import { generateTestScenario, TEST_ACQUISITION_DATES, TEST_PREVIOUS_HOLDS } from "@/lib/testScenario";
+import { generateTestScenario, REMOVED_TEST_ASSETS, TEST_ACQUISITION_DATES, TEST_PREVIOUS_HOLDS } from "@/lib/testScenario";
 import DealInputsPanel from "@/components/DealInputs";
 import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
@@ -10,6 +10,7 @@ import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import Leases from "@/components/Leases";
 import { withLocation } from "@/lib/assetLocations";
+import { MTM_MODEL, mtmIndex, withMarkToMarket } from "@/lib/sampleRentRolls";
 import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
@@ -115,11 +116,35 @@ function normalizeWorkspaceFunds(saved) {
       ),
     };
   }
+  // Assets removed from the sample and test data leave Model Fund I (once per
+  // workspace).
+  const fundT = out.funds[SAMPLE_FUND_NAME];
+  if (fundT && fundT.testDataModel !== TEST_DATA_MODEL) {
+    const removed = (d) => d.inputs?.fundName === SAMPLE_FUND_NAME && REMOVED_SAMPLE_ASSETS.includes(d.inputs?.propertyName);
+    const left = out.deals.filter((d) => !removed(d));
+    out = {
+      funds: { ...out.funds, [SAMPLE_FUND_NAME]: { ...fundT, testDataModel: TEST_DATA_MODEL } },
+      deals: left.length ? left : [linkedDeal()],
+      savedDeals: out.savedDeals.filter((d) => !removed(d)),
+    };
+  }
+  // Model Fund I rent rolls: every asset gets a rent roll with market rent
+  // 20–40% above in-place (once per workspace).
+  const fundNow = out.funds[SAMPLE_FUND_NAME];
+  if (fundNow && fundNow.rentRollModel !== MTM_MODEL) {
+    const inFund = (d) => d.inputs?.fundName === SAMPLE_FUND_NAME;
+    const mtm = (inputs) => withMarkToMarket(inputs, mtmIndex(inputs.propertyName));
+    out = {
+      funds: { ...out.funds, [SAMPLE_FUND_NAME]: { ...fundNow, rentRollModel: MTM_MODEL } },
+      deals: out.deals.map((d) => (inFund(d) ? { ...d, inputs: mtm(d.inputs) } : d)),
+      savedDeals: out.savedDeals.map((d) => (inFund(d) ? { ...d, ...snapshotDeal(mtm(d.inputs), d.id) } : d)),
+    };
+  }
   return out;
 }
 
 function initialFunds() {
-  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS } };
+  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS, rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL } };
 }
 
 function fmtISODate(iso) {
@@ -281,26 +306,25 @@ const DEFAULT_INPUTS = {
 };
 
 
-// The starting deal: driven by the Quick Underwrite tab (direct NOI), so
-// every tab analyses the same light-industrial acquisition.
+// A blank working deal (not in a fund) for when no deals are left open,
+// driven by the Quick Underwrite tab (direct NOI).
 function linkedDeal(id = "deal-1") {
   return {
     id,
     linked: true,
     quick: QUICK_DEFAULTS,
-    inputs: toMainInputs(QUICK_DEFAULTS, withLocation({
-      ...DEFAULT_INPUTS,
-      propertyName: "Light Industrial (30k SF)",
-      squareFootage: 30000,
-      fundName: SAMPLE_FUND_NAME,
-    })),
+    inputs: toMainInputs(QUICK_DEFAULTS, { ...DEFAULT_INPUTS, propertyName: "New Deal", squareFootage: 30000, fundName: "" }),
   };
 }
 
-// The app opens with a live fund: the linked deal plus nine sample assets,
-// all editable deals in Model Fund I.
+// Assets removed from Model Fund I's sample and test data.
+const REMOVED_SAMPLE_ASSETS = ["Light Industrial (30k SF)", ...REMOVED_TEST_ASSETS];
+const TEST_DATA_MODEL = "v2";
+
+// The app opens with a live fund: the nine sample assets, all editable
+// deals in Model Fund I.
 function initialDeals() {
-  return [linkedDeal(), ...buildSampleDeals(DEFAULT_INPUTS)];
+  return buildSampleDeals(DEFAULT_INPUTS);
 }
 
 function newDeal(overrides = {}) {
@@ -343,7 +367,7 @@ function fmtDollarM(n) {
 
 export default function Home() {
   const [deals, setDealsRaw] = useState(initialDeals);
-  const [activeDealId, setActiveDealId] = useState("deal-1");
+  const [activeDealId, setActiveDealId] = useState("sample-deal-1");
   const [activeTab, setActiveTab] = useState("quick");
   const [savedDeals, setSavedDealsRaw] = useState([]);
   // Fund terms by fund name (timeline, waterfall, fee).
@@ -695,17 +719,15 @@ export default function Home() {
   function applyWorkspace(saved, note) {
     // Fill settings added since it was saved with their defaults and re-map
     // linked deals onto the full model.
-    {
-      const w = normalizeWorkspaceFunds(saved);
-      setDealsRaw(w.deals);
-      setSavedDealsRaw(w.savedDeals);
-      setFundsRaw(w.funds);
-    }
+    const w = normalizeWorkspaceFunds(saved);
+    setDealsRaw(w.deals);
+    setSavedDealsRaw(w.savedDeals);
+    setFundsRaw(w.funds);
     const base = saved.baseCurve?.points?.length ? saved.baseCurve : DEFAULT_CURVE;
     const anchor = typeof saved.anchorToLive === "boolean" ? saved.anchorToLive : true;
     setBaseCurveRaw(base);
     setAnchorToLiveRaw(anchor);
-    setActiveDealId(saved.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : saved.deals[0].id);
+    setActiveDealId(w.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : w.deals[0].id);
     setCompsRaw({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
     setValuationsRaw(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
     // The loaded workspace brings its own change log; the load itself is logged.
@@ -986,19 +1008,15 @@ export default function Home() {
   function handleLoadTest() {
     if (!requireEdit()) return;
     noteAudit("Loaded the test scenario");
-    const { activeDealInputs, savedDeals: testDeals } = generateTestScenario();
-    const testDealId = "test-active";
+    const { savedDeals: testDeals } = generateTestScenario();
+    // Three saved Model Fund I assets; earlier test deals are replaced.
     setDeals((prev) => {
-      const existing = prev.filter((d) => d.id !== testDealId && !d.id.startsWith("test-"));
-      return [{ id: testDealId, inputs: activeDealInputs }, ...existing];
+      const existing = prev.filter((d) => !d.id.startsWith("test-"));
+      return existing.length ? existing : [linkedDeal()];
     });
-    setActiveDealId(testDealId);
-    setActiveTab("units");
-    // The active test deal is in Fund I live, so drop its saved copy.
-    setSavedDeals((prev) => [
-      ...prev.filter((d) => !d.id.startsWith("test-")),
-      ...(activeDealInputs.fundName?.trim() ? testDeals.slice(1) : testDeals),
-    ]);
+    setActiveDealId((prev) => (prev.startsWith("test-") ? deals.find((d) => !d.id.startsWith("test-"))?.id ?? "deal-1" : prev));
+    setSavedDeals((prev) => [...prev.filter((d) => !d.id.startsWith("test-")), ...testDeals]);
+    setActiveTab("fund");
   }
 
   // Re-creates the nine sample deals (discarding edits to them), puts the
@@ -1007,9 +1025,7 @@ export default function Home() {
     if (!requireEdit()) return;
     noteAudit("Loaded Model Fund I (sample assets rebuilt)");
     setDeals((prev) => [
-      ...prev
-        .filter((d) => !d.id.startsWith("sample-deal-"))
-        .map((d) => (d.id === activeDealId ? { ...d, inputs: { ...d.inputs, fundName: SAMPLE_FUND_NAME } } : d)),
+      ...prev.filter((d) => !d.id.startsWith("sample-deal-")),
       ...buildSampleDeals(DEFAULT_INPUTS),
     ]);
     // Make sure the fund has terms (a workspace saved before the rename
@@ -1017,7 +1033,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS) } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL } };
     });
     setActiveTab("fund");
   }
@@ -1029,7 +1045,7 @@ export default function Home() {
       const next = prev.filter((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-deal-"));
       return next.length > 0 ? next : [linkedDeal()];
     });
-    setActiveDealId((prev) => (prev.startsWith("test-") || prev.startsWith("sample-deal-") ? "deal-1" : prev));
+    setActiveDealId((prev) => (prev.startsWith("test-") || prev.startsWith("sample-deal-") ? deals.find((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-deal-"))?.id ?? "deal-1" : prev));
     setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-")));
   }
 
