@@ -1,0 +1,1507 @@
+{
+ "title": "Snohomish Brewing Equipment Co. — Mill Creek Business Park, Bldg 2 Suite 120",
+ "summary": "Triple-net industrial lease of 2,300 RSF to a stainless brewing equipment fabricator, signed February 1, 2020 for 84 months from April 1, 2020. The First Amendment (May 20, 2026) extends the term 60 months to March 31, 2032 at $15.25/RSF rising 3.5% a year, deletes the renewal option, adds a right of first offer on Suite 130 and a $6,900 refurbishment allowance.",
+ "property_type": "industrial",
+ "documents": [
+  {
+   "id": "lease",
+   "title": "Industrial Lease",
+   "date": "2020-02-01",
+   "start_page": 1,
+   "end_page": 6
+  },
+  {
+   "id": "amend1",
+   "title": "First Amendment to Lease (Extension)",
+   "date": "2026-05-20",
+   "start_page": 7,
+   "end_page": 8
+  }
+ ],
+ "fields": [
+  {
+   "key": "landlord",
+   "value": "Model Fund I — Mill Creek LLC, a Delaware limited liability company",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Model Fund I — Mill Creek LLC, a Delaware limited liability company",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant",
+   "value": "Snohomish Brewing Equipment Co., a Washington corporation",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Snohomish Brewing Equipment Co., a Washington corporation",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant_business",
+   "value": "Stainless steel brewing equipment fabrication and repair",
+   "status": "found",
+   "label": "Tenant business",
+   "section": "parties",
+   "clause": "1, 7.1",
+   "evidence": [
+    {
+     "quote": "fabrication, assembly and repair of stainless steel brewing equipment",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "sic_code",
+   "value": "3443 — Fabricated plate work (boiler shops)",
+   "status": "calculated",
+   "label": "SIC code",
+   "section": "use",
+   "clause": "7.1",
+   "calculation": "Business: fabrication of stainless steel brewing equipment (tanks and vessels) → SIC 3443 Fabricated plate work (boiler shops)",
+   "evidence": [
+    {
+     "quote": "fabrication, assembly and repair of stainless steel brewing equipment",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "guarantor",
+   "value": "None",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Snohomish Brewing Equipment Co., a Washington corporation None Mill Creek Business Park",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "property",
+   "value": "Mill Creek Business Park, 11500 Mill Creek Loop, Everett, Washington 98204",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Mill Creek Business Park, 11500 Mill Creek Loop, Everett, Washington 98204",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "premises",
+   "value": "Building 2, Suite 120",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Building 2, Suite 120, containing approximately 2,300 rentable square feet",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rentable_area",
+   "value": "2,300 rentable square feet (not subject to remeasurement)",
+   "status": "found",
+   "clause": "1, 2.1",
+   "evidence": [
+    {
+     "quote": "Building 2, Suite 120, containing approximately 2,300 rentable square feet",
+     "page": 1
+    },
+    {
+     "quote": "is agreed and is not subject to remeasurement",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "pro_rata_share",
+   "value": "4.60% (of 50,000 RSF building)",
+   "status": "found",
+   "clause": "1, 5.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall pay Tenant's Share (4.60%) of all Operating",
+     "page": 2
+    },
+    {
+     "quote": "Building 2, Suite 120, containing approximately 2,300 rentable square feet 50,000 rentable square feet 4.60%",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "lease_date",
+   "value": "February 1, 2020",
+   "status": "found",
+   "clause": "Preamble",
+   "evidence": [
+    {
+     "quote": "This Industrial Lease is made as of February 1, 2020",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "lease_type",
+   "value": "Triple net (NNN)",
+   "status": "found",
+   "clause": "1, 5.1",
+   "evidence": [
+    {
+     "quote": "This is a triple net lease.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "amendments",
+   "value": "First Amendment to Lease (Extension) dated May 20, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This First Amendment to Lease (Extension) (this \"Amendment\") is made as of May 20, 2026",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "key": "term_length",
+   "value": "Extended Term of 60 months, April 1, 2027 through March 31, 2032",
+   "status": "found",
+   "clause": "Amendment 1",
+   "evidence": [
+    {
+     "quote": "The Term is extended for sixty (60) months, from April 1, 2027 through March 31, 2032",
+     "page": 7
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "eighty-four (84) months",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "eighty-four (84) months",
+       "page": 1
+      }
+     ]
+    }
+   ],
+   "detail": "The original 84-month term ran April 1, 2020 to March 31, 2027; the First Amendment adds 60 months from April 1, 2027, so the term now ends March 31, 2032 (144 months in total)."
+  },
+  {
+   "key": "commencement_date",
+   "value": "April 1, 2020",
+   "status": "found",
+   "clause": "1, 3.1",
+   "evidence": [
+    {
+     "quote": "The Term begins on the Commencement Date, April 1, 2020",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_commencement_date",
+   "value": "Same as the Commencement Date, April 1, 2020 (no free rent)",
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2020        March 31, 2021          $12.50",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "expiration_date",
+   "value": "March 31, 2032",
+   "status": "found",
+   "clause": "Amendment 1",
+   "evidence": [
+    {
+     "quote": "The Term is extended for sixty (60) months, from April 1, 2027 through March 31, 2032",
+     "page": 7
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "March 31, 2027",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "ends on the Expiration Date, March 31, 2027",
+       "page": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "base_rent",
+   "value": "$15.25/RSF/yr ($2,922.92/month) from April 1, 2027; currently $14.93/RSF ($2,861.58/month) through March 31, 2027",
+   "status": "found",
+   "clause": "4.1; Amendment 2",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Extended Term is $15.25 per rentable square foot per year ($2,922.92 per month) from April 1, 2027",
+     "page": 7
+    },
+    {
+     "quote": "April 1, 2026        March 31, 2027          $14.93                                           $2,861.58",
+     "page": 2
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "$12.50 per rentable square foot per year",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "$12.50 per rentable square foot per year, as scheduled in Section 4",
+       "page": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rent_escalations",
+   "value": "3.5% on each April 1 during the Extended Term",
+   "status": "found",
+   "clause": "4.1; Amendment 2",
+   "evidence": [
+    {
+     "quote": "increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "3% on each anniversary of the Commencement Date",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "Base Rent increases by 3% on each anniversary of the Commencement Date.",
+       "page": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rent_abatement",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "late_charge",
+   "value": "5% of the overdue amount if not received within 5 days after due",
+   "status": "found",
+   "clause": "4.2",
+   "evidence": [
+    {
+     "quote": "Any rent not received within five (5) days after its",
+     "page": 2
+    },
+    {
+     "quote": "due date bears a late charge of five percent (5%) of the overdue amount.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "security_deposit",
+   "value": "$2,395.83; restore within 10 days after demand; return within 30 days after surrender",
+   "status": "found",
+   "clause": "1, 6.1, 6.2, 24.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall deposit $2,395.83 with Landlord",
+     "page": 2
+    },
+    {
+     "quote": "within ten (10) days after demand",
+     "page": 2
+    },
+    {
+     "quote": "unapplied balance to Tenant within thirty (30) days after the expiration of the Term",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "letter_of_credit",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "guaranty",
+   "value": "None",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Snohomish Brewing Equipment Co., a Washington corporation None Mill Creek Business Park",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "renewal_option",
+   "value": "None — the renewal option was deleted by the First Amendment",
+   "status": "found",
+   "clause": "16; Amendment 3",
+   "evidence": [
+    {
+     "quote": "Section 16 (Renewal Option) of the Lease is deleted in its entirety. Tenant has no further right to extend the Term.",
+     "page": 7
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "One 5-year option at 95% of Fair Market Rent, on at least 9 months' notice",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "Tenant has one (1) option to extend the Term for five (5) years each",
+       "page": 5
+      },
+      {
+       "quote": "given at least nine (9) months before the then-scheduled Expiration Date",
+       "page": 5
+      },
+      {
+       "quote": "Base Rent for each extension term shall be 95% of the Fair Market Rent",
+       "page": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "termination_option",
+   "value": "None",
+   "status": "found",
+   "clause": "17.1",
+   "evidence": [
+    {
+     "quote": "Tenant has no right to terminate this Lease before the Expiration Date.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "expansion_rights",
+   "value": "Right of first offer on Suite 130 (about 1,500 RSF) during the Extended Term; 15 days to accept in writing",
+   "status": "found",
+   "clause": "18.1; Amendment 4",
+   "evidence": [
+    {
+     "quote": "before leasing Suite 130 (approximately 1,500 rentable square feet) to a third party,",
+     "page": 7
+    },
+    {
+     "quote": "who shall have fifteen (15) days to accept the offer in writing",
+     "page": 7
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "No right of first refusal, right of first offer or expansion option",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "Tenant has no right of first refusal, right of first offer or expansion option",
+       "page": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "purchase_option",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "permitted_use",
+   "value": "Fabrication, assembly and repair of stainless steel brewing equipment, with related office use",
+   "status": "found",
+   "clause": "1, 7.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall use the Premises only for fabrication, assembly and repair of stainless steel brewing equipment,",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "exclusive_use",
+   "value": "None",
+   "status": "found",
+   "clause": "7.3",
+   "evidence": [
+    {
+     "quote": "Tenant has no exclusive right to conduct any business in the Project.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "co_tenancy",
+   "value": "None — obligations not conditioned on other tenants",
+   "status": "found",
+   "clause": "7.4",
+   "evidence": [
+    {
+     "quote": "Tenant's obligations under this Lease are not conditioned on the occupancy or operation of any other tenant.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "prohibited_uses",
+   "value": "Nuisance, odors or vibrations noticeable outside the Premises, or uses that raise Landlord's insurance premiums",
+   "status": "found",
+   "clause": "7.2",
+   "evidence": [
+    {
+     "quote": "emits odors or vibrations noticeable",
+     "page": 3
+    },
+    {
+     "quote": "outside the Premises, or increases Landlord's insurance premiums",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "hazardous_materials",
+   "value": "Only customary office / light industrial materials in small quantities; Tenant indemnifies (survives) and remediates releases it causes",
+   "status": "found",
+   "clause": "8.1, 8.3, 8.4",
+   "evidence": [
+    {
+     "quote": "8.1 Tenant may use only those Hazardous Materials customarily used in general office and light industrial operations, in small quantities",
+     "page": 3
+    },
+    {
+     "quote": "This indemnity survives the expiration or termination of this Lease.",
+     "page": 3
+    },
+    {
+     "quote": "Tenant shall promptly remediate, at its sole cost and to the standard required by the governing agency",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "environmental_baseline",
+   "value": "Exhibit D, if any (not included)",
+   "status": "unclear",
+   "label": "Environmental baseline",
+   "section": "legal",
+   "clause": "25.2",
+   "detail": "The exhibit list names an environmental baseline exhibit 'if any', and exhibits are not included, so it is unclear whether a baseline exists.",
+   "evidence": [
+    {
+     "quote": "Environmental baseline (if any)",
+     "page": 6
+    },
+    {
+     "quote": "(Exhibits are not included in this sample.)",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "insurance_requirements",
+   "value": "CGL $1,000,000 / $2,000,000 aggregate; umbrella $2,000,000; property at replacement cost; auto $1,000,000; workers' comp; Landlord, manager and lender as additional insureds; mutual waiver of subrogation",
+   "status": "found",
+   "clause": "12.1-12.3",
+   "evidence": [
+    {
+     "quote": "commercial general liability insurance of at least $1,000,000 per",
+     "page": 4
+    },
+    {
+     "quote": "occurrence and $2,000,000 in the aggregate",
+     "page": 4
+    },
+    {
+     "quote": "umbrella or excess liability insurance of at least $2,000,000",
+     "page": 4
+    },
+    {
+     "quote": "business automobile liability insurance of at least $1,000,000 combined single limit",
+     "page": 4
+    },
+    {
+     "quote": "shall be named as additional insureds",
+     "page": 4
+    },
+    {
+     "quote": "each shall cause its insurers to waive subrogation accordingly",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "indemnification",
+   "value": "Tenant indemnifies Landlord for claims from its use or acts, except Landlord's negligence or willful misconduct",
+   "status": "found",
+   "clause": "13.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall indemnify, defend and hold Landlord harmless from all claims arising from Tenant's use of the",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "landlord_maintenance",
+   "value": "Roof, parking, truck court and yard as Operating Expenses; structure at Landlord's sole cost",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Landlord, as an Operating Expense",
+     "page": 3
+    },
+    {
+     "quote": "Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "tenant_maintenance",
+   "value": "Interior of the Premises (doors, dock levelers, plumbing and electrical) at Tenant's sole cost",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Tenant, at its sole cost (doors, dock levelers, plumbing and electrical within the Premises)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "roof_structure",
+   "value": "Roof by Landlord as an Operating Expense; structure by Landlord at its sole cost",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Roof                   Landlord, as an Operating Expense",
+     "page": 3
+    },
+    {
+     "quote": "Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "hvac_maintenance",
+   "value": "Tenant under a quarterly service contract; Landlord replaces units at end of life, amortized as an Operating Expense",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Tenant, under a quarterly service contract with a licensed contractor",
+     "page": 3
+    },
+    {
+     "quote": "end of their useful life, amortized as an Operating Expense",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "repair_caps",
+   "value": "None",
+   "status": "found",
+   "label": "Caps on tenant repairs",
+   "section": "obligations",
+   "clause": "9.2",
+   "evidence": [
+    {
+     "quote": "Caps on Tenant's repair obligations: None.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "operating_hours",
+   "value": "24 hours a day, 7 days a week",
+   "status": "found",
+   "label": "Operating hours",
+   "section": "use",
+   "clause": "15.1",
+   "evidence": [
+    {
+     "quote": "Tenant may access and operate in the Premises 24 hours a day, 7 days a week",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "parking",
+   "value": "Non-exclusive, 1.5 spaces per 1,000 RSF",
+   "status": "found",
+   "clause": "15.2",
+   "evidence": [
+    {
+     "quote": "at a ratio of 1.5 spaces per 1,000 rentable square feet of the Premises",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "truck_court_yard",
+   "value": "Exclusive use of one grade-level door and 600 SF of the truck court for staging",
+   "status": "found",
+   "label": "Truck court and yard",
+   "section": "use",
+   "clause": "15.3",
+   "evidence": [
+    {
+     "quote": "Tenant shall have exclusive use of one (1) grade-level door and the adjacent 600",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "loading_docks",
+   "value": "One grade-level door (exclusive)",
+   "status": "found",
+   "clause": "15.3",
+   "evidence": [
+    {
+     "quote": "exclusive use of one (1) grade-level door",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "signage",
+   "value": "One building-standard sign above the entry door, at Tenant's cost, subject to Landlord approval; removed at end of Term",
+   "status": "found",
+   "clause": "15.5",
+   "evidence": [
+    {
+     "quote": "Tenant may install one (1) building-standard sign above the entry door of the Premises",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "outdoor_storage",
+   "value": "Not permitted",
+   "status": "found",
+   "clause": "15.4",
+   "evidence": [
+    {
+     "quote": "No outside storage of any kind is permitted.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "operating_expenses",
+   "value": "Triple net: Tenant pays 4.60% of Operating Expenses and Real Estate Taxes, monthly estimates reconciled annually",
+   "status": "found",
+   "clause": "5.1, 5.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall pay Tenant's Share (4.60%) of all Operating",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "real_estate_taxes",
+   "value": "Included in Tenant's Share; Tenant also pays taxes on its leasehold interest and property",
+   "status": "found",
+   "clause": "5.1, 24.3",
+   "evidence": [
+    {
+     "quote": "Expenses and Real Estate Taxes of the Project",
+     "page": 2
+    },
+    {
+     "quote": "Tenant shall pay any tax imposed on its leasehold interest",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "expense_cap",
+   "value": "None",
+   "status": "found",
+   "clause": "5.4",
+   "evidence": [
+    {
+     "quote": "Operating Expenses are not subject to any cap.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "management_fee",
+   "value": "Capped at 4% of gross revenues",
+   "status": "found",
+   "clause": "5.3",
+   "evidence": [
+    {
+     "quote": "shall not exceed 4% of gross revenues",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "audit_rights",
+   "value": "Notice within 120 days after the annual statement; Landlord pays if overstated by more than 3%",
+   "status": "found",
+   "clause": "5.5",
+   "evidence": [
+    {
+     "quote": "hundred twenty (120) days after receiving Landlord's annual statement",
+     "page": 2
+    },
+    {
+     "quote": "overstated by more than 3%, Landlord shall pay the reasonable cost of the audit",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "base_year",
+   "value": "Not addressed (triple net)",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "subordination",
+   "value": "Subordinate to mortgages with non-disturbance; SNDA within 15 days after request",
+   "status": "found",
+   "clause": "21.1",
+   "evidence": [
+    {
+     "quote": "subordination, non-disturbance and attornment agreement (SNDA) within fifteen (15) days after request",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "estoppel",
+   "value": "Within 10 days after request",
+   "status": "found",
+   "clause": "21.2",
+   "evidence": [
+    {
+     "quote": "Within ten (10) days after Landlord's request, Tenant shall deliver a signed estoppel certificate",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "default_cure",
+   "value": "Monetary: 5 days after written notice; non-monetary: 30 days (longer if diligently pursued); insolvency or abandonment",
+   "status": "found",
+   "clause": "19.1",
+   "evidence": [
+    {
+     "quote": "Tenant fails to pay any rent within five (5) days after",
+     "page": 5
+    },
+    {
+     "quote": "written notice that it is past due",
+     "page": 5
+    },
+    {
+     "quote": "Tenant fails to perform any other obligation within thirty (30) days after",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "landlord_default_cure",
+   "value": "30 days after written notice (longer if diligently pursued)",
+   "status": "found",
+   "label": "Landlord default and cure",
+   "section": "legal",
+   "clause": "19.3",
+   "evidence": [
+    {
+     "quote": "Landlord is in default only if it fails to perform an obligation within thirty (30) days after written notice",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "holdover",
+   "value": "Tenant at sufferance at 150% of the last Base Rent; liable for damages after 30 days",
+   "status": "found",
+   "clause": "20.1",
+   "evidence": [
+    {
+     "quote": "shall pay Base Rent at 150% of the rate in effect at the end of the Term",
+     "page": 5
+    },
+    {
+     "quote": "holds over for more than thirty (30)",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "relocation_right",
+   "value": "None",
+   "status": "found",
+   "clause": "18.1",
+   "evidence": [
+    {
+     "quote": "Landlord has no right to",
+     "page": 5
+    },
+    {
+     "quote": "relocate Tenant",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "assignment_subletting",
+   "value": "Landlord consent, not unreasonably withheld; Landlord may recapture and takes 50% of any transfer premium; Tenant not released",
+   "status": "found",
+   "clause": "14.1, 14.2",
+   "evidence": [
+    {
+     "quote": "which shall not be unreasonably withheld, conditioned or delayed",
+     "page": 4
+    },
+    {
+     "quote": "Landlord may recapture the space",
+     "page": 4
+    },
+    {
+     "quote": "is entitled to 50% of any transfer premium",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "governing_law",
+   "value": "Washington",
+   "status": "found",
+   "clause": "25.1",
+   "evidence": [
+    {
+     "quote": "This Lease is governed by the laws of the State of Washington.",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "notices",
+   "value": "In writing by hand, overnight courier or certified mail; Landlord c/o Model Fund I, Tenant at the Premises",
+   "status": "found",
+   "clause": "23.1",
+   "evidence": [
+    {
+     "quote": "Notices shall be in writing and delivered by hand, overnight courier or certified mail",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "ti_allowance",
+   "value": "Refurbishment allowance $3.00/RSF ($6,900.00), to be requested by December 31, 2027 (none under the original lease)",
+   "status": "found",
+   "clause": "11.2; Amendment 5",
+   "evidence": [
+    {
+     "quote": "Landlord shall provide a refurbishment allowance of $3.00 per rentable square foot ($6,900.00), to be requested",
+     "page": 7
+    },
+    {
+     "quote": "by December 31, 2027",
+     "page": 7
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "No improvement allowance",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "Landlord provides no improvement allowance.",
+       "page": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "ti_unpaid_balance",
+   "value": "$6,900.00 (refurbishment allowance not yet requested; deadline December 31, 2027)",
+   "status": "calculated",
+   "label": "Unpaid allowance balance",
+   "section": "obligations",
+   "clause": "Amendment 5",
+   "calculation": "$3.00 per RSF × 2,300 RSF = $6,900.00 allowance; no draw recorded in the documents, so unpaid balance = $6,900.00; request deadline December 31, 2027 (Amendment 5)",
+   "evidence": [
+    {
+     "quote": "Landlord shall provide a refurbishment allowance of $3.00 per rentable square foot ($6,900.00), to be requested",
+     "page": 7
+    },
+    {
+     "quote": "by December 31, 2027",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "key": "landlord_work",
+   "value": "None; Premises accepted AS IS with building systems in good working order",
+   "status": "found",
+   "label": "Landlord's work",
+   "section": "obligations",
+   "clause": "11.1",
+   "evidence": [
+    {
+     "quote": "Landlord's work: None. Tenant accepts the Premises in their \"AS IS\" condition",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "alterations",
+   "value": "Landlord consent required, except non-structural interior work under $10,000 a year (notice only)",
+   "status": "found",
+   "clause": "10.1",
+   "evidence": [
+    {
+     "quote": "non-structural interior Alterations costing less than $10,000 in the",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "surrender",
+   "value": "Broom clean and in good condition, reasonable wear and tear and casualty excepted",
+   "status": "found",
+   "clause": "22.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall surrender the Premises broom clean and in good condition",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "restoration",
+   "value": "Remove trade fixtures, equipment and cabling and repair damage; approved Alterations stay unless Landlord elected removal when approving",
+   "status": "found",
+   "label": "Restoration at surrender",
+   "section": "obligations",
+   "clause": "22.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall remove its trade fixtures, equipment and cabling and repair any damage caused by the",
+     "page": 6
+    },
+    {
+     "quote": "Tenant is not required to remove Landlord-approved Alterations",
+     "page": 6
+    }
+   ]
+  }
+ ],
+ "rent_schedule": [
+  {
+   "period": "Lease Year 1",
+   "start": "2020-04-01",
+   "end": "2021-03-31",
+   "rate": 12.5,
+   "monthly_rent": 2395.83,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2020        March 31, 2021          $12.50                                           $2,395.83",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "period": "Lease Year 2",
+   "start": "2021-04-01",
+   "end": "2022-03-31",
+   "rate": 12.88,
+   "monthly_rent": 2468.67,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2021        March 31, 2022          $12.88                                           $2,468.67",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "period": "Lease Year 3",
+   "start": "2022-04-01",
+   "end": "2023-03-31",
+   "rate": 13.26,
+   "monthly_rent": 2541.5,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2022        March 31, 2023          $13.26                                           $2,541.50",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "period": "Lease Year 4",
+   "start": "2023-04-01",
+   "end": "2024-03-31",
+   "rate": 13.66,
+   "monthly_rent": 2618.17,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2023        March 31, 2024          $13.66                                           $2,618.17",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "period": "Lease Year 5",
+   "start": "2024-04-01",
+   "end": "2025-03-31",
+   "rate": 14.07,
+   "monthly_rent": 2696.75,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2024        March 31, 2025          $14.07                                           $2,696.75",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "period": "Lease Year 6",
+   "start": "2025-04-01",
+   "end": "2026-03-31",
+   "rate": 14.49,
+   "monthly_rent": 2777.25,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2025        March 31, 2026          $14.49                                           $2,777.25",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "period": "Lease Year 7",
+   "start": "2026-04-01",
+   "end": "2027-03-31",
+   "rate": 14.93,
+   "monthly_rent": 2861.58,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "April 1, 2026        March 31, 2027          $14.93                                           $2,861.58",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "period": "Extended Term Year 1",
+   "start": "2027-04-01",
+   "end": "2028-03-31",
+   "rate": 15.25,
+   "monthly_rent": 2922.92,
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "status": "calculated",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Extended Term is $15.25 per rentable square foot per year ($2,922.92 per month) from April 1,",
+     "page": 7
+    },
+    {
+     "quote": "The Term is extended for sixty (60) months, from April 1, 2027 through March 31, 2032",
+     "page": 7
+    }
+   ],
+   "calculation": "Starts April 1, 2027 at $15.25 per RSF ($2,922.92 per month); ends April 1, 2027 + 12 months − 1 day = March 31, 2028"
+  },
+  {
+   "period": "Extended Term Year 2",
+   "start": "2028-04-01",
+   "end": "2029-03-31",
+   "rate": 15.7837,
+   "monthly_rent": 3025.21,
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "status": "calculated",
+   "calculation": "$15.25 × 1.035 = $15.7837 per RSF per year; $15.7837 × 2,300 RSF ÷ 12 = $3,025.21 per month; April 1, 2028 + 12 months − 1 day = March 31, 2029",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Extended Term is $15.25 per rentable square foot per year ($2,922.92 per month) from April 1, 2027, increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    },
+    {
+     "quote": "containing approximately 2,300 rentable square feet",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "period": "Extended Term Year 3",
+   "start": "2029-04-01",
+   "end": "2030-03-31",
+   "rate": 16.3362,
+   "monthly_rent": 3131.11,
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "status": "calculated",
+   "calculation": "$15.25 × 1.035 × 1.035 = $16.3362 per RSF per year; $16.3362 × 2,300 RSF ÷ 12 = $3,131.11 per month; April 1, 2029 + 12 months − 1 day = March 31, 2030",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Extended Term is $15.25 per rentable square foot per year ($2,922.92 per month) from April 1, 2027, increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    },
+    {
+     "quote": "containing approximately 2,300 rentable square feet",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "period": "Extended Term Year 4",
+   "start": "2030-04-01",
+   "end": "2031-03-31",
+   "rate": 16.9079,
+   "monthly_rent": 3240.68,
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "status": "calculated",
+   "calculation": "$15.25 × 1.035 × 1.035 × 1.035 = $16.9079 per RSF per year; $16.9079 × 2,300 RSF ÷ 12 = $3,240.68 per month; April 1, 2030 + 12 months − 1 day = March 31, 2031",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Extended Term is $15.25 per rentable square foot per year ($2,922.92 per month) from April 1, 2027, increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    },
+    {
+     "quote": "containing approximately 2,300 rentable square feet",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "period": "Extended Term Year 5",
+   "start": "2031-04-01",
+   "end": "2032-03-31",
+   "rate": 17.4997,
+   "monthly_rent": 3354.11,
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "status": "calculated",
+   "calculation": "$15.25 × 1.035 × 1.035 × 1.035 × 1.035 = $17.4997 per RSF per year; $17.4997 × 2,300 RSF ÷ 12 = $3,354.11 per month; April 1, 2031 + 12 months − 1 day = March 31, 2032",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Extended Term is $15.25 per rentable square foot per year ($2,922.92 per month) from April 1, 2027, increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    },
+    {
+     "quote": "containing approximately 2,300 rentable square feet",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [
+  {
+   "date": "2020-02-01",
+   "kind": "lease_date",
+   "label": "Lease signed",
+   "status": "found",
+   "clause": "Preamble",
+   "evidence": [
+    {
+     "quote": "This Industrial Lease is made as of February 1, 2020",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2020-04-01",
+   "kind": "commencement",
+   "label": "Commencement",
+   "status": "found",
+   "clause": "1, 3.1",
+   "evidence": [
+    {
+     "quote": "The Term begins on the Commencement Date, April 1, 2020",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-05-20",
+   "kind": "other",
+   "label": "First Amendment signed",
+   "status": "found",
+   "governed_by": "amend1",
+   "evidence": [
+    {
+     "quote": "is made as of May 20, 2026",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "date": "2027-04-01",
+   "kind": "rent_increase",
+   "label": "Extended Term starts; rent to $15.25/RSF",
+   "status": "found",
+   "clause": "Amendment 1-2",
+   "governed_by": "amend1",
+   "action": "Bill the new rent ($2,922.92/month)",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Extended Term is $15.25 per rentable square foot per year ($2,922.92 per month) from April 1,",
+     "page": 7
+    },
+    {
+     "quote": "from April 1, 2027 through March 31, 2032",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "date": "2027-12-31",
+   "kind": "other",
+   "label": "Refurbishment allowance request deadline",
+   "status": "found",
+   "clause": "Amendment 5",
+   "governed_by": "amend1",
+   "notice": "Tenant must request the allowance by this date",
+   "action": "Track the $6,900.00 allowance; it lapses if not requested",
+   "evidence": [
+    {
+     "quote": "by December 31, 2027",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "date": "2028-04-01",
+   "kind": "rent_increase",
+   "label": "Rent increase (+3.5%)",
+   "status": "calculated",
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "calculation": "April 1, 2027 + 1 year(s) = April 1, 2028; rate $15.78/RSF",
+   "evidence": [
+    {
+     "quote": "increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "date": "2029-04-01",
+   "kind": "rent_increase",
+   "label": "Rent increase (+3.5%)",
+   "status": "calculated",
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "calculation": "April 1, 2027 + 2 year(s) = April 1, 2029; rate $16.34/RSF",
+   "evidence": [
+    {
+     "quote": "increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "date": "2030-04-01",
+   "kind": "rent_increase",
+   "label": "Rent increase (+3.5%)",
+   "status": "calculated",
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "calculation": "April 1, 2027 + 3 year(s) = April 1, 2030; rate $16.91/RSF",
+   "evidence": [
+    {
+     "quote": "increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "date": "2031-04-01",
+   "kind": "rent_increase",
+   "label": "Rent increase (+3.5%)",
+   "status": "calculated",
+   "clause": "Amendment 2",
+   "governed_by": "amend1",
+   "calculation": "April 1, 2027 + 4 year(s) = April 1, 2031; rate $17.50/RSF",
+   "evidence": [
+    {
+     "quote": "increasing by 3.5% on each April 1 thereafter",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "date": "2032-03-31",
+   "kind": "expiration",
+   "label": "Expiration (no renewal option)",
+   "status": "found",
+   "clause": "Amendment 1, 3",
+   "governed_by": "amend1",
+   "action": "Plan re-leasing or a negotiated extension; Tenant has no renewal right",
+   "evidence": [
+    {
+     "quote": "from April 1, 2027 through March 31, 2032",
+     "page": 7
+    },
+    {
+     "quote": "Tenant has no further right to extend the Term.",
+     "page": 7
+    }
+   ]
+  }
+ ],
+ "risks": [
+  {
+   "severity": "medium",
+   "title": "Uncapped operating expenses",
+   "clause": "5.4",
+   "detail": "Operating Expenses have no cap, so the tenant bears all increases. Good for the landlord's recoveries; a cost-pressure point for the tenant at renewal.",
+   "evidence": [
+    {
+     "quote": "Operating Expenses are not subject to any cap.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "severity": "medium",
+   "title": "Thin credit support",
+   "clause": "1, 6.1",
+   "detail": "No guarantor and a security deposit of one month's original rent ($2,395.83), now about 0.8 months at the current rent.",
+   "evidence": [
+    {
+     "quote": "Snohomish Brewing Equipment Co., a Washington corporation None Mill Creek Business Park",
+     "page": 1
+    },
+    {
+     "quote": "Tenant shall deposit $2,395.83 with Landlord",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "severity": "medium",
+   "title": "Environmental use: metal fabrication",
+   "clause": "8.1-8.4",
+   "detail": "Fabrication use with hazardous materials limited to customary light-industrial quantities. Tenant indemnity survives and Tenant remediates its releases, but no baseline exhibit is included (Exhibit D 'if any').",
+   "evidence": [
+    {
+     "quote": "This indemnity survives the expiration or termination of this Lease.",
+     "page": 3
+    },
+    {
+     "quote": "Environmental baseline (if any)",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "severity": "low",
+   "title": "No renewal option after 2032",
+   "clause": "Amendment 3",
+   "detail": "The amendment deleted the renewal option: the suite rolls on March 31, 2032 unless a new deal is negotiated (re-leasing risk, but also a mark-to-market opportunity).",
+   "evidence": [
+    {
+     "quote": "Section 16 (Renewal Option) of the Lease is deleted in its entirety.",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "severity": "low",
+   "title": "Right of first offer on Suite 130",
+   "clause": "Amendment 4",
+   "detail": "Before leasing Suite 130 to a third party during the Extended Term, Landlord must first offer it to Tenant and wait up to 15 days.",
+   "evidence": [
+    {
+     "quote": "Landlord shall first offer it to Tenant, who shall have fifteen (15) days to accept the offer in writing.",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "severity": "low",
+   "title": "Uncapped tenant repairs",
+   "clause": "9.2",
+   "detail": "No cap on tenant repair obligations for the interior, doors and dock levelers.",
+   "evidence": [
+    {
+     "quote": "Caps on Tenant's repair obligations: None.",
+     "page": 3
+    }
+   ]
+  }
+ ],
+ "app": {
+  "tenant_business": "Stainless steel brewing equipment fabrication and repair",
+  "sic_code": "3443",
+  "draft_id": "b8158a5af04804c313cef5ce37b36409",
+  "validated": true,
+  "files": [
+   "07-mill-creek-snohomish-brewing.pdf",
+   "07a-mill-creek-snohomish-brewing-first-amendment.pdf"
+  ],
+  "made_with": "CREparser Lease Abstraction (pilot, 11/22/2026)",
+  "template": "Light industrial (Model Fund I)",
+  "version": 1
+ }
+}

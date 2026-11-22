@@ -133,3 +133,36 @@ create policy leases_update on storage.objects for update to authenticated
 drop policy if exists leases_delete on storage.objects;
 create policy leases_delete on storage.objects for delete to authenticated
   using (bucket_id = 'leases' and public.ws_can(public.lease_path_ws(name), array['owner', 'editor']));
+
+-- ── Abstracts (phase B) ──────────────────────────────────────────────────────
+-- Saves a lease abstract (or clears it with null) and sets the status. Owners
+-- and editors only; the audit trigger logs it. A new abstract always needs
+-- review again (status 'abstracted', even after an earlier one was applied).
+-- Returns the new status.
+create or replace function public.save_lease_abstract(lease uuid, abstract jsonb)
+returns text language plpgsql security definer set search_path = public as $$
+declare
+  ws uuid;
+  st text;
+begin
+  select workspace_id, status into ws, st from public.lease_documents where id = lease;
+  if ws is null then
+    raise exception 'Lease not found' using errcode = 'P0002';
+  end if;
+  if not public.ws_can(ws, array['owner', 'editor']) then
+    raise exception 'Only owners and editors can save an abstract' using errcode = '42501';
+  end if;
+  if abstract is not null and jsonb_typeof(abstract) <> 'object' then
+    raise exception 'The abstract must be a JSON object' using errcode = '22023';
+  end if;
+  update public.lease_documents
+     set abstract = save_lease_abstract.abstract,
+         status = case when save_lease_abstract.abstract is null then 'uploaded' else 'abstracted' end,
+         abstracted_at = case when save_lease_abstract.abstract is null then null else now() end,
+         abstracted_by_email = case when save_lease_abstract.abstract is null then null else auth.jwt() ->> 'email' end
+   where id = lease
+  returning status into st;
+  return st;
+end $$;
+revoke execute on function public.save_lease_abstract(uuid, jsonb) from public, anon;
+grant execute on function public.save_lease_abstract(uuid, jsonb) to authenticated;
