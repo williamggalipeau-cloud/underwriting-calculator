@@ -96,7 +96,7 @@ full-model inputs for the active deal.
 | **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
 | **Asset Return** | Deal returns, the deal-level LP/GP waterfall and a comparison with the other saved deals. |
 | **Portfolio Return** | Funds: fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
-| **Asset Summary** | One row per asset in a fund: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
+| **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 
@@ -647,7 +647,7 @@ tomorrow onward.
 ### 7.13 Sample portfolio (`lib/samplePortfolio.js`)
 
 Model Fund I has **$100M of total commitments** (LP + GP). It holds your
-deal plus nine illustrative assets, acquired 4/30/2026 – 12/15/2027:
+deal plus nine illustrative assets, all owned: acquired 1/30/2026 – 11/13/2026:
 
 | Assumption | Value |
 |---|---|
@@ -775,6 +775,21 @@ One row per asset in the selected fund.
 - **Multiple:** total distributions ÷ total equity.
 - **TVPI:** (total distributions to date + total NAV) ÷ total
   contributions.
+
+**Details.** The Details button under an asset's name opens a panel below
+the table with:
+- **Terms:** acquisition (price, closing costs, capex and how it's funded,
+  cap premium, total cost, year-1 NOI and growth); debt (loan, rate, payments,
+  term and extensions, extension fee, cap strike, year-1 DSCR and debt
+  yield); fees and exit (AM, PM, CM, exit cap, exit value, sale costs, net
+  proceeds).
+- **Returns:** equity, peak equity, profit, IRR, multiple, cash-on-cash.
+- **Year-by-year cash flow:** NOI (before and after PM), debt service, fees,
+  caps, extension fees, cash flow, then the sale, loan payoff and net cash
+  flow to equity. Below it: interest rate, DSCR, debt yield, cash-on-cash and
+  loan balance by year.
+- **History:** the asset's valuation history and the capital activity
+  tagged to it.
 
 **Export to Excel** writes every row plus the total.
 
