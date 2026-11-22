@@ -33,6 +33,9 @@ a dry-powder calculation. It also has a sales comps tool.
 - **Your work can be saved to a file** (Chrome or Edge). See
   [Saving your work](#saving-your-work) below. It is also always saved in
   your browser as a backup.
+- **Sign in to change data.** Anyone can open the site and look around,
+  but entering or changing data requires signing in (**☁ Sign in**, top
+  header). Viewers of a shared database workspace stay view-only (§12.3).
 - **Changes are logged.** The Change Log tab records what changed, when and
   who changed it, using the name entered in each browser (§7.17).
 - **Live data:** the only automatic outside calls are to the New York Fed for
@@ -1549,6 +1552,21 @@ files.
    - use a custom SMTP sender so sign-in emails come from your domain.
 
 ### 12.3 How the app uses it
+
+**Sign-in is required to change data.** `REQUIRE_SIGN_IN` is set in
+`lib/cloud.js`.
+- **Signed out:** the app is view-only. A banner says "View only. Sign in
+  to enter or change data". Every tab can still be viewed, sorted and
+  opened, but nothing typed is kept.
+- **Blocked while view-only:** importing or opening workspace files, loading
+  the samples or test scenario, clearing test data and resetting.
+- **Viewers** of a database workspace stay view-only after signing in.
+- **This is a screen rule.** The database itself only accepts saves from
+  signed-in owners and editors. Someone determined could still change the
+  copy held in their own browser, but those changes can't reach the
+  database.
+- **To allow local editing without signing in,** set `REQUIRE_SIGN_IN` to
+  `false`.
 
 | Action in the app | What happens in the database |
 |---|---|
