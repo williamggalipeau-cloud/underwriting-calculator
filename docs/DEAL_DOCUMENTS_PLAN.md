@@ -488,6 +488,20 @@ I–K.
       a capital call, or the draw test fails), grey (no TI due). Hovering
       shows the need, each source and the shortfall. A fund total row shows
       the capital call needed per quarter.
+    - **Test data for Model Fund I** (user's request, 11/22): Fund I's
+      sample loans don't have TI facilities yet (the TI reserve is off on
+      every deal), so phase L adds made-up ones, like the earlier SIC and
+      loan-sizing test data: each asset gets a TI/LC facility on its loan
+      (a $/SF holdback, some larger and some none), a draw test (DSCR
+      minimum 1.10x–1.25x, a few with a debt yield test), and quarterly TI/LC
+      needs from its expiring leases. The mix is set so the heat map shows
+      every colour: most assets covered by their facility; two covered by
+      their own cash flow; two that need the sub line; one that fails its
+      draw test in a later quarter; and one quarter where the sub line is
+      full or has expired and a capital call is needed. Fund I's existing
+      sub line terms are used as they are. Added through a one-time,
+      logged workspace update to the Model Fund I sample data (flag
+      "tiFacility-v1"), and as Node test fixtures.
     - **Actions** (modeling only, saved as a phase M-style scenario, never
       changing actual data): postpone a TI to a later quarter, cut a TI or
       LC budget line, or plan a capital call; the heat map updates to show
