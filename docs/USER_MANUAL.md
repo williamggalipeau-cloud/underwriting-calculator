@@ -36,8 +36,8 @@ a dry-powder calculation. It also has a sales comps tool.
   saves to your workspace in the Supabase database. Nothing is kept in the
   browser. See [Saving your work](#saving-your-work).
 - **Sign in to change data.** Anyone can open the site and look around,
-  but entering or changing data requires signing in (**☁ Sign in**, top
-  header). Viewers of a shared database workspace stay view-only. See
+  but entering or changing data requires signing in (**☁ Sign in** on the
+  yellow View only banner). Viewers of a shared database workspace stay view-only. See
   [Signing in](#signing-in).
 - **Changes are logged.** The Change Log tab records what changed, when and
   who changed it, using your signed-in email (§7.17).
@@ -56,8 +56,9 @@ workspace files, loading samples and resetting are also blocked until you
 sign in.
 
 **First time: create an account**
-1. Click **☁ Sign in** in the top header (or the **☁ Sign in** button on
-   the View only banner).
+1. Click **☁ Sign in** on the yellow View only banner, above the tabs.
+   (Once you're signed in, the **☁** button in the top header, next to
+   **User manual**, opens the Database panel instead.)
 2. Click **Create an account**.
 3. Enter your email and a password (at least 8 characters), type the
    password again, and click **Create account**.
@@ -1680,7 +1681,7 @@ and nothing is saved; nothing is ever saved in the browser.
 
 | Action in the app | What happens in the database |
 |---|---|
-| **☁ Sign in** (top header) | Email + password sign-in through Supabase Auth. **Create an account** sends a one-time confirmation email; **Forgot password?** sends a reset link that reopens the app to choose a new password. The session is kept in this browser. After sign-in the app calls `claim_invites()`. |
+| **☁ Sign in** (View only banner) | Email + password sign-in through Supabase Auth. **Create an account** sends a one-time confirmation email; **Forgot password?** sends a reset link that reopens the app to choose a new password. The session is kept in this browser. After sign-in the app calls `claim_invites()`. |
 | **☁ Database → Save to database** | `create_workspace(name, data)`: a new `workspaces` row (version 1). You become its owner, and a "Created workspace" audit row is written. |
 | Editing, then a save (about 20 seconds after the last change, on **Save now**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
 | Someone else saved first | The save is refused (conflict). The app offers **Open latest** (load theirs) or **Keep mine** (save over it; theirs stays in `workspace_versions`). |
