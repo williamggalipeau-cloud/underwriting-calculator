@@ -28,14 +28,50 @@ a dry-powder calculation. It also has a sales comps tool.
 - **No server, no login.** It is a static website. All math runs in your
   browser. Files you upload (rent rolls, fund terms, forward curves, sales
   comps) are read in the browser and never sent anywhere.
-- **Your work is saved in your browser** (`localStorage`, key
-  `uw-workspace-v1`): deals, fund terms, comps and the imported curve. The
-  save does not move to another browser or device on its own. To move it,
-  click **Export workspace** (downloads a `.json` file), then **Import
-  workspace** in the other browser. Importing replaces that browser's
-  workspace. **Reset workspace** clears it.
+- **Your work can be saved to a file** (Chrome or Edge). See
+  [Saving your work](#saving-your-work) below. It is also always saved in
+  your browser as a backup.
 - **Live data:** the only automatic outside calls are to the New York Fed for
   current SOFR, and an optional one for CME SOFR futures (see §5).
+
+### Saving your work
+
+The workspace holds your deals, fund terms, valuation marks, comps and the
+imported forward curve. It is saved in two places.
+
+**1. A workspace file (recommended).** The buttons are at the top right.
+
+| Button | What it does |
+|---|---|
+| **Save to file…** | Creates a new `.json` file wherever you choose and links it. |
+| **Open file…** | Links an existing workspace file and loads it. It replaces what's in the browser, after you confirm. |
+| **Save now** | Writes your changes to the file immediately. |
+| **Unlink** | Stops saving to the file. The file itself is kept. |
+| **Reconnect *name*** | Appears when you come back. One click lets the browser use the file again, and the app loads it. |
+
+- **When it saves:** every **10 minutes** if anything changed, when you click
+  **Save now**, and when you switch away from or close the tab.
+- **Status:** the green label shows the file name and either "saved *time*"
+  or "unsaved changes".
+- **Where to put the file:** iCloud Drive (or Dropbox, OneDrive) lets you open
+  the same file on another Mac. Documents also works.
+- **Browsers:** Chrome and Edge only. Safari and Firefox don't let web pages
+  write to files. There the bar shows "Auto-save to a file needs Chrome or
+  Edge"; use Export / Import workspace instead.
+- **Before closing the tab:** the save on close usually completes, but click
+  **Save now** first if you made changes in the last few minutes.
+- **One tab at a time:** keep the file open in one tab. Two tabs saving to the
+  same file overwrite each other.
+
+**2. The browser (always on).** Every change is also saved instantly in this
+browser (`localStorage`, key `uw-workspace-v1`), as a backup. That save stays
+in this browser and doesn't follow you to another browser or device.
+
+**Moving or backing up without a linked file:**
+- **Export workspace** downloads a `.json` copy.
+- **Import workspace** loads one into another browser, replacing its
+  workspace.
+- **Reset workspace** clears the browser copy. A linked file is not deleted.
 
 ---
 
@@ -200,6 +236,7 @@ underwriting-calculator/
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
 │   ├── testScenario.js       "Load test scenario" data
+│   ├── workspaceFile.js      Linked workspace file (save to / open a .json file)
 │   └── xlsx.js               Dependency-free .xlsx reader and writer
 ├── docs/USER_MANUAL.md       This manual
 ├── public/                   Static icons
@@ -738,8 +775,11 @@ The inputs are the Quick Underwrite defaults:
 9. **Recycling** of returned capital is not in dry powder.
 10. **Sample assets and example comps are illustrative.** Replace them with
     real deals and comps.
-11. **Saved data lives in one browser.** Use Export / Import workspace to
-    back it up or move it to another computer.
+11. **Saving to a file needs Chrome or Edge.** Elsewhere the data lives in
+    the browser; use Export / Import workspace to back it up or move it.
+12. **The linked file saves every 10 minutes.** Changes made since the last
+    save are only in the browser until then. Use Save now before closing if
+    in doubt.
 
 ---
 
