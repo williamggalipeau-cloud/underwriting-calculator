@@ -224,7 +224,7 @@ full-model inputs for the active deal.
 | Tab | What it does |
 |---|---|
 | **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), rate cap (market-priced or manual), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
-| **Unit Roll** | Unit-by-unit rent roll for rent-roll deals: generate, edit, or import a CSV. Ignored while a deal uses Direct NOI. |
+| **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Return Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
@@ -235,6 +235,17 @@ full-model inputs for the active deal.
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
 | **Change Log** | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
+
+**Asset dropdown.** Quick Underwrite, Unit Roll, Debt, Cash Flow, Asset
+Return, Sensitivity and Sales Comps have an **Asset** dropdown at the top,
+grouped by fund, listing every open deal; choosing one switches the active
+deal (the same as clicking its tab in the left panel). Saved fund snapshots
+(**Add to Fund** copies) are listed under "Saved snapshots"; choosing one
+opens it as an editable deal and takes it off the saved list, so the fund
+still counts it once. Return Stress Testing keeps its own asset dropdown.
+
+**Units.** The Property section of the inputs has a **Units** field. When a
+deal has a rent roll, the count comes from the rent roll instead.
 
 **Linked deals.** A linked deal's Quick Underwrite inputs are mapped onto the
 full model (`toMainInputs`, §7.3), so every tab analyses the same deal.
@@ -390,6 +401,7 @@ underwriting-calculator/
 │   ├── FundTermsEditor.jsx   New / edit fund dialog, template upload
 │   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
 │   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
+│   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
 │   └── SalesComps.jsx        Sales Comps tab
@@ -408,6 +420,7 @@ underwriting-calculator/
 │   ├── cloud.js              Supabase: sign-in, workspaces, saving, members, audit log
 │   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
+│   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
 │   ├── testScenario.js       "Load test scenario" data
@@ -934,13 +947,18 @@ One row per asset in the selected fund.
 | Status | Pipeline (acquisition date after today), Owned, or Sold (exit date on or before today) |
 | Acquired / Exit, hold | The deal's acquisition date and hold |
 | SF, price, $/SF | Deal inputs |
+| Units | Rent roll unit count, else the deal's Units field |
+| Occupancy | Leased SF ÷ rent roll SF; — without a rent roll |
+| WALT | Rent-weighted remaining lease term from today (§7.19); — without a rent roll |
 | Loan, loan / price, equity | The full engine. The loan includes lender-funded capex, so loan / price can exceed the LTV input. |
 | Funding | From capital activity tags: Capital call, Sub line, Call + line, Not tagged, or — when the fund has no activity |
 | Yr-1 NOI, going-in cap, exit cap, exit value, IRR, multiple, yr-1 CoC, yr-1 DSCR | The full engine on the deal's current inputs (gross, before fund fees and promote) |
 | Fair value, NAV, unrealized, TVPI | The Valuations tab (§7.15), as of the last completed quarter |
 
 **Fund total row:**
-- **Summed:** SF and all dollar figures.
+- **Summed:** SF, units and all dollar figures.
+- **Occupancy and WALT:** across assets with a rent roll only (occupancy
+  weighted by SF, WALT by annual rent).
 - **Weighted:** $/SF = total price ÷ total SF; loan / price = total loan ÷
   total price; going-in cap = total year-1 NOI ÷ total price; exit cap =
   total exit NOI ÷ total exit value.
@@ -1017,6 +1035,47 @@ the database, so it also goes with exports. Nothing is kept in the browser.
 - **It isn't tamper-proof.** Anyone who can edit the workspace file can edit
   the log. Treat it as a working record. A tamper-proof audit trail needs a
   server with user accounts.
+
+### 7.19 Units and leases (`lib/leases.js`)
+
+Reference figures from each deal's rent roll (`inputs.units`), shown on the
+Unit Roll tab and in the Asset Summary. They don't change the cash flow.
+
+**Lease end and months remaining.** The engine (§7.1) runs each unit from
+its **months remaining**, counted from the analysis start: the deal's
+acquisition date, or today when it has none.
+- Entering a **Lease end** date sets months remaining = whole months from
+  the analysis start to that date (at least 1 for an occupied unit).
+- Editing months remaining clears the entered date; the date then shown
+  (grey) is the analysis start + months remaining.
+- Importing a rent roll with lease end dates does the same.
+
+| Figure | Calculation |
+|---|---|
+| Units, leased | Rent roll rows; rows with status Occupied |
+| Occupancy | Leased SF ÷ total rent roll SF |
+| Annual rent (per lease) | Contract rent $/SF × SF |
+| WALT | Σ (years from today to lease end × annual rent) ÷ Σ annual rent, over occupied units; expired leases count 0 years |
+| In-place rent | Σ annual rent ÷ leased SF |
+| Mark to market | Market rent (deal input) ÷ in-place rent − 1 |
+| Rolling 12 mo | Annual rent of leases ending within 12 months ÷ total annual rent |
+| Expirations by year | Leases, SF and annual rent by calendar year of lease end; leases already past their end (holdover) fall in the current year; % and cumulative % of rent |
+
+**Critical dates** (from 30 days ago to 12 months ahead; amber within 90
+days, red when past):
+- **Lease expires:** the lease end.
+- **Renewal notice due:** lease end − renewal notice months, when the unit
+  has renewal options and a notice period.
+- **Termination notice date:** early termination date − termination notice
+  months, when a termination date is entered.
+
+**Rent roll import and export.** **Import CSV / Excel** reads `.csv` or
+`.xlsx`; only an SF column is required (§11.5 lists every column and the
+header names accepted). Numbers may include `$`, `,` and `%`; dates may be
+`YYYY-MM-DD`, `M/D/YYYY` or Excel dates. Missing values take the deal's
+defaults. Importing over an existing rent roll asks first. **Download
+Excel** (or **Download template** when empty) writes the same columns, so a
+downloaded file can be edited and imported back.
 
 ### 7.18 Stress test and sensitivity
 
@@ -1317,7 +1376,8 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 | `realEstateTaxPSF`, `insurancePSF`, `utilitiesPSF`, `maintenancePSF`, `janitorialPSF` | `deals[].inputs.realEstateTaxPSF`<br>`deals[].inputs.insurancePSF`<br>`deals[].inputs.utilitiesPSF`<br>`deals[].inputs.maintenancePSF`<br>`deals[].inputs.janitorialPSF` | $/SF / yr | 1.20, 0.35, 0.50, 0.40, 0.20 | Operating expenses (landlord-paid per lease type) |
 | `managementFeePct` | `deals[].inputs.managementFeePct` | % of EGR | 5 | Management fee (rent-roll mode) |
 | `leasingFeesPSF`, `capitalReservesPSF` | `deals[].inputs.leasingFeesPSF`<br>`deals[].inputs.capitalReservesPSF` | $/SF / yr | 0.10, 0.30 | Leasing fees; capital reserves |
-| `unitCount`, `avgLeaseTerm` | `deals[].inputs.unitCount`<br>`deals[].inputs.avgLeaseTerm` | count, years | 20, 2 | Rollover assumptions without a unit roll |
+| `unitCount` | `deals[].inputs.unitCount` | count | 20 (sample assets: 9–22) | Units field (Property). Used when the deal has no rent roll; otherwise the rent roll's count is shown |
+| `avgLeaseTerm` | `deals[].inputs.avgLeaseTerm` | years | 2 | Rollover assumption without a unit roll |
 | `renewalProbabilityPct` | `deals[].inputs.renewalProbabilityPct` | % | 60 | Chance a tenant renews |
 | `downtimeBetweenLeases` | `deals[].inputs.downtimeBetweenLeases` | months | 2 | Vacancy between leases |
 | `tiPerSFNew`, `tiPerSFRenewal` | `deals[].inputs.tiPerSFNew`<br>`deals[].inputs.tiPerSFRenewal` | $/SF | 8, 2 | Tenant improvements |
@@ -1366,8 +1426,9 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 
 ### 11.5 Unit (rent roll row)
 
-**Unit Roll → Import CSV** reads these columns. Header names in brackets
-are also accepted.
+**Unit Roll → Import CSV / Excel** reads these columns (a `.csv` or
+`.xlsx` file). The template's header is listed first; names in brackets are
+also accepted (case, spaces and symbols ignored).
 
 | Field | Stored at (`workspaces.data`) | CSV column | Units | Default | Meaning |
 |---|---|---|---|---|---|
@@ -1388,6 +1449,26 @@ are also accepted.
 | `tiNewPSF`, `tiRenewalPSF` | `deals[].inputs.units[].tiNewPSF`<br>`deals[].inputs.units[].tiRenewalPSF` | ti_new, ti_renewal | $/SF | 8, 2 | TI at rollover |
 | `leasingCommissionNewPct`, `leasingCommissionRenewalPct` | `deals[].inputs.units[].leasingCommissionNewPct`<br>`deals[].inputs.units[].leasingCommissionRenewalPct` | lc_new, lc_renewal | % | 6, 2 | Leasing commissions |
 | `realEstateTaxPSF` … `janitorialPSF` | `deals[].inputs.units[].realEstateTaxPSF`<br>`deals[].inputs.units[].janitorialPSF` | retax, insurance, utilities, maintenance, janitorial | $/SF / yr | property rates | Per-unit expense overrides |
+
+**Lease fields** (Unit Roll → ▸ Lease details, or the import). All optional;
+reference data except lease end, which sets months remaining (§7.19).
+
+| Field | Stored at (`workspaces.data`) | Column | Units | Meaning |
+|---|---|---|---|---|
+| `leaseStart` | `deals[].inputs.units[].leaseStart` | Lease start [start, commencement] | date | Lease commencement |
+| `leaseEnd` | `deals[].inputs.units[].leaseEnd` | Lease end [expiration, expires, end] | date | Lease expiration; sets `monthsRemaining` |
+| `securityDeposit` | `deals[].inputs.units[].securityDeposit` | Security deposit [deposit] | $ | Deposit held |
+| `guarantor` | `deals[].inputs.units[].guarantor` | Guarantor [guaranty] | text | Lease guarantor |
+| `recoveries` | `deals[].inputs.units[].recoveries` | Recoveries | text | How expenses are recovered (e.g. base year) |
+| `renewalOptions` | `deals[].inputs.units[].renewalOptions` | Renewal options [options] | count | Number of renewal options |
+| `renewalOptionYears` | `deals[].inputs.units[].renewalOptionYears` | Years per option | years | Length of each option |
+| `renewalNoticeMonths` | `deals[].inputs.units[].renewalNoticeMonths` | Renewal notice (months) | months | Notice before lease end to exercise |
+| `renewalRentBasis` | `deals[].inputs.units[].renewalRentBasis` | Renewal rent | text | e.g. 95% of market, fixed $15.00 |
+| `terminationDate` | `deals[].inputs.units[].terminationDate` | Termination date | date | Earliest early-termination date |
+| `terminationNoticeMonths` | `deals[].inputs.units[].terminationNoticeMonths` | Termination notice (months) | months | Notice required |
+| `terminationFee` | `deals[].inputs.units[].terminationFee` | Termination fee | $ | Fee payable on termination |
+| `otherRights` | `deals[].inputs.units[].otherRights` | Other rights [expansion, rofr] | text | Expansion, ROFR, ROFO, relocation, etc. |
+| `leaseNotes` | `deals[].inputs.units[].leaseNotes` | Notes [comments] | text | Free-form notes |
 
 ### 11.6 Deal snapshot (fund deals and saved deals)
 

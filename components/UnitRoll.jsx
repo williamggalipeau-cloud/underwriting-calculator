@@ -1,56 +1,15 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState } from "react";
+import { downloadBlob } from "@/lib/fundTerms";
+import { LEASE_FIELDS, leaseAnalytics, leaseEndOf, monthsRemainingFor, parseRentRollRows, rentRollRows, todayISO } from "@/lib/leases";
+import { readXlsxGrid, writeXlsx } from "@/lib/xlsx";
 
-// ─── CSV import ───────────────────────────────────────────────────────────────
+// ─── CSV / Excel import ──────────────────────────────────────────────────────
 
-// Normalise a header string: lowercase, strip spaces/underscores/slashes
-function normalise(s) { return s.toLowerCase().replace(/[\s_/]+/g, ""); }
-
-// Map normalised CSV header → unit field name (and optional transform fn)
-const CSV_FIELD_MAP = [
-  { keys: ["unit", "unitname", "name", "suite"],                   field: "name",                        parse: String },
-  { keys: ["sf", "squarefeet", "squarefoot", "sqft", "size"],      field: "squareFeet",                  parse: Number },
-  { keys: ["tenant", "tenantname", "lessee"],                      field: "tenantName",                  parse: String },
-  { keys: ["business", "description", "businessdesc", "use"],      field: "businessDescription",         parse: String },
-  { keys: ["credit", "creditrating", "rating"],                    field: "creditRating",                parse: String },
-  { keys: ["sic", "naics", "naicscode", "siccode", "industry"],    field: "naicsCode",                   parse: String },
-  { keys: ["status", "leasestatus", "occupied"],                   field: "leaseStatus",                 parse: (v) => /^(occupied|occ|yes|true|1|y)$/i.test(v.trim()) ? "occupied" : "vacant" },
-  { keys: ["leasetype", "lease", "type"],                          field: "leaseType",                   parse: (v) => ["NNN","MG","Gross"].includes(v.trim()) ? v.trim() : "NNN" },
-  { keys: ["rent", "rentpsf", "currentrent", "contractedrent"],    field: "currentRentPSF",              parse: Number },
-  { keys: ["otherincome", "otherinc", "otherincomepsf"],           field: "otherIncomePSF",              parse: Number },
-  { keys: ["escalation", "escpct", "annualescalation", "esc"],     field: "annualEscalationPct",         parse: Number },
-  { keys: ["monthsremaining", "moleft", "moremaining", "months"],  field: "monthsRemaining",             parse: Number },
-  { keys: ["newterm", "newleaseterm", "leasetermmonths"],           field: "newLeaseTerm",                parse: Number },
-  { keys: ["renewalpct", "renew", "renewalprob", "renewalprobability"], field: "renewalProbabilityPct",   parse: Number },
-  { keys: ["tinew", "tipersfnew"],                                 field: "tiNewPSF",                    parse: Number },
-  { keys: ["tirenewal", "tiren", "tipersfrenewal"],                field: "tiRenewalPSF",                parse: Number },
-  { keys: ["lcnew", "leasingcommissionnew", "lcnewpct"],           field: "leasingCommissionNewPct",     parse: Number },
-  { keys: ["lcrenewal", "lcren", "leasingcommissionrenewal"],      field: "leasingCommissionRenewalPct", parse: Number },
-  { keys: ["retax", "realestatetax", "retaxpsf", "taxpsf"],        field: "realEstateTaxPSF",            parse: Number },
-  { keys: ["insurance", "insurancepsf", "ins"],                    field: "insurancePSF",                parse: Number },
-  { keys: ["utilities", "utilpsf", "utils"],                       field: "utilitiesPSF",                parse: Number },
-  { keys: ["maintenance", "maintpsf", "maint"],                    field: "maintenancePSF",              parse: Number },
-  { keys: ["janitorial", "janitpsf", "janit"],                     field: "janitorialPSF",               parse: Number },
-];
-
-function buildHeaderIndex(headerRow) {
-  const index = {};
-  headerRow.forEach((raw, col) => {
-    const key = normalise(raw);
-    const entry = CSV_FIELD_MAP.find((m) => m.keys.includes(key));
-    if (entry) index[entry.field] = { col, parse: entry.parse };
-  });
-  return index;
-}
-
-function parseCSV(text) {
-  // Split on newlines; handle \r\n
-  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
-  if (lines.length < 2) throw new Error("CSV must have a header row and at least one data row.");
-
-  // Simple CSV tokeniser (handles double-quoted fields with commas)
-  function tokenise(line) {
+// Splits CSV text into rows (handles double-quoted fields with commas).
+function csvRows(text) {
+  return text.split(/\r?\n/).map((line) => {
     const out = [];
     let field = "";
     let inQuote = false;
@@ -67,57 +26,7 @@ function parseCSV(text) {
     }
     out.push(field);
     return out.map((f) => f.trim());
-  }
-
-  const headers = tokenise(lines[0]);
-  const index   = buildHeaderIndex(headers);
-
-  if (!index.squareFeet) throw new Error('Required column not found: "SF" (square footage). Check your header row.');
-
-  const units = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = tokenise(lines[i]);
-    if (cols.every((c) => c === "")) continue; // skip blank rows
-
-    const unit = {
-      id:                        `csv-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 5)}`,
-      name:                      String(i),
-      squareFeet:                0,
-      tenantName:                "",
-      businessDescription:       "",
-      creditRating:              "",
-      naicsCode:                 "",
-      leaseStatus:               "occupied",
-      leaseType:                 "NNN",
-      currentRentPSF:            0,
-      otherIncomePSF:            0,
-      annualEscalationPct:       3,
-      monthsRemaining:           12,
-      newLeaseTerm:              24,
-      renewalProbabilityPct:     60,
-      tiNewPSF:                  8,
-      tiRenewalPSF:              2,
-      leasingCommissionNewPct:   6,
-      leasingCommissionRenewalPct: 2,
-    };
-
-    for (const [field, { col, parse }] of Object.entries(index)) {
-      const raw = cols[col] ?? "";
-      if (raw === "") continue;
-      const parsed = parse(raw);
-      if (field === "squareFeet" || field === "currentRentPSF" || field === "monthsRemaining" || field === "newLeaseTerm") {
-        unit[field] = isNaN(parsed) ? unit[field] : Math.max(0, parsed);
-      } else {
-        unit[field] = isNaN(parsed) && typeof parsed === "number" ? unit[field] : parsed;
-      }
-    }
-
-    if (unit.squareFeet <= 0) continue; // skip rows with no SF
-    units.push(unit);
-  }
-
-  if (units.length === 0) throw new Error("No valid data rows found. Make sure the SF column has values > 0.");
-  return units;
+  });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -215,36 +124,36 @@ function TextCell({ value, onChange, placeholder, label }) {
 
 // ─── Summary stats ────────────────────────────────────────────────────────────
 
-function SummaryStats({ units, propertySF }) {
-  if (units.length === 0) return null;
+const money = (v) => (isFinite(v) ? `$${Math.round(v).toLocaleString()}` : "—");
+const fmtDate = (iso) => (iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "2-digit", timeZone: "UTC" }) : "—");
 
+function SummaryStats({ units, inputs, la }) {
+  if (units.length === 0) return null;
+  const propertySF = inputs.squareFootage;
   const totalUnitSF  = units.reduce((s, u) => s + u.squareFeet, 0);
   const occupied     = units.filter((u) => u.leaseStatus === "occupied");
   const occupiedSF   = occupied.reduce((s, u) => s + u.squareFeet, 0);
   const occupancyPct = totalUnitSF > 0 ? (occupiedSF / totalUnitSF) * 100 : 0;
   const sfMismatch   = Math.abs(totalUnitSF - propertySF) > 1;
-
-  const walMonths = occupied.length > 0
-    ? occupied.reduce((s, u) => s + u.monthsRemaining * u.squareFeet, 0) / occupiedSF
-    : 0;
-
-  const wAvgRent = occupiedSF > 0
-    ? occupied.reduce((s, u) => s + u.currentRentPSF * u.squareFeet, 0) / occupiedSF
-    : 0;
+  const mtm = la.markToMarketPct;
 
   const stats = [
-    { label: "Units",     value: `${units.length}` },
-    { label: "Total SF",  value: totalUnitSF.toLocaleString() },
-    { label: "Occupancy", value: `${occupancyPct.toFixed(0)}%` },
-    { label: "WAL",       value: `${(walMonths / 12).toFixed(1)} yrs` },
-    { label: "Wtd Rent",  value: `$${wAvgRent.toFixed(2)}/SF` },
+    { label: "Units",     value: `${units.length}`, tip: "" },
+    { label: "Leased",    value: `${occupied.length} of ${units.length}`, tip: "" },
+    { label: "Total SF",  value: totalUnitSF.toLocaleString(), tip: "" },
+    { label: "Occupancy", value: `${occupancyPct.toFixed(0)}%`, tip: "Leased SF ÷ total SF" },
+    { label: "WALT",      value: isFinite(la.walt) ? `${la.walt.toFixed(1)} yrs` : "—", tip: "Weighted average lease term remaining from today, weighted by annual rent" },
+    { label: "In-place rent", value: isFinite(la.inPlaceRentPSF) ? `$${la.inPlaceRentPSF.toFixed(2)}/SF` : "—", tip: "Annual contract rent ÷ leased SF" },
+    { label: "Market rent", value: `$${(inputs.rentPerSF ?? 0).toFixed(2)}/SF`, tip: "Market rent from the deal inputs" },
+    { label: "Mark to market", value: isFinite(mtm) ? `${mtm >= 0 ? "+" : ""}${mtm.toFixed(1)}%` : "—", tip: "How far market rent is above (+) or below (−) in-place rent" },
+    { label: "Rolling 12 mo", value: `${la.rolloverPct.toFixed(0)}% of rent`, tip: "Share of annual rent in leases ending within 12 months" },
   ];
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {stats.map(({ label, value }) => (
-          <div key={label} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+        {stats.map(({ label, value, tip }) => (
+          <div key={label} title={tip} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
             <p className="text-xs text-gray-500">{label}</p>
             <p className="text-sm font-semibold text-gray-900">{value}</p>
           </div>
@@ -255,6 +164,85 @@ function SummaryStats({ units, propertySF }) {
           Unit roster SF ({totalUnitSF.toLocaleString()}) differs from property SF ({propertySF.toLocaleString()}). Adjust unit SF or property SF to match.
         </p>
       )}
+    </div>
+  );
+}
+
+// Expirations by year and upcoming critical dates.
+function LeaseSummary({ la }) {
+  if (!la.leases) return null;
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="rounded-xl border border-gray-200 bg-white">
+        <h3 className="border-b border-gray-100 px-3 py-2 text-xs font-semibold text-gray-700">Lease expirations by year</h3>
+        <table className="w-full text-xs tabular-nums">
+          <thead className="text-gray-500">
+            <tr>{["Year", "Leases", "SF", "Annual rent", "% of rent", "Cumulative"].map((h) => <th key={h} className={`px-3 py-1.5 font-medium ${h === "Year" ? "text-left" : "text-right"}`}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {la.expirations.map((e) => (
+              <tr key={e.year} className="border-t border-gray-100 text-gray-800">
+                <td className="px-3 py-1.5">{e.year}</td>
+                <td className="px-3 py-1.5 text-right">{e.leases}</td>
+                <td className="px-3 py-1.5 text-right">{e.sf.toLocaleString()}</td>
+                <td className="px-3 py-1.5 text-right">{money(e.annualRent)}</td>
+                <td className="px-3 py-1.5 text-right">{e.pctRent.toFixed(1)}%</td>
+                <td className="px-3 py-1.5 text-right text-gray-500">{e.cumPctRent.toFixed(0)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="px-3 py-1.5 text-[11px] text-gray-400">Leases already past their end date (holdover) are shown in the current year.</p>
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white">
+        <h3 className="border-b border-gray-100 px-3 py-2 text-xs font-semibold text-gray-700">Critical dates, next 12 months</h3>
+        {la.criticalDates.length === 0 ? (
+          <p className="px-3 py-3 text-xs text-gray-400">None. Add lease end dates, renewal options and termination rights in each unit&apos;s Lease details.</p>
+        ) : (
+          <table className="w-full text-xs">
+            <tbody>
+              {la.criticalDates.map((d, i) => (
+                <tr key={i} className={`border-t border-gray-100 first:border-t-0 align-top ${d.days < 0 ? "bg-red-50/60" : d.days <= 90 ? "bg-amber-50/60" : ""}`}>
+                  <td className="px-3 py-1.5 whitespace-nowrap tabular-nums text-gray-800">{fmtDate(d.date)}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-500">{d.days < 0 ? `${-d.days} days ago` : `in ${d.days} days`}</td>
+                  <td className="px-3 py-1.5 font-medium text-gray-900">{d.kind}</td>
+                  <td className="px-3 py-1.5 text-gray-700">Unit {d.unit}{d.tenant ? ` · ${d.tenant}` : ""}<span className="block text-gray-400">{d.detail}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Lease details form for one unit.
+function LeaseDetails({ unit, inputs, onField }) {
+  const derivedEnd = leaseEndOf(unit, inputs);
+  const input = "w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 focus:border-blue-400 focus:outline-none";
+  return (
+    <div className="grid gap-3 px-3 py-3 sm:grid-cols-2 lg:grid-cols-4">
+      {LEASE_FIELDS.map((f) => {
+        const v = unit[f.key] ?? "";
+        const shown = f.key === "leaseEnd" && !v && derivedEnd ? derivedEnd : v;
+        return (
+          <label key={f.key} className={`flex flex-col gap-0.5 ${f.key === "leaseNotes" || f.key === "otherRights" ? "sm:col-span-2" : ""}`}>
+            <span className="text-[11px] font-medium text-gray-500">{f.label}{f.help ? <span className="font-normal text-gray-400"> · {f.help}</span> : null}</span>
+            <input
+              type={f.type === "date" ? "date" : f.type === "text" ? "text" : "number"}
+              value={shown}
+              step={f.type === "money" ? 100 : 1}
+              min={f.type === "text" || f.type === "date" ? undefined : 0}
+              onChange={(e) => {
+                const raw = e.target.value;
+                onField(f.key, f.type === "number" || f.type === "money" ? (raw === "" ? "" : Math.max(0, Number(raw))) : raw);
+              }}
+              className={`${input} ${f.key === "leaseEnd" && !v ? "text-gray-400" : ""}`}
+            />
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -279,7 +267,8 @@ const COL_HEADERS = [
   { key: "utils",     label: "Utils",     width: "w-16", tip: "Utilities ($/SF/yr) — dimmed when tenant-paid" },
   { key: "maint",     label: "Maint",     width: "w-16", tip: "Maintenance ($/SF/yr) — dimmed when tenant-paid" },
   { key: "janit",     label: "Janit",     width: "w-16", tip: "Janitorial ($/SF/yr) — dimmed when tenant-paid" },
-  { key: "moLeft",    label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease" },
+  { key: "moLeft",    label: "Mo. Left",  width: "w-16", tip: "Months remaining on current lease, from the analysis start (acquisition date)" },
+  { key: "leaseEnd",  label: "Lease End", width: "w-28", tip: "Lease end date. Entering it sets months remaining; grey means calculated from months remaining" },
   { key: "newTerm",   label: "New Term",  width: "w-16", tip: "Months for next lease" },
   { key: "renew",     label: "Renew %",   width: "w-16", tip: "Renewal probability" },
   { key: "downtime",  label: "Downtime",  width: "w-16", tip: "Vacancy months between leases" },
@@ -314,31 +303,46 @@ export default function UnitRoll({ units, inputs, onChange }) {
   const removeUnit = (id) => onChange(units.filter((u) => u.id !== id));
   const generate   = () => onChange(generateUnits(inputs));
 
-  const handleCSVUpload = (e) => {
+  // New units from an imported file start from the deal's defaults.
+  const importDefaults = (i) => ({
+    ...newUnit(String(i + 1).padStart(3, "0"), 0, inputs, true, 12),
+    id: `imp-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 5)}`,
+  });
+
+  const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     // Reset input so the same file can be re-uploaded
     e.target.value = "";
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const imported = parseCSV(ev.target.result);
-        // Backfill any missing per-unit defaults from deal inputs
-        const filled = imported.map((u) => ({
-          realEstateTaxPSF:            inputs.realEstateTaxPSF,
-          insurancePSF:                inputs.insurancePSF,
-          utilitiesPSF:                inputs.utilitiesPSF,
-          maintenancePSF:              inputs.maintenancePSF,
-          janitorialPSF:               inputs.janitorialPSF,
-          ...u,
-        }));
-        setCsvError(null);
-        onChange(filled);
-      } catch (err) {
-        setCsvError(err.message);
-      }
-    };
-    reader.readAsText(file);
+    try {
+      const rows = /\.xlsx$/i.test(file.name) ? await readXlsxGrid(await file.arrayBuffer()) : csvRows(await file.text());
+      const imported = parseRentRollRows(rows, importDefaults, inputs);
+      if (units.length && !window.confirm(`Replace the ${units.length} units in this rent roll with ${imported.length} units from ${file.name}?`)) return;
+      setCsvError(null);
+      onChange(imported);
+    } catch (err) {
+      setCsvError(err.message);
+    }
+  };
+
+  const downloadRentRoll = async () => {
+    const rows = rentRollRows(units);
+    const name = (inputs.propertyName || "rent-roll").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-");
+    downloadBlob(
+      await writeXlsx(rows, { sheetName: "Rent roll", colWidths: rows[0].map((h) => Math.max(10, Math.min(24, h.length + 2))) }),
+      units.length ? `${name}-rent-roll.xlsx` : "rent-roll-template.xlsx"
+    );
+  };
+
+  const la = leaseAnalytics({ ...inputs, units }, todayISO());
+  const [openId, setOpenId] = useState(null);
+  const setLeaseField = (u, key, value) => {
+    const next = { ...u, [key]: value };
+    if (key === "leaseEnd") {
+      const mo = monthsRemainingFor(inputs, value);
+      if (mo != null && u.leaseStatus === "occupied") next.monthsRemaining = Math.max(1, mo);
+    }
+    onChange(units.map((x) => (x.id === u.id ? next : x)));
   };
 
   const totalUnitSF = units.reduce((s, u) => s + u.squareFeet, 0);
@@ -360,10 +364,10 @@ export default function UnitRoll({ units, inputs, onChange }) {
           <input
             ref={fileInput}
             type="file"
-            accept=".csv,text/csv"
-            onChange={handleCSVUpload}
+            accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            onChange={handleImport}
             className="sr-only"
-            aria-label="Upload CSV"
+            aria-label="Import rent roll (CSV or Excel)"
           />
           {units.length === 0 ? (
             <>
@@ -379,7 +383,10 @@ export default function UnitRoll({ units, inputs, onChange }) {
                 onClick={() => { setCsvError(null); fileInput.current?.click(); }}
                 className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Import CSV
+                Import CSV / Excel
+              </button>
+              <button type="button" onClick={downloadRentRoll} className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                Download template
               </button>
             </>
           ) : (
@@ -392,7 +399,10 @@ export default function UnitRoll({ units, inputs, onChange }) {
                 onClick={() => { setCsvError(null); fileInput.current?.click(); }}
                 className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Import CSV
+                Import CSV / Excel
+              </button>
+              <button type="button" onClick={downloadRentRoll} className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                Download Excel
               </button>
               <button type="button" onClick={() => onChange([])} className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
                 Clear all
@@ -408,25 +418,26 @@ export default function UnitRoll({ units, inputs, onChange }) {
       {/* CSV error */}
       {csvError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800 flex items-start gap-2">
-          <span className="font-semibold shrink-0">CSV import error:</span>
+          <span className="font-semibold shrink-0">Import error:</span>
           <span>{csvError}</span>
           <button type="button" onClick={() => setCsvError(null)} className="ml-auto text-red-400 hover:text-red-600 text-base leading-none shrink-0">×</button>
         </div>
       )}
 
       {/* Summary stats */}
-      <SummaryStats units={units} propertySF={inputs.squareFootage} />
+      <SummaryStats units={units} inputs={inputs} la={la} />
+      <LeaseSummary la={la} />
 
       {/* Empty state */}
       {units.length === 0 && (
         <div className="border-2 border-dashed border-gray-200 rounded-xl p-12 text-center">
           <p className="text-sm font-medium text-gray-500">No unit lease roll defined</p>
           <p className="text-xs text-gray-400 mt-1 mb-4">
-            Generate a roster from your deal settings, add units manually, or import from a CSV file.
+            Generate a roster from your deal settings, or import a rent roll (CSV or Excel; download the template for the columns).
             <br />When units are present, the model uses actual lease schedules instead of portfolio-level vacancy.
           </p>
           <p className="text-xs text-gray-300 mb-4 max-w-lg mx-auto">
-            CSV columns (header row required): <span className="font-mono">unit, sf, tenant, business, credit, sic, status, lease_type, rent, escalation, months_remaining, new_term, renewal_pct, ti_new, ti_renewal, lc_new, lc_renewal</span>
+            Only SF is required. Other columns include unit, tenant, status, lease type, rent $/SF, lease start and end dates, renewal options and notice, termination rights, security deposit and guarantor.
           </p>
           <button
             type="button"
@@ -445,11 +456,13 @@ export default function UnitRoll({ units, inputs, onChange }) {
             <caption id={headerId} className="sr-only">Unit lease roll</caption>
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="w-6 px-2 py-2" title="Lease details" />
                 {COL_HEADERS.map((h) => (
                   <th key={h.key} title={h.tip} className={`${h.width} px-2 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap`}>
                     {h.label}
                   </th>
                 ))}
+                <th className="w-8 px-2 py-2" />
                 <th className="w-8 px-2 py-2" />
               </tr>
             </thead>
@@ -459,8 +472,22 @@ export default function UnitRoll({ units, inputs, onChange }) {
                 const annualRevenue = isOccupied ? u.currentRentPSF * u.squareFeet : 0;
                 const unitLease    = u.leaseType ?? inputs.leaseType ?? "NNN";
 
+                const isOpen = openId === u.id;
                 return (
-                  <tr key={u.id} className={`hover:bg-gray-50 transition-colors ${!isOccupied ? "bg-red-50/30" : ""}`}>
+                  <Fragment key={u.id}>
+                  <tr className={`hover:bg-gray-50 transition-colors ${!isOccupied ? "bg-red-50/30" : ""} ${isOpen ? "bg-blue-50/40" : ""}`}>
+                    <td className="px-2 py-1.5">
+                      <button
+                        type="button"
+                        aria-expanded={isOpen}
+                        aria-label={`Lease details for unit ${u.name}`}
+                        title="Lease details"
+                        onClick={() => setOpenId(isOpen ? null : u.id)}
+                        className="rounded px-1 text-gray-400 hover:bg-blue-100 hover:text-blue-700"
+                      >
+                        {isOpen ? "▾" : "▸"}
+                      </button>
+                    </td>
                     <td className="px-2 py-1.5">
                       <TextCell label="Unit name" value={u.name} onChange={(v) => update(u.id, "name", v)} />
                     </td>
@@ -547,7 +574,16 @@ export default function UnitRoll({ units, inputs, onChange }) {
                       </td>
                     ))}
                     <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
-                      <NumCell label="Months remaining" value={u.monthsRemaining} step={1} suffix="mo" onChange={(v) => update(u.id, "monthsRemaining", v)} />
+                      <NumCell label="Months remaining" value={u.monthsRemaining} step={1} suffix="mo" onChange={(v) => onChange(units.map((x) => (x.id === u.id ? { ...x, monthsRemaining: v, leaseEnd: "" } : x)))} />
+                    </td>
+                    <td className={`px-2 py-1.5 ${!isOccupied ? "opacity-30 pointer-events-none" : ""}`}>
+                      <input
+                        type="date"
+                        aria-label="Lease end date"
+                        value={isOccupied ? u.leaseEnd || leaseEndOf(u, inputs) || "" : ""}
+                        onChange={(e) => setLeaseField(u, "leaseEnd", e.target.value)}
+                        className={`w-full px-1 py-1 text-xs bg-transparent outline-none border border-transparent rounded focus:border-blue-400 focus:bg-blue-50 ${u.leaseEnd ? "text-gray-900" : "text-gray-400"}`}
+                      />
                     </td>
                     <td className="px-2 py-1.5">
                       <NumCell label="New lease term" value={u.newLeaseTerm} step={6} suffix="mo" onChange={(v) => update(u.id, "newLeaseTerm", v)} />
@@ -599,12 +635,20 @@ export default function UnitRoll({ units, inputs, onChange }) {
                       </button>
                     </td>
                   </tr>
+                  {isOpen && (
+                    <tr className="bg-blue-50/30">
+                      <td colSpan={COL_HEADERS.length + 3}>
+                        <LeaseDetails unit={u} inputs={inputs} onField={(k, v) => setLeaseField(u, k, v)} />
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 );
               })}
             </tbody>
             <tfoot>
               <tr className="bg-gray-50 border-t-2 border-gray-200 font-semibold text-gray-700">
-                <td className="px-2 py-2 text-xs" colSpan={2}>{units.length} units</td>
+                <td className="px-2 py-2 text-xs" colSpan={3}>{units.length} units</td>
                 <td className="px-2 py-2 text-xs text-right tabular-nums" colSpan={2}>
                   {units.reduce((s, u) => s + u.squareFeet, 0).toLocaleString()} SF total
                 </td>
