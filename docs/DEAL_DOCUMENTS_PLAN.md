@@ -18,7 +18,7 @@ changes the model without the user clicking to apply it.
 | E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements | ⛓ Starts when D is complete |
 | F | Loan agreement → Debt tab | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
-| H | Estoppels, CAM reconciliation and billing | ⛓ Starts when G is complete |
+| H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
 | I | Asset budget vs. plan | ⛓ Starts when H is complete |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
@@ -190,7 +190,7 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   cost hold, where the value isn't used.
 - Compares the appraisal's NOI and cap rate with the underwriting.
 
-### Phase H: estoppels, CAM reconciliation and billing
+### Phase H: estoppels, CAM reconciliation, billing and rent delinquency
 
 - **Estoppel** (`estoppel_validate` / `estoppel_show`) compared with the lease
   abstract and the rent roll unit: rent, dates, deposit, options, defaults,
@@ -199,6 +199,37 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   share and amounts checked against each lease's terms (pro rata share, expense
   caps, management fee cap, base year, exclusions), showing recoverable vs
   billed and any under- or over-recovery.
+- **Rent delinquency from Yardi** (added 11/22): the user's property
+  accounting is in Yardi Voyager. Monthly upload of Yardi's aged
+  delinquency (aged receivables) report as Excel or CSV; a one-time map of
+  Yardi property and tenant codes to the app's assets and units, and of
+  its columns, so real exports load the same way as the test files.
+  - Arrears by tenant and charge type (rent, CAM, taxes, insurance, other)
+    in aging buckets (current, 0–30, 31–60, 61–90, over 90 days), with
+    prepayments and credits.
+  - A delinquency badge on each unit in the Unit Roll; delinquency as a %
+    of monthly rent per asset and for the fund, and the month-to-month
+    trend.
+  - From the lease abstract: the default and cure terms (when the tenant can
+    be put in default), and how much of the arrears the security deposit
+    and any guarantor cover. A notes field per tenant for collection
+    actions.
+  - Actual collections compared with each asset's credit-loss assumption.
+  - Feeds the tenant section of phase L's risk report. A direct Yardi
+    connection (which needs Yardi's licensed interface) is not planned;
+    the same export approach supplies phase I's monthly actuals from
+    Yardi's income statement / GL.
+- **Mock Yardi test data** (added 11/22): `docs/sample-yardi/` holds
+  fictional exports in the layout of Yardi Voyager reports (generic
+  columns, not a copy of Yardi's templates), marked as samples, for Model
+  Fund I's assets with made-up property codes (e.g. mf1-02) and tenant
+  codes (e.g. t0000102): an aged delinquency report for three consecutive
+  months, a tenant ledger (charges, payments, credits) for a few tenants,
+  and a monthly income statement per asset for phase I. Scenarios: most
+  tenants current; a few 30 and 60 days late; one over 90 days and in
+  default; a partial payment; a prepaid tenant with a credit balance; one
+  tenant with disputed CAM charges; and one that catches up after a late
+  month. Totals tie to the sample rent rolls.
 
 ## Phases I–K: performance tracking (after H)
 
@@ -420,4 +451,8 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     document type covering the owner's policies and each tenant's
     certificate, checked against lease (and loan) requirements, with expiry
     dates in critical dates and gaps in the phase L risk report.
+17. **Rent delinquency** (added 11/22) in phase H: imported monthly from
+    Yardi's aged delinquency report (no direct Yardi connection), with mock
+    Yardi exports in `docs/sample-yardi/` for testing. Yardi income
+    statements also supply phase I's actuals.
 

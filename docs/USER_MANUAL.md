@@ -2392,7 +2392,7 @@ each phase and the decisions behind it are in
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
-| H. Estoppels, CAM and billing | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms | ⛓ After G |
+| H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
 | I. Asset budget vs. plan | Life-of-asset plan locked at closing; actuals; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
@@ -2431,7 +2431,10 @@ not used. Nothing changes your data until you click to apply it.
   and each tenant's) are checked against lease and loan requirements, with
   expiry dates tracked.
 - **F–H.** Loan agreements, appraisals, estoppels and CAM reconciliations
-  read the same way and checked against the model and the leases.
+  read the same way and checked against the model and the leases. Phase H
+  also imports Yardi's monthly aged delinquency report: arrears by tenant
+  and age, delinquency % by asset and fund, default and cure terms, and
+  deposit and guarantor coverage.
 - **I–K.** Track each asset's budget, each deal's underwriting and the
   fund's plan against actual results, with variances explained.
 - **L. Performance and risk reporting.** A quarterly performance report in
