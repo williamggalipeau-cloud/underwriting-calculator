@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { assetSummary, assetSummaryXlsx } from "@/lib/assetSummary";
 import { quarterLabel } from "@/lib/valuations";
+import { listLeases } from "@/lib/leaseDocs";
+import { leaseSummaryByDeal } from "@/lib/leaseViews";
 
 const fmt = (v, d = 0) => (v == null || !isFinite(v) ? "—" : v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const fmtM = (v) => {
@@ -33,6 +35,16 @@ const FUNDING = {
   "—": "text-gray-400",
 };
 
+// "3 of 4": leases abstracted of those on the Leases tab.
+function LeasesCell({ info }) {
+  if (!info) return <span className="text-gray-400" title="No lease documents on the Leases tab">—</span>;
+  const plural = info.leases === 1 ? "" : "s";
+  const risk = info.highRisks ? `; ${info.highRisks} high risk flag${info.highRisks === 1 ? "" : "s"}` : "";
+  const title = `${info.leases} lease${plural} on the Leases tab: ${info.abstracted} abstracted, ${info.applied} applied to the rent roll${risk}`;
+  const short = info.abstracted < info.leases;
+  return <span title={title} className={short ? "text-amber-700" : ""}>{info.abstracted} of {info.leases}</span>;
+}
+
 // [key, header, render(row), sortValue(row), group]
 const COLUMNS = [
   ["location", "Location", (r) => r.location || <span className="text-gray-400">—</span>, (r) => r.location || "~", "Asset"],
@@ -43,6 +55,7 @@ const COLUMNS = [
   ["units", "Units", (r) => (r.units ? fmt(r.units) : "—"), (r) => r.units, "Asset"],
   ["occupancy", "Occupancy", (r) => (r.rentRoll ? fmtPct(r.occupancyPct, 0) : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (r.rentRoll ? r.occupancyPct : -Infinity), "Asset"],
   ["vacancy", "Vacancy", (r) => (r.rentRoll ? fmtPct(r.vacancyPct, 0) : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (r.rentRoll ? r.vacancyPct : -Infinity), "Asset"],
+  ["leases", "Leases abstracted", (r) => <LeasesCell info={r.leaseInfo} />, (r) => (r.leaseInfo ? r.leaseInfo.abstracted : -Infinity), "Asset"],
   ["walt", "WALT", (r) => (isFinite(r.walt) ? `${r.walt.toFixed(1)} yrs` : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (isFinite(r.walt) ? r.walt : -Infinity), "Asset"],
   ["price", "Price", (r) => fmtM(r.price), (r) => r.price, "Capital"],
   ["pricePSF", "$/SF", (r) => `$${fmt(r.pricePSF)}`, (r) => r.pricePSF, "Capital"],
@@ -101,7 +114,7 @@ function Fact({ label, value, sub }) {
 
 // Everything about one asset: terms, year-by-year cash flow, returns,
 // valuation history and tagged capital activity.
-function AssetDetail({ row, onOpenDeal, onClose }) {
+function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose }) {
   const { inputs: inp, cashFlows: cfs, debt, returns, closingCosts, sellingCosts, irrFlows, valuationRows, activity } = row.detail;
   const hold = cfs.length;
   const direct = !!inp.noiOverrideEnabled;
@@ -163,6 +176,24 @@ function AssetDetail({ row, onOpenDeal, onClose }) {
           )}
           <button type="button" onClick={onClose} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">Close</button>
         </div>
+      </div>
+
+      {/* Leases (from the Leases tab) */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs" data-testid="asset-leases">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Leases</span>
+        <span>WALT <span className="font-medium">{isFinite(row.walt) ? `${row.walt.toFixed(1)} yrs` : "—"}</span></span>
+        {row.leaseInfo ? (
+          <>
+            <span><span className="font-medium">{row.leaseInfo.abstracted} of {row.leaseInfo.leases}</span> abstracted · {row.leaseInfo.applied} applied to the rent roll</span>
+            <span>Next critical date: {row.leaseInfo.next ? <span className={`font-medium ${row.leaseInfo.next.status === "soon" ? "text-amber-700" : ""}`}>{fmtDate(row.leaseInfo.next.date)} · {row.leaseInfo.next.label} ({row.leaseInfo.next.tenant})</span> : "none"}</span>
+            <span>Risk flags: <span className="font-medium">{row.leaseInfo.risks}</span>{row.leaseInfo.highRisks ? <span className="text-red-700"> ({row.leaseInfo.highRisks} high)</span> : ""}</span>
+          </>
+        ) : (
+          <span className="text-gray-500">No lease documents yet.</span>
+        )}
+        {row.live && onOpenLeases && (
+          <button type="button" onClick={() => onOpenLeases(row.id)} className="ml-auto rounded-lg border border-blue-200 bg-white px-2.5 py-1 font-medium text-blue-700 hover:bg-blue-50">Open Leases tab</button>
+        )}
       </div>
 
       {/* Terms */}
@@ -315,7 +346,18 @@ function AssetDetail({ row, onOpenDeal, onClose }) {
   );
 }
 
-export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onOpenDeal }) {
+export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onOpenDeal, onOpenLeases, workspaceId }) {
+  // Lease documents for the Leases column and Details (signed in with a workspace).
+  const [leases, setLeases] = useState([]);
+  useEffect(() => {
+    if (!workspaceId) return;
+    let alive = true;
+    listLeases(workspaceId).then((l) => alive && setLeases(l)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [workspaceId]);
+  const leaseInfo = useMemo(() => (workspaceId ? leaseSummaryByDeal(leases) : new Map()), [leases, workspaceId]);
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
   const fundName = fundNames.includes(fundPick) ? fundPick : fundNames[0];
@@ -343,7 +385,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
   }
 
   const col = COLUMNS.find((c) => c[0] === sort.key);
-  const rows = [...summary.rows].sort((a, b) => {
+  const rows = summary.rows.map((r) => ({ ...r, leaseInfo: leaseInfo.get(r.id) ?? null })).sort((a, b) => {
     if (sort.key === "name") return a.name.localeCompare(b.name) * sort.dir;
     const va = col[3](a), vb = col[3](b);
     if (va == null || (typeof va === "number" && !isFinite(va))) return 1;
@@ -358,6 +400,10 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
   const totalCells = {
     status: <span className="text-[10px] text-gray-500">{t.owned} owned · {t.pipeline} pipeline{t.sold ? ` · ${t.sold} sold` : ""}</span>,
     location: "", acq: "", exit: "",
+    leases: (() => {
+      const xs = rows.map((r) => r.leaseInfo).filter(Boolean);
+      return xs.length ? `${xs.reduce((a, x) => a + x.abstracted, 0)} of ${xs.reduce((a, x) => a + x.leases, 0)}` : "—";
+    })(),
     sf: fmt(t.sf),
     units: fmt(t.units),
     occupancy: t.rentRolls ? <span title={`${t.rentRolls} assets with a rent roll`}>{fmtPct(t.occupancyPct, 0)}</span> : "—",
@@ -501,7 +547,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
       </div>
 
       {detailId && summary.rows.some((r) => r.id === detailId) && (
-        <AssetDetail row={summary.rows.find((r) => r.id === detailId)} onOpenDeal={onOpenDeal} onClose={() => setDetailId(null)} />
+        <AssetDetail row={rows.find((r) => r.id === detailId)} onOpenDeal={onOpenDeal} onOpenLeases={onOpenLeases} onClose={() => setDetailId(null)} />
       )}
 
       <p className="text-[11px] leading-relaxed text-gray-400">

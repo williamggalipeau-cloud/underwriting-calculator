@@ -1627,6 +1627,12 @@ export default function Home() {
                   setActiveDealId(id);
                   setActiveTab("quick");
                 }}
+                onOpenLeases={(id) => {
+                  if (!deals.some((d) => d.id === id)) return;
+                  setActiveDealId(id);
+                  setActiveTab("leases");
+                }}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
               />
             )}
             {activeTab === "sellhold" && (
