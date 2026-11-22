@@ -2458,7 +2458,10 @@ not used. Nothing changes your data until you click to apply it.
   and metro, with a map), each against the fund's limits from the LPA and
   PPM (actual vs. limit, headroom, breaches, and a check on pipeline deals
   before purchase), lease risk flags, insurance gaps and expiries, debt
-  maturities and covenant cushions, valuation sensitivity, budget and
+  maturities and covenant cushions, a TI funding heat map (whether each
+  asset's TI is covered by its loan's TI facility and draw test, its own
+  cash flow, the sub line or a capital call, quarter by quarter, with
+  what-if actions), valuation sensitivity, budget and
   underwriting variances, stress tests and a watch list. Investor records,
   capital accounts and notices stay in your CRM and investor portal.
 - **M. Fund impact modeling.** Add one or more candidate assets to a fund as
