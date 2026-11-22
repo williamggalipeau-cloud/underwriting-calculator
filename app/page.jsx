@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { underwrite } from "@/lib/calculations";
-import { generateTestScenario } from "@/lib/testScenario";
+import { generateTestScenario, TEST_ACQUISITION_DATES, TEST_PREVIOUS_HOLDS } from "@/lib/testScenario";
 import DealInputsPanel from "@/components/DealInputs";
 import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
@@ -52,6 +52,7 @@ const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calcu
 // with their defaults, moves sample assets off old default acquisition
 // dates and hold periods, and re-maps linked deals onto the full model.
 function migrateSavedDeal(d) {
+  d = withTestDate(d);
   if (!d.quick) return d;
   const quick = { ...QUICK_DEFAULTS, ...d.quick };
   quick.acquisitionDate = currentSampleDate(d.id, quick.acquisitionDate);
@@ -63,13 +64,26 @@ function migrateSavedDeal(d) {
   return { ...d, quick, inputs: d.linked ? toMainInputs(quick, inputs) : inputs };
 }
 
+// Test scenario deals saved before they had acquisition dates, or with the
+// old 5–8 year holds (past Fund I's term), get the current date and 4-year
+// hold. Saved snapshots are re-run so their cash flows match.
+function withTestDate(d) {
+  const name = d?.inputs?.propertyName;
+  if (!TEST_ACQUISITION_DATES[name] || !String(d.id).startsWith("test-")) return d;
+  let inputs = d.inputs;
+  if (!inputs.acquisitionDate) inputs = { ...inputs, acquisitionDate: TEST_ACQUISITION_DATES[name] };
+  if (inputs.holdPeriodYears === TEST_PREVIOUS_HOLDS[name]) inputs = { ...inputs, holdPeriodYears: 4 };
+  if (inputs === d.inputs) return d;
+  return d.irrFlows ? { ...d, ...snapshotDeal(inputs, d.id) } : { ...d, inputs };
+}
+
 // Loads a saved workspace's deals, saved deals and funds with one spelling
 // per fund: the old sample fund name ("Light Industrial Fund I") and any
 // spelling that differs only in capitals or spaces join the same fund, and
 // fund terms saved under those spellings are merged.
 function normalizeWorkspaceFunds(saved) {
   const deals = saved.deals.map(migrateSavedDeal);
-  const savedDeals = Array.isArray(saved.savedDeals) ? saved.savedDeals : [];
+  const savedDeals = (Array.isArray(saved.savedDeals) ? saved.savedDeals : []).map(withTestDate);
   const funds = saved.funds && typeof saved.funds === "object" ? saved.funds : initialFunds();
   const resolve = fundNameResolver(funds, deals, savedDeals);
   return {

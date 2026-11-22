@@ -270,15 +270,31 @@ field.
 **Sample portfolio.** The app opens with "Model Fund I": your deal
 plus nine illustrative light-industrial assets (§7.13). **Load Model
 Fund I** restores them and **Clear test data** removes them. **Load test
-scenario** adds four more deals (Small Bay Industrial — Phase I, Eastside
-Distribution Hub, Northgate Flex Center, Riverside Commerce Park) to Model
-Fund I.
+scenario** adds four more deals to Model Fund I, all closed after the
+fund's final close: Small Bay Industrial — Phase I (acquired 2/27/26),
+Eastside Distribution Hub (5/29/26), Northgate Flex Center (8/31/26) and
+Riverside Commerce Park (10/30/26).
+
+**Acquisition dates and the fund terms.** Every fund asset needs an
+acquisition date: it places the asset's cash flows in the fund's timeline.
+- **Where to set it:** Quick Underwrite for linked deals; **Acquisition
+  date** in the deal inputs' Property section for unlinked deals.
+- **Missing date:** the fund assumes the asset was bought at its final
+  close. The field turns amber, and the Asset Summary lists the asset and
+  marks its date with *.
+- **Fund terms check:** the Asset Summary also lists any asset bought after
+  the investment period ends (final close + investment period) or exiting
+  after the fund term ends (final close + term, before extensions).
+- **Model Fund I** (final close 12/31/25, 2-year investment period, 5-year
+  term): all 14 assets were bought between 1/30/26 and 11/13/26 and, on
+  4-year holds, exit in 2030, inside the term (12/31/30).
 
 **Hold period.** Every deal defaults to a **4-year hold**: new deals, the
 opening deal, the nine sample assets and the four test-scenario deals. Change
 it per deal under **Hold** (Quick Underwrite, for linked deals) or **Hold
 Period** (deal inputs, for unlinked deals). Deals you already have keep the
-hold they were saved with.
+hold they were saved with, except sample and test-scenario deals still on an
+earlier default hold, which move to 4 years when the workspace opens.
 
 ---
 
@@ -1907,11 +1923,12 @@ It was created by Claude through the Supabase connector, using the same
 signed as the owner, so its audit row ("Created workspace") shows the
 owner's email.
 
-Its four test scenario deals were saved before the test scenario changed
-to a 4-year hold, so they keep their original holds (Small Bay Industrial —
-Phase I and Eastside Distribution Hub 7 years, Northgate Flex Center 5,
-Riverside Commerce Park 8). Change them on each deal, or delete the four
-and click **Load test scenario** again.
+Its four test scenario deals were saved before they had acquisition dates
+and with their earlier holds (5–8 years, past the fund term). When the
+workspace next opens, the app gives them their acquisition dates (§2,
+Sample portfolio) and 4-year holds, re-runs the three saved snapshots, and
+saves the result as a new version, so every asset is held 4 years and exits
+in 2030.
 
 **To start using it:** sign in on the site. As the most recently saved
 workspace, it opens automatically. If the browser still held data from an

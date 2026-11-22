@@ -36,7 +36,7 @@ const FUNDING = {
 // [key, header, render(row), sortValue(row), group]
 const COLUMNS = [
   ["status", "Status", (r) => <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]}`}>{r.status}</span>, (r) => r.status, "Asset"],
-  ["acq", "Acquired", (r) => fmtDate(r.acq), (r) => r.acq, "Asset"],
+  ["acq", "Acquired", (r) => (r.acqAssumed ? <span className="text-amber-700" title="No acquisition date entered: the fund's final close is assumed">{fmtDate(r.acq)}*</span> : fmtDate(r.acq)), (r) => r.acq, "Asset"],
   ["exit", "Exit", (r) => fmtDate(r.exit), (r) => r.exit, "Asset"],
   ["sf", "SF", (r) => fmt(r.sf), (r) => r.sf, "Asset"],
   ["units", "Units", (r) => (r.units ? fmt(r.units) : "—"), (r) => r.units, "Asset"],
@@ -381,6 +381,25 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
           </button>
         </div>
       </div>
+
+      {summary.rows.some((r) => r.acqAssumed) && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <span className="font-semibold">Missing acquisition date:</span>{" "}
+          {summary.rows.filter((r) => r.acqAssumed).map((r) => r.name).join(", ")}. Until a date is entered (Asset tab → Property, or Quick
+          Underwrite for linked deals), the fund assumes these were bought at its final close; dates marked * are that assumption.
+        </p>
+      )}
+
+      {summary.rows.some((r) => r.termIssues.length) && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <span className="font-semibold">Outside the fund terms:</span>
+          <ul className="mt-0.5 list-disc pl-5">
+            {summary.rows.filter((r) => r.termIssues.length).map((r) => (
+              <li key={r.id}>{r.name}: {r.termIssues.join("; ")}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Headline */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">

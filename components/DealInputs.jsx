@@ -773,6 +773,25 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
             <Field label="Square Footage" value={inputs.squareFootage} field="squareFootage" suffix="SF" step={1000} onChange={set} />
             <Field label="Purchase Price" value={inputs.purchasePrice} field="purchasePrice" prefix="$" step={100000} onChange={set} />
           </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="acq-date" className="text-xs font-medium text-gray-500 uppercase tracking-wide">Acquisition date</label>
+            <input
+              id="acq-date"
+              type="date"
+              value={inputs.acquisitionDate ?? ""}
+              disabled={linked}
+              title={linked ? "Set in Quick Underwrite (this deal is linked)" : ""}
+              onChange={(e) => set("acquisitionDate", e.target.value)}
+              className={`rounded-lg border px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500 ${
+                !inputs.acquisitionDate && inputs.fundName?.trim() ? "border-amber-300 bg-amber-50" : "border-gray-200 bg-white"
+              }`}
+            />
+            {linked ? (
+              <p className="text-[11px] text-gray-400">Set in Quick Underwrite.</p>
+            ) : !inputs.acquisitionDate && inputs.fundName?.trim() ? (
+              <p className="text-[11px] text-amber-700">Needed for fund returns. Until it&apos;s set, the fund assumes the asset was bought at its final close.</p>
+            ) : null}
+          </div>
           {(inputs.units ?? []).length > 0 ? (
             <p className="text-xs text-gray-500">
               <span className="font-medium uppercase tracking-wide">Units:</span>{" "}
