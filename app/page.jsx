@@ -20,9 +20,23 @@ import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
 import FundTermsEditor from "@/components/FundTermsEditor";
+import {
+  createWorkspaceFile,
+  fileAccessSupported,
+  forgetHandle,
+  isWorkspace,
+  openWorkspaceFile,
+  permission,
+  readWorkspace,
+  recallHandle,
+  rememberHandle,
+  writeWorkspace,
+} from "@/lib/workspaceFile";
 
 // Workspace saved in this browser (deals, funds, snapshots, curve).
 const STORAGE_KEY = "uw-workspace-v1";
+// Minutes between automatic saves to the linked workspace file.
+const FILE_SAVE_MINUTES = 10;
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calculator/blob/main/docs/USER_MANUAL.md";
 
@@ -258,6 +272,14 @@ export default function Home() {
   const hydrated = useRef(false);
   const importRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null); // { ok, text }
+  // Linked workspace file: saved there every FILE_SAVE_MINUTES (and on leave).
+  const fileHandle = useRef(null);
+  const fileLinked = useRef(false);
+  const [fileSupported, setFileSupported] = useState(false);
+  const [fileState, setFileState] = useState({ status: "none" }); // none | linked | reconnect | error; name, savedAt, dirty, error
+  const latestData = useRef(null); // latest workspace snapshot for the file
+  const fileDirty = useRef(false); // changes not yet written to the file
+  const fileWriting = useRef(false);
   // Quick Underwrite inputs live on each deal. When a deal is linked, every
   // change is mapped onto its full-model inputs so all tabs stay in sync.
   function setQuick(updater) {
@@ -372,6 +394,55 @@ export default function Home() {
     // Runs once on mount; later updates go through the handlers above.
   }, []);
 
+  // Linked workspace file: find the file picked on an earlier visit. If the
+  // browser still allows access, load it (it is the source of truth);
+  // otherwise offer a one-click Reconnect.
+  useEffect(() => {
+    let stop = false;
+    Promise.resolve()
+      .then(() => {
+        const ok = fileAccessSupported();
+        setFileSupported(ok);
+        return ok ? recallHandle() : null;
+      })
+      .then(async (h) => {
+        if (stop || !h) return;
+        fileHandle.current = h;
+        if ((await permission(h)) !== "granted") {
+          setFileState({ status: "reconnect", name: h.name });
+          return;
+        }
+        const saved = await readWorkspace(h);
+        if (stop) return;
+        if (saved && isWorkspace(saved)) applyWorkspace(saved);
+        linkFile(h);
+      })
+      .catch(() => !stop && fileHandle.current && setFileState({ status: "reconnect", name: fileHandle.current.name }));
+    return () => {
+      stop = true;
+    };
+    // Runs once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save to the linked file every FILE_SAVE_MINUTES, and when the tab is
+  // hidden or closed, if there are changes.
+  const saveRef = useRef(saveToFileNow);
+  useEffect(() => {
+    saveRef.current = saveToFileNow;
+  });
+  useEffect(() => {
+    const id = setInterval(() => saveRef.current(), FILE_SAVE_MINUTES * 60_000);
+    const onHide = () => document.visibilityState === "hidden" && saveRef.current();
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onHide);
+    };
+  }, []);
+
   // Save the workspace whenever it changes (after the initial restore).
   useEffect(() => {
     if (!hydrated.current) return;
@@ -385,6 +456,12 @@ export default function Home() {
         setSavedAt(at);
       } catch {
         // Storage full or blocked: the app keeps working, unsaved.
+      }
+      // The linked file is written on a timer (see saveToFileNow); mark it behind.
+      latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations };
+      if (fileLinked.current && !fileDirty.current) {
+        fileDirty.current = true;
+        setFileState((f) => (f.status === "linked" ? { ...f, dirty: true } : f));
       }
     }, 400);
     return () => clearTimeout(t);
@@ -407,11 +484,17 @@ export default function Home() {
       setImportMsg({ ok: false, text: "That file isn't a workspace export (it couldn't be read as JSON)." });
       return;
     }
-    if (!Array.isArray(saved?.deals) || !saved.deals.length || !saved.deals.every((d) => d && d.id && d.inputs)) {
+    if (!isWorkspace(saved)) {
       setImportMsg({ ok: false, text: "That file isn't a workspace export (no deals found)." });
       return;
     }
     if (!window.confirm(`Replace this browser's workspace with the file (${saved.deals.length} deals)? Your current deals, funds and comps here will be overwritten.`)) return;
+    applyWorkspace(saved);
+    setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
+  }
+
+  // Loads a saved workspace (export or linked file) into the app.
+  function applyWorkspace(saved) {
     // Same migration as the browser restore: fill new settings with defaults
     // and re-map linked deals onto the full model.
     setDeals(
@@ -432,7 +515,94 @@ export default function Home() {
     setValuations(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
     // Re-anchor the imported curve to today's live rate, as on page load.
     if (anchor && live?.avg30) applyCurveToDeals(anchorCurveToLive(base, live.avg30.rate).curve);
-    setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
+  }
+
+  // ── Linked workspace file ──
+  // Writes the latest workspace to the linked file (if anything changed).
+  // Runs every FILE_SAVE_MINUTES, on Save now, and when the tab is hidden.
+  async function saveToFileNow(force = false) {
+    const h = fileHandle.current;
+    if (!h || !fileLinked.current || fileWriting.current) return;
+    if (!force && !fileDirty.current) return;
+    const data = latestData.current;
+    if (!data) return;
+    fileWriting.current = true;
+    fileDirty.current = false;
+    const at = new Date().toISOString();
+    try {
+      await writeWorkspace(h, { ...data, savedAt: at });
+      setFileState((f) => (f.status === "linked" ? { ...f, savedAt: at, dirty: fileDirty.current, error: null } : f));
+    } catch (e) {
+      fileDirty.current = true;
+      setFileState((f) => ({ ...f, dirty: true, error: `Couldn't save to the file: ${e.message || e}` }));
+    } finally {
+      fileWriting.current = false;
+    }
+  }
+
+  function linkFile(handle) {
+    fileHandle.current = handle;
+    fileLinked.current = true;
+    fileDirty.current = false;
+    rememberHandle(handle);
+    setFileState({ status: "linked", name: handle.name, savedAt: null, dirty: false, error: null });
+  }
+  const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations });
+  const cancelled = (e) => e?.name === "AbortError";
+
+  // New file: write the current workspace to it and keep it linked.
+  async function handleSaveToFile() {
+    try {
+      const h = await createWorkspaceFile();
+      await writeWorkspace(h, workspaceData());
+      linkFile(h);
+      setFileState((f) => ({ ...f, savedAt: new Date().toISOString() }));
+    } catch (e) {
+      if (!cancelled(e)) setFileState((f) => ({ ...f, error: `Couldn't create the file: ${e.message || e}` }));
+    }
+  }
+
+  // Existing file: load it (replacing this browser's workspace) and keep it linked.
+  async function handleOpenFile() {
+    try {
+      const h = await openWorkspaceFile();
+      if ((await permission(h, true)) !== "granted") return;
+      const saved = await readWorkspace(h);
+      if (saved && !isWorkspace(saved)) {
+        setFileState((f) => ({ ...f, error: `${h.name} isn't a workspace file.` }));
+        return;
+      }
+      if (saved) {
+        if (!window.confirm(`Open ${h.name} (${saved.deals.length} deals)? It replaces the workspace in this browser, and changes will save to that file.`)) return;
+        applyWorkspace(saved);
+      } else {
+        await writeWorkspace(h, workspaceData()); // empty file: start it from the current workspace
+      }
+      linkFile(h);
+    } catch (e) {
+      if (!cancelled(e)) setFileState((f) => ({ ...f, error: `Couldn't open the file: ${e.message || e}` }));
+    }
+  }
+
+  // After a reload the browser asks again before the page can use the file.
+  async function handleReconnectFile() {
+    const h = fileHandle.current;
+    if (!h) return;
+    try {
+      if ((await permission(h, true)) !== "granted") return;
+      const saved = await readWorkspace(h);
+      if (saved && isWorkspace(saved)) applyWorkspace(saved);
+      linkFile(h);
+    } catch (e) {
+      setFileState({ status: "error", name: h.name, error: `Couldn't reopen ${h.name}: ${e.message || e}. It may have been moved or deleted.` });
+    }
+  }
+
+  function handleUnlinkFile() {
+    fileHandle.current = null;
+    fileLinked.current = false;
+    forgetHandle();
+    setFileState({ status: "none" });
   }
 
   function handleResetWorkspace() {
@@ -771,8 +941,45 @@ export default function Home() {
           Clear test data
         </button>
         <span className="ml-auto text-[11px] text-gray-400">
-          {savedAt ? `Saved in this browser ${new Date(savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Not saved yet"}
+          {fileState.status === "linked"
+            ? `Also saved in this browser`
+            : savedAt ? `Saved in this browser ${new Date(savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Not saved yet"}
         </span>
+        {fileSupported ? (
+          fileState.status === "linked" ? (
+            <span className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-800" title={`Saved to this file every ${FILE_SAVE_MINUTES} minutes when there are changes, and when you leave the page`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Saving to <span className="font-semibold">{fileState.name}</span>
+              {fileState.dirty ? (
+                <span className="text-amber-700">· unsaved changes (auto-saves every {FILE_SAVE_MINUTES} min)</span>
+              ) : (
+                fileState.savedAt && <span className="text-emerald-600">· saved {new Date(fileState.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
+              )}
+              <button type="button" onClick={() => saveToFileNow(true)} className="ml-1 rounded border border-emerald-300 bg-white px-1.5 py-0.5 font-medium text-emerald-700 hover:bg-emerald-100">Save now</button>
+              <button type="button" onClick={handleUnlinkFile} className="ml-1 text-emerald-600 hover:text-red-600" title="Stop saving to this file (the file is kept)">Unlink</button>
+            </span>
+          ) : fileState.status === "reconnect" ? (
+            <span className="flex items-center gap-1.5">
+              <button type="button" onClick={handleReconnectFile} className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100">
+                Reconnect {fileState.name}
+              </button>
+              <button type="button" onClick={handleUnlinkFile} className="text-[11px] text-gray-400 hover:text-red-600">Unlink</button>
+            </span>
+          ) : (
+            <>
+              <button type="button" onClick={handleSaveToFile} title="Create a workspace file; every change is saved to it" className="text-xs font-medium text-blue-700 border border-blue-200 hover:bg-blue-50 bg-white rounded-lg px-3 py-1.5 transition-colors">
+                Save to file…
+              </button>
+              <button type="button" onClick={handleOpenFile} title="Open a workspace file; changes are saved back to it" className="text-xs font-medium text-blue-700 border border-blue-200 hover:bg-blue-50 bg-white rounded-lg px-3 py-1.5 transition-colors">
+                Open file…
+              </button>
+            </>
+          )
+        ) : (
+          <span className="text-[11px] text-gray-400" title="Safari and Firefox don't let web pages save to a file. Use Chrome or Edge, or Export / Import workspace.">
+            Auto-save to a file needs Chrome or Edge
+          </span>
+        )}
         <input
           ref={importRef}
           type="file"
@@ -807,6 +1014,12 @@ export default function Home() {
         >
           Reset workspace
         </button>
+        {fileState.error && (
+          <p className="basis-full text-right text-[11px] text-red-600">
+            {fileState.error}
+            <button type="button" onClick={() => setFileState((f) => ({ ...f, error: null }))} className="ml-2 text-gray-400 hover:text-gray-700" aria-label="Dismiss">✕</button>
+          </p>
+        )}
         {importMsg && (
           <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
             {importMsg.text}
