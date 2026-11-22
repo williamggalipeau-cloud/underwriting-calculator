@@ -79,7 +79,8 @@ are reviewed.
 
 1. ~~Separate Documents tab or combined with Leases~~ **Decided (11/22):
    a separate Documents tab.**
-2. PSA abstracts without connector validation (checked locally): acceptable?
+2. ~~PSA abstracts without connector validation~~ **Decided (11/22):
+   acceptable, checked locally and labelled "not connector-validated".**
 3. Start E automatically after D, or after you review C and D (recommended).
 4. Deal Review quota: the lease connector shows 3 free documents left. Bulk use
    likely needs a paid plan.
