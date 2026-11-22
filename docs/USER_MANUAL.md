@@ -99,6 +99,7 @@ full-model inputs for the active deal.
 | **Portfolio Return** | Funds: fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
+| **Change Log** | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (the name entered in this browser), what, from → to. Filter, search, export to Excel. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 
 **Linked deals.** A linked deal's Quick Underwrite inputs are mapped onto the
@@ -236,6 +237,7 @@ underwriting-calculator/
 │   ├── FundTermsEditor.jsx   New / edit fund dialog, template upload
 │   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
 │   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
+│   ├── ChangeLog.jsx         Change Log tab
 │   └── SalesComps.jsx        Sales Comps tab
 ├── lib/                      Calculation engine and data (no UI)
 │   ├── calculations.js       Core engine: underwrite(), loan math, IRR, waterfall, sensitivity
@@ -249,6 +251,7 @@ underwriting-calculator/
 │   ├── fundTerms.js          Fund terms defaults, template, import/export, CSV parser
 │   ├── subLine.js            Subscription line simulation
 │   ├── samplePortfolio.js    Nine sample assets, deal snapshot for funds
+│   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
@@ -807,7 +810,53 @@ the table with:
 
 **Export to Excel** writes every row plus the total.
 
-### 7.17 Stress test and sensitivity
+### 7.17 Change log (`lib/audit.js`)
+
+**How changes are detected.** Each time the workspace is saved (about
+0.4 seconds after an edit), the app compares what's tracked with the
+previous save and records one entry per changed field:
+
+| Entry field | Meaning |
+|---|---|
+| When | Date and time of the change (this computer's clock) |
+| Who | The name entered under **Change Log → Your name** in this browser ("Unknown user" if blank) |
+| Area | Deal, Saved deal, Fund terms, Capital activity, Valuation, Sales comps, Forward curve, or Workspace |
+| Item | The deal, fund, asset or comp |
+| Field | What changed, e.g. "Quick Underwrite › Exit cap (%)" or "2026-06-30 › Fair value ($)" |
+| From → To | Old and new value ("added" / "removed" for whole items) |
+
+**What is tracked:**
+- **Deals:** Quick Underwrite inputs and the deal's own inputs. For linked
+  deals, fields that come from Quick Underwrite are logged only on the Quick
+  side.
+- **Everything else:** saved copies, fund terms, capital activity entries,
+  valuation marks, sales comps and the imported forward curve.
+- **Not tracked:** which tab or deal is open, the live SOFR shift, and
+  calculated results.
+
+**Rules:**
+- **Typing merges:** repeated edits to the same field by the same person
+  within one minute merge into one entry. An edit that ends where it started
+  is dropped.
+- **Bulk actions are one entry:** importing, opening or reconnecting a
+  workspace file, resetting the workspace, loading Model Fund I or the test
+  scenario, and clearing test data. Any single save that changes more than
+  60 fields is also one "Bulk change" entry.
+- **What a loaded workspace brings:** its own log, plus an entry for the
+  load.
+- **Size:** the latest 10,000 entries are kept.
+
+**Storage.** The log is saved with the workspace (`auditLog`), so it goes
+with linked files and exports. Your name is stored in this browser only
+(key `uw-audit-user`).
+
+**Limitations.**
+- **Names aren't verified.** The app has no logins.
+- **It isn't tamper-proof.** Anyone who can edit the workspace file can edit
+  the log. Treat it as a working record. A tamper-proof audit trail needs a
+  server with user accounts.
+
+### 7.18 Stress test and sensitivity
 
 **Stress sliders:**
 - **Vacancy +x pts:**
@@ -957,6 +1006,7 @@ units, its default, and what it means.
 |---|---|---|
 | **Browser storage** (`localStorage`, key `uw-workspace-v1`) | The whole workspace (§11.1) | Saved instantly on every change; this browser only |
 | **Linked workspace file** (`.json` you choose) | The same workspace | Saved every 10 minutes when changed, on **Save now**, and when you leave the tab (Chrome / Edge) |
+| **Browser storage** (`localStorage`, key `uw-audit-user`) | Your name for the change log | This browser only |
 | **Browser database** (IndexedDB `uw-workspace-file`, store `handles`, key `workspace`) | Which linked file to reopen | Only the file's handle, not its contents |
 | **Export workspace** file (`underwriting-workspace-<date>.json`) | A copy of the workspace | Written only when you click Export |
 | **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once | Their contents are copied into the workspace; the files aren't kept |
@@ -987,6 +1037,7 @@ the same JSON object.
 | `anchorToLive` | `anchorToLive` | yes / no | Shift the curve to today's NY Fed 30-day average SOFR |
 | `activeDealId` | `activeDealId` | text | The deal open in the left panel |
 | `comps` | `comps` | Sales comps (§11.10) | Comps and their settings |
+| `auditLog` | `auditLog` | list of Change (§7.17) | The change log: `id`, `at`, `user`, `area`, `item`, `field`, `path`, `from`, `to`, `note` |
 | `valuations` | `valuations` | map: deal id → quarter end → Mark (§11.9) | Fair value marks |
 
 ### 11.2 Deal
