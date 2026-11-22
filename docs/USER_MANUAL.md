@@ -27,19 +27,104 @@ underwrites a single asset, stress-tests it, and rolls a set of assets up
 into a closed-end fund with a dated LP/GP waterfall, a subscription line and
 a dry-powder calculation. It also has a sales comps tool.
 
-- **No server, no login.** It is a static website. All math runs in your
+- **No app server.** It is a static website. All math runs in your
   browser. Files you upload (rent rolls, fund terms, forward curves, sales
-  comps) are read in the browser and never sent anywhere.
+  comps) are read in the browser and never sent anywhere. Signing in and
+  the shared database are handled by Supabase (see
+  [Signing in](#signing-in) and §12).
 - **Your work can be saved to a file** (Chrome or Edge). See
   [Saving your work](#saving-your-work) below. It is also always saved in
   your browser as a backup.
 - **Sign in to change data.** Anyone can open the site and look around,
   but entering or changing data requires signing in (**☁ Sign in**, top
-  header). Viewers of a shared database workspace stay view-only (§12.3).
+  header). Viewers of a shared database workspace stay view-only. See
+  [Signing in](#signing-in).
 - **Changes are logged.** The Change Log tab records what changed, when and
   who changed it, using the name entered in each browser (§7.17).
 - **Live data:** the only automatic outside calls are to the New York Fed for
   current SOFR, and an optional one for CME SOFR futures (see §5).
+
+### Signing in
+
+You sign in with your email address. There is no password: the app emails
+you a one-time sign-in link.
+
+**What works without signing in.** You can open every tab, look at the
+sample deals, sort tables and read results. Anything you type is not kept,
+and a yellow **View only** banner appears at the top. Opening or importing
+workspace files, loading samples and resetting are also blocked until you
+sign in.
+
+**How to sign in**
+1. Click **☁ Sign in** in the top header (or the **☁ Sign in** button on
+   the View only banner).
+2. Enter your email and click **Email me a sign-in link**.
+3. Open the email from Supabase and click the link. Open it in the
+   **same browser** you want to work in, because the sign-in belongs to the
+   browser where the link is opened.
+4. The app opens signed in. The header shows ☁ with your workspace name (or
+   **Database**), and the View only banner disappears.
+
+Each link works **once** and expires after about an hour. If it has
+expired or was already used, request a new one.
+
+**After you sign in**
+- Any workspace someone shared with your email is added to your list
+  automatically (**☁ Database → Your workspaces**).
+- If this browser was saving to a database workspace before, it reopens
+  automatically.
+- You stay signed in on this browser, even after closing the tab or
+  restarting the computer, until you sign out. Other browsers and devices
+  need their own sign-in.
+
+**What you can do depends on your role** in a shared database workspace:
+
+| Role | Can view | Can change data and save | Can add or remove people | Can delete the workspace |
+|---|---|---|---|---|
+| Owner | ✓ | ✓ | ✓ | ✓ |
+| Editor | ✓ | ✓ | — | — |
+| Viewer | ✓ | — (stays View only) | — | — |
+
+If you are signed in but not working in a database workspace, you can edit
+freely. Your changes save to the browser and to any linked file.
+
+**Signing out.** Open **☁ Database** and click **Sign out** next to
+"Signed in as …". The app goes back to View only, and this browser stops
+saving to the database workspace. After signing in again, reopen it from
+**Your workspaces**. Sign out on shared or public computers.
+
+**Getting access to someone else's workspace.** Ask an owner to add your
+email under **☁ Database → People with access**. You don't need to sign in
+first: the invite waits, and the workspace appears the first time you sign
+in with that email. Use the exact email address the owner entered.
+
+**How your data is protected**
+- **The database checks who you are on every request.** You can only read
+  workspaces you are a member of, and only owners and editors can save.
+  These rules are enforced by the database itself, not just by the screen.
+- **Signed-out visitors can't call the database** at all. Only signed-in
+  users can run saves, sharing and invites.
+- **Every change is stamped by the server** with your signed-in email and
+  the server's clock. Nobody can type in someone else's name or edit the
+  verified change log.
+- **No passwords are stored**, so there is no password to leak or reuse.
+  Keep your email account secure: anyone who can read your email can sign
+  in as you.
+
+**Sign-in problems**
+
+| What you see | What to do |
+|---|---|
+| No email arrives | Check spam and wait a minute. The sign-in sender allows only a few emails per hour, so don't request many links in a row. |
+| The link says it is invalid or expired | It was already used or is over an hour old. Request a new one. |
+| The link opens a page that isn't the app | The project's sign-in address isn't set. An admin fixes it (§12.2 step 2). |
+| Signed in, but still View only | You are a viewer on this workspace. Ask an owner for editor access. |
+| Signed in, but a shared workspace is missing | The owner may have used a different email. Ask them to check **People with access**, then click **Refresh** under **Your workspaces**. |
+| Signed in on one computer but not another | Each browser needs its own sign-in. |
+
+For administrators: sign-in settings, the database setup and optional
+hardening (turning off open sign-ups, multi-factor authentication, a custom
+email sender) are in §12.2 and §12.3.
 
 ### Saving your work
 
@@ -1630,6 +1715,11 @@ delete a workspace. Nobody can update or delete `audit_log` rows.
 | `remove_member(ws, member_email)` | owner | — | Removes a member or invite (never the last owner); logs it |
 | `claim_invites()` | the signed-in user | count | Turns invites for your email into memberships |
 | `ws_role(ws)`, `ws_can(ws, roles)` | internal | role / yes-no | Used by the rules above |
+
+Only signed-in users (the `authenticated` role) can run these functions;
+signed-out visitors (`anon`) can't. The trigger functions `ws_after_insert`
+and `audit_stamp` can't be called directly by anyone; the database runs
+them on its own.
 
 ### 12.6 Looking at the data
 
