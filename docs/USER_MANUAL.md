@@ -32,15 +32,15 @@ a dry-powder calculation. It also has a sales comps tool.
   comps) are read in the browser and never sent anywhere. Signing in and
   the shared database are handled by Supabase (see
   [Signing in](#signing-in) and §12).
-- **Your work can be saved to a file** (Chrome or Edge). See
-  [Saving your work](#saving-your-work) below. It is also always saved in
-  your browser as a backup.
+- **Your work is saved only in the database.** Sign in and every change
+  saves to your workspace in the Supabase database. Nothing is kept in the
+  browser. See [Saving your work](#saving-your-work).
 - **Sign in to change data.** Anyone can open the site and look around,
   but entering or changing data requires signing in (**☁ Sign in**, top
   header). Viewers of a shared database workspace stay view-only. See
   [Signing in](#signing-in).
 - **Changes are logged.** The Change Log tab records what changed, when and
-  who changed it, using the name entered in each browser (§7.17).
+  who changed it, using your signed-in email (§7.17).
 - **Live data:** the only automatic outside calls are to the New York Fed for
   current SOFR, and an optional one for CME SOFR futures (see §5).
 
@@ -94,8 +94,11 @@ Reset links work once and expire after about an hour.
 **After you sign in**
 - Any workspace someone shared with your email is added to your list
   automatically (**☁ Database → Your workspaces**).
-- If this browser was saving to a database workspace before, it reopens
-  automatically.
+- Your most recently saved workspace opens automatically. The first time
+  you sign in, a workspace named **Model Fund I** is created for you.
+- If an earlier version of the app had saved work in this browser, it is
+  moved into the database as a workspace named **Moved from browser
+  *date***, and the browser copy is deleted.
 
 **What you can do depends on your role** in a shared database workspace:
 
@@ -105,13 +108,14 @@ Reset links work once and expire after about an hour.
 | Editor | ✓ | ✓ | — | — |
 | Viewer | ✓ | — (stays View only) | — | — |
 
-If you are signed in but not working in a database workspace, you can edit
-freely. Your changes save to the browser and to any linked file.
+Editing needs an open database workspace. While one is opening, the app
+stays View only for a moment.
 
 **Signing out.** Open **☁ Database** and click **Sign out** next to
-"Signed in as …". The app goes back to View only, and this browser stops
-saving to the database workspace. After signing in again, reopen it from
-**Your workspaces**. Sign out on shared or public computers.
+"Signed in as …". Any unsaved changes are saved first, then the page
+reloads with the starting sample deals in View only. Your workspace stays
+in the database and opens again when you sign in. Sign out on shared or
+public computers.
 
 **Getting access to someone else's workspace.** Ask an owner to add your
 email under **☁ Database → People with access**. You don't need an account
@@ -152,55 +156,44 @@ email sender) are in §12.2 and §12.3.
 
 ### Saving your work
 
-The workspace holds your deals, fund terms, valuation marks, comps and the
-imported forward curve. It is saved in two places.
+Everything you enter is saved in **one place: your workspace in the
+Supabase database**. Nothing is saved in the browser, and no files are
+written automatically.
 
-**1. A workspace file (recommended).** The buttons are at the top right.
-
-| Button | What it does |
-|---|---|
-| **Save to file…** | Creates a new `.json` file wherever you choose and links it. |
-| **Open file…** | Links an existing workspace file and loads it. It replaces what's in the browser, after you confirm. |
-| **Save now** | Writes your changes to the file immediately. |
-| **Unlink** | Stops saving to the file. The file itself is kept. |
-| **Reconnect *name*** | Appears when you come back. One click lets the browser use the file again, and the app loads it. |
-
-- **When it saves:** every **10 minutes** if anything changed, when you click
-  **Save now**, and when you switch away from or close the tab.
-- **Status:** the green label shows the file name and either "saved *time*"
-  or "unsaved changes".
-- **Where to put the file:** iCloud Drive (or Dropbox, OneDrive) lets you open
-  the same file on another Mac. Documents also works.
-- **Browsers:** Chrome and Edge only. Safari and Firefox don't let web pages
-  write to files. There the bar shows "Auto-save to a file needs Chrome or
-  Edge"; use Export / Import workspace instead.
-- **Before closing the tab:** the save on close usually completes, but click
-  **Save now** first if you made changes in the last few minutes.
-- **One tab at a time:** keep the file open in one tab. Two tabs saving to the
-  same file overwrite each other.
-
-The change log (§7.17) is part of the workspace, so it is saved in both
-places and travels with exports.
-
-**Database (Supabase): shared and verified.** Click **☁ Sign in** in the
-top header (next to User manual) and sign in with your email and password
-(see [Signing in](#signing-in)). Then **☁ Database →
-Save to database** creates a shared workspace.
-- **Saving:** changes save to it on the same schedule as a linked file
-  (every 10 minutes when changed, on **Save now**, and when you leave), and
-  every save is a new version.
-- **Status:** the ☁ label shows the workspace name, version and save status.
-- **Reopening:** next time you sign in on this browser, the linked workspace
-  reopens automatically.
+- **Sign in first.** Signed out, the app is View only and nothing is saved.
+- **Your workspace opens on sign-in.** It holds your deals, fund terms,
+  valuation marks, comps and the forward curve. The first time you sign in,
+  one named **Model Fund I** is created for you.
+- **When it saves:** about **20 seconds after your last change**, when you
+  click **Save now**, and when you switch away from or close the tab. Each
+  save is a new version; earlier versions are kept.
+- **Status:** the ☁ label in the header shows the workspace name, version
+  and either "saved *time*" or "unsaved changes".
+- **Leaving with unsaved changes:** the browser asks before closing the tab,
+  because the changes exist only on screen until they are saved.
 - **Conflicts:** if someone else saved first, choose **Open latest** (load
   theirs) or **Keep mine** (save over it; theirs stays in the version
   history).
+- **Other workspaces:** **☁ Database → Your workspaces** lists every
+  workspace you can open. **Open** switches to one; owners can **Delete**.
 - **Sharing:** owners add people under **☁ Database → People with access**
   as owner, editor or viewer. People who haven't signed in yet get access on
   their first sign-in with that email.
 - **Verified change log:** the database records every changed field with
   the signed-in email and the server's time, and no one can edit or delete
   those entries.
+
+**Backups and copies (optional, by hand):**
+- **Export workspace** downloads a `.json` copy you keep.
+- **Import workspace** loads a `.json` copy into the open workspace,
+  replacing its contents. It saves as a new version, so the previous one
+  stays in the version history.
+- **Reset workspace** puts the open workspace back to the starting deals,
+  also as a new version.
+
+**What the browser still keeps:** only your sign-in, so you don't have to
+sign in on every visit (`sb-nydqmigxorahfkfpkjnq-auth-token`). It holds no
+deals or other data and is removed when you sign out.
 
 One-time setup (full detail, table layout and admin queries in §12):
 1. In Supabase, open **SQL Editor → New query**, paste
@@ -213,16 +206,6 @@ One-time setup (full detail, table layout and admin queries in §12):
    publishable key is designed to be public: sign-in and the database's
    row-level security rules protect the data. Never put the `service_role`
    (secret) key in the app.
-
-**2. The browser (always on).** Every change is also saved instantly in this
-browser (`localStorage`, key `uw-workspace-v1`), as a backup. That save stays
-in this browser and doesn't follow you to another browser or device.
-
-**Moving or backing up without a linked file:**
-- **Export workspace** downloads a `.json` copy.
-- **Import workspace** loads one into another browser, replacing its
-  workspace.
-- **Reset workspace** clears the browser copy. A linked file is not deleted.
 
 ---
 
@@ -249,7 +232,7 @@ full-model inputs for the active deal.
 | **Portfolio Return** | Funds: fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
-| **Change Log** | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (the name entered in this browser), what, from → to. Filter, search, export to Excel. |
+| **Change Log** | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 
 **Linked deals.** A linked deal's Quick Underwrite inputs are mapped onto the
@@ -415,7 +398,7 @@ underwriting-calculator/
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
 │   ├── testScenario.js       "Load test scenario" data
-│   ├── workspaceFile.js      Linked workspace file (save to / open a .json file)
+│   ├── workspace.js          Workspace check; moves an old browser copy into the database
 │   └── xlsx.js               Dependency-free .xlsx reader and writer
 ├── docs/USER_MANUAL.md       This manual
 ├── supabase/setup.sql        Database setup (run once in the Supabase SQL Editor)
@@ -1010,12 +993,11 @@ previous save and records one entry per changed field:
 each save sends the fields changed since the previous save. The database
 stamps every row with the signed-in user's email and the server time, and
 rows can't be changed or deleted. Change Log shows this verified log by
-default (**Database (verified)**), with **This browser** for the local log.
-Signed in, local entries also use your email instead of a typed name.
+default (**Database (verified)**), with **Working log** for the working
+log kept in the workspace. Signed in, those entries also use your email.
 
-**Storage.** The log is saved with the workspace (`auditLog`), so it goes
-with linked files and exports. Your name is stored in this browser only
-(key `uw-audit-user`).
+**Storage.** The working log is saved with the workspace (`auditLog`) in
+the database, so it also goes with exports. Nothing is kept in the browser.
 
 **Limitations.**
 - **Names aren't verified.** The app has no logins.
@@ -1119,16 +1101,18 @@ The inputs are the Quick Underwrite defaults:
 9. **Recycling** of returned capital is not in dry powder.
 10. **Sample assets and example comps are illustrative.** Replace them with
     real deals and comps.
-11. **Saving to a file needs Chrome or Edge.** Elsewhere the data lives in
-    the browser; use Export / Import workspace to back it up or move it.
-12. **The linked file saves every 10 minutes.** Changes made since the last
-    save are only in the browser until then. Use Save now before closing if
+11. **You need to be online and signed in to save.** Nothing is kept in
+    the browser, so changes made while the database can't be reached stay
+    on screen only until a save succeeds. The header shows "unsaved
+    changes" until then.
+12. **Saves happen about 20 seconds after the last change.** Closing the
+    tab sooner triggers a save and a "leave page?" prompt; use Save now if
     in doubt.
-13. **The browser change log is a working record.** Names are typed in
-    each browser and not verified, and anyone who can edit the workspace
-    file can edit that log. For a verified log, save to the database: there
-    the signed-in user and server time are recorded on each save, and
-    entries can't be edited or deleted.
+13. **The working change log is a working record.** It is part of the
+    workspace data, so anyone who can edit the workspace (or an exported
+    file) can edit it. The verified log is the database's: the signed-in
+    user and server time are recorded on each save, and entries can't be
+    edited or deleted.
 14. **The database is only as private as its access list.** Owners decide
     who can open a workspace. Supabase hosts the data (encrypted at rest).
     Deleting a workspace deletes its versions and audit history.
@@ -1178,17 +1162,14 @@ units, its default, and what it means.
 ### 11.0 Where data is stored
 
 The app's data is one **workspace**: a JSON object holding deals, funds,
-comps, valuations, settings and the browser change log (§11.1–11.11). That
-same JSON is stored in several places:
+comps, valuations, settings and the browser change log (§11.1–11.11). It is
+stored in the database; the only other copies are exports you download:
 
 | Location | What it holds | When it's written |
 |---|---|---|
-| **Supabase database** (project `nydqmigxorahfkfpkjnq`) | `workspaces.data`: the current workspace JSON. `workspace_versions.data`: every earlier version. `audit_log`: the verified change log. Members and invites (§11.13). | When signed in and linked: every 10 minutes when changed, on **Save now**, and on leaving the page |
-| **Browser storage** (`localStorage` key `uw-workspace-v1`) | The same workspace JSON | Instantly on every change (this browser only) |
-| **Linked workspace file** (`.json`) | The same workspace JSON | Every 10 minutes when changed, on **Save now**, on leaving (Chrome / Edge) |
+| **Supabase database** (project `nydqmigxorahfkfpkjnq`) | `workspaces.data`: the current workspace JSON. `workspace_versions.data`: every earlier version. `audit_log`: the verified change log. Members and invites (§11.13). | About 20 seconds after the last change, on **Save now**, and on leaving the page |
 | **Export workspace** file | A copy of the workspace JSON | When you click Export |
-| **Browser storage**, other keys | `uw-audit-user`: your typed name. `uw-db-link`: which database workspace this browser saves to. `uw-db-dirty`: unsaved database changes. `sb-nydqmigxorahfkfpkjnq-auth-token`: your sign-in session. | This browser only |
-| **Browser database** (IndexedDB `uw-workspace-file`) | The linked file's handle (not its contents) | When you link a file |
+| **Browser storage** | Only the sign-in session (`sb-nydqmigxorahfkfpkjnq-auth-token`). No workspace data. Data saved there by earlier versions of the app is moved to the database on sign-in and then deleted. | On sign-in; removed on sign-out |
 | **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once; contents copied into the workspace | — |
 | **Not stored anywhere** | Live NY Fed rates, calculated results (§11.12), snapshots of open deals | Recalculated on every load or change |
 
@@ -1214,12 +1195,11 @@ where name = 'Model Fund I';
 Earlier versions use the same paths in `workspace_versions.data`.
 Database-level columns (`id`, `version`, who saved and when) are in §11.13.
 
-### 11.1 Workspace (`workspaces.data` in Supabase; also the browser, linked file and exports)
+### 11.1 Workspace (`workspaces.data` in Supabase; also exports)
 
 The workspace JSON. In Supabase it's the `data` column of `workspaces`
-(current version) and `workspace_versions` (earlier versions). In the
-browser it's under the key `uw-workspace-v1`. Linked and exported files hold
-the same object.
+(current version) and `workspace_versions` (earlier versions). Exported
+files hold the same object.
 
 | Field | Stored at (`workspaces.data`) | Type | Meaning |
 |---|---|---|---|
@@ -1624,10 +1604,9 @@ the net change between saves.
 
 ## 12. Database (Supabase)
 
-The app can save workspaces to a hosted Postgres database on
-[Supabase](https://supabase.com). It's optional: without signing in, the app
-works exactly as before, saving in the browser and in linked or exported
-files.
+The app saves workspaces only to a hosted Postgres database on
+[Supabase](https://supabase.com). Without signing in the app is View only
+and nothing is saved; nothing is ever saved in the browser.
 
 **What the database adds:**
 - **Sharing:** shared workspaces with owner, editor and viewer access.
@@ -1675,23 +1654,25 @@ files.
 - **Signed out:** the app is view-only. A banner says "View only. Sign in
   to enter or change data". Every tab can still be viewed, sorted and
   opened, but nothing typed is kept.
-- **Blocked while view-only:** importing or opening workspace files, loading
-  the samples or test scenario, clearing test data and resetting.
+- **Signed in:** editing starts once your database workspace has opened.
+- **Blocked while view-only:** importing workspace files, loading the
+  samples or test scenario, clearing test data and resetting.
 - **Viewers** of a database workspace stay view-only after signing in.
 - **This is a screen rule.** The database itself only accepts saves from
   signed-in owners and editors. Someone determined could still change the
   copy held in their own browser, but those changes can't reach the
   database.
-- **To allow local editing without signing in,** set `REQUIRE_SIGN_IN` to
-  `false`.
+- **`REQUIRE_SIGN_IN = false`** would allow typing while signed out, but
+  those changes are never saved, because the app keeps nothing in the
+  browser.
 
 | Action in the app | What happens in the database |
 |---|---|
 | **☁ Sign in** (top header) | Email + password sign-in through Supabase Auth. **Create an account** sends a one-time confirmation email; **Forgot password?** sends a reset link that reopens the app to choose a new password. The session is kept in this browser. After sign-in the app calls `claim_invites()`. |
 | **☁ Database → Save to database** | `create_workspace(name, data)`: a new `workspaces` row (version 1). You become its owner, and a "Created workspace" audit row is written. |
-| Editing, then a save (every 10 min when changed, on **Save now**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
+| Editing, then a save (about 20 seconds after the last change, on **Save now**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
 | Someone else saved first | The save is refused (conflict). The app offers **Open latest** (load theirs) or **Keep mine** (save over it; theirs stays in `workspace_versions`). |
-| **Open** a workspace | Reads `workspaces.data` and loads it into the app. On sign-in, the app reopens the workspace this browser was linked to (`uw-db-link`). |
+| **Open** a workspace | Reads `workspaces.data` and loads it into the app. On sign-in, the app opens your most recently saved workspace, or creates one if you have none. |
 | **People with access** | `add_member` / `remove_member`. If the person hasn't signed in yet, a `workspace_invites` row waits until they do. |
 | **Delete** (owners) | Deletes the workspace and, by cascade, its members, invites, versions and audit rows. |
 | **Change Log** tab | Reads `audit_log` for the open workspace (latest 1,000 rows) and shows it as **Database (verified)**. |

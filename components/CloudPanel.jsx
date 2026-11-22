@@ -117,7 +117,7 @@ function PasswordForm({ busy, run, clearMsg, onPasswordSet, recovery = false, st
 
 // Database panel: sign in, save the workspace to the database, open a saved
 // workspace, and (owners) manage who can open it.
-export default function CloudPanel({ session, link, recovery, onRecoveryDone, onClose, onCreate, onOpen, onSaveNow, onUnlink, onSignOut, onDelete }) {
+export default function CloudPanel({ session, link, recovery, onRecoveryDone, onClose, onCreate, onOpen, onSaveNow, onSignOut, onDelete }) {
   const [changingPassword, setChangingPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -179,7 +179,7 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
           <div>
             <h2 className="text-lg font-bold">Database</h2>
             <p className="text-xs text-gray-500">
-              Save workspaces to your Supabase database to share them, keep every version, and get a verified change log.
+              Your work is saved here, in the database, and nowhere else. Share workspaces, keep every version, and get a verified change log.
             </p>
           </div>
           <button type="button" onClick={onClose} className="text-sm text-gray-400 hover:text-gray-700" aria-label="Close">✕</button>
@@ -212,13 +212,12 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
               <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span>
-                    This browser saves to <span className="font-semibold">{link.name}</span> (version {link.version}, you&apos;re {link.role})
+                    Saving to <span className="font-semibold">{link.name}</span> (version {link.version}, you&apos;re {link.role})
                   </span>
                   <span className="flex gap-2">
                     {link.role !== "viewer" && (
                       <button type="button" disabled={busy} onClick={() => run(onSaveNow, "Saved.")} className={`${btn} border border-emerald-300 bg-white text-emerald-800`}>Save now</button>
                     )}
-                    <button type="button" onClick={onUnlink} className={`${btn} text-gray-500 hover:text-red-600`}>Unlink</button>
                   </span>
                 </div>
               </div>
@@ -232,7 +231,7 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
                 }}
               >
                 <label className="flex flex-col gap-0.5">
-                  <span className="text-gray-600">Save this workspace to the database as</span>
+                  <span className="text-gray-600">Create a workspace from what&apos;s on screen, named</span>
                   <input value={name} onChange={(e) => setName(e.target.value)} required className="w-60 rounded-md border border-gray-300 px-2 py-1.5" />
                 </label>
                 <button type="submit" disabled={busy || !name.trim()} className={`${btn} bg-blue-600 text-white hover:bg-blue-700`}>Save to database</button>
