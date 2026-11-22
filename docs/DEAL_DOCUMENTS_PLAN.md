@@ -12,7 +12,7 @@ reviews and applies it field by field. Nothing changes the model without a click
 - **Database:** a `deal_documents` table and a private `deal-docs` storage bucket,
   set up like `lease_documents`: workspace members read, owners and editors
   write, every change goes to `audit_log`. Columns: `doc_type` (om, rent_roll,
-  t12, loi, psa, loan, appraisal, estoppel, cam, billing, other), `deal_id`,
+  t12, loi, psa, ic_memo, loan, appraisal, estoppel, cam, billing, other), `deal_id`,
   `files` (in order), `status` (uploaded, abstracted, applied), `abstract`,
   `applied_fields`, and who and when for each step.
   `save_deal_abstract(doc, abstract)` mirrors `save_lease_abstract`. Leases stay
@@ -27,7 +27,7 @@ reviews and applies it field by field. Nothing changes the model without a click
 - **Critical dates:** every dated deadline from every document flows into
   phase D's fund-wide critical dates.
 
-## Phase E: acquisition documents (OM, rent roll, T-12, LOI, PSA)
+## Phase E: acquisition documents (OM, rent roll, T-12, LOI, PSA, IC memo)
 
 | Document | Connector tools | Applies to |
 |---|---|---|
@@ -36,6 +36,18 @@ reviews and applies it field by field. Nothing changes the model without a click
 | T-12 | `t12_validate` / `t12_show` | **T-12 vs underwriting**: income and each expense line in $ and $/SF beside the deal inputs, variances flagged; apply chosen lines (taxes, insurance, utilities, repairs, management, other income) |
 | LOI | `loi_validate` / `loi_show` | **Deal terms**: price vs underwritten price, deposit, due diligence and closing periods, financing contingency; dates to critical dates |
 | PSA | `cre_read_document` + `cre_search_text` (no PSA validator) | **Deal terms and critical dates**: price, deposits and when each goes hard, due diligence expiry, closing and extension notices, title and survey objection dates, estoppel and SNDA delivery, reps and warranties survival and cap, assignment, default remedies. The app's own PSA template is checked locally (every quote must be in the PDF) and shown as "not connector-validated" |
+| Final IC memo | `cre_read_document` + `cre_search_text` (no IC memo validator; uses no free documents) | **As-approved baseline**: approval date and approvers, approved price and total cost, sources and uses, debt terms, business plan (capex, lease-up), projected IRR, multiple, cash-on-cash, hold, going-in and exit cap, key risks, and conditions of approval. Checked locally and shown as "not connector-validated" |
+
+**IC memo in the app:**
+- **Approved vs current:** for each asset, the IC-approved figures beside the
+  current model (price, total cost, loan, equity, year-1 NOI, exit cap, IRR,
+  multiple, cash-on-cash, hold), with variances. Shown in the asset's Details
+  panel in the Asset Summary and as a fund-level roll-up on Portfolio Return.
+  It is a reference snapshot: applying it does not change the model.
+- **Conditions of approval:** a checklist per asset (e.g. "Phase I clean",
+  "lender term sheet at 65% LTV or better"), each ticked off with who and when
+  in the change log, and open items shown on the Documents tab.
+- **Dates:** the approval date and any condition deadlines go to critical dates.
 
 ## Phase F: loan agreement to the Debt tab
 
@@ -76,6 +88,9 @@ apply and mismatch features and D's critical dates, so it starts after C and D
 are reviewed.
 
 ## Open decisions
+
+5. **IC memo** (added 11/22 at the user's request): as-approved baseline,
+   approved-vs-current variances and a conditions checklist, in phase E.
 
 1. ~~Separate Documents tab or combined with Leases~~ **Decided (11/22):
    a separate Documents tab.**
