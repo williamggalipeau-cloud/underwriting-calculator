@@ -1264,7 +1264,9 @@ Net yield        = operating income distributed to investors in the year
 Life average     = Σ cash ÷ Σ equity-years (gross and net)
 ```
 
-Sale proceeds are excluded. Under the fund's payment order (§7.20), income
+The life averages also appear in the fund's header, in a **Cash-on-cash**
+box to the right of Net LP (gross · net). Sale proceeds are excluded.
+Under the fund's payment order (§7.20), income
 first repays expense draws and rebuilds fund cash, so net yield can be zero
 for years; the year of the last sales includes the release of asset
 reserves and fund cash.
