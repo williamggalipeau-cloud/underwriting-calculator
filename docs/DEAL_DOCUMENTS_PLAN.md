@@ -87,8 +87,8 @@ reviews and applies it field by field. Nothing changes the model without a click
 
 E, then F, G, H, then I, J, K, each on the working branch, each with the manual, Node and
 Playwright tests, and a PR left for review before merging. E depends on C's
-apply and mismatch features and D's critical dates, so it starts after C and D
-are reviewed.
+apply and mismatch features and D's critical dates, so it starts as soon as D
+is complete.
 
 ## Open decisions
 
@@ -105,8 +105,9 @@ are reviewed.
    a separate Documents tab.**
 2. ~~PSA abstracts without connector validation~~ **Decided (11/22):
    acceptable, checked locally and labelled "not connector-validated".**
-3. ~~When to start E~~ **Decided (11/22): after the user reviews C and D**
-   (not scheduled automatically).
+3. ~~When to start E~~ **Decided (11/22): after the user reviews C and D**,
+   then changed the same night: **E starts automatically when D is complete**
+   (same 10:30am PT session), with its PR left open for review.
 4. ~~Deal Review quota~~ **Decided (11/22): stay within the free allowance.**
    One CREparser account and allowance covers both Lease Abstraction and Deal
    Review (Free plan, 3 documents left on 11/22). A document counts only when
