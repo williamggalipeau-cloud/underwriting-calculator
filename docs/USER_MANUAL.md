@@ -2440,7 +2440,11 @@ not used. Nothing changes your data until you click to apply it.
 - **I. Asset business plan.** A business plan for each asset (thesis,
   leasing, capital, operating, financing and exit plans, milestones, KPIs and
   risks), with your asset photos, a location map and a floor plan showing
-  each unit with its size, tenant and status. The plan at closing is
+  each unit with its size, tenant and status. Demising a unit into smaller
+  units (or combining units) is planned once and flows through the capital
+  plan (cost, downtime), the leasing and operating plan (new units, rents,
+  recoveries, operating costs) and returns (yield on cost). The plan at
+  closing is
   revision 1; any change to the asset while
   it's held creates a new revision, so no revision is ever overwritten.
   Export any revision to PDF.

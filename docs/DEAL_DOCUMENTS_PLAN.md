@@ -266,6 +266,26 @@ actual results are then tracked against each other.
     return (roof, HVAC, paving, docks, unit splits, ESG).
   - *Operating plan*: expense targets, recovery improvements, property
     management, tax appeals and insurance.
+  - *Demising and combining units* (added 11/22, user's request): a plan
+    item that splits a unit into smaller units (or combines units), entered
+    once and reflected in both sections:
+    - Capital plan: the demising project with its scope and cost
+      (demising walls, separate HVAC, electrical and metering, doors, docks
+      or grade-level doors, restrooms, fire and life safety, permits, soft
+      costs, contingency), timing and the unit's downtime during the work.
+    - Leasing and operating plan: the new units with their SF (and any
+      area lost to corridors or walls), market rent per SF (small bays
+      often lease higher), downtime, concessions and TI/LC for each, and
+      lease-up dates; recalculated pro rata shares and recoveries; the
+      operating effects (more meters, separately metered utilities passed
+      to tenants, added management and leasing cost per unit, repairs).
+    - Returns: the project's cost, added NOI, yield on cost and payback,
+      and the effect on the asset's IRR and multiple.
+    - In the model: the cash flow runs the original unit until the work
+      starts, then downtime, then the new units from their lease-up dates.
+      Until the work is done the new units are *planned* (shown that way on
+      the Unit Roll and floor plan); once done, the user marks the split
+      complete and the rent roll gets the new units (a new plan revision).
   - *Financing plan*: current loan, rate cap, covenants, refinance or recap
     (from the Debt tab and phase F).
   - *Exit plan*: target hold, exit timing and cap rate, sale or refinance
@@ -592,4 +612,8 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     photos, a location map from the address, and a floor plan with each
     unit marked (number, SF, tenant, expiry, status), all in the business
     plan and its PDF, and in the phase L asset pages.
+21. **Demising and combining units** (added 11/22) in phase I: a plan item
+    that splits or combines units, with its capex, downtime, new units'
+    rents and lease-up, operating effects and yield on cost, modelled in
+    the cash flow as planned units until the user marks it complete.
 
