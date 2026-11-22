@@ -284,6 +284,11 @@ final close: Eastside Distribution Hub (5/29/26), Northgate Flex Center
 "Small Bay Industrial — Phase I" were removed from the sample and test
 data; saved workspaces drop them once when they open.)
 
+**NOI source.** Every Model Fund I asset, and every new deal, runs on
+**rent-roll NOI**: the cash flow is built from the rent roll (§7.1). Direct
+NOI (an entered year-1 NOI and growth rate) is still available per deal
+(NOI Source in the deal inputs, or linking the deal to Quick Underwrite).
+
 **Rent rolls and mark to market.** Every Model Fund I asset has a rent roll
 (`lib/sampleRentRolls.js`):
 - **Units:** the asset's unit count, about 90% leased (or 1 − the asset's
@@ -293,12 +298,24 @@ data; saved workspaces drop them once when they open.)
   for direct-NOI assets; its rent/SF otherwise), ±5% by unit.
 - **Market rent:** set 20–40% above in-place (each asset has its own target
   in that range), so **mark to market** (market ÷ in-place − 1) is 20–40%.
-- **Effect:** for direct-NOI (Quick Underwrite) assets the rent roll is
-  reference data and returns don't change. For rent-roll assets (Eastside,
-  Northgate, Riverside) income now comes from the rent roll, and the higher
-  market rent raises rents on rollover.
-- Saved workspaces get these once when they open (`rentRollModel`), saved as
-  a new version. Vacancy, occupancy and WALT in the Asset Summary come from
+- **The nine sample assets** were moved from direct NOI to rent-roll NOI and
+  unlinked from Quick Underwrite (loan, cap, fee and exit terms unchanged).
+  Each rent roll is **calibrated to the asset's former NOI path**:
+  - about 80% of leases roll 6–24 months after purchase, the rest at 36–48
+    months, so most income re-prices during the 4-year hold;
+  - in-place rents are scaled so year-1 NOI matches the former year-1 NOI;
+  - market rent is solved so the final hold year's NOI matches the former
+    exit NOI.
+  Reproducing the original 20–35% a year NOI growth needs a mark to market
+  of about **86–195%** on these nine assets (Harbor Light 86%, Canal Street
+  97%, Granite Ave 108%, Airport Flex 113%, Mill Creek 140%, Lakeshore 159%,
+  Route 9 160%, Southpoint 176%, Ridgeway 195%). Asset IRRs stay within
+  about 1.5 points of the direct-NOI figures (re-leasing costs and downtime).
+- **Eastside, Northgate and Riverside** were already on rent-roll NOI; their
+  market rent is 20–40% above in-place and raises rents on rollover.
+- Saved workspaces get these once when they open (`rentRollModel`, then
+  `noiModel` for the rent-roll NOI switch and calibration), saved as a new
+  version. Vacancy, occupancy and WALT in the Asset Summary come from
   the rent rolls and update whenever a unit's status changes or a unit is
   added.
 
@@ -550,8 +567,15 @@ NOI            = EGR − OpEx
     expected values).
   - Expected downtime = round((1 − renewal %) × downtime months), counted
     as vacancy at market rent.
-  - TI, LC, free rent and TI concessions are booked at each rollover.
-  - The unit re-leases at market rent.
+  - **TI and leasing commissions are charged to each unit when it rolls,**
+    using that unit's own rent roll figures (TI new / renewal $/SF, LC new /
+    renewal %): the renewal share at expiry; the new-lease share at expiry
+    if there is no downtime, otherwise in the month the unit is re-let. A
+    unit that starts vacant is charged the full new-lease TI and commission
+    in the month it is leased. (New-lease TI falls back to the construction
+    cost budget, then the property default, only when the unit has none.)
+  - Free rent and TI concessions are booked at each rollover.
+  - The unit re-leases at market rent (market rent in force that month).
   - Credit loss is applied to net revenue.
 
 ### 7.2 Quick Underwrite model (`lib/quickUnderwrite.js`)
@@ -1688,6 +1712,7 @@ column.
 | `tiers` | `funds["Fund name"].tiers` | Tier n IRR hurdle / LP split / GP split | %, %, % | 12% 80/20, 18% 70/30, above 60/40 | Promote tiers (up to 5; blank hurdle = top tier) |
 | `mgmtFeePct` | `funds["Fund name"].mgmtFeePct` | Management fee (% / yr) | % / yr | 0 (Model Fund I: 1.5) | Fund-level fee, quarterly in advance, LPs only (§7.20) |
 | `mgmtFeeBasis` | `funds["Fund name"].mgmtFeeBasis` | Management fee basis | `commitments-then-invested` / `invested` | commitments-then-invested | LP commitments during the investment period, then LP invested capital |
+| `rentRollModel`, `testDataModel`, `noiModel` | `funds["Fund name"].…` | — | text | mtm-v1, v2, rentroll-v1 (Model Fund I) | Mark one-time updates already applied to a saved workspace (rent rolls, removed sample assets, rent-roll NOI); not edited |
 | `cashReserveQuarters` | `funds["Fund name"].cashReserveQuarters` | Fund cash reserve (quarters of expenses) | quarters | 2 | Minimum fund cash: quarters of projected fees + sub line costs |
 | `feeModel` | `funds["Fund name"].feeModel` | — | text | fund-v1 (Model Fund I) | Marks a workspace already moved to the fund-level fee (set once; not edited) |
 | `distributionPolicy` | `funds["Fund name"].distributionPolicy` | Distribution policy | `reserve` / `payout` | reserve | How quarterly income is distributed (§7.9) |
