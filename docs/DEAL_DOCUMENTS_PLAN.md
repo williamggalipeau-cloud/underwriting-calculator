@@ -476,6 +476,29 @@ I–K.
   - *Debt*: maturities and extension dates, covenant cushions (DSCR, debt
     yield, LTV) vs. tests, floating-rate exposure and rate cap expiries,
     refinance risk at current rates.
+  - *Debt concentration by lender* (added 11/22, user's request): fund
+    debt grouped by lender (the loan's issuer: the deal's Lender field,
+    and the lender named in the loan agreement once phase F reads it):
+    outstanding balance and % of total fund debt, number of loans and
+    assets, weighted rate and spread, maturities and extension dates by
+    lender (the refinancing that falls on one lender in one year), any
+    recourse or guaranty to each lender, and cross-default or
+    cross-collateral links. Limits from the LPA/PPM or set by the user
+    (e.g. no lender over 35% of fund debt), with breaches flagged, change
+    vs. last quarter, and a concentration index (HHI) across lenders.
+  - *Rate cap counterparty exposure* (added 11/22, user's request): every
+    cap in force grouped by the institution that wrote it (the Debt tab's
+    Provider, and the counterparty from the executed confirmation once
+    phase F reads it): notional and % of total capped notional, number of
+    caps and assets, strike and expiry, and the **exposure**: the cap's
+    current market value (what the fund would lose if that counterparty
+    failed), from the cap pricer on today's curve, rising as SOFR nears or
+    passes the strike. Shows each counterparty's rating against the loans'
+    minimum counterparty rating (from phase F: a downgrade below it usually
+    requires replacing the cap), caps expiring in the next 12 months by
+    counterparty, and caps with no provider entered. Limits (e.g. no
+    counterparty over 50% of capped notional or of total cap value) with
+    breaches flagged, and an HHI across counterparties.
   - *Geographic concentration* (added 11/22), at the **fund level** (each
     asset sits in one place, so it is a fund measure): exposure by state, metro
     area (MSA), city and submarket, as % of fund value (NAV), equity, NOI,
@@ -520,7 +543,11 @@ I–K.
       their own cash flow; two that need the sub line; one that fails its
       draw test in a later quarter; and one quarter where the sub line is
       full or has expired and a capital call is needed. Fund I's existing
-      sub line terms are used as they are. Added through a one-time,
+      sub line terms are used as they are. The same update gives Fund I's
+      loans made-up lenders (several assets per lender, one lender over a
+      35% limit) and made-up cap providers (one provider writing most caps,
+      one asset with none entered), so the debt and cap counterparty
+      concentration sections show breaches to test. Added through a one-time,
       logged workspace update to the Model Fund I sample data (flag
       "tiFacility-v1"), and as Node test fixtures.
     - **Actions** (modeling only, saved as a phase M-style scenario, never
@@ -706,4 +733,8 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     candidate (with Full Underwrite, a full rent-roll deal), and the separate tab is retired once the candidate
     screen covers it; linked deals become full deals with unchanged results,
     and the forward curve controls move to the Debt tab.
+25. **Debt concentration by lender and rate cap counterparty exposure**
+    (added 11/22) in phase L's risk report: fund debt and capped notional
+    and cap market value grouped by lender and by cap counterparty, with
+    maturities, ratings vs. loan requirements, limits, breaches and HHI.
 
