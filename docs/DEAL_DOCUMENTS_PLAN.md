@@ -23,7 +23,7 @@ changes the model without the user clicking to apply it.
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
-| M | Fund impact modeling (Deal Screener and Full Underwrite candidates, versioned scenarios); Deal Screener tab retired | ⛓ Starts when L is complete |
+| M | Fund impact modeling (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener tab retired | ⛓ Starts when L is complete |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
 value change with exit cap and a PDF of valuation adjustments and their
@@ -605,6 +605,24 @@ changing the fund.
     and lease rollover, all before and after.
   - Limits: every fund limit from the LPA/PPM and internal limits (phase L),
     actual before and after, with any breach the candidate would cause.
+- **Pipeline report** (added 11/22, user's request): a summary of the
+  fund's pipeline, exported as PDF and Excel and saved as dated versions:
+  - *Pipeline status* fields on each pipeline deal: stage (screening, LOI,
+    PSA signed, in due diligence, closing), probability of closing,
+    expected close date, seller and broker, and a short note.
+  - *Summary*: number of deals and total price, SF, equity and debt
+    needed, by stage and probability-weighted; expected closings by
+    quarter against the fund's dry powder and sub line capacity (is there
+    enough capital, and when); the combined effect of the whole pipeline on
+    fund returns, mix and limits (phase M's fund impact, owned assets as
+    the base), and any LPA/PPM limit the pipeline would breach.
+  - *Top 10 assets*, ranked by price by default (or by fund IRR impact,
+    deal IRR, equity required or expected close; the user chooses): asset,
+    market, SF, price and $/SF, going-in and exit cap, deal IRR, equity
+    multiple and cash-on-cash, equity required, stage, probability and
+    expected close, the change it makes to fund net IRR and multiple, and
+    limit flags. A one-paragraph summary for each, with the key risks.
+  - The rest of the pipeline listed in a short table after the top 10.
 - **Compare candidates:** several candidates against each other and in
   combination, ranked by their effect on fund net IRR and multiple.
 - **Break-even pricing:** the highest price at which the candidate still
@@ -761,4 +779,9 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     copy for phase M's fund impact view, with a choice of base (owned only,
     or owned plus other pipeline); edits stay in the scenario unless saved
     back to the deal.
+27. **Pipeline report** (added 11/22) in phase M: pipeline status fields
+    per deal; a summary by stage with capital needs vs. dry powder and the
+    pipeline's fund impact; the top 10 assets (ranked by price by default,
+    user-selectable) with deal returns and fund impact; PDF and Excel,
+    saved as dated versions.
 
