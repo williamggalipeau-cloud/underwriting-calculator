@@ -1,0 +1,248 @@
+[
+  {
+    "asset": "Light Industrial (30k SF)",
+    "state": "CA",
+    "city": "Ontario",
+    "address": "1450 Cedar Grove Court",
+    "zip": "91761",
+    "suite": "Suite C",
+    "rsf": 4800,
+    "tenant": "Inland Crate & Pallet Co.",
+    "lease_type": "NNN",
+    "commencement": "2023-09-01",
+    "expiration": "2028-08-31",
+    "rate": 16.2,
+    "files": [
+      "01-light-industrial-30k-inland-crate.pdf"
+    ]
+  },
+  {
+    "asset": "Airport Flex Park",
+    "state": "NV",
+    "city": "Las Vegas",
+    "address": "6230 Runway Vista Drive",
+    "zip": "89119",
+    "suite": "Building B, Suite 104",
+    "rsf": 2000,
+    "tenant": "Desert Aero Parts LLC",
+    "lease_type": "MG",
+    "commencement": "2025-03-01",
+    "expiration": "2028-02-29",
+    "rate": 15.0,
+    "files": [
+      "02-airport-flex-park-desert-aero.pdf"
+    ]
+  },
+  {
+    "asset": "Route 9 Small Bay",
+    "state": "WA",
+    "city": "Kent",
+    "address": "21800 Valley Freight Way",
+    "zip": "98032",
+    "suite": "Unit 7",
+    "rsf": 2400,
+    "tenant": "Cascade Cabinet Works Inc.",
+    "lease_type": "NNN",
+    "commencement": "2022-06-01",
+    "expiration": "2027-05-31",
+    "rate": 13.75,
+    "files": [
+      "03-route-9-small-bay-cascade-cabinet.pdf"
+    ]
+  },
+  {
+    "asset": "Harbor Light Industrial",
+    "state": "CA",
+    "city": "Long Beach",
+    "address": "2715 Pier Junction Avenue",
+    "zip": "90810",
+    "suite": "Suite 210",
+    "rsf": 2300,
+    "tenant": "Portside Marine Electric",
+    "lease_type": "NNN",
+    "commencement": "2024-01-01",
+    "expiration": "2030-12-31",
+    "rate": 17.4,
+    "files": [
+      "04-harbor-light-portside-marine.pdf",
+      "04a-harbor-light-portside-marine-first-amendment.pdf"
+    ],
+    "amendment": "First Amendment to Lease (Expansion)"
+  },
+  {
+    "asset": "Ridgeway Trade Center",
+    "state": "TX",
+    "city": "Fort Worth",
+    "address": "9400 Ridgeway Commerce Blvd",
+    "zip": "76177",
+    "suite": "Suite 300",
+    "rsf": 2000,
+    "tenant": "Lone Star HVAC Supply LLC",
+    "lease_type": "NNN",
+    "commencement": "2021-10-01",
+    "expiration": "2027-09-30",
+    "rate": 10.25,
+    "files": [
+      "05-ridgeway-lone-star-hvac.pdf"
+    ]
+  },
+  {
+    "asset": "Canal Street Workshops",
+    "state": "TX",
+    "city": "Houston",
+    "address": "3120 Canal Street",
+    "zip": "77003",
+    "suite": "Workshop 5",
+    "rsf": 2000,
+    "tenant": "Bayou Fabrication Studio LLC",
+    "lease_type": "Gross",
+    "commencement": "2026-02-01",
+    "expiration": "2029-01-31",
+    "rate": 18.0,
+    "files": [
+      "06-canal-street-bayou-fabrication.pdf"
+    ]
+  },
+  {
+    "asset": "Mill Creek Business Park",
+    "state": "WA",
+    "city": "Everett",
+    "address": "11500 Mill Creek Loop",
+    "zip": "98204",
+    "suite": "Building 2, Suite 120",
+    "rsf": 2300,
+    "tenant": "Snohomish Brewing Equipment Co.",
+    "lease_type": "NNN",
+    "commencement": "2020-04-01",
+    "expiration": "2027-03-31",
+    "rate": 12.5,
+    "files": [
+      "07-mill-creek-snohomish-brewing.pdf",
+      "07a-mill-creek-snohomish-brewing-first-amendment.pdf"
+    ],
+    "amendment": "First Amendment to Lease (Extension)"
+  },
+  {
+    "asset": "Southpoint Flex",
+    "state": "NV",
+    "city": "Henderson",
+    "address": "855 Southpoint Parkway",
+    "zip": "89074",
+    "suite": "Suite 6",
+    "rsf": 2100,
+    "tenant": "Sunrise Solar Installers LLC",
+    "lease_type": "MG",
+    "commencement": "2024-05-01",
+    "expiration": "2029-04-30",
+    "rate": 16.8,
+    "files": [
+      "08-southpoint-sunrise-solar.pdf"
+    ]
+  },
+  {
+    "asset": "Granite Ave Industrial",
+    "state": "CA",
+    "city": "Fontana",
+    "address": "15020 Granite Avenue",
+    "zip": "92335",
+    "suite": "Unit 3",
+    "rsf": 2150,
+    "tenant": "Granite State Signs & Graphics",
+    "lease_type": "NNN",
+    "commencement": "2025-11-01",
+    "expiration": "2030-10-31",
+    "rate": 15.6,
+    "files": [
+      "09-granite-ave-granite-state-signs.pdf"
+    ]
+  },
+  {
+    "asset": "Lakeshore Service Center",
+    "state": "TX",
+    "city": "Dallas",
+    "address": "7300 Lakeshore Service Road",
+    "zip": "75228",
+    "suite": "Bay 12",
+    "rsf": 2200,
+    "tenant": "North Texas Fleet Service LLC",
+    "lease_type": "NNN",
+    "commencement": "2023-03-01",
+    "expiration": "2028-02-29",
+    "rate": 14.25,
+    "files": [
+      "10-lakeshore-north-texas-fleet.pdf",
+      "10a-lakeshore-north-texas-fleet-first-amendment.pdf"
+    ],
+    "amendment": "First Amendment to Lease (Renewal Option)"
+  },
+  {
+    "asset": "Small Bay Industrial — Phase I",
+    "state": "NV",
+    "city": "Sparks",
+    "address": "1900 Greenbelt Industrial Way",
+    "zip": "89431",
+    "suite": "Unit 001",
+    "rsf": 3200,
+    "tenant": "Smith Metal Works",
+    "lease_type": "NNN",
+    "commencement": "2022-08-01",
+    "expiration": "2027-07-31",
+    "rate": 12.7,
+    "files": [
+      "11-small-bay-phase-i-smith-metal-works.pdf",
+      "11a-small-bay-phase-i-smith-metal-works-first-amendment.pdf"
+    ],
+    "amendment": "First Amendment to Lease (Extension and Renewal Option)"
+  },
+  {
+    "asset": "Eastside Distribution Hub",
+    "state": "WA",
+    "city": "Spokane Valley",
+    "address": "4400 East Trent Logistics Drive",
+    "zip": "99216",
+    "suite": "Dock Suite D",
+    "rsf": 12000,
+    "tenant": "Inland Northwest Grocery Distributors LLC",
+    "lease_type": "NNN",
+    "commencement": "2024-07-01",
+    "expiration": "2034-06-30",
+    "rate": 8.4,
+    "files": [
+      "12-eastside-inland-northwest-grocery.pdf"
+    ]
+  },
+  {
+    "asset": "Northgate Flex Center",
+    "state": "TX",
+    "city": "Austin",
+    "address": "12650 Northgate Tech Circle",
+    "zip": "78758",
+    "suite": "Suite 150",
+    "rsf": 1750,
+    "tenant": "Hill Country Robotics Inc.",
+    "lease_type": "MG",
+    "commencement": "2025-08-01",
+    "expiration": "2028-10-31",
+    "rate": 19.5,
+    "files": [
+      "13-northgate-hill-country-robotics.pdf"
+    ]
+  },
+  {
+    "asset": "Riverside Commerce Park",
+    "state": "CA",
+    "city": "Riverside",
+    "address": "6800 Arlington Commerce Park",
+    "zip": "92503",
+    "suite": "Building A, Suite 400",
+    "rsf": 4000,
+    "tenant": "Citrus Belt Logistics",
+    "lease_type": "NNN",
+    "commencement": "2023-12-01",
+    "expiration": "2028-11-30",
+    "rate": 13.2,
+    "files": [
+      "14-riverside-citrus-belt-logistics.pdf"
+    ]
+  }
+]
