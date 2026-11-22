@@ -11,6 +11,9 @@ const fmtTime = (iso) => {
 };
 const PAGE = 200;
 
+// A note-only entry (bulk action, workspace note) has no from/to values.
+const noteOnly = (e) => !!e.note && e.from === undefined && e.to === undefined;
+
 export default function ChangeLog({ log: browserLog = [], user, onUserChange, signedInEmail = null, dbLog = null, dbName }) {
   const [source, setSource] = useState("auto");
   const useDb = dbLog && source !== "browser";
@@ -141,14 +144,14 @@ export default function ChangeLog({ log: browserLog = [], user, onUserChange, si
             </thead>
             <tbody>
               {rows.slice(0, shown).map((e) => (
-                <tr key={e.id} className={`border-t border-gray-100 align-top ${e.note ? "bg-blue-50/40" : ""}`}>
+                <tr key={e.id} className={`border-t border-gray-100 align-top ${noteOnly(e) ? "bg-blue-50/40" : ""}`}>
                   <td className="px-2.5 py-1.5 whitespace-nowrap text-gray-600">{fmtTime(e.at)}</td>
                   <td className="px-2.5 py-1.5 whitespace-nowrap font-medium">{e.user}</td>
                   <td className="px-2.5 py-1.5 whitespace-nowrap text-gray-600">{e.area}</td>
                   <td className="px-2.5 py-1.5">{e.item}</td>
-                  <td className="px-2.5 py-1.5">{e.note ? <span className="text-gray-500">{e.field}</span> : e.field}{e.source && <span className="ml-1.5 rounded bg-violet-50 px-1 py-px text-[10px] text-violet-700" title={e.source}>{e.source}</span>}</td>
-                  <td className="px-2.5 py-1.5 text-red-700">{e.note ? "" : formatValue(e.from)}</td>
-                  <td className="px-2.5 py-1.5 text-emerald-700">{e.note ? "" : formatValue(e.to)}</td>
+                  <td className="px-2.5 py-1.5">{noteOnly(e) ? <span className="text-gray-500">{e.field}</span> : e.field}{(e.source || (e.note && !noteOnly(e))) && <span className="ml-1.5 rounded bg-violet-50 px-1 py-px text-[10px] text-violet-700" title={e.source || e.note}>{e.source || e.note}</span>}</td>
+                  <td className="px-2.5 py-1.5 text-red-700">{noteOnly(e) ? "" : formatValue(e.from)}</td>
+                  <td className="px-2.5 py-1.5 text-emerald-700">{noteOnly(e) ? "" : formatValue(e.to)}</td>
                 </tr>
               ))}
             </tbody>

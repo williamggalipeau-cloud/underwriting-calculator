@@ -867,7 +867,15 @@ export default function Home() {
     const notes = (data.auditLog ?? [])
       .filter((e) => e.note && (!l.savedAt || e.at > l.savedAt))
       .map((e) => ({ area: "Workspace", item: e.item, field: e.field, note: e.note }));
+    // Rent roll fields set from a lease abstract: logged field by field with
+    // their source (the note) instead of as one rent roll change.
+    const sourced = (data.auditLog ?? []).filter((e) => e.source && (!l.savedAt || e.at > l.savedAt));
+    if (sourced.length) {
+      const prefixes = new Set(sourced.map((e) => JSON.stringify(e.path.slice(0, 4))));
+      changes = changes.filter((c) => !prefixes.has(JSON.stringify(c.path?.slice(0, 4))));
+    }
     if (changes.length > BULK_LIMIT) changes = [{ area: "Workspace", item: "Bulk change", field: `${changes.length} fields changed`, note: "Bulk change" }];
+    changes.push(...sourced.map((e) => ({ area: e.area, item: e.item, field: e.field, path: e.path, from: e.from, to: e.to, note: e.source })));
     dbSaving.current = true;
     try {
       const version = await dbSaveWorkspace(l.id, l.version, data, [...notes, ...changes]);

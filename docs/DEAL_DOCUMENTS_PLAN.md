@@ -13,8 +13,8 @@ changes the model without the user clicking to apply it.
 |---|---|---|
 | A | Lease documents: upload, store, open | ✅ Done, live (PR #43) |
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
-| C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ⏰ Scheduled 11/22 5:30am PT |
-| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ⏰ Scheduled 11/22 10:30am PT |
+| C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ✅ Built 11/22 (open PR); 24 Node + 18 Playwright checks |
+| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | 🔨 In progress |
 | E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ⛓ Starts when D is complete |
 | F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
@@ -60,11 +60,23 @@ with what was built and how it was tested; the user gets a progress note in the 
 - **Save abstract** (paste) and **View abstract**: key terms by group, rent
   schedule, critical dates and risk flags, each with clause, quote, status
   and a link to the PDF page; amended terms show their earlier value.
-- Validated sample abstracts in `docs/sample-leases/abstracts/`: 11 of 12
-  (all but Lakeshore). Attached in the app so far: Airport Flex and Harbor
-  Light; the rest are attached at the start of phase C.
+- Validated sample abstracts in `docs/sample-leases/abstracts/`: all 12,
+  attached to their leases in the app (the last nine and Lakeshore at the
+  start of phase C).
 
-## Phase C: review and apply (scheduled 11/22 5:30am PT)
+## Phase C: review and apply (built 11/22)
+
+**Built**: all 12 sample abstracts attached (Lakeshore abstracted with its
+amendment, validated, SIC 7538); `lib/leaseApply.js`; Apply to rent roll
+panel with before → after effect; rent steps and renewal options in
+`simulateUnit`; mismatch flags on lease cards and Unit Roll rows; each
+applied field logged with its source. Tested: 24 Node checks (engine steps,
+abatement, options exercised / not exercised / exhausted, field mapping on
+the samples, apply and flags), the 12 sample deals' results unchanged, and
+18 Playwright checks on a workspace copy (Airport Flex as a new unit,
+Route 9 existing unit, change log, database save).
+
+Scope as planned:
 
 - First: attach the nine remaining sample abstracts to the uploaded leases
   and abstract Lakeshore (lease + amendment).
