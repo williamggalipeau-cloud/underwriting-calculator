@@ -2389,7 +2389,7 @@ each phase and the decisions behind it are in
 | B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags | ⏰ Scheduled 11/22/2026, 5:30am PT |
 | D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | ⏰ Scheduled 11/22/2026, 10:30am PT |
-| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements; the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
+| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
 | H. Estoppels, CAM and billing | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms | ⛓ After G |
@@ -2427,7 +2427,9 @@ not used. Nothing changes your data until you click to apply it.
   the realized sale. The fund's LPA and PPM, uploaded when you create a fund
   (New fund) or later, are read for the fund terms (fees, preferred return,
   promote, term, investment period) and the investment limits, which you
-  review and apply one by one.
+  review and apply one by one. Insurance certificates (the owner's policies
+  and each tenant's) are checked against lease and loan requirements, with
+  expiry dates tracked.
 - **F–H.** Loan agreements, appraisals, estoppels and CAM reconciliations
   read the same way and checked against the model and the leases.
 - **I–K.** Track each asset's budget, each deal's underwriting and the
@@ -2439,7 +2441,7 @@ not used. Nothing changes your data until you click to apply it.
   by asset and for the fund, geographic concentration for the fund (state
   and metro, with a map), each against the fund's limits from the LPA and
   PPM (actual vs. limit, headroom, breaches, and a check on pipeline deals
-  before purchase), lease risk flags, debt
+  before purchase), lease risk flags, insurance gaps and expiries, debt
   maturities and covenant cushions, valuation sensitivity, budget and
   underwriting variances, stress tests and a watch list. Investor records,
   capital accounts and notices stay in your CRM and investor portal.

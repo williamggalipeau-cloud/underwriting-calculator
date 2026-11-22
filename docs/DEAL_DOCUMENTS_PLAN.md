@@ -118,7 +118,8 @@ reviews and applies it field by field.
 - **Database:** a `deal_documents` table and a private `deal-docs` storage bucket,
   set up like `lease_documents`: workspace members read, owners and editors
   write, every change goes to `audit_log`. Columns: `doc_type` (om, rent_roll,
-  t12, loi, psa, ic_memo, closing_acq, closing_disp, lpa, ppm, loan,
+  t12, loi, psa, ic_memo, closing_acq, closing_disp, lpa, ppm, insurance_cert,
+  loan,
   appraisal, estoppel, cam, billing, other); `deal_id` is empty for fund-level
   documents (LPA, PPM), `deal_id`,
   `files` (in order), `status` (uploaded, abstracted, applied), `abstract`,
@@ -146,6 +147,7 @@ reviews and applies it field by field.
 | PSA | `cre_read_document` + `cre_search_text` (no PSA validator) | **Deal terms and critical dates**: price, deposits and when each goes hard, due diligence expiry, closing and extension notices, title and survey objection dates, estoppel and SNDA delivery, reps and warranties survival and cap, assignment, default remedies. The app's own PSA template is checked locally (every quote must be in the PDF) and shown as "not connector-validated" |
 | Final IC memo | `cre_read_document` + `cre_search_text` (no IC memo validator; uses no free documents) | **As-approved baseline**: approval date and approvers, approved price and total cost, sources and uses, debt terms, business plan (capex, lease-up), projected IRR, multiple, cash-on-cash, hold, going-in and exit cap, key risks, and conditions of approval. Checked locally and shown as "not connector-validated" |
 | Fund LPA and PPM (fund-level, not per asset; also uploadable from **New fund**) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Fund investment limits**: each restriction with its clause and quote: single-asset and single-tenant limits, geography (state, metro, region), property type and non-core/development, leverage (fund and per-asset LTV, total borrowing), investment period and hold limits, other caps. Reviewed and applied one by one to become the fund's limits (phase L checks actual vs. limit). Also reads the **fund terms** for the New fund / Edit fund terms window: commitments, GP commitment, management fee and basis, preferred return, catch-up, promote tiers, investment period, term and extensions, subscription line, distribution policy; shown beside the form and applied field by field. Checked locally, "not connector-validated" |
+| Insurance certificates (asset level; ACORD 25/28 or carrier certificates) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Insurance on file**: for the owner's policies on each asset (property / all-risk, general liability, umbrella, flood, earthquake, wind, builder's risk, loss of rents) and each tenant's certificate (linked to its lease): insurer and rating, policy number, coverage type, limits and deductibles, effective and expiry dates, named and additional insureds, mortgagee / loss payee, waiver of subrogation. Checked against the tenant's lease requirements (phase B abstract) and, once phase F is built, the loan's insurance covenants; gaps and missing certificates flagged. Expiry dates go to critical dates (amber 60 days before, red when lapsed). Premiums can be compared with the asset's insurance expense. Checked locally, "not connector-validated" |
 | Closing statement, acquisition (settlement statement / ALTA) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Actual cost basis**: contract price, credits and prorations (rent, taxes, CAM, security deposits transferred, TI/LC and repair credits), closing costs by type (title, escrow, transfer tax, legal, lender fees), loan proceeds, and equity actually funded; closing date. Replaces the underwritten price/closing costs as the asset's actual basis (shown side by side, applied by choice). Checked locally, "not connector-validated" |
 | Closing statement, disposition | same | **Realized sale**: sale price, credits and prorations, selling costs (commission, transfer tax, legal), loan payoff and prepayment, and net proceeds to equity; closing date. Marks the asset sold, records the actual exit in the cash flows, and fixes realized IRR and multiple (Portfolio Return, Sell / Hold). Checked locally, "not connector-validated" |
 
@@ -326,6 +328,8 @@ I–K.
     20% of fund rent), breaches flagged, and change vs. last quarter.
   - *Lease risk flags* (phase D): relocation, termination rights, uncapped
     expenses, environmental duties, exclusives.
+  - *Insurance* (added 11/22): expired or expiring certificates, missing
+    tenant certificates, and coverage below lease or loan requirements.
   - *Debt*: maturities and extension dates, covenant cushions (DSCR, debt
     yield, LTV) vs. tests, floating-rate exposure and rate cap expiries,
     refinance risk at current rates.
@@ -412,4 +416,8 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     tenant credit reports and financial statements for the sample tenants.
     A README lists each file with its asset and what it tests, and the
     validated abstracts are saved beside them, as with the sample leases.
+16. **Insurance certificates** (added 11/22) in phase E: asset-level
+    document type covering the owner's policies and each tenant's
+    certificate, checked against lease (and loan) requirements, with expiry
+    dates in critical dates and gaps in the phase L risk report.
 
