@@ -13,8 +13,8 @@ changes the model without the user clicking to apply it.
 |---|---|---|
 | A | Lease documents: upload, store, open | ✅ Done, live (PR #43) |
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
-| C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ✅ Built 11/22 (open PR); 24 Node + 18 Playwright checks |
-| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | 🔨 In progress |
+| C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ✅ Live (PR #69); 24 Node + 18 Playwright checks |
+| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ✅ Built 11/22 (PR); 34 Node + 25 Playwright checks |
 | E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ⛓ Starts when D is complete |
 | F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
@@ -96,7 +96,20 @@ Scope as planned:
 - The sample leases' tenants are not on the generated rent rolls; the user
   applies them after reviewing C.
 
-## Phase D: fund lease views (scheduled 11/22 10:30am PT)
+## Phase D: fund lease views (built 11/22)
+
+**Built**: Critical dates and Risk flags views (asset / fund, filters,
+Excel), the PDF abstraction report, the Asset Summary column and Details
+line, and Tenant credit (`supabase/tenant_credit.sql`: owners-and-editors
+table and storage folder; figures with checks, Claude read-in, flags,
+statements-due dates, apply rating to the unit) with fictional sample
+credit documents in `docs/sample-deal-docs/tenant-credit/`. Reminders:
+proposal only (a weekly Claude scheduled task with a phone notification),
+not set up. Tested: 34 Node checks (all 12 sample abstracts, the credit
+samples' expected flags, a statements clause), 22 Playwright checks as an
+owner and 3 as a viewer (credit hidden and never requested).
+
+Scope as planned:
 
 - **Critical dates**: every deadline from the abstracts (expirations,
   renewal and termination notices, option and allowance deadlines,

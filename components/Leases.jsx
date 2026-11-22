@@ -22,6 +22,10 @@ import { sicLabel } from "@/lib/sicCodes";
 import { abstractUnitValues, applyAbstract, compareWithUnit, leaseMismatches, showValue } from "@/lib/leaseApply";
 import { leaseAnalytics, unitStats } from "@/lib/leases";
 import { newUnit } from "@/components/UnitRoll";
+import { CriticalDatesView, RiskFlagsView } from "@/components/LeaseViews";
+import TenantCredit from "@/components/TenantCredit";
+import { listCreditDocs } from "@/lib/creditDocs";
+import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 
 const STATUS_STYLE = {
   uploaded: "border-gray-200 bg-gray-50 text-gray-700",
@@ -504,9 +508,9 @@ function MismatchFlag({ lease, units, inputs }) {
   );
 }
 
-function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, email, userId, onApply, onChanged, onError }) {
+function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, email, userId, credit, onApply, onChanged, onCreditChanged, onError }) {
   const [busy, setBusy] = useState(false);
-  const [panel, setPanel] = useState(null); // "abstract" | "view" | "apply" | null
+  const [panel, setPanel] = useState(null); // "abstract" | "view" | "apply" | "credit" | null
   const [adding, setAdding] = useState([]);
   const [editing, setEditing] = useState(false);
   const [tenant, setTenant] = useState(lease.tenant);
@@ -609,6 +613,9 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
       )}
 
       {panel === "view" && lease.abstract && <AbstractViewer lease={lease} onOpen={open} />}
+      {panel === "credit" && canEdit && (
+        <TenantCredit lease={lease} docs={credit ?? []} workspaceId={workspaceId} units={units} onApply={onApply} onChanged={onCreditChanged} onError={onError} />
+      )}
       {panel === "apply" && lease.abstract && canEdit && inputs && (
         <ApplyPanel lease={lease} units={units} inputs={inputs} email={email} onApply={onApply} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />
       )}
@@ -629,6 +636,9 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
         )}
         {canEdit && lease.abstract && inputs && (
           <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className={`${btn} ${panel === "apply" ? "border-emerald-600 bg-emerald-600 text-white" : "border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50"}`}>{panel === "apply" ? "Close apply" : lease.status === "applied" ? "Review against rent roll" : "Apply to rent roll"}</button>
+        )}
+        {canEdit && (
+          <button type="button" onClick={() => setPanel(panel === "credit" ? null : "credit")} className={`${btn} ${panel === "credit" ? "border-violet-600 bg-violet-600 text-white" : "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100"}`} title="Credit reports and financial statements (owners and editors only)">Tenant credit{credit?.length ? ` (${credit.length})` : ""}</button>
         )}
         {canEdit && (
           <button type="button" onClick={() => setPanel(panel === "abstract" ? null : "abstract")} className={`${btn} ${panel === "abstract" ? "border-blue-600 bg-blue-600 text-white" : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"}`}>{lease.abstract ? "Re-abstract with Claude" : "Abstract with Claude"}</button>
@@ -652,6 +662,9 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
   const [newTenant, setNewTenant] = useState("");
   const [newUnits, setNewUnits] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [view, setView] = useState("leases"); // leases | dates | risks
+  const [credit, setCredit] = useState(null); // owners and editors only
+  const [reporting, setReporting] = useState(false);
   const wsId = workspace?.id;
 
   const refresh = useCallback(async () => {
@@ -667,6 +680,19 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
     // Loads this workspace's leases; nothing to load without one.
     refresh();
   }, [refresh]);
+  const refreshCredit = useCallback(async () => {
+    if (!wsId || !canEdit) return;
+    try {
+      const list = await listCreditDocs(wsId);
+      setCredit(list);
+    } catch (e) {
+      setError(e.message || String(e));
+    }
+  }, [wsId, canEdit]);
+  useEffect(() => {
+    // Credit documents: owners and editors only.
+    refreshCredit();
+  }, [refreshCredit]);
 
   const units = deal?.inputs?.units ?? [];
   const dealName = (id) => fundDeals.find((d) => d.id === id)?.inputs?.propertyName ?? (id === deal?.id ? deal.inputs.propertyName : "Asset not in this fund");
@@ -704,6 +730,20 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
   }
 
   const tenants = [...new Set(units.map((u) => u.tenantName).filter(Boolean))];
+  const scopeTitle = scope === "asset" ? deal?.inputs?.propertyName || "Asset" : fundName || "Fund";
+  const today = new Date().toISOString().slice(0, 10);
+  const creditFor = canEdit ? credit ?? [] : null;
+  async function report() {
+    setReporting(true);
+    try {
+      const { leaseReportPdf } = await import("@/lib/leaseReportPdf");
+      downloadBlob(await leaseReportPdf(shown, { title: scopeTitle, assetName: dealName, asOf: today, credit: creditFor }), `${safeFileName(scopeTitle)}-lease-abstraction-report.pdf`);
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setReporting(false);
+    }
+  }
   const fundCount = leases ? leases.filter((l) => fundDeals.some((d) => d.id === l.deal_id)).length : 0;
 
   return (
@@ -728,6 +768,14 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
         </div>
       ) : (
         <>
+          <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 text-xs" role="tablist">
+            {[["leases", `Leases (${shown.length})`], ["dates", "Critical dates"], ["risks", "Risk flags"]].map(([k, l]) => (
+              <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`-mb-px border-b-2 px-3 py-1.5 font-medium ${view === k ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500 hover:text-gray-800"}`}>{l}</button>
+            ))}
+            {reporting && <span className="ml-2 text-gray-400">Making the report…</span>}
+          </div>
+          {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} onReport={report} />}
+          {view === "risks" && <RiskFlagsView leases={shown} assetName={dealName} title={scopeTitle} onReport={report} />}
           {error && (
             <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
               <span className="flex-1">{error}</span>
@@ -735,7 +783,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
             </p>
           )}
 
-          {scope === "asset" && canEdit && deal && (
+          {view === "leases" && scope === "asset" && canEdit && deal && (
             <form onSubmit={addLease} className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3 text-xs">
               <h3 className="text-sm font-semibold">Add a lease to {deal.inputs.propertyName || "this asset"}</h3>
               <div className="flex flex-wrap gap-3">
@@ -763,7 +811,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
           )}
           {!canEdit && <p className="text-xs text-gray-500">You can open these documents. Owners and editors can add and change them.</p>}
 
-          {leases === null ? (
+          {view !== "leases" ? null : leases === null ? (
             <p className="text-xs text-gray-400">Loading leases…</p>
           ) : shown.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">
@@ -784,6 +832,8 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
                       units={unitsOf(l.deal_id)}
                       inputs={inputsOf(l.deal_id)}
                       onApply={onApplyUnits}
+                      credit={creditFor?.filter((c) => c.lease_id === l.id)}
+                      onCreditChanged={refreshCredit}
                       canEdit={canEdit}
                       workspaceId={wsId}
                       email={email}

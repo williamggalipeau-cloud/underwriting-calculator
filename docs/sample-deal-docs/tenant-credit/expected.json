@@ -1,0 +1,63 @@
+{
+  "note": "Fictional tenant credit documents for testing phase D. Figures are what the app should read; flags are what it should raise for Desert Aero Parts as of 2026-11-22.",
+  "documents": [
+    {
+      "file": "desert-aero-credit-report-2025.pdf", "lease": "02-airport-flex-park-desert-aero", "kind": "credit_report", "subject": "tenant",
+      "subject_legal": "Desert Aero Parts LLC (fictional)", "address": "6230 Runway Vista Drive, Building B, Suite 104, Las Vegas, NV", "industry": "Aircraft parts and equipment, wholesale",
+      "source": "Fictional Commercial Credit Bureau", "report_date": "2025-10-15", "report_date_long": "October 15, 2025", "ref": "FCCB-25-10-4471",
+      "years": 11, "paydex": 79, "trades": 14, "high_credit": 85000, "past_due": 0, "public_records": "None",
+      "comment": "Payments generally within terms.",
+      "figures": { "score": 78, "rating": "Low-moderate risk (2 of 5)" }
+    },
+    {
+      "file": "desert-aero-credit-report-2026.pdf", "lease": "02-airport-flex-park-desert-aero", "kind": "credit_report", "subject": "tenant",
+      "subject_legal": "Desert Aero Parts LLC (fictional)", "address": "6230 Runway Vista Drive, Building B, Suite 104, Las Vegas, NV", "industry": "Aircraft parts and equipment, wholesale",
+      "source": "Fictional Commercial Credit Bureau", "report_date": "2026-10-20", "report_date_long": "October 20, 2026", "ref": "FCCB-26-10-5120",
+      "years": 12, "paydex": 66, "trades": 15, "high_credit": 120000, "past_due": 18400, "public_records": "None",
+      "comment": "Slower payments in the last two quarters; two trade lines 30+ days past due.",
+      "figures": { "score": 64, "rating": "Moderate risk (3 of 5)" }
+    },
+    {
+      "file": "desert-aero-financial-statements-fy2024.pdf", "lease": "02-airport-flex-park-desert-aero", "kind": "financial_statement", "subject": "tenant",
+      "subject_legal": "Desert Aero Parts LLC (fictional)", "title": "Financial statements", "period_label": "Year ended December 31, 2024", "period_end": "2024-12-31",
+      "basis": "Reviewed by Fictional & Co. CPAs (not audited)", "source": "Reviewed, Fictional & Co. CPAs", "audited": false,
+      "cogs": 2730000, "opex": 950000, "da": 60000, "interest": 54000, "taxes": 96000,
+      "ppe": 820000, "comment": "Prepared from the company's books.",
+      "figures": { "revenue": 4200000, "netIncome": 310000, "ebitda": 520000, "currentAssets": 1150000, "currentLiabilities": 640000, "totalDebt": 900000, "equity": 1500000 }
+    },
+    {
+      "file": "desert-aero-financial-statements-fy2025.pdf", "lease": "02-airport-flex-park-desert-aero", "kind": "financial_statement", "subject": "tenant",
+      "subject_legal": "Desert Aero Parts LLC (fictional)", "title": "Financial statements", "period_label": "Year ended December 31, 2025", "period_end": "2025-12-31",
+      "basis": "Reviewed by Fictional & Co. CPAs (not audited)", "source": "Reviewed, Fictional & Co. CPAs", "audited": false,
+      "cogs": 2750000, "opex": 940000, "da": 70000, "interest": 102000, "taxes": 48000,
+      "ppe": 1310000, "comment": "Revenue down 3.6%; new term loan of $600,000 to fund inventory.",
+      "figures": { "revenue": 4050000, "netIncome": 140000, "ebitda": 360000, "currentAssets": 1020000, "currentLiabilities": 780000, "totalDebt": 1450000, "equity": 1380000 }
+    },
+    {
+      "file": "jordan-ramos-personal-financial-statement-2024.pdf", "lease": "02-airport-flex-park-desert-aero", "kind": "financial_statement", "subject": "guarantor",
+      "subject_name": "Jordan A. Ramos", "subject_legal": "Jordan A. Ramos (fictional guarantor)", "period_label": "June 30, 2024", "period_end": "2024-06-30",
+      "basis": "Prepared by the guarantor, unaudited", "source": "Guarantor-prepared", "audited": false,
+      "cash": 210000, "re": 640000, "business": 450000, "comment": "Guarantor of up to twelve months of Base Rent.",
+      "figures": { "revenue": 285000, "currentAssets": 210000, "currentLiabilities": 45000, "totalDebt": 120000, "equity": 1180000 }
+    },
+    {
+      "file": "cascade-cabinet-credit-report-2026.pdf", "lease": "03-route-9-small-bay-cascade-cabinet", "kind": "credit_report", "subject": "tenant",
+      "subject_legal": "Cascade Cabinet Works Inc. (fictional)", "address": "Route 9 Small Bay, Woodinville, WA", "industry": "Custom cabinetry and millwork",
+      "source": "Fictional Commercial Credit Bureau", "report_date": "2026-09-01", "report_date_long": "September 1, 2026", "ref": "FCCB-26-09-3318",
+      "years": 19, "paydex": 82, "trades": 22, "high_credit": 140000, "past_due": 0, "public_records": "None",
+      "comment": "Pays within terms.",
+      "figures": { "score": 82, "rating": "Low risk (1 of 5)" }
+    }
+  ],
+  "expected": {
+    "desertAero": {
+      "flags": ["score", "leverage", "stale"],
+      "scoreFrom": 78, "scoreTo": 64,
+      "debtToEquityFrom": 0.6, "debtToEquityTo": 1.05,
+      "staleSubject": "guarantor",
+      "latestRating": "Moderate risk (3 of 5)",
+      "currentRatioFy2025": 1.31,
+      "rentPctOfRevenueFy2025AtUnitRent": "31,000 / 4,050,000 = 0.77%"
+    }
+  }
+}

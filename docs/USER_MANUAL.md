@@ -230,10 +230,10 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | Tab | What it does |
 |---|---|
 | **Deal Screener** (named Quick Underwrite until 11/22/2026) | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
-| **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
+| **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
-| **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. Needs sign-in and an open database workspace. |
+| **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
@@ -475,6 +475,8 @@ underwriting-calculator/
 │   ├── CashYield.jsx         Cash-on-cash yield charts and table
 │   ├── SellHold.jsx          Sell / Hold tab
 │   ├── Leases.jsx            Leases tab (lease documents, abstracts, apply to rent roll, mismatch flags)
+│   ├── LeaseViews.jsx        Leases tab: Critical dates and Risk flags views
+│   ├── TenantCredit.jsx      Tenant credit section on each lease
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
 │   └── SalesComps.jsx        Sales Comps tab
@@ -500,6 +502,10 @@ underwriting-calculator/
 │   ├── leaseDocs.js          Lease documents in Supabase (table + storage bucket), save abstract
 │   ├── leaseAbstract.js      Abstract template, prompt, parsing and grouping
 │   ├── leaseApply.js         Abstract → rent roll unit fields, comparison, apply, mismatch flags
+│   ├── leaseViews.js         Fund critical dates, risk flags, per-asset lease summary, Excel rows
+│   ├── leaseReportPdf.js     Printable lease abstraction report (PDF)
+│   ├── tenantCredit.js       Credit figures, checks, flags, statement requirements
+│   ├── creditDocs.js         Tenant credit documents (Supabase rows and files)
 │   ├── assetLocations.js     Model Fund I asset addresses; state list
 │   ├── sampleRentRolls.js    Model Fund I rent rolls with a 20–40% mark to market
 │   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
@@ -1649,6 +1655,94 @@ into rent roll fields and shows them next to the chosen unit:
 - **Unit Roll → ▸ Lease details** lists a unit's rent steps, with **Remove
   steps** to go back to rent and escalation.
 
+### 7.26 Fund lease views and reports (`lib/leaseViews.js`)
+
+The Leases tab has three views: **Leases** (the cards), **Critical dates**
+and **Risk flags**, each for the selected asset or the whole fund
+(including saved deals in the fund).
+
+**Critical dates**: every `critical_dates` entry of every abstract
+(expirations, renewal and termination notices, option and allowance
+deadlines, rent increases), plus, for owners and editors, **financial
+statements due** (§7.27). SNDA and estoppel response periods (e.g. "within
+ten (10) days after request") run from a request, so they are listed last
+as "On request". Oldest first; **red** when past, **amber** within 90 days.
+Default view: upcoming dates and those past in the last 90 days, without
+lease-signing and commencement history; **All dates** shows everything.
+Filters: asset, type. Each row shows the notice window, action required,
+clause (hover for the quote) and, for calculated dates, the arithmetic.
+
+**Risk flags**: every flag with its severity, clause and quote, most severe
+first. Types for filtering are matched on the flag's title and detail:
+termination rights, relocation, expenses and caps, environmental, guaranty
+and credit, options and rights, rent and concessions, other.
+
+**Exports**: **Export to Excel** in each view (the rows shown, with
+quotes and pages). **Abstraction report (PDF)**: for the asset or the whole
+fund, a summary page (each lease's premises, SF, expiration, current rent,
+status, validated), upcoming critical dates (amber within 90 days) and all
+risk flags, then one section per lease: summary, every key term by group
+with its clause and status, rent schedule, critical dates and risk flags
+with quotes.
+
+**Asset Summary**: *Leases abstracted* = abstracted ÷ leases on the Leases
+tab ("—" with none; amber when some aren't abstracted). Details shows WALT
+(rent roll), leases abstracted and applied, the next critical date from
+today (after any past ones), the number of risk flags (high in red), and
+**Open Leases tab**. The Asset Summary Excel export does not include these
+yet.
+
+**Reminders** (proposal; nothing is set up): the app never sends messages.
+A Claude scheduled task could run weekly, read the critical dates through
+the Supabase connector and send you a phone notification listing notice
+deadlines in the next 90 days. Ask Claude to set it up if you want it.
+
+### 7.27 Tenant credit (`lib/tenantCredit.js`)
+
+**Tenant credit** on each lease card (owners and editors only) holds credit
+reports, financial statements, tax returns and bank references for the
+tenant or a guarantor: type, whose (and the guarantor's name), source
+(e.g. bureau, CPA), audited or not, report date (credit reports) or period
+end (statements), the PDF, who uploaded it, and key figures:
+
+| Figure | Check |
+|---|---|
+| Credit score, rating | Score within 0–1,000 |
+| Revenue, net income, EBITDA | Net income not above revenue; EBITDA not below net income |
+| Current assets, current liabilities, current ratio | Ratio calculated from its parts if blank; flagged if an entered ratio differs by more than 2% |
+| Total debt, equity, debt / equity | Same |
+| Rent as % of revenue | Lease's annual rent (unit rent × SF, else the abstract's current monthly rent × 12) ÷ tenant revenue (tenant documents only) |
+
+Figures are entered by hand or **read with Claude**: the section makes a
+prompt with a one-hour link to the PDF for a Claude session; paste the JSON
+it returns (figures plus the quote for each) and the app checks and saves
+it ("figures read by Claude").
+
+**Flags**: latest tenant or guarantor statements more than 12 months old;
+the latest credit score below the previous report's; debt / equity up more
+than 10% from the previous tenant statements; no documents on file; and a
+lease clause requiring financial statements (found in the abstract's terms
+and risk flags, e.g. "within one hundred twenty (120) days after the end of
+each fiscal year"). For such a clause the next due date is the period after
+the latest statements on file (or the last calendar year end) plus the
+days; it appears in Critical dates as "Financial statements due" (red when
+overdue). None of the sample leases has such a clause.
+
+**Apply rating to unit**: when the lease is linked to a unit, the newest
+credit report's rating can be applied to the unit's Credit rating, logged
+as from the credit report.
+
+**Privacy**: rows are in `lease_credit_documents` and files under the
+lease's `credit/` folder in the `leases` bucket; both are owners and
+editors only (viewers can't list or open them). The change log records
+that a document was added, changed or deleted, never its figures.
+
+**Sample documents**: `docs/sample-deal-docs/tenant-credit/` (fictional):
+two Desert Aero Parts credit reports (score 78 → 64), FY2024 and FY2025
+statements (debt / equity 0.60 → 1.05), the guarantor's June 2024
+personal statement (stale) and a Cascade Cabinet report; the expected
+figures and flags are in `expected.json`.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -2256,6 +2350,31 @@ Every insert, change and delete writes `audit_log` rows with area
 "Status", "Lease details" (tenant, units, asset), "Abstract", "Lease
 deleted".
 
+**`lease_credit_documents`**: one row per tenant credit document (created
+by `supabase/tenant_credit.sql`; §7.27). Owners and editors only. Index on
+(`workspace_id`, `lease_id`).
+
+| Column | Type | Default / set by | Meaning |
+|---|---|---|---|
+| `id` | uuid, primary key | random | Document id |
+| `workspace_id` | uuid → `workspaces.id` (cascade) | app | Workspace |
+| `lease_id` | uuid → `lease_documents.id` (cascade) | app | The lease (same workspace) |
+| `deal_id` | text | app | The asset |
+| `kind` | text | credit_report | credit_report, financial_statement, tax_return, bank_reference, other |
+| `subject`, `subject_name` | text | tenant, `''` | tenant or guarantor; the guarantor's name |
+| `source` | text | `''` | Bureau, CPA, "guarantor-prepared", … |
+| `audited` | boolean | null | Statements: audited or not |
+| `period_end`, `report_date` | date | null | Statement period end; credit report date |
+| `file` | jsonb | null | `path` (…/`credit`/…), `name`, `size` |
+| `figures` | jsonb | `{}` | `score`, `rating`, `revenue`, `netIncome`, `ebitda`, `currentAssets`, `currentLiabilities`, `currentRatio`, `totalDebt`, `equity`, `debtToEquity`, optional `quotes` |
+| `figures_source` | text | manual | manual or claude |
+| `notes` | text | `''` | Notes |
+| `uploaded_by_email` | text | signed-in user | Who added it |
+| `created_at`, `updated_at` | timestamptz | now | When added / last changed |
+
+Inserts, changes and deletes write `audit_log` rows with area **Tenant
+credit** ("Credit document added / changed / deleted"), without figures.
+
 **How the browser change log maps to `audit_log`:**
 
 | Browser `auditLog` field | `audit_log` column | Difference |
@@ -2384,8 +2503,11 @@ Column-by-column definitions of every table are in the data dictionary,
 ### 12.5 Access rules (row-level security)
 
 **Leases** (`lease_documents` and the `leases` storage bucket): every member
-(owner, editor, viewer) can read rows and open files; owners and editors can
-add, change and delete them, directly under these rules. Storage paths must
+(owner, editor, viewer) can read rows and open files, except files in a
+lease's `credit/` folder (`lease_path_is_credit`), which only owners and
+editors can open; owners and editors can add, change and delete them,
+directly under these rules. **Tenant credit** (`lease_credit_documents`):
+owners and editors only, for reading as well as changes. Storage paths must
 start with the workspace id (`lease_path_ws`). Abstracts are saved with `save_lease_abstract`
 (owners and editors; checked in the function as well).
 
@@ -2525,7 +2647,7 @@ each phase and the decisions behind it are in
 | A. Lease documents | Upload, store and open each lease's PDFs per asset (Leases tab) | ✅ Live |
 | B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags (§7.25) | ✅ Built 11/22 (pull request, awaiting merge) |
-| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | 🔨 In progress |
+| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease (§7.26–7.27) | ✅ Built 11/22 (pull request) |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
