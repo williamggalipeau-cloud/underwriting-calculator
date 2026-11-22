@@ -8,6 +8,8 @@ import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
+import Leases from "@/components/Leases";
+import { withLocation } from "@/lib/assetLocations";
 import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
@@ -68,6 +70,7 @@ function migrateSavedDeal(d) {
 // old 5–8 year holds (past Fund I's term), get the current date and 4-year
 // hold. Saved snapshots are re-run so their cash flows match.
 function withTestDate(d) {
+  if (d?.inputs && withLocation(d.inputs) !== d.inputs) d = { ...d, inputs: withLocation(d.inputs) };
   const name = d?.inputs?.propertyName;
   if (!TEST_ACQUISITION_DATES[name] || !String(d.id).startsWith("test-")) return d;
   let inputs = d.inputs;
@@ -263,12 +266,12 @@ function linkedDeal(id = "deal-1") {
     id,
     linked: true,
     quick: QUICK_DEFAULTS,
-    inputs: toMainInputs(QUICK_DEFAULTS, {
+    inputs: toMainInputs(QUICK_DEFAULTS, withLocation({
       ...DEFAULT_INPUTS,
       propertyName: "Light Industrial (30k SF)",
       squareFootage: 30000,
       fundName: SAMPLE_FUND_NAME,
-    }),
+    })),
   };
 }
 
@@ -288,6 +291,7 @@ function newDeal(overrides = {}) {
 const TABS = [
   { id: "quick",       label: "Quick Underwrite" },
   { id: "units",       label: "Unit Roll" },
+  { id: "leases",      label: "Leases" },
   { id: "debt",        label: "Debt" },
   { id: "cashflow",    label: "Cash Flow" },
   { id: "stress",      label: "Return Stress Testing" },
@@ -301,7 +305,7 @@ const TABS = [
 ];
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "debt", "cashflow", "returns", "sensitivity", "comps"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "debt", "cashflow", "returns", "sensitivity", "comps"]);
 
 function fmtPct(n) {
   return isFinite(n) ? `${n.toFixed(1)}%` : "—";
@@ -1470,6 +1474,17 @@ export default function Home() {
                 signedInEmail={session?.user?.email ?? null}
                 dbLog={dbLink?.id && session ? dbLog : null}
                 dbName={dbLink?.name}
+              />
+            )}
+            {activeTab === "leases" && (
+              <Leases
+                workspace={session && dbLink?.id ? dbLink : null}
+                signedIn={!!session}
+                email={session?.user?.email ?? null}
+                canEdit={!!(session && dbLink?.id && dbLink.role !== "viewer")}
+                deal={activeDeal}
+                fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName))}
+                fundName={resolveFund(inputs.fundName)}
               />
             )}
             {activeTab === "comps" && (

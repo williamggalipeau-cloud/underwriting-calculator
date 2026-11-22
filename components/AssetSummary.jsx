@@ -35,6 +35,7 @@ const FUNDING = {
 
 // [key, header, render(row), sortValue(row), group]
 const COLUMNS = [
+  ["location", "Location", (r) => r.location || <span className="text-gray-400">—</span>, (r) => r.location || "~", "Asset"],
   ["status", "Status", (r) => <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]}`}>{r.status}</span>, (r) => r.status, "Asset"],
   ["acq", "Acquired", (r) => (r.acqAssumed ? <span className="text-amber-700" title="No acquisition date entered: the fund's final close is assumed">{fmtDate(r.acq)}*</span> : fmtDate(r.acq)), (r) => r.acq, "Asset"],
   ["exit", "Exit", (r) => fmtDate(r.exit), (r) => r.exit, "Asset"],
@@ -344,7 +345,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
 
   const totalCells = {
     status: <span className="text-[10px] text-gray-500">{t.owned} owned · {t.pipeline} pipeline{t.sold ? ` · ${t.sold} sold` : ""}</span>,
-    acq: "", exit: "",
+    location: "", acq: "", exit: "",
     sf: fmt(t.sf),
     units: fmt(t.units),
     occupancy: t.rentRolls ? <span title={`${t.rentRolls} assets with a rent roll`}>{fmtPct(t.occupancyPct, 0)}</span> : "—",

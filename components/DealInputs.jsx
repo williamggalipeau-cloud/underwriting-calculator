@@ -1,5 +1,6 @@
 "use client";
 
+import { US_STATES } from "@/lib/assetLocations";
 import { useState } from "react";
 import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
 import { fetchSofrCurve } from "@/lib/sofr";
@@ -772,6 +773,25 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           <div className="grid grid-cols-2 gap-3">
             <Field label="Square Footage" value={inputs.squareFootage} field="squareFootage" suffix="SF" step={1000} onChange={set} />
             <Field label="Purchase Price" value={inputs.purchasePrice} field="purchasePrice" prefix="$" step={100000} onChange={set} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Location</span>
+            <input
+              type="text"
+              aria-label="Street address"
+              value={inputs.address ?? ""}
+              onChange={(e) => set("address", e.target.value)}
+              placeholder="Street address"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="grid grid-cols-[1fr_5rem_6rem] gap-2">
+              <input type="text" aria-label="City" value={inputs.city ?? ""} onChange={(e) => set("city", e.target.value)} placeholder="City" className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" />
+              <select aria-label="State" value={inputs.state ?? ""} onChange={(e) => set("state", e.target.value)} className="rounded-lg border border-gray-200 bg-white px-2 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">State</option>
+                {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <input type="text" aria-label="ZIP code" value={inputs.zip ?? ""} onChange={(e) => set("zip", e.target.value)} placeholder="ZIP" className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="acq-date" className="text-xs font-medium text-gray-500 uppercase tracking-wide">Acquisition date</label>
