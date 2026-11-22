@@ -36,9 +36,12 @@ const FUNDING = {
 // [key, header, render(row), sortValue(row), group]
 const COLUMNS = [
   ["status", "Status", (r) => <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]}`}>{r.status}</span>, (r) => r.status, "Asset"],
-  ["acq", "Acquired", (r) => fmtDate(r.acq), (r) => r.acq, "Asset"],
+  ["acq", "Acquired", (r) => (r.acqAssumed ? <span className="text-amber-700" title="No acquisition date entered: the fund's final close is assumed">{fmtDate(r.acq)}*</span> : fmtDate(r.acq)), (r) => r.acq, "Asset"],
   ["exit", "Exit", (r) => fmtDate(r.exit), (r) => r.exit, "Asset"],
   ["sf", "SF", (r) => fmt(r.sf), (r) => r.sf, "Asset"],
+  ["units", "Units", (r) => (r.units ? fmt(r.units) : "—"), (r) => r.units, "Asset"],
+  ["occupancy", "Occupancy", (r) => (r.rentRoll ? fmtPct(r.occupancyPct, 0) : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (r.rentRoll ? r.occupancyPct : -Infinity), "Asset"],
+  ["walt", "WALT", (r) => (isFinite(r.walt) ? `${r.walt.toFixed(1)} yrs` : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (isFinite(r.walt) ? r.walt : -Infinity), "Asset"],
   ["price", "Price", (r) => fmtM(r.price), (r) => r.price, "Capital"],
   ["pricePSF", "$/SF", (r) => `$${fmt(r.pricePSF)}`, (r) => r.pricePSF, "Capital"],
   ["loan", "Loan", (r) => fmtM(r.loan), (r) => r.loan, "Capital"],
@@ -145,6 +148,7 @@ function AssetDetail({ row, onOpenDeal, onClose }) {
           <h3 className="text-base font-bold text-gray-900">{row.name}</h3>
           <p className="text-xs text-gray-500">
             {row.status} · acquired {fmtDate(row.acq)} · {hold}-year hold to {fmtDate(row.exit)} · {fmt(row.sf)} SF
+            {row.units ? ` · ${fmt(row.units)} units` : ""}{row.rentRoll ? ` (${row.leased} leased, ${fmtPct(row.occupancyPct, 0)} occupied)` : ""}
           </p>
         </div>
         <div className="flex gap-2 text-xs">
@@ -341,7 +345,11 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
   const totalCells = {
     status: <span className="text-[10px] text-gray-500">{t.owned} owned · {t.pipeline} pipeline{t.sold ? ` · ${t.sold} sold` : ""}</span>,
     acq: "", exit: "",
-    sf: fmt(t.sf), price: fmtM(t.price), pricePSF: `$${fmt(t.pricePSF)}`, loan: fmtM(t.loan), ltv: fmtPct(t.ltv, 0), equity: fmtM(t.equity), funding: "",
+    sf: fmt(t.sf),
+    units: fmt(t.units),
+    occupancy: t.rentRolls ? <span title={`${t.rentRolls} assets with a rent roll`}>{fmtPct(t.occupancyPct, 0)}</span> : "—",
+    walt: isFinite(t.walt) ? `${t.walt.toFixed(1)} yrs` : "—",
+    price: fmtM(t.price), pricePSF: `$${fmt(t.pricePSF)}`, loan: fmtM(t.loan), ltv: fmtPct(t.ltv, 0), equity: fmtM(t.equity), funding: "",
     noi1: fmtM(t.noi1), goingInCap: fmtPct(t.goingInCap, 2), exitCap: fmtPct(t.exitCap, 2), exitValue: fmtM(t.exitValue),
     irr: fmtPct(t.irr), em: fmtX(t.em), coc1: "", dscr1: "",
     fv: t.valuation ? fmtM(t.valuation.value) : "—", nav: t.valuation ? fmtM(t.valuation.nav) : "—",
@@ -374,11 +382,30 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
         </div>
       </div>
 
+      {summary.rows.some((r) => r.acqAssumed) && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <span className="font-semibold">Missing acquisition date:</span>{" "}
+          {summary.rows.filter((r) => r.acqAssumed).map((r) => r.name).join(", ")}. Until a date is entered (Asset tab → Property, or Quick
+          Underwrite for linked deals), the fund assumes these were bought at its final close; dates marked * are that assumption.
+        </p>
+      )}
+
+      {summary.rows.some((r) => r.termIssues.length) && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <span className="font-semibold">Outside the fund terms:</span>
+          <ul className="mt-0.5 list-disc pl-5">
+            {summary.rows.filter((r) => r.termIssues.length).map((r) => (
+              <li key={r.id}>{r.name}: {r.termIssues.join("; ")}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Headline */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {[
           ["Assets", `${t.count}`, `${t.owned} owned · ${t.pipeline} pipeline${t.sold ? ` · ${t.sold} sold` : ""}`],
-          ["Square feet", fmt(t.sf), `${fmtM(t.price)} at $${fmt(t.pricePSF)}/SF`],
+          ["Square feet", fmt(t.sf), `${fmt(t.units)} units · ${fmtM(t.price)} at $${fmt(t.pricePSF)}/SF`],
           ["Equity", fmtM(t.equity), `${fmtM(t.loan)} debt · ${fmtPct(t.ltv, 0)} of price`],
           ["Going-in cap", fmtPct(t.goingInCap, 2), `${fmtM(t.noi1)} year-1 NOI`],
           ["Underwritten", `${fmtPct(t.irr)} · ${fmtX(t.em)}`, "Pooled IRR · multiple (gross)"],

@@ -1,0 +1,41 @@
+"use client";
+
+// Asset selector shown above the single-deal tabs (Quick Underwrite, Unit
+// Roll, Debt, Cash Flow, Asset Return, Sensitivity, Comps). Lists every open
+// deal; saved fund snapshots are listed too and open for editing when picked.
+export default function AssetPicker({ deals, snapshots = [], activeId, onPick, onOpenSnapshot, label }) {
+  const name = (d) => d.inputs?.propertyName || "Unnamed deal";
+  const byName = (a, b) => name(a).localeCompare(name(b));
+  const funds = [...new Set(deals.map((d) => d.inputs?.fundName?.trim() || ""))].sort((a, b) => (a === "" ? 1 : b === "" ? -1 : a.localeCompare(b)));
+  return (
+    <div className="mb-5 flex flex-wrap items-center gap-2 border-b border-gray-100 pb-4">
+      <label htmlFor="asset-picker" className="text-xs font-medium uppercase tracking-wide text-gray-500">Asset</label>
+      <select
+        id="asset-picker"
+        value={activeId}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v.startsWith("snap:")) onOpenSnapshot(v.slice(5));
+          else onPick(v);
+        }}
+        className="min-w-[16rem] rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        {funds.map((f) => (
+          <optgroup key={f || "none"} label={f || "Not in a fund"}>
+            {deals.filter((d) => (d.inputs?.fundName?.trim() || "") === f).sort(byName).map((d) => (
+              <option key={d.id} value={d.id}>{name(d)}</option>
+            ))}
+          </optgroup>
+        ))}
+        {snapshots.length > 0 && (
+          <optgroup label="Saved snapshots (opens for editing)">
+            {[...snapshots].sort(byName).map((d) => (
+              <option key={d.id} value={`snap:${d.id}`}>{name(d)}{d.inputs?.fundName ? ` · ${d.inputs.fundName}` : ""}</option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+      {label && <span className="text-xs text-gray-400">{label}</span>}
+    </div>
+  );
+}

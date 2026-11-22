@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { underwrite } from "@/lib/calculations";
-import { generateTestScenario } from "@/lib/testScenario";
+import { generateTestScenario, TEST_ACQUISITION_DATES, TEST_PREVIOUS_HOLDS } from "@/lib/testScenario";
 import DealInputsPanel from "@/components/DealInputs";
 import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
+import AssetPicker from "@/components/AssetPicker";
 import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
@@ -16,7 +17,7 @@ import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, currentSampleDate, currentSampleHold, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
+import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -51,13 +52,29 @@ const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calcu
 // with their defaults, moves sample assets off old default acquisition
 // dates and hold periods, and re-maps linked deals onto the full model.
 function migrateSavedDeal(d) {
+  d = withTestDate(d);
   if (!d.quick) return d;
   const quick = { ...QUICK_DEFAULTS, ...d.quick };
   quick.acquisitionDate = currentSampleDate(d.id, quick.acquisitionDate);
   quick.holdYears = currentSampleHold(d.id, quick.holdYears);
   let inputs = d.inputs?.acquisitionDate ? { ...d.inputs, acquisitionDate: currentSampleDate(d.id, d.inputs.acquisitionDate) } : d.inputs;
   if (inputs?.holdPeriodYears != null) inputs = { ...inputs, holdPeriodYears: currentSampleHold(d.id, inputs.holdPeriodYears) };
+  // Sample assets saved with the generic 20-unit default get their own count.
+  if (inputs && sampleUnitCount(d.id) && inputs.unitCount === 20 && !(inputs.units ?? []).length) inputs = { ...inputs, unitCount: sampleUnitCount(d.id) };
   return { ...d, quick, inputs: d.linked ? toMainInputs(quick, inputs) : inputs };
+}
+
+// Test scenario deals saved before they had acquisition dates, or with the
+// old 5–8 year holds (past Fund I's term), get the current date and 4-year
+// hold. Saved snapshots are re-run so their cash flows match.
+function withTestDate(d) {
+  const name = d?.inputs?.propertyName;
+  if (!TEST_ACQUISITION_DATES[name] || !String(d.id).startsWith("test-")) return d;
+  let inputs = d.inputs;
+  if (!inputs.acquisitionDate) inputs = { ...inputs, acquisitionDate: TEST_ACQUISITION_DATES[name] };
+  if (inputs.holdPeriodYears === TEST_PREVIOUS_HOLDS[name]) inputs = { ...inputs, holdPeriodYears: 4 };
+  if (inputs === d.inputs) return d;
+  return d.irrFlows ? { ...d, ...snapshotDeal(inputs, d.id) } : { ...d, inputs };
 }
 
 // Loads a saved workspace's deals, saved deals and funds with one spelling
@@ -66,7 +83,7 @@ function migrateSavedDeal(d) {
 // fund terms saved under those spellings are merged.
 function normalizeWorkspaceFunds(saved) {
   const deals = saved.deals.map(migrateSavedDeal);
-  const savedDeals = Array.isArray(saved.savedDeals) ? saved.savedDeals : [];
+  const savedDeals = (Array.isArray(saved.savedDeals) ? saved.savedDeals : []).map(withTestDate);
   const funds = saved.funds && typeof saved.funds === "object" ? saved.funds : initialFunds();
   const resolve = fundNameResolver(funds, deals, savedDeals);
   return {
@@ -282,6 +299,9 @@ const TABS = [
   { id: "comps",       label: "Sales Comps" },
   { id: "changes",     label: "Change Log" },
 ];
+
+// Tabs that show one deal: they get the Asset dropdown.
+const DEAL_TABS = new Set(["quick", "units", "debt", "cashflow", "returns", "sensitivity", "comps"]);
 
 function fmtPct(n) {
   return isFinite(n) ? `${n.toFixed(1)}%` : "—";
@@ -838,6 +858,17 @@ export default function Home() {
     setActiveTab("units");
   }
 
+  // Opens a saved fund snapshot as a live deal (moved out of the saved list
+  // so the fund counts it once).
+  function handleOpenSnapshot(id) {
+    if (!requireEdit()) return;
+    const snap = savedDeals.find((d) => d.id === id);
+    if (!snap) return;
+    setDeals((prev) => (prev.some((d) => d.id === id) ? prev : [...prev, { id, inputs: snap.inputs }]));
+    setSavedDeals((prev) => prev.filter((d) => d.id !== id));
+    setActiveDealId(id);
+  }
+
   function handleCloseDeal(id) {
     if (!requireEdit()) return;
     setDeals((prev) => {
@@ -930,7 +961,7 @@ export default function Home() {
     const { activeDealInputs, savedDeals: testDeals } = generateTestScenario();
     const testDealId = "test-active";
     setDeals((prev) => {
-      const existing = prev.filter((d) => d.id !== testDealId);
+      const existing = prev.filter((d) => d.id !== testDealId && !d.id.startsWith("test-"));
       return [{ id: testDealId, inputs: activeDealInputs }, ...existing];
     });
     setActiveDealId(testDealId);
@@ -967,10 +998,10 @@ export default function Home() {
     if (!requireEdit()) return;
     noteAudit("Cleared test and sample data");
     setDeals((prev) => {
-      const next = prev.filter((d) => d.id !== "test-active" && !d.id.startsWith("sample-deal-"));
+      const next = prev.filter((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-deal-"));
       return next.length > 0 ? next : [linkedDeal()];
     });
-    setActiveDealId((prev) => (prev === "test-active" || prev.startsWith("sample-deal-") ? "deal-1" : prev));
+    setActiveDealId((prev) => (prev.startsWith("test-") || prev.startsWith("sample-deal-") ? "deal-1" : prev));
     setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-")));
   }
 
@@ -1344,6 +1375,16 @@ export default function Home() {
 
           {/* Panel */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            {DEAL_TABS.has(activeTab) && (
+              <AssetPicker
+                deals={deals}
+                snapshots={savedDeals.filter((s) => !deals.some((d) => d.id === s.id))}
+                activeId={activeDealId}
+                onPick={setActiveDealId}
+                onOpenSnapshot={handleOpenSnapshot}
+                label={`${deals.length} open${savedDeals.length ? ` · ${savedDeals.length} saved` : ""}`}
+              />
+            )}
             {activeTab === "units" && (
               <UnitRoll
                 units={inputs.units}
