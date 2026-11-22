@@ -135,7 +135,10 @@ function normalizeWorkspaceFunds(saved) {
     const f = o.funds[SAMPLE_FUND_NAME];
     if (!f || f.noiModel === NOI_MODEL) return o;
     const inFund = (d) => d.inputs?.fundName === SAMPLE_FUND_NAME && d.inputs?.noiOverrideEnabled && (d.inputs.units ?? []).length;
-    const conv = (inputs) => toRentRollNOI(inputs, underwrite(inputs).annualCashFlows[0]?.noi ?? 0, mtmIndex(inputs.propertyName), underwrite);
+    const conv = (inputs) => {
+      const c = underwrite(inputs).annualCashFlows;
+      return toRentRollNOI(inputs, { y1: c[0]?.noi ?? 0, exit: c[c.length - 1]?.noi ?? 0 }, mtmIndex(inputs.propertyName), underwrite);
+    };
     return {
       funds: { ...o.funds, [SAMPLE_FUND_NAME]: { ...f, noiModel: NOI_MODEL } },
       deals: o.deals.map((d) => (inFund(d) ? { ...d, linked: false, inputs: conv(d.inputs) } : d)),
