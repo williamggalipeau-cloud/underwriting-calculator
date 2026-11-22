@@ -232,7 +232,7 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
-| **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents; owners and editors can change them. Needs sign-in and an open database workspace. Abstracts, review and apply, critical dates and risk flags come in later phases. |
+| **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. Needs sign-in and an open database workspace. Review and apply to the rent roll comes next. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
@@ -381,8 +381,9 @@ Claude Code) built and maintains it, using the tools below.
 
 These are optional and not wired into the app:
 
-- **CREparser Lease Abstraction** — abstract a lease PDF, then enter the rent
-  roll on the Unit Roll tab.
+- **CREparser Lease Abstraction** — abstracts lease PDFs; the Leases tab's
+  **Abstract with Claude** prompt drives it (§7.24). The "Light industrial
+  (Model Fund I)" template is saved in the connector for Excel / CSV exports.
 - **OloLand** (`run_cre_debt_sizing`, `run_cre_stress_test`) — an independent
   check of the Debt and Stress tabs.
 - **Supabase connector** — lets Claude read the database directly: check the
@@ -493,7 +494,8 @@ underwriting-calculator/
 │   ├── cloud.js              Supabase: sign-in, workspaces, saving, members, audit log
 │   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
-│   ├── leaseDocs.js          Lease documents in Supabase (table + storage bucket)
+│   ├── leaseDocs.js          Lease documents in Supabase (table + storage bucket), save abstract
+│   ├── leaseAbstract.js      Abstract template, prompt, parsing and grouping
 │   ├── assetLocations.js     Model Fund I asset addresses; state list
 │   ├── sampleRentRolls.js    Model Fund I rent rolls with a 20–40% mark to market
 │   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
@@ -1409,6 +1411,67 @@ year-ahead NOI above. Decisions, cap rate overrides, refinance terms and
 saved scenarios are stored with the fund (`funds["Fund name"].sellHold`) and
 appear in the change log.
 
+### 7.24 Lease abstracts (`lib/leaseAbstract.js`)
+
+Abstracts are made in a **Claude session** with the CREparser Lease
+Abstraction connector, not in the app, and saved on the lease row.
+
+**Workflow** (Leases tab, owners and editors):
+1. Upload the lease and its amendments in order (base lease first).
+2. **Abstract with Claude → Create prompt.** The prompt holds the lease id,
+   asset, linked units, a 1-hour link to each document in order, the
+   template below, and how to save. **Copy prompt** and paste it into a
+   Claude chat with the CREparser connector. Links expire after an hour:
+   **Make a new prompt** if needed.
+3. The session imports the PDFs, combines them in order, reads the whole
+   lease, drafts the abstract and runs the connector's validation until
+   every quote, figure and date matches the PDF, then shows it in the
+   connector's viewer.
+4. **Save:** with the Supabase connector the session saves it directly
+   (`save_lease_abstract`, as you); otherwise paste the JSON it returns into
+   **Save abstract**. The app accepts the stored object or the connector's
+   draft (`{ "leases": [ … ] }`, also inside a code block) and checks that
+   it has fields with keys, values and statuses, dated critical dates and
+   titled risks. Status becomes **Abstracted – review**.
+5. **View abstract** (everyone): key terms by template group; rent
+   schedule; critical dates (days to go, amber within 90 days, grey once
+   past) with notice and action; risk flags (high, medium, low). Each item
+   shows its clause (§) and quote, and **p. N** opens that document at that
+   page (combined page numbers are mapped back to the file). A term changed
+   by an amendment is tagged "Amended by …" and shows the earlier value with
+   its own quote. The badge says whether the connector validated it.
+   **Re-abstract with Claude** replaces it; **Remove abstract** deletes it.
+
+**Template "Light industrial (Model Fund I)"** (67 fields; also saved in
+the connector for its Excel / CSV export):
+- Standard: parties and premises (incl. tenant business and SIC code),
+  term, rent, security, options.
+- The eight added groups: permitted use, exclusives and co-tenancy;
+  environmental and hazardous materials (incl. baseline); insurance (and
+  indemnity); maintenance and repairs (roof, structure, HVAC, repair caps);
+  operating details (hours, parking, truck court and yard, loading docks,
+  signage, outside storage); operating expense terms (expenses, taxes, cap,
+  management fee cap, audit rights, base year); legal (SNDA, estoppel,
+  tenant and landlord default and cure, holdover, relocation, assignment,
+  governing law, notices); improvements and TI (allowance, unpaid
+  allowance balance, landlord's work, alterations, surrender,
+  restoration).
+- **Tenant business and SIC code** come from the permitted-use clause (SIC
+  is a calculated field naming the business and code, from the §7.19
+  list), so applying the abstract can set the unit's SIC code.
+
+Field statuses: **Found** (quoted), **Calculated** (arithmetic shown),
+**Unclear** (the ambiguous clause is quoted), **Not in lease** (no relevant
+clause anywhere).
+
+**Pilot.** The Mill Creek Business Park sample lease with its first
+amendment (`docs/sample-leases/07…` and `07a…`) was abstracted this way and
+validated by the connector (67 fields, 12 rent periods, 10 critical dates,
+6 risk flags; draft b8158a5a…). The result is in
+`docs/sample-leases/abstracts/07-mill-creek-snohomish-brewing.json`: paste
+it into **Save abstract** after uploading those two PDFs to Mill Creek to
+see a finished abstract.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Quick Underwrite defaults:
@@ -2004,7 +2067,7 @@ Index on (`workspace_id`, `deal_id`).
 | `tenant`, `title` | text | `''` | Tenant name; optional title |
 | `files` | jsonb array | `[]` | Documents in order: `path`, `name`, `size` (bytes), `kind` (lease / amendment / other), `uploaded_at`, `uploaded_by_email` |
 | `status` | text | uploaded | uploaded → abstracted → applied |
-| `abstract` | jsonb | null | The checked abstract (phase B) |
+| `abstract` | jsonb | null | The abstract (§7.24): the CREparser connector's validated lease object (`title`, `summary`, `property_type`, `documents`, `fields`, `rent_schedule`, `critical_dates`, `risks`) plus `app` (`tenant_business`, `sic_code`, `draft_id`, `validated`, `files`, `made_with`, `version`). Saved only through `save_lease_abstract` |
 | `abstracted_at`, `abstracted_by_email` | timestamptz, text | null | When and by whom it was abstracted |
 | `applied_at`, `applied_by_email` | timestamptz, text | null | When and by whom it was applied to the rent roll |
 | `created_by`, `created_by_email` | uuid, text | signed-in user | Who added the lease |
@@ -2145,7 +2208,8 @@ Column-by-column definitions of every table are in the data dictionary,
 **Leases** (`lease_documents` and the `leases` storage bucket): every member
 (owner, editor, viewer) can read rows and open files; owners and editors can
 add, change and delete them, directly under these rules. Storage paths must
-start with the workspace id (`lease_path_ws`).
+start with the workspace id (`lease_path_ws`). Abstracts are saved with `save_lease_abstract`
+(owners and editors; checked in the function as well).
 
 Row-level security is on for every table. Signed-in users can **read**:
 - workspaces, members, versions and audit rows of the workspaces they're a
@@ -2162,6 +2226,7 @@ delete a workspace. Nobody can update or delete `audit_log` rows.
 |---|---|---|---|
 | `create_workspace(ws_name, ws_data)` | any signed-in user | new id | Creates a workspace; the creator becomes owner (trigger `ws_after_insert`); writes "Created workspace" |
 | `save_workspace(ws, expected_version, new_data, changes, new_name)` | owner, editor | new version | Conflict check → keep old version → save → audit rows, in one transaction. A stale version raises `conflict: version N`. |
+| `save_lease_abstract(lease, abstract)` | owner, editor | new status | Saves a lease's abstract (must be a JSON object) and sets status `abstracted`, `abstracted_at` and `abstracted_by_email`; `null` removes it (status back to `uploaded`). A new abstract always needs review again, even after an earlier one was applied. Logged as "Abstract" in `audit_log`. |
 | `log_note(ws, note_text)` | owner, editor | — | Adds a note row to the audit log |
 | `add_member(ws, member_email, member_role)` | owner | `added` / `invited` | Adds or updates a member, or records an invite; logs it |
 | `remove_member(ws, member_email)` | owner | — | Removes a member or invite (never the last owner); logs it |

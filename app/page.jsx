@@ -1595,6 +1595,7 @@ export default function Home() {
                 workspace={session && dbLink?.id ? dbLink : null}
                 signedIn={!!session}
                 email={session?.user?.email ?? null}
+                userId={session?.user?.id ?? null}
                 canEdit={!!(session && dbLink?.id && dbLink.role !== "viewer")}
                 deal={activeDeal}
                 fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName))}
