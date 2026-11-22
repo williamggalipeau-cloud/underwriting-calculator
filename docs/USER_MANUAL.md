@@ -15,6 +15,7 @@ This manual covers:
 8. [Worked example: the default deal](#8-worked-example-the-default-deal)
 9. [Key assumptions and limitations](#9-key-assumptions-and-limitations)
 10. [Maintenance: building, deploying, refreshing data](#10-maintenance)
+11. [Data dictionary](#11-data-dictionary)
 
 ---
 
@@ -935,3 +936,348 @@ publishes to GitHub Pages, usually within a few minutes.
 - Fund: `DEFAULT_FUND_TERMS` (`lib/fundTerms.js`).
 - Comps: `DEFAULT_COMPS_STATE` (`components/SalesComps.jsx`).
 - Saved workspaces pick up new default fields on the next load.
+
+---
+
+## 11. Data dictionary
+
+Every field the app stores, imports or reports: its name in the data, its
+units, its default, and what it means.
+
+**Conventions:**
+- **Units:** `$` = US dollars; `%` = a percent entered as a number (6.5 means
+  6.5%); `bp` = basis points (25 = 0.25%); `$/SF` = dollars per square foot.
+- **Dates:** ISO `YYYY-MM-DD`. Imports also accept `M/D/YYYY` and Excel
+  dates.
+- **Defaults:** the value a new deal or fund starts with.
+
+### 11.0 Where data is stored
+
+| Location | What it holds | Notes |
+|---|---|---|
+| **Browser storage** (`localStorage`, key `uw-workspace-v1`) | The whole workspace (§11.1) | Saved instantly on every change; this browser only |
+| **Linked workspace file** (`.json` you choose) | The same workspace | Saved every 10 minutes when changed, on **Save now**, and when you leave the tab (Chrome / Edge) |
+| **Browser database** (IndexedDB `uw-workspace-file`, store `handles`, key `workspace`) | Which linked file to reopen | Only the file's handle, not its contents |
+| **Export workspace** file (`underwriting-workspace-<date>.json`) | A copy of the workspace | Written only when you click Export |
+| **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once | Their contents are copied into the workspace; the files aren't kept |
+| **Not stored** | Live NY Fed rates, calculated results (§11.12), snapshots of open deals | Recalculated each time the page loads or an input changes |
+
+The **Stored at** column gives each field's path inside the workspace JSON:
+- `deals[]` means "in each deal".
+- `funds["Fund name"]` means "under that fund's name".
+- `valuations["deal id"]["quarter end"]` means "under the deal's id, then the quarter-end date".
+
+In §11.4, a saved copy keeps the same fields under `savedDeals[].inputs.` as
+well.
+
+### 11.1 Workspace (saved in the browser, a linked file, or an export)
+
+Browser key `uw-workspace-v1`. A linked file or **Export workspace** holds
+the same JSON object.
+
+| Field | Stored at | Type | Meaning |
+|---|---|---|---|
+| `v` | `v` | number | Format version (1) |
+| `app` | `app` | text | `"industrial-uw"` (files written by the app) |
+| `savedAt` / `exportedAt` | `savedAt`<br>`exportedAt` | date-time | When it was saved / exported |
+| `deals` | `deals` | list of Deal (§11.2) | Open deals: the tabs in the left panel |
+| `savedDeals` | `savedDeals` | list of Deal snapshot (§11.6) | Fixed copies added with **Add to Fund** |
+| `funds` | `funds` | map: fund name → Fund terms (§11.7) | Fund terms, including capital activity |
+| `baseCurve` | `baseCurve` | Forward curve (§11.11) | Imported Pensford curve (before live anchoring) |
+| `anchorToLive` | `anchorToLive` | yes / no | Shift the curve to today's NY Fed 30-day average SOFR |
+| `activeDealId` | `activeDealId` | text | The deal open in the left panel |
+| `comps` | `comps` | Sales comps (§11.10) | Comps and their settings |
+| `valuations` | `valuations` | map: deal id → quarter end → Mark (§11.9) | Fair value marks |
+
+### 11.2 Deal
+
+| Field | Stored at | Type | Meaning |
+|---|---|---|---|
+| `id` | `deals[].id` | text | Unique id (`deal-1`, `sample-deal-1` … `sample-deal-9`, or generated) |
+| `linked` | `deals[].linked` | yes / no | Quick Underwrite drives every tab (§7.3) |
+| `quick` | `deals[].quick` | Quick Underwrite inputs (§11.3) | The deal's Quick Underwrite inputs |
+| `inputs` | `deals[].inputs` | Full-model inputs (§11.4) | Inputs to the full engine. For linked deals, rebuilt from `quick`. |
+
+### 11.3 Quick Underwrite inputs (`quick`)
+
+| Field | Stored at | Units | Default | Meaning |
+|---|---|---|---|---|
+| `propertyType` | `deals[].quick.propertyType` | text | Light industrial | Label only |
+| `purchasePrice` | `deals[].quick.purchasePrice` | $ | 10,000,000 | Purchase price |
+| `closingCosts` | `deals[].quick.closingCosts` | $ | 400,000 | Acquisition closing costs (one amount) |
+| `noiYear1` | `deals[].quick.noiYear1` | $ | 650,000 | Forward 12-month NOI **before** property management |
+| `noiGrowthPct` | `deals[].quick.noiGrowthPct` | % / yr | 35 | NOI growth from year 2 |
+| `holdYears` | `deals[].quick.holdYears` | years | 4 | Hold period; sale at the end of the last year |
+| `exitCapPct` | `deals[].quick.exitCapPct` | % | 4.0 | Exit cap rate on final-year NOI |
+| `saleCostPct` | `deals[].quick.saleCostPct` | % of sale price | 6 | Total sale costs |
+| `acquisitionDate` | `deals[].quick.acquisitionDate` | date | 2026-02-13 | Closing date; anchors the forward curve and fund dates |
+| `ltvPct` | `deals[].quick.ltvPct` | % of price | 65 | Loan at closing |
+| `capex` | `deals[].quick.capex` | $ | 800,000 | Up-front capex budget |
+| `capexLenderFunded` | `deals[].quick.capexLenderFunded` | yes / no | yes | Capex added to the loan (yes) or paid by equity (no) |
+| `sofrPct` | `deals[].quick.sofrPct` | % | 3.91 | Flat SOFR when no curve applies |
+| `sofrCurveSource` | `deals[].quick.sofrCurveSource` | `pensford` / `manual` | pensford | Where SOFR by year comes from |
+| `sofrIndex` | `deals[].quick.sofrIndex` | `avgSofr30D` / `termSofr1M` | avgSofr30D | Pensford column: 30-Day Average SOFR or 1-Month Term SOFR |
+| `sofrCurve` | `deals[].quick.sofrCurve` | list of % | [] | Manual SOFR by hold year (index 0 = year 1) |
+| `forwardCurve` | `deals[].quick.forwardCurve` | Forward curve (§11.11) | snapshot | Curve this deal uses (anchored to live SOFR when on) |
+| `spreadPct` | `deals[].quick.spreadPct` | % | 1.75 | Loan spread over SOFR |
+| `amortYears` | `deals[].quick.amortYears` | years | 0 | 0 = interest-only |
+| `initialTermYears` | `deals[].quick.initialTermYears` | years | 3 | Initial loan term |
+| `extensionCount` | `deals[].quick.extensionCount` | count | 2 | Extension options |
+| `extensionTermYears` | `deals[].quick.extensionTermYears` | years | 1 | Length of each extension |
+| `extensionFee` | `deals[].quick.extensionFee` | $ | 100,000 | Fee per extension exercised |
+| `capStrikePct` | `deals[].quick.capStrikePct` | % SOFR | 3.91 | Initial cap strike; 0 = no cap |
+| `capRenewalStrike` | `deals[].quick.capRenewalStrike` | `reset` / `same` | reset | Replacement caps struck at-the-money (reset) or at the initial strike |
+| `capTermYears` | `deals[].quick.capTermYears` | years | 1 | Term of each cap |
+| `capPricing` | `deals[].quick.capPricing` | `market` / `manual` | market | Price caps off the curve and vols, or use the costs below |
+| `capVolShiftBp` | `deals[].quick.capVolShiftBp` | bp | 0 | Parallel shift to the cap vol surface (market pricing) |
+| `initialCapCost` | `deals[].quick.initialCapCost` | $ | 350,000 | Initial cap cost (manual pricing) |
+| `replacementCapCost` | `deals[].quick.replacementCapCost` | $ | 250,000 | Each replacement cap (manual pricing) |
+| `amFeePct` | `deals[].quick.amFeePct` | % of equity / yr | 1.5 | Asset management fee |
+| `pmFeePct` | `deals[].quick.pmFeePct` | % / yr | 5 | Property management fee |
+| `pmFeeBasis` | `deals[].quick.pmFeeBasis` | `noi` / `value` | noi | PM fee basis: NOI before the fee, or purchase price |
+| `cmFeePct` | `deals[].quick.cmFeePct` | % of price / yr | 1.5 | Construction management fee |
+
+### 11.4 Full-model inputs (`inputs`)
+
+Fields set from Quick Underwrite on linked deals are marked **Q**.
+
+**Property and fund:**
+
+| Field | Stored at | Units | Default | Meaning |
+|---|---|---|---|---|
+| `propertyName` | `deals[].inputs.propertyName` | text | | Deal name shown everywhere |
+| `fundName` | `deals[].inputs.fundName` | text | | Fund the deal belongs to (matched ignoring capitals and spaces; §2) |
+| `squareFootage` | `deals[].inputs.squareFootage` | SF | 60,000 | Rentable SF (summed from units when a rent roll is used) |
+| `purchasePrice` **Q** | `deals[].inputs.purchasePrice` | $ | 9,000,000 | Purchase price |
+| `acquisitionDate` **Q** | `deals[].inputs.acquisitionDate` | date | | Closing date (fund timeline; falls back to final close) |
+| `closingCosts` **Q** | `deals[].inputs.closingCosts` | $ by item | see below | `titleInsuranceOwner`, `titleInsuranceLender`, `transferTax`, `loanOrigination`, `acquisitionFee`, `legalFees`, `environmentalReport`, `appraisal`, `surveyAndPCA`, `miscClosingCosts` |
+| `capexBudget` **Q** | `deals[].inputs.capexBudget` | $ | 0 | Up-front capex |
+| `capexLenderFunded` **Q** | `deals[].inputs.capexLenderFunded` | yes / no | | Capex funded by the loan |
+
+**NOI source:**
+
+| Field | Stored at | Units | Default | Meaning |
+|---|---|---|---|---|
+| `noiOverrideEnabled` **Q** | `deals[].inputs.noiOverrideEnabled` | yes / no | no | Direct NOI (yes) instead of the rent roll |
+| `noiYear1` **Q** | `deals[].inputs.noiYear1` | $ | | Year-1 NOI before PM (direct NOI) |
+| `noiGrowthPct` **Q** | `deals[].inputs.noiGrowthPct` | % / yr | | NOI growth (direct NOI) |
+| `pmFeePct`, `pmFeeBasis` **Q** | `deals[].inputs.pmFeePct`<br>`deals[].inputs.pmFeeBasis` | %, `noi`/`value` | 5, noi | PM fee in direct-NOI mode |
+| `cmFeePct` **Q** | `deals[].inputs.cmFeePct` | % of price / yr | 1.5 | Construction management, below NOI |
+
+**Rent roll and operations** (used when direct NOI is off):
+
+| Field | Stored at | Units | Default | Meaning |
+|---|---|---|---|---|
+| `leaseType` | `deals[].inputs.leaseType` | NNN / MG / Gross | NNN | Who pays expenses (§7.1) |
+| `rentPerSF` | `deals[].inputs.rentPerSF` | $/SF / yr | 14.00 | Market rent |
+| `annualRentEscalationPct` | `deals[].inputs.annualRentEscalationPct` | % / yr | 3 | Market rent growth and default in-lease escalation |
+| `vacancyPct` | `deals[].inputs.vacancyPct` | % | 10 | General vacancy (no rent roll) |
+| `creditLossPct` | `deals[].inputs.creditLossPct` | % | 1 | Bad debt on revenue after vacancy |
+| `otherIncomePSF` | `deals[].inputs.otherIncomePSF` | $/SF / yr | 0.25 | Other income |
+| `realEstateTaxPSF`, `insurancePSF`, `utilitiesPSF`, `maintenancePSF`, `janitorialPSF` | `deals[].inputs.realEstateTaxPSF`<br>`deals[].inputs.insurancePSF`<br>`deals[].inputs.utilitiesPSF`<br>`deals[].inputs.maintenancePSF`<br>`deals[].inputs.janitorialPSF` | $/SF / yr | 1.20, 0.35, 0.50, 0.40, 0.20 | Operating expenses (landlord-paid per lease type) |
+| `managementFeePct` | `deals[].inputs.managementFeePct` | % of EGR | 5 | Management fee (rent-roll mode) |
+| `leasingFeesPSF`, `capitalReservesPSF` | `deals[].inputs.leasingFeesPSF`<br>`deals[].inputs.capitalReservesPSF` | $/SF / yr | 0.10, 0.30 | Leasing fees; capital reserves |
+| `unitCount`, `avgLeaseTerm` | `deals[].inputs.unitCount`<br>`deals[].inputs.avgLeaseTerm` | count, years | 20, 2 | Rollover assumptions without a unit roll |
+| `renewalProbabilityPct` | `deals[].inputs.renewalProbabilityPct` | % | 60 | Chance a tenant renews |
+| `downtimeBetweenLeases` | `deals[].inputs.downtimeBetweenLeases` | months | 2 | Vacancy between leases |
+| `tiPerSFNew`, `tiPerSFRenewal` | `deals[].inputs.tiPerSFNew`<br>`deals[].inputs.tiPerSFRenewal` | $/SF | 8, 2 | Tenant improvements |
+| `leasingCommissionNewPct`, `leasingCommissionRenewalPct` | `deals[].inputs.leasingCommissionNewPct`<br>`deals[].inputs.leasingCommissionRenewalPct` | % of lease value | 6, 2 | Leasing commissions |
+| `freeRentMonthsNew`, `freeRentMonthsRenewal` | `deals[].inputs.freeRentMonthsNew`<br>`deals[].inputs.freeRentMonthsRenewal` | months | 1, 0 | Free rent at rollover |
+| `tiConcessionPSFNew`, `tiConcessionPSFRenewal` | `deals[].inputs.tiConcessionPSFNew`<br>`deals[].inputs.tiConcessionPSFRenewal` | $/SF | 0, 0 | TI concessions charged against income |
+| `constructionCosts` | `deals[].inputs.constructionCosts` | $/SF by trade, % markups | see app | Build-up of new-lease TI: trades plus `generalConditionsPct`, `overheadProfitPct`, `contingencyPct` |
+| `units` | `deals[].inputs.units` | list of Unit (§11.5) | [] | Unit roll; when present it drives income |
+| `customIncomeItems`, `customExpenseItems`, `customRolloverItems` | `deals[].inputs.customIncomeItems`<br>`deals[].inputs.customExpenseItems`<br>`deals[].inputs.customRolloverItems` | `{label, psf}` | [] | Extra income / expense / rollover lines in $/SF |
+| `amFeeItems` **Q** | `deals[].inputs.amFeeItems` | `{label, basis, value}` | | AM fees; `basis` = `fixed` $, `psf` $/SF, `pctEGR` %, `pctEquity` % of equity |
+
+**Debt:**
+
+| Field | Stored at | Units | Default | Meaning |
+|---|---|---|---|---|
+| `ltvPct` **Q** | `deals[].inputs.ltvPct` | % of price | 65 | LTV sizing |
+| `loanSizingConstraints` | `deals[].inputs.loanSizingConstraints` | | off | `minDSCR…`, `maxLTCPct…`, `minDebtYieldPct…`, each with an `…Enabled` switch (§7.6) |
+| `floatingRate` **Q** | `deals[].inputs.floatingRate` | yes / no | yes | Floating (SOFR + spread) or fixed |
+| `indexRatePct` **Q** | `deals[].inputs.indexRatePct` | % | | Flat SOFR when there's no curve |
+| `sofrForwardCurve` **Q** | `deals[].inputs.sofrForwardCurve` | list of % | [] | SOFR by hold year |
+| `spreadPct` **Q** | `deals[].inputs.spreadPct` | % | | Spread over SOFR |
+| `interestRatePct` | `deals[].inputs.interestRatePct` | % | 7.50 | Fixed rate (fixed loans) |
+| `amortizationYears`, `ioPeriodYears` **Q** | `deals[].inputs.amortizationYears`<br>`deals[].inputs.ioPeriodYears` | years | 25, 0 | Amortization; interest-only years |
+| `loanTermYears`, `extensionCount`, `extensionTermYears` **Q** | `deals[].inputs.loanTermYears`<br>`deals[].inputs.extensionCount`<br>`deals[].inputs.extensionTermYears` | years, count, years | 3, 2, 1 | Term and extensions |
+| `extensionFeeAmount` **Q** / `extensionFeePct` | `deals[].inputs.extensionFeeAmount`<br>`deals[].inputs.extensionFeePct` | $ / % of balance | | Extension fee (amount wins if set) |
+| `hedgingType` | `deals[].inputs.hedgingType` | `cap` / `swap` / none | cap | Rate hedge |
+| `capStrikeRatePct` **Q** | `deals[].inputs.capStrikeRatePct` | % all-in | | Cap strike on the all-in rate (SOFR strike + spread) |
+| `capStrikeRatesByYear` **Q** | `deals[].inputs.capStrikeRatesByYear` | list of % | | All-in strike in force each hold year |
+| `capTermYears` **Q** | `deals[].inputs.capTermYears` | years | | Cap term |
+| `capPremiumAmount` **Q** / `capPremiumPct` | `deals[].inputs.capPremiumAmount`<br>`deals[].inputs.capPremiumPct` | $ / % of loan | | Initial cap cost |
+| `capReplacementCosts` **Q** / `capReplacementCost` | `deals[].inputs.capReplacementCosts`<br>`deals[].inputs.capReplacementCost` | list of $ / $ | | Replacement cap cost by hold year / flat |
+| `swapFixedRatePct`, `swapTermYears` | `deals[].inputs.swapFixedRatePct`<br>`deals[].inputs.swapTermYears` | %, years | 7.75, 3 | Swap terms |
+| `tiReserve` | `deals[].inputs.tiReserve` | | off | `enabled`, `reservePSF`, `minDrawDSCR` (§7.6) |
+| `loanCovenants` | `deals[].inputs.loanCovenants` | | DSCR 1.25 on | `dscrMin`, `debtYieldMin`, `ltvMax`, `occupancyMin`, each with `…Enabled` |
+| `lenderName` | `deals[].inputs.lenderName` | text | | Label only |
+
+**Exit and deal waterfall:**
+
+| Field | Stored at | Units | Default | Meaning |
+|---|---|---|---|---|
+| `holdPeriodYears` **Q** | `deals[].inputs.holdPeriodYears` | years | 7 | Hold period |
+| `exitCapRatePct` **Q** | `deals[].inputs.exitCapRatePct` | % | 6.75 | Exit cap rate |
+| `sellingCosts` **Q** | `deals[].inputs.sellingCosts` | %, $ | 2.0 / 0.5 / 0.2 %, $15k, $5k | `brokerCommissionPct`, `transferTaxPct`, `titleInsurancePct`, `legalFees`, `miscDispositionCosts` |
+| `customDispositionItems` | `deals[].inputs.customDispositionItems` | `{label, basis, value}` | [] | Extra sale costs; `basis` `pct` of exit value or fixed $ |
+| `waterfallEnabled`, `waterfall` | `deals[].inputs.waterfallEnabled`<br>`deals[].inputs.waterfall` | | on | Deal-level LP/GP: `lpEquityPct`, `preferredReturnPct`, `catchUpGpPct`, `tiers` (§7.8) |
+
+### 11.5 Unit (rent roll row)
+
+**Unit Roll → Import CSV** reads these columns. Header names in brackets
+are also accepted.
+
+| Field | Stored at | CSV column | Units | Default | Meaning |
+|---|---|---|---|---|---|
+| `name` | `deals[].inputs.units[].name` | unit [unitname, name, suite] | text | row no. | Unit / suite |
+| `squareFeet` | `deals[].inputs.units[].squareFeet` | **sf** [squarefeet, sqft, size] | SF | required | Unit size (rows without SF are skipped) |
+| `tenantName` | `deals[].inputs.units[].tenantName` | tenant [tenantname, lessee] | text | | Tenant |
+| `businessDescription` | `deals[].inputs.units[].businessDescription` | business [description, use] | text | | Tenant's business |
+| `creditRating` | `deals[].inputs.units[].creditRating` | credit [creditrating, rating] | text | | Credit rating |
+| `naicsCode` | `deals[].inputs.units[].naicsCode` | sic [naics, naicscode, industry] | text | | Industry code |
+| `leaseStatus` | `deals[].inputs.units[].leaseStatus` | status [leasestatus, occupied] | occupied / vacant | occupied | "occupied", "yes", "1" etc. = occupied |
+| `leaseType` | `deals[].inputs.units[].leaseType` | lease_type [lease, type] | NNN / MG / Gross | NNN | Expense responsibility |
+| `currentRentPSF` | `deals[].inputs.units[].currentRentPSF` | rent [rentpsf, currentrent] | $/SF / yr | 0 | Contract rent |
+| `otherIncomePSF` | `deals[].inputs.units[].otherIncomePSF` | otherincome | $/SF / yr | 0 | Other income |
+| `annualEscalationPct` | `deals[].inputs.units[].annualEscalationPct` | escalation [esc] | % / yr | 3 | In-lease escalation |
+| `monthsRemaining` | `deals[].inputs.units[].monthsRemaining` | months_remaining [months] | months | 12 | Lease term left |
+| `newLeaseTerm` | `deals[].inputs.units[].newLeaseTerm` | new_term [newleaseterm] | months | 24 | Term of the next lease |
+| `renewalProbabilityPct` | `deals[].inputs.units[].renewalProbabilityPct` | renewal_pct [renew] | % | 60 | Renewal chance |
+| `tiNewPSF`, `tiRenewalPSF` | `deals[].inputs.units[].tiNewPSF`<br>`deals[].inputs.units[].tiRenewalPSF` | ti_new, ti_renewal | $/SF | 8, 2 | TI at rollover |
+| `leasingCommissionNewPct`, `leasingCommissionRenewalPct` | `deals[].inputs.units[].leasingCommissionNewPct`<br>`deals[].inputs.units[].leasingCommissionRenewalPct` | lc_new, lc_renewal | % | 6, 2 | Leasing commissions |
+| `realEstateTaxPSF` … `janitorialPSF` | `deals[].inputs.units[].realEstateTaxPSF`<br>`deals[].inputs.units[].janitorialPSF` | retax, insurance, utilities, maintenance, janitorial | $/SF / yr | property rates | Per-unit expense overrides |
+
+### 11.6 Deal snapshot (fund deals and saved deals)
+
+Every fund view works from snapshots of each deal. **Add to Fund** stores
+one as a fixed copy in `savedDeals`. Live deals are snapshotted fresh every
+time they change.
+
+| Field | Stored at | Meaning |
+|---|---|---|
+| `id`, `inputs` | `savedDeals[].id`<br>`savedDeals[].inputs` | Deal id and its full-model inputs at the snapshot |
+| `irrFlows` | `savedDeals[].irrFlows` | Equity cash flows by hold year: [year 0 (negative), year 1 … year N incl. sale] |
+| `opFlows` | `savedDeals[].opFlows` | Operating cash flow by hold year, excluding the sale |
+| `reversion` | `savedDeals[].reversion` | Net sale proceeds after costs and loan payoff |
+| `reserveBasis` | `savedDeals[].reserveBasis` | Per hold year: debt service + TI/LC + AM + PM + CM fees (the reserve target, §7.9) |
+| `metrics` | `savedDeals[].metrics` | `irr` %, `equityMultiple` ×, `yearOneCashOnCash` %, `equityRequired` $, `loanAmount` $ |
+| `live` | Live deals: recalculated, not stored | Snapshot of an open deal (recalculates) rather than a saved copy |
+
+### 11.7 Fund terms (`funds[name]`)
+
+**Fund terms template** (Excel or CSV) uses the labels in the second
+column.
+
+| Field | Stored at | Template label | Units | Default | Meaning |
+|---|---|---|---|---|---|
+| `name` | `funds["Fund name"].name` | Fund name | text | | Must match the deals' Fund field |
+| `finalClose` | `funds["Fund name"].finalClose` | Final close date | date | 2025-12-31 | Start of the fund timeline |
+| `investmentPeriodYears` | `funds["Fund name"].investmentPeriodYears` | Investment period (years) | years | 2 | From final close |
+| `termYears` | `funds["Fund name"].termYears` | Fund term (years) | years | 5 | From final close |
+| `extensionCount`, `extensionYears` | `funds["Fund name"].extensionCount`<br>`funds["Fund name"].extensionYears` | Extension options; Extension length | count, years | 2, 1 | Fund term extensions |
+| `targetEquity` | `funds["Fund name"].targetEquity` | Total commitments ($) | $ | 0 (Model Fund I: 100,000,000) | LP + GP commitments; drives dry powder and sub line size |
+| `gpCommitPct` | `funds["Fund name"].gpCommitPct` | GP commitment (% of equity) | % | 5 | GP share of every capital call |
+| `prefPct` | `funds["Fund name"].prefPct` | Preferred return (% / yr) | % | 9 | LP pref, compounding annually |
+| `catchUpGpPct` | `funds["Fund name"].catchUpGpPct` | GP catch-up (%) | % | 100 | Share of distributions to the GP during catch-up |
+| `tiers` | `funds["Fund name"].tiers` | Tier n IRR hurdle / LP split / GP split | %, %, % | 12% 80/20, 18% 70/30, above 60/40 | Promote tiers (up to 5; blank hurdle = top tier) |
+| `mgmtFeePct` | `funds["Fund name"].mgmtFeePct` | Management fee (% / yr) | % of LP invested | 0 | Fund-level fee (0 when fees are at the asset level) |
+| `distributionPolicy` | `funds["Fund name"].distributionPolicy` | Distribution policy | `reserve` / `payout` | reserve | How quarterly income is distributed (§7.9) |
+| `reserveYears` | `funds["Fund name"].reserveYears` | Reserve (years of …) | years | 1 | Reserve policy target |
+| `incomePayoutPct` | `funds["Fund name"].incomePayoutPct` | Quarterly income payout (%) | % | 100 | Payout policy share |
+| `incomeTreatment` | `funds["Fund name"].incomeTreatment` | Income distributions | `prefThenROC` / `full` | prefThenROC | Income pays pref then capital, or runs the full waterfall |
+| `subLineEnabled` | `funds["Fund name"].subLineEnabled` | Subscription line | yes / no | yes | Model a subscription line |
+| `subLineSizePct` | `funds["Fund name"].subLineSizePct` | Sub line size (% of commitments) | % | 80 | Facility size |
+| `subLineSpreadPct` | `funds["Fund name"].subLineSpreadPct` | Sub line spread over SOFR (%) | % | 1.75 | Over 30-day average SOFR |
+| `subLineUnusedFeePct` | `funds["Fund name"].subLineUnusedFeePct` | Sub line unused fee (% / yr) | % | 0.25 | On the undrawn facility |
+| `subLineMaxDays` | `funds["Fund name"].subLineMaxDays` | Sub line max days outstanding | days | 365 | Each draw repaid by an LP call after this |
+| `capitalActivity` | `funds["Fund name"].capitalActivity` | — | list of §11.8 | [] | Actual capital calls and line activity |
+
+### 11.8 Capital activity entry (`capitalActivity[]`)
+
+| Field | Stored at | Import column [also accepted] | Units | Meaning |
+|---|---|---|---|---|
+| `id` | `funds["Fund name"].capitalActivity[].id` | — | text | Unique id |
+| `date` | `funds["Fund name"].capitalActivity[].date` | **Date** [call date, value date, transaction date] | date | Date of the call, draw or repayment |
+| `type` | `funds["Fund name"].capitalActivity[].type` | Type [transaction, activity] | `call` / `draw` / `repay` | Capital call, sub line draw, sub line repayment ("paydown", "draw", "call" recognized; blank = call) |
+| `amount` | `funds["Fund name"].capitalActivity[].amount` | **Amount** [total, call amount, capital called] | $ (LP + GP) | Positive; "(500,000)" and "-500,000" are read as 500,000 |
+| `purpose` | `funds["Fund name"].capitalActivity[].purpose` | Purpose [asset, use, description] | `acq:<deal id>` / `fees` / `line-repay` / `line-interest` / `other` | What it funded. An asset name in the text tags that asset. |
+| `notes` | `funds["Fund name"].capitalActivity[].notes` | Notes [memo, comments] | text | Free text |
+
+### 11.9 Valuation mark (`valuations[dealId][quarterEnd]`)
+
+| Field | Stored at | Import column | Units | Meaning |
+|---|---|---|---|---|
+| (key) quarter end | `valuations["deal id"]` key | **Quarter end** (any date in the quarter, or "2026 Q2") | date | Calendar quarter end the mark applies to |
+| `value` | `valuations["deal id"]["quarter end"].value` | **Fair value ($)** | $ | Gross asset fair value; blank = roll-forward |
+| `source` | `valuations["deal id"]["quarter end"].source` | Source (Appraisal / Internal) | `appraisal` / `internal` | Independent appraisal or internal mark (default by quarter: Q2/Q4 appraisal) |
+| `appraiser` | `valuations["deal id"]["quarter end"].appraiser` | Appraiser | text | Firm |
+| `capRate` | `valuations["deal id"]["quarter end"].capRate` | Cap rate (%) | % | Appraisal cap rate (reference) |
+| `capex` | `valuations["deal id"]["quarter end"].capex` | Capex since last mark ($) | $ | Added to the roll-forward and to cost |
+| `notes` | `valuations["deal id"]["quarter end"].notes` | Notes | text | Free text |
+| (row) asset | Import file only (matched to a deal id) | **Asset** | text | Matched to the deal name |
+
+### 11.10 Sales comps (`comps`)
+
+**Settings:**
+
+| Field | Stored at | Units | Default | Meaning |
+|---|---|---|---|---|
+| `marketGrowthPct` | `comps.marketGrowthPct` | % / yr | 3 | Time adjustment of $/SF to the acquisition date |
+| `spreadBp` | `comps.spreadBp` | bp | 25 | Exit cap = comps median + spread |
+| `filters` | `comps.filters` | | none | `sinceISO` sold on/after, `minSF`, `maxSF`, `type` text filter |
+| `comps` | `comps.comps` | list of Comp | [] | The comps |
+
+**Comp:**
+
+| Field | Stored at | Import column (CoStar names recognized) | Units | Meaning |
+|---|---|---|---|---|
+| `name` | `comps.comps[].name` | Property / address [Property Address, Building Name] | text | Property |
+| `city`, `state`, `submarket` | `comps.comps[].city`<br>`comps.comps[].state`<br>`comps.comps[].submarket` | City, State, Submarket [Property City, Submarket Name] | text | Location |
+| `propertyType` | `comps.comps[].propertyType` | Property type [Secondary Type] | text | Type |
+| `saleDate` | `comps.comps[].saleDate` | Sale date [Sold Date, Close Date] | date | Sale date |
+| `price` | `comps.comps[].price` | Sale price ($) [Sold Price] | $ | Price (filled from $/SF × SF if missing) |
+| `sf` | `comps.comps[].sf` | Building SF [RBA, Bldg SF] | SF | Building size |
+| `pricePSF` | `comps.comps[].pricePSF` | Price / SF [Price Per SF] | $/SF | Filled from price ÷ SF if missing |
+| `capRate` | `comps.comps[].capRate` | Cap rate (%) [Actual Cap Rate] | % | 0.065 is read as 6.5% |
+| `yearBuilt`, `clearHeight`, `occupancy` | `comps.comps[].yearBuilt`<br>`comps.comps[].clearHeight`<br>`comps.comps[].occupancy` | Year built, Clear height [Ceiling Height Range], Occupancy [Percent Leased] | year, ft, % | Building details |
+| `buyer`, `seller` | `comps.comps[].buyer`<br>`comps.comps[].seller` | Buyer, Seller [True Buyer Company …] | text | Parties |
+| `adjPct` | `comps.comps[].adjPct` | Adjustment (%) | % | Comp-specific adjustment to $/SF |
+| `include` | `comps.comps[].include` | — | yes / no | Counted in statistics |
+| `example` | `comps.comps[].example` | — | yes / no | Made-up example comp |
+
+### 11.11 Forward curve
+
+| Field | Stored at | Meaning |
+|---|---|---|
+| `source` | `baseCurve.source`, `deals[].quick.forwardCurve.source` | "Pensford" (or the imported file) |
+| `asOf` | `baseCurve.asOf`, `deals[].quick.forwardCurve.asOf` | Curve date (snapshot: 2026-11-20) |
+| `points` | `baseCurve.points`, `deals[].quick.forwardCurve.points` | Monthly resets: `[date, 1-Month Term SOFR %, 30-Day Average SOFR %]` |
+| `anchoredTo` | `baseCurve.anchoredTo`, `deals[].quick.forwardCurve.anchoredTo` | When shifted to live: `{ rate, shiftBp }` |
+
+### 11.12 Calculated metrics (glossary)
+
+| Metric | Stored | Definition | Where |
+|---|---|---|---|
+| NOI | Calculated, not stored | Net operating income: revenue less operating expenses (direct NOI: entered NOI less PM fee) | §7.1 |
+| EGR | Calculated, not stored | Effective gross revenue: gross revenue less vacancy and credit loss | §7.1 |
+| Going-in cap | Calculated, not stored | Year-1 NOI ÷ purchase price | §7.7 |
+| Exit value | Calculated, not stored | Final-year NOI ÷ exit cap | §7.7 |
+| Equity | Calculated, not stored | Price + closing costs + cap premium + capex − loan | §7.6 |
+| Loan / price | Calculated, not stored | Loan (incl. lender-funded capex) ÷ purchase price | §7.16 |
+| Loan constant | Calculated, not stored | Annual debt service ÷ loan (the rate if interest-only) | §7.6 |
+| DSCR | Calculated, not stored | NOI ÷ debt service | §7.6 |
+| Debt yield | Calculated, not stored | NOI ÷ loan balance | §7.6 |
+| Cash-on-cash | Calculated, not stored | Year's cash flow ÷ equity | §7.7 |
+| IRR | Calculated, not stored | Rate that sets the NPV of equity cash flows to zero. Annual periods for deals; actual dates (XIRR) for funds and interim returns. | §7.7, §7.10 |
+| Equity multiple | Calculated, not stored | Total distributions ÷ equity contributed | §7.7 |
+| Gross / Net fund / Net LP | Calculated, not stored | Assets before fund costs / all investors after fund costs / LPs after pref, promote and fees | §7.10 |
+| Pooled IRR | Calculated, not stored | XIRR of all assets' dated equity cash flows together | §7.16 |
+| Fair value | Calculated, not stored | Gross asset value from an appraisal, internal mark, roll-forward or cost | §7.15 |
+| NAV | Calculated, not stored | Fair value − loan balance + asset cash reserve | §7.15 |
+| TVPI / DPI / RVPI | Calculated, not stored | (Distributions + NAV) ÷ contributions / distributions ÷ contributions / NAV ÷ contributions | §7.15 |
+| Unrealized gain | Calculated, not stored | Fair value − cost (price + capex) | §7.15 |
+| Dry powder | Calculated, not stored | Commitments − capital called − sub line outstanding (− untagged purchases) | §7.12 |
+| Uncommitted capital | Calculated, not stored | Dry powder − future capital needs of current deals | §7.12 |
+| Status | Calculated, not stored | Pipeline (acquisition after today), Owned, Sold (exit on or before today) | §7.16 |
