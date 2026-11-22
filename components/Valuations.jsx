@@ -324,7 +324,10 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
               </div>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
-              <h4 className="mb-2 text-xs font-semibold text-gray-700">Net LP (hypothetical liquidation at NAV)</h4>
+              <h4 className="mb-2 text-xs font-semibold text-gray-700">
+                Net LP (hypothetical liquidation at NAV)
+                {val.flowsMode === "actual" && <span className="ml-1.5 rounded bg-blue-50 px-1 text-[9px] font-semibold text-blue-700">actual calls</span>}
+              </h4>
               {fq.net.nm ? (
                 <p className="text-xs text-gray-500">n/m — {fq.net.nm}. Sub line balance {fmtM(fq.lineBalance)}.</p>
               ) : (
@@ -432,7 +435,8 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
             Each later quarter uses the entered mark if there is one, otherwise the last mark plus capex since. Equity NAV = fair value − loan
             balance + the asset&apos;s cash reserve. Interim returns use actual cash flows to date plus NAV as the ending value; IRRs under one year
             show n/m. Net LP assumes the fund sells everything at NAV on the quarter end, repays the sub line, and runs the proceeds through the
-            fund waterfall. Closing costs and cap premiums are not in fair value, so TVPI starts below 1.0x.
+            fund waterfall. LP calls and the sub line balance are your actual capital activity when it&apos;s entered (Portfolio Return),
+            otherwise the model. Closing costs and cap premiums are not in fair value, so TVPI starts below 1.0x.
           </p>
         </>
       )}
