@@ -652,6 +652,13 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
     ? computeDatedWaterfall(fundLpEvents(waterfallEvents, { ...terms, capitalActivity: [], subLineEnabled: false }, { todayISO, curve, investmentPeriodEnd: fd.investmentPeriodEnd }).events, fundWaterfallConfig)
     : modelWf;
   const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
+  // Projected cash-on-cash yield (lib/cashYield): gross and net to investors.
+  const cashYield = fundCashYield({
+    assetFlows,
+    purchases: waterfallEvents.filter((e) => e.kind === "call" && e.purchase),
+    sales: waterfallEvents.filter((e) => e.kind === "capital" && e.dealId),
+    distributions: flows.events.filter((e) => e.kind === "income"),
+  });
 
   // Header returns, all on one basis: multiple = total distributions ÷ total
   // capital contributed (later capital calls count as capital).
@@ -800,6 +807,18 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
               <p className="text-[10px] text-gray-400">IRR · multiple</p>
             </div>
           ))}
+          <div
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-right"
+            title="Projected cash-on-cash yield over the fund's life: operating cash ÷ equity invested (time-weighted). Gross = assets' operating cash flow; net = operating income distributed to investors after fund expenses and the cash reserve."
+          >
+            <p className="text-[11px] font-medium text-gray-500">Cash-on-cash</p>
+            <p className="text-base font-bold tabular-nums leading-tight text-gray-900">
+              {fmtPct(cashYield.grossAverage)}
+              <span className="text-gray-300 font-normal"> · </span>
+              {fmtPct(cashYield.netAverage)}
+            </p>
+            <p className="text-[10px] text-gray-400">Gross · net, life avg.</p>
+          </div>
           <div className="text-right">
             <p className="text-xs text-gray-500">Total Equity</p>
             <p className="text-lg font-bold tabular-nums text-gray-900">{fmtM(totalEquity)}</p>
@@ -1090,14 +1109,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         </p>
       </div>
 
-      <FundCashYield
-        data={fundCashYield({
-          assetFlows,
-          purchases: waterfallEvents.filter((e) => e.kind === "call" && e.purchase),
-          sales: waterfallEvents.filter((e) => e.kind === "capital" && e.dealId),
-          distributions: flows.events.filter((e) => e.kind === "income"),
-        })}
-      />
+      <FundCashYield data={cashYield} />
 
       {/* Combined cash flow table */}
       <div>

@@ -10,7 +10,7 @@ import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import Leases from "@/components/Leases";
 import { withLocation } from "@/lib/assetLocations";
-import { MTM_MODEL, mtmIndex, withMarkToMarket } from "@/lib/sampleRentRolls";
+import { MTM_MODEL, mtmIndex, toRentRollNOI, withMarkToMarket } from "@/lib/sampleRentRolls";
 import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
@@ -128,6 +128,23 @@ function normalizeWorkspaceFunds(saved) {
       savedDeals: out.savedDeals.filter((d) => !removed(d)),
     };
   }
+  // Model Fund I runs on rent-roll NOI (once per workspace): direct-NOI
+  // assets are unlinked from Quick Underwrite and their rent rolls calibrated
+  // so year-1 NOI matches what they had. Runs after the rent rolls exist.
+  const runNoi = (o) => {
+    const f = o.funds[SAMPLE_FUND_NAME];
+    if (!f || f.noiModel === NOI_MODEL) return o;
+    const inFund = (d) => d.inputs?.fundName === SAMPLE_FUND_NAME && d.inputs?.noiOverrideEnabled && (d.inputs.units ?? []).length;
+    const conv = (inputs) => {
+      const c = underwrite(inputs).annualCashFlows;
+      return toRentRollNOI(inputs, { y1: c[0]?.noi ?? 0, exit: c[c.length - 1]?.noi ?? 0 }, mtmIndex(inputs.propertyName), underwrite);
+    };
+    return {
+      funds: { ...o.funds, [SAMPLE_FUND_NAME]: { ...f, noiModel: NOI_MODEL } },
+      deals: o.deals.map((d) => (inFund(d) ? { ...d, linked: false, inputs: conv(d.inputs) } : d)),
+      savedDeals: o.savedDeals.map((d) => (inFund(d) ? { ...d, ...snapshotDeal(conv(d.inputs), d.id) } : d)),
+    };
+  };
   // Model Fund I rent rolls: every asset gets a rent roll with market rent
   // 20–40% above in-place (once per workspace).
   const fundNow = out.funds[SAMPLE_FUND_NAME];
@@ -140,11 +157,11 @@ function normalizeWorkspaceFunds(saved) {
       savedDeals: out.savedDeals.map((d) => (inFund(d) ? { ...d, ...snapshotDeal(mtm(d.inputs), d.id) } : d)),
     };
   }
-  return out;
+  return runNoi(out);
 }
 
 function initialFunds() {
-  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS, rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL } };
+  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS, rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL } };
 }
 
 function fmtISODate(iso) {
@@ -307,19 +324,15 @@ const DEFAULT_INPUTS = {
 
 
 // A blank working deal (not in a fund) for when no deals are left open,
-// driven by the Quick Underwrite tab (direct NOI).
+// on rent-roll NOI like every new deal.
 function linkedDeal(id = "deal-1") {
-  return {
-    id,
-    linked: true,
-    quick: QUICK_DEFAULTS,
-    inputs: toMainInputs(QUICK_DEFAULTS, { ...DEFAULT_INPUTS, propertyName: "New Deal", squareFootage: 30000, fundName: "" }),
-  };
+  return { id, inputs: { ...DEFAULT_INPUTS, propertyName: "New Deal", fundName: "" } };
 }
 
 // Assets removed from Model Fund I's sample and test data.
 const REMOVED_SAMPLE_ASSETS = ["Light Industrial (30k SF)", ...REMOVED_TEST_ASSETS];
 const TEST_DATA_MODEL = "v2";
+const NOI_MODEL = "rentroll-v1";
 
 // The app opens with a live fund: the nine sample assets, all editable
 // deals in Model Fund I.
@@ -1033,7 +1046,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL } };
     });
     setActiveTab("fund");
   }
