@@ -17,6 +17,7 @@ This manual covers:
 10. [Maintenance: building, deploying, refreshing data](#10-maintenance)
 11. [Data dictionary](#11-data-dictionary)
 12. [Database (Supabase)](#12-database-supabase)
+13. [Roadmap](#13-roadmap)
 
 ---
 
@@ -2375,3 +2376,52 @@ earlier version of the app, that is moved in first as **Moved from
 browser** and opens instead; switch with **☁ Database → Your workspaces →
 Model Fund I → Open**.
 
+## 13. Roadmap
+
+*Lease, documents and performance: phases A–K.* What has been built and
+what is coming, kept up to date as each phase finishes. The full scope of
+each phase and the decisions behind it are in
+[`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
+
+| Phase | What it does | Status |
+|---|---|---|
+| A. Lease documents | Upload, store and open each lease's PDFs per asset (Leases tab) | ✅ Live |
+| B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
+| C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags | ⏰ Scheduled 11/22/2026, 5:30am PT |
+| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary | ⏰ Scheduled 11/22/2026, 10:30am PT |
+| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements | ⛓ After D |
+| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
+| G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
+| H. Estoppels, CAM and billing | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms | ⛓ After G |
+| I. Asset budget vs. plan | Life-of-asset plan locked at closing; actuals; plan vs. budget vs. actual by line | ⛓ After H |
+| J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
+| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
+
+**How phases are delivered.** Each phase starts as soon as the previous one
+is complete. Each comes with this manual updated and Node and Playwright
+tests, and goes into a pull request that is merged only when you say so.
+CREparser connectors are used to validate only, so your free documents are
+not used. Nothing changes your data until you click to apply it.
+
+**What each phase adds**
+
+- **A. Lease documents.** Add a lease with its tenant, rent roll unit(s) and
+  PDFs in order (lease, then amendments). Stored privately; viewers read,
+  owners and editors change; every change is logged.
+- **B. Lease abstraction.** A prompt for a Claude session with the CREparser
+  connector produces a validated abstract (67 fields, rent schedule,
+  critical dates, risks), each value with its clause, quote and page link.
+- **C. Review and apply.** Compare the abstract with the rent roll field by
+  field and apply the ones you choose, to an existing unit or a new one.
+  Rent steps set the rent while the lease runs; renewal options decide
+  renewals when the option rent is at or below market.
+- **D. Fund lease views.** Every deadline and risk flag across the fund,
+  with exports, and lease status on the Asset Summary.
+- **E. Acquisition documents.** Each document's key figures shown beside the
+  model and applied by choice; the IC memo gives approved vs. current and a
+  conditions checklist; closing statements set the actual cost basis and
+  the realized sale.
+- **F–H.** Loan agreements, appraisals, estoppels and CAM reconciliations
+  read the same way and checked against the model and the leases.
+- **I–K.** Track each asset's budget, each deal's underwriting and the
+  fund's plan against actual results, with variances explained.
