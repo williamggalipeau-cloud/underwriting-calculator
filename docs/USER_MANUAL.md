@@ -2378,7 +2378,7 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
-*Lease, documents, performance and reporting: phases A–L.* What has been built and
+*Lease, documents, performance and reporting: phases A–M.* What has been built and
 what is coming, kept up to date as each phase finishes. The full scope of
 each phase and the decisions behind it are in
 [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
@@ -2397,6 +2397,7 @@ each phase and the decisions behind it are in
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report | ⛓ After K |
+| M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits | ⛓ After L |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
@@ -2449,3 +2450,12 @@ not used. Nothing changes your data until you click to apply it.
   maturities and covenant cushions, valuation sensitivity, budget and
   underwriting variances, stress tests and a watch list. Investor records,
   capital accounts and notices stay in your CRM and investor portal.
+- **M. Fund impact modeling.** Add one or more candidate assets to a fund as
+  a what-if (nothing changes until you choose Add to fund) and see the fund
+  with and without them: net and gross IRR, multiple, promote, capital
+  calls and dry powder, NOI and yield, leverage, concentration and fund
+  limits. Compare candidates and find the highest price that still meets
+  the fund's target. Modeling only: scenarios never change your actual
+  data. Each scenario is named and saved; a saved version is never
+  overwritten, and any change creates a new version. Every version exports
+  to Excel and PDF, marked "Scenario — not actual".

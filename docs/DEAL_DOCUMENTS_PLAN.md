@@ -1,4 +1,4 @@
-# Lease, documents and performance plan (phases A–L)
+# Lease, documents and performance plan (phases A–M)
 
 One plan for everything from lease documents to fund performance: what has
 been built, what is scheduled, and what each phase will do. Each phase is
@@ -23,6 +23,7 @@ changes the model without the user clicking to apply it.
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk reports | ⛓ Starts when K is complete |
+| M | Fund impact modeling: add a candidate asset and see the fund-level effect | ⛓ Starts when L is complete |
 
 Each finished phase is marked here (and in the user manual's §13 Roadmap)
 with what was built and how it was tested; the user gets a progress note in the Claude session after each one.
@@ -393,13 +394,64 @@ I–K.
   - Shown on a Reports tab (owners and editors; viewers do not see the
     risk report), with PDF and Excel, saved as issued versions.
 
+## Phase M: fund impact modeling (added 11/22)
+
+Model what adding a new asset would do to a fund before buying it, without
+changing the fund.
+
+- **Add a candidate:** pick a fund and add one or more candidate assets:
+  from a saved or pipeline deal, from Quick Underwrite, or from an OM read in
+  phase E. Each candidate has its price, closing date, equity and loan,
+  business plan and exit, using the same underwriting as any deal. Nothing
+  is added to the fund until the user chooses **Add to fund**.
+- **Fund with vs. without:** side by side for the fund as it is, the fund
+  with the candidate(s), and the difference:
+  - Returns: net and gross IRR, TVPI, DPI, equity multiple, cash-on-cash by
+    year, GP promote and LP net (through the fund waterfall).
+  - Capital: equity required, capital calls by quarter, dry powder left,
+    deployment pace vs. the fund plan (phase K), subscription line use.
+  - Income and value: fund NOI and cash yield by year, NAV, leverage (fund
+    LTV, DSCR, debt yield), debt maturities.
+  - Portfolio mix: industry (SIC), geographic and tenant concentration, WALT
+    and lease rollover, all before and after.
+  - Limits: every fund limit from the LPA/PPM and internal limits (phase L),
+    actual before and after, with any breach the candidate would cause.
+- **Compare candidates:** several candidates against each other and in
+  combination, ranked by their effect on fund net IRR and multiple.
+- **Break-even pricing:** the highest price at which the candidate still
+  meets a target (e.g. fund net IRR stays at or above the fund plan, or no
+  limit is breached).
+- **Sensitivity:** fund IRR impact across the candidate's price, exit cap
+  and rent growth, and its timing (closing quarter).
+- **Modeling only (user confirmed 11/22):** scenarios never change actual
+  data: deals, fund terms, rent rolls, valuations, actuals and reports stay
+  as they are. Scenarios are stored separately (their own table), work on a
+  copy of the fund, and are labelled "Scenario — not actual" on screen and
+  in every export. Adding a candidate to the fund for real is a separate,
+  deliberate step (Add to fund, which creates a normal deal and is logged),
+  never a side effect of saving a scenario.
+- **Named, saved, versioned:** each scenario has a name (e.g. "Q1 2027:
+  Reno + Boise"), the fund, the candidates and their inputs, who saved it
+  and when. A saved version is **frozen**: its inputs, results and reports
+  are never overwritten. Any change saves a **new version** (v1, v2, …) with
+  an optional note on what changed; earlier versions stay readable, can be
+  compared side by side, and can be copied as the start of a new scenario.
+  Results are stored with the version, so they don't shift later when the
+  fund's actuals change; a "re-run on today's fund" creates a new version.
+- **Reports for each scenario version:** Excel (inputs, fund with vs.
+  without by year, returns, capital, mix, limits, sensitivity, break-even)
+  and PDF (a summary page for the IC memo plus the detail pages), both
+  stamped with the scenario name, version, date, author and "Scenario — not
+  actual". An exported report always matches its version.
+- Reuses phase L's pre-acquisition limit check.
+
 ## Order and review
 
-A → B → C → D → E → F → G → H → I → J → K → L. Each phase starts as soon as the
+A → B → C → D → E → F → G → H → I → J → K → L → M. Each phase starts as soon as the
 previous one is complete (no review in between), is built on the working
 branch with the manual and Node + Playwright tests, and goes into one open
 pull request; nothing is merged without the user. If a session ends before
-L, the work is pushed and resumes about 15 minutes later at the next phase.
+M, the work is pushed and resumes about 15 minutes later at the next phase.
 
 ## Decisions (all made 11/22)
 
@@ -464,4 +516,10 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     Yardi's aged delinquency report (no direct Yardi connection), with mock
     Yardi exports in `docs/sample-yardi/` for testing. Yardi income
     statements also supply phase I's actuals.
+18. **Phase M, fund impact modeling** (added 11/22): after L; add candidate
+    assets to a fund as a what-if and see the fund-level effect on returns,
+    capital, income, mix and limits, with break-even pricing. Modeling
+    only: it never overwrites actual data. Scenarios are named and saved;
+    a saved version is frozen and any change makes a new version; each
+    version exports to Excel and PDF.
 
