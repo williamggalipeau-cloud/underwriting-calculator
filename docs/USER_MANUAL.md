@@ -2462,7 +2462,7 @@ each phase and the decisions behind it are in
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags | ⏰ Scheduled 11/22/2026, 5:30am PT |
 | D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | ⏰ Scheduled 11/22/2026, 10:30am PT |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
-| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
+| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
@@ -2503,7 +2503,9 @@ not used. Nothing changes your data until you click to apply it.
   review and apply one by one. Insurance certificates (the owner's policies
   and each tenant's) are checked against lease and loan requirements, with
   expiry dates tracked.
-- **F–H.** Loan agreements, appraisals, estoppels and CAM reconciliations
+- **F–H.** Loan agreements and executed rate cap confirmations (each cap's
+  counterparty, strike, dates and premium replace the modeled ones on the
+  Debt tab, checked against the loan's cap requirement), appraisals, estoppels and CAM reconciliations
   read the same way and checked against the model and the leases. Phase H
   also imports Yardi's monthly aged delinquency report: arrears by tenant
   in 30, 60, 90, 180 and over-180-day buckets, delinquency % by asset and fund,

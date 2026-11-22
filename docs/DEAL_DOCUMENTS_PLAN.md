@@ -181,6 +181,27 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   actual levels.
 - Critical dates: maturity, extension notice windows, cap expiry, covenant test
   dates, reporting deadlines.
+- **Rate cap confirmations** (added 11/22, user's request): upload the
+  executed cap confirmation (the trade confirmation under the ISDA, with
+  the counterparty) for each cap, the initial cap and each renewal, on the
+  Debt tab's rate cap schedule (also listed on the Documents tab). Read with
+  `cre_read_document` + `cre_search_text` (no connector validator; checked
+  locally, "not connector-validated"; uses no free documents): counterparty
+  (the institution that wrote the cap) and its rating, trade date,
+  effective and termination dates, notional (and any amortizing schedule),
+  index (e.g. 1-month Term SOFR or 30-day average SOFR), strike, premium
+  and payment date, reset and payment dates, day count, calculation agent,
+  and any assignment to the lender. Shown beside the schedule row and
+  applied field by field: once applied, that cap row uses the executed
+  terms (provider, strike, dates, notional, premium) instead of the modeled
+  ones, marked "executed", with a link to the PDF page; renewals not yet
+  bought stay modeled. Checks: strike, notional and term against the loan
+  agreement's cap requirement (e.g. strike at or below the required level,
+  notional at least the loan balance, term to maturity or the next
+  extension), and the cap provider's rating against the loan's minimum
+  counterparty rating; mismatches flagged. The cap's expiry and the
+  replacement deadline go to critical dates. Made-up sample confirmations
+  for Fund I's caps are added to the test documents.
 
 ### Phase G: appraisal to the Valuations tab
 
@@ -662,4 +683,9 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     asset cash flow, the fund sub line (while active and with capacity) and
     capital calls, shown as a heat map, with what-if actions (postpone TI,
     cut TI, capital call) that don't change actual data.
+23. **Rate cap confirmations** (added 11/22) in phase F: the executed cap
+    confirmation for each cap is uploaded on the Debt tab, read for
+    counterparty, dates, notional, index, strike and premium, and applied to
+    that cap's row (executed terms replace modeled ones); checked against
+    the loan's cap requirement; expiry to critical dates.
 
