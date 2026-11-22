@@ -105,6 +105,19 @@ full model (`toMainInputs`, §7.3), so every tab analyses the same deal.
 Edits to the same fields in the left panel are overwritten by the next Quick
 Underwrite edit. Unlink the deal to edit the full model directly.
 
+**Funds and the Fund field.** A deal belongs to the fund named in its Fund
+field.
+- **Matching:** names match regardless of capitals or extra spaces, so
+  "Model Fund I" and "model fund i " are one fund. The sample fund's former
+  name, "Light Industrial Fund I", is merged into Model Fund I. Workspaces
+  saved under either spelling are cleaned up when they load.
+- **Open deals with no fund:** these (for example after **Remove** in a fund's
+  roster) are listed on Portfolio Return with an **Add to fund** button.
+  Until then they are left out of fund returns, attribution, capital
+  activity, valuations and the asset summary.
+- **Capital activity Purpose list:** shows this fund's assets first, then
+  every other property in the workspace.
+
 **Sample portfolio.** The app opens with "Model Fund I": your deal
 plus nine illustrative light-industrial assets (§7.13). **Load Model
 Fund I** restores them and **Clear test data** removes them.

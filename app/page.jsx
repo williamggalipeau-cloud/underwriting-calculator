@@ -20,6 +20,7 @@ import { buildSampleDeals, currentSampleDate, currentSampleHold, snapshotDeal, S
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
+import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
 import FundTermsEditor from "@/components/FundTermsEditor";
 import {
   createWorkspaceFile,
@@ -52,6 +53,22 @@ function migrateSavedDeal(d) {
   let inputs = d.inputs?.acquisitionDate ? { ...d.inputs, acquisitionDate: currentSampleDate(d.id, d.inputs.acquisitionDate) } : d.inputs;
   if (inputs?.holdPeriodYears != null) inputs = { ...inputs, holdPeriodYears: currentSampleHold(d.id, inputs.holdPeriodYears) };
   return { ...d, quick, inputs: d.linked ? toMainInputs(quick, inputs) : inputs };
+}
+
+// Loads a saved workspace's deals, saved deals and funds with one spelling
+// per fund: the old sample fund name ("Light Industrial Fund I") and any
+// spelling that differs only in capitals or spaces join the same fund, and
+// fund terms saved under those spellings are merged.
+function normalizeWorkspaceFunds(saved) {
+  const deals = saved.deals.map(migrateSavedDeal);
+  const savedDeals = Array.isArray(saved.savedDeals) ? saved.savedDeals : [];
+  const funds = saved.funds && typeof saved.funds === "object" ? saved.funds : initialFunds();
+  const resolve = fundNameResolver(funds, deals, savedDeals);
+  return {
+    deals: deals.map((d) => withCanonicalFund(d, resolve)),
+    savedDeals: savedDeals.map((d) => withCanonicalFund(d, resolve)),
+    funds: mergeFundTerms(funds, resolve),
+  };
 }
 
 function initialFunds() {
@@ -374,11 +391,12 @@ export default function Home() {
         if (cancelled || !saved?.deals?.length) return;
         // Fill settings added since the workspace was saved (e.g. new fees)
         // with their defaults, and re-map linked deals onto the full model.
-        setDeals(
-          saved.deals.map(migrateSavedDeal)
-        );
-        setSavedDeals(saved.savedDeals ?? []);
-        setFunds(saved.funds ?? initialFunds());
+        {
+          const w = normalizeWorkspaceFunds(saved);
+          setDeals(w.deals);
+          setSavedDeals(w.savedDeals);
+          setFunds(w.funds);
+        }
         if (saved.baseCurve?.points?.length) restoredBase = saved.baseCurve;
         if (typeof saved.anchorToLive === "boolean") restoredAnchor = saved.anchorToLive;
         setBaseCurve(restoredBase);
@@ -508,11 +526,12 @@ export default function Home() {
   function applyWorkspace(saved) {
     // Same migration as the browser restore: fill new settings with defaults
     // and re-map linked deals onto the full model.
-    setDeals(
-      saved.deals.map(migrateSavedDeal)
-    );
-    setSavedDeals(Array.isArray(saved.savedDeals) ? saved.savedDeals : []);
-    setFunds(saved.funds && typeof saved.funds === "object" ? saved.funds : initialFunds());
+    {
+      const w = normalizeWorkspaceFunds(saved);
+      setDeals(w.deals);
+      setSavedDeals(w.savedDeals);
+      setFunds(w.funds);
+    }
     const base = saved.baseCurve?.points?.length ? saved.baseCurve : DEFAULT_CURVE;
     const anchor = typeof saved.anchorToLive === "boolean" ? saved.anchorToLive : true;
     setBaseCurve(base);
@@ -719,14 +738,26 @@ export default function Home() {
   // Live fund membership: every open deal with a fund name is in that fund
   // and recalculates as it is edited. Saved snapshots ("Add to Fund") are
   // fixed copies and sit alongside them.
+  // One spelling per fund (see lib/fundNames), so every tab groups the same
+  // assets together even if a Fund field was typed differently.
+  const resolveFund = useMemo(() => fundNameResolver(funds, deals, savedDeals), [funds, deals, savedDeals]);
   const liveFundDeals = useMemo(
     () =>
       deals
         .filter((d) => d.inputs.fundName?.trim())
-        .map((d) => ({ ...snapshotDeal(d.inputs, d.id), live: true })),
-    [deals]
+        .map((d) => ({ ...snapshotDeal({ ...d.inputs, fundName: resolveFund(d.inputs.fundName) }, d.id), live: true })),
+    [deals, resolveFund]
   );
-  const fundDeals = useMemo(() => [...liveFundDeals, ...savedDeals], [liveFundDeals, savedDeals]);
+  const fundDeals = useMemo(
+    () => [...liveFundDeals, ...savedDeals.map((d) => withCanonicalFund(d, resolveFund))],
+    [liveFundDeals, savedDeals, resolveFund]
+  );
+  // Open deals that aren't in any fund (shown on Portfolio Return so they
+  // can be added back with one click).
+  const unassignedDeals = deals.filter((d) => !d.inputs.fundName?.trim());
+  function handleAssignFund(id, fundName) {
+    setDeals((prev) => prev.map((d) => (d.id === id ? { ...d, inputs: { ...d.inputs, fundName } } : d)));
+  }
 
   const { debt, returns, annualCashFlows, waterfall, irrFlows } = results;
 
@@ -1169,6 +1200,12 @@ export default function Home() {
             {activeTab === "fund" && (
               <FundAnalysis
                 savedDeals={fundDeals}
+                unassigned={unassignedDeals.map((d) => ({ id: d.id, name: d.inputs.propertyName || "Unnamed deal" }))}
+                onAssignFund={handleAssignFund}
+                allAssets={[
+                  ...deals.map((d) => ({ id: d.id, inputs: d.inputs })),
+                  ...savedDeals.filter((s) => !deals.some((d) => d.id === s.id)),
+                ]}
                 currentDeal={{ inputs, irrFlows: irrFlows ?? [], metrics: { irr: returns.irr, equityMultiple: returns.equityMultiple, yearOneCashOnCash: returns.yearOneCashOnCash, equityRequired: debt.equityRequired, loanAmount: debt.loanAmount } }}
                 onSave={handleSaveDeal}
                 onRemove={handleRemoveDeal}

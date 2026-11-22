@@ -12,7 +12,11 @@ const fmtM = (n) => {
 const total = (rows, type) => rows.filter((a) => a.type === type).reduce((s, a) => s + (Number(a.amount) || 0), 0);
 
 // Ledger of actual capital calls and sub line draws / repayments for a fund.
-export default function CapitalActivity({ fundName, activity = [], deals, onChange }) {
+export default function CapitalActivity({ fundName, activity = [], deals, otherAssets = [], onChange }) {
+  // Every property in the workspace can be tagged: this fund's assets first,
+  // then the rest (other funds, deals without a fund, saved copies).
+  const allAssets = [...deals, ...otherAssets.filter((a) => !deals.some((d) => d.id === a.id))];
+  const sortByName = (xs) => [...xs].sort((a, b) => (a.inputs?.propertyName || "").localeCompare(b.inputs?.propertyName || ""));
   const [msg, setMsg] = useState(null);
   const fileRef = useRef(null);
   const today = new Date().toISOString().slice(0, 10);
@@ -23,7 +27,7 @@ export default function CapitalActivity({ fundName, activity = [], deals, onChan
 
   async function handleFile(file) {
     try {
-      const { rows, skipped } = await activityFromFile(file, deals);
+      const { rows, skipped } = await activityFromFile(file, allAssets);
       if (!rows.length) {
         setMsg({ ok: false, text: "No rows with a date and amount were found." });
         return;
@@ -72,7 +76,7 @@ export default function CapitalActivity({ fundName, activity = [], deals, onChan
           </button>
           <button
             type="button"
-            onClick={async () => downloadBlob(await activityXlsx(activity, deals), `${safeFileName(fundName)}-capital-activity.xlsx`)}
+            onClick={async () => downloadBlob(await activityXlsx(activity, allAssets), `${safeFileName(fundName)}-capital-activity.xlsx`)}
             className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 font-medium text-gray-700 hover:bg-gray-50"
           >
             {activity.length ? "Export" : "Template"}
@@ -117,11 +121,21 @@ export default function CapitalActivity({ fundName, activity = [], deals, onChan
                   </td>
                   <td className="px-1.5 py-1">
                     <select value={a.purpose ?? "other"} onChange={(e) => update(a.id, { purpose: e.target.value })} className={`${sel} max-w-[14rem]`} aria-label="Purpose">
-                      <optgroup label="Acquisition">
-                        {deals.map((d) => (
-                          <option key={d.id} value={`acq:${d.id}`}>{d.inputs.propertyName || "Unnamed deal"}</option>
+                      <optgroup label={`Acquisition — ${fundName}`}>
+                        {sortByName(deals).map((d) => (
+                          <option key={d.id} value={`acq:${d.id}`}>{d.inputs?.propertyName || "Unnamed deal"}</option>
                         ))}
                       </optgroup>
+                      {otherAssets.length > 0 && (
+                        <optgroup label="Acquisition — other properties">
+                          {sortByName(allAssets.slice(deals.length)).map((d) => (
+                            <option key={d.id} value={`acq:${d.id}`}>
+                              {d.inputs?.propertyName || "Unnamed deal"}
+                              {d.inputs?.fundName?.trim() ? ` (${d.inputs.fundName.trim()})` : " (no fund)"}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                       <optgroup label="Other">
                         {PURPOSES.map((p) => (
                           <option key={p.value} value={p.value}>{p.label}</option>
