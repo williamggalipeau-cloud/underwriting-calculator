@@ -145,9 +145,16 @@ reviews and applies it field by field.
 | LOI | `loi_validate` / `loi_show` | **Deal terms**: price vs underwritten price, deposit, due diligence and closing periods, financing contingency; dates to critical dates |
 | PSA | `cre_read_document` + `cre_search_text` (no PSA validator) | **Deal terms and critical dates**: price, deposits and when each goes hard, due diligence expiry, closing and extension notices, title and survey objection dates, estoppel and SNDA delivery, reps and warranties survival and cap, assignment, default remedies. The app's own PSA template is checked locally (every quote must be in the PDF) and shown as "not connector-validated" |
 | Final IC memo | `cre_read_document` + `cre_search_text` (no IC memo validator; uses no free documents) | **As-approved baseline**: approval date and approvers, approved price and total cost, sources and uses, debt terms, business plan (capex, lease-up), projected IRR, multiple, cash-on-cash, hold, going-in and exit cap, key risks, and conditions of approval. Checked locally and shown as "not connector-validated" |
-| Fund LPA / operating agreement and PPM (fund-level, not per asset) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Fund investment limits**: each restriction with its clause and quote: single-asset and single-tenant limits, geography (state, metro, region), property type and non-core/development, leverage (fund and per-asset LTV, total borrowing), investment period and hold limits, other caps. Reviewed and applied one by one to become the fund's limits (phase L checks actual vs. limit). Checked locally, "not connector-validated" |
+| Fund LPA and PPM (fund-level, not per asset; also uploadable from **New fund**) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Fund investment limits**: each restriction with its clause and quote: single-asset and single-tenant limits, geography (state, metro, region), property type and non-core/development, leverage (fund and per-asset LTV, total borrowing), investment period and hold limits, other caps. Reviewed and applied one by one to become the fund's limits (phase L checks actual vs. limit). Also reads the **fund terms** for the New fund / Edit fund terms window: commitments, GP commitment, management fee and basis, preferred return, catch-up, promote tiers, investment period, term and extensions, subscription line, distribution policy; shown beside the form and applied field by field. Checked locally, "not connector-validated" |
 | Closing statement, acquisition (settlement statement / ALTA) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Actual cost basis**: contract price, credits and prorations (rent, taxes, CAM, security deposits transferred, TI/LC and repair credits), closing costs by type (title, escrow, transfer tax, legal, lender fees), loan proceeds, and equity actually funded; closing date. Replaces the underwritten price/closing costs as the asset's actual basis (shown side by side, applied by choice). Checked locally, "not connector-validated" |
 | Closing statement, disposition | same | **Realized sale**: sale price, credits and prorations, selling costs (commission, transfer tax, legal), loan payoff and prepayment, and net proceeds to equity; closing date. Marks the asset sold, records the actual exit in the cash flows, and fixes realized IRR and multiple (Portfolio Return, Sell / Hold). Checked locally, "not connector-validated" |
+
+**LPA and PPM in New fund:** the New fund window (Fund Analysis) gets an
+*Upload LPA / PPM* step. The files are stored with the fund; Claude reads
+them (Review with Claude, as on the Documents tab), and the window shows each
+term and limit with its clause and quote beside the form, to accept one by
+one before the fund is created. Edit fund terms offers the same for an
+existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
 
 **IC memo in the app:**
 - **Approved vs current:** for each asset, the IC-approved figures beside the
@@ -388,7 +395,8 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
 13. **Industry (SIC) concentration** (added 11/22) in phase L's risk
     report: at the asset and the fund level, each with its own limits.
 14. **Fund limits from the LPA and PPM** (added 11/22): uploaded as
-    fund-level documents in phase E, each restriction reviewed and applied;
+    fund-level documents in phase E (from New fund, Edit fund terms or the
+    Documents tab; the same read also fills the fund terms), each restriction reviewed and applied;
     phase L shows actual vs. limit, headroom and breaches, and checks
     pipeline deals before purchase. Reading these is legal interpretation, so
     every limit shows its clause and quote and is applied only by the user.
