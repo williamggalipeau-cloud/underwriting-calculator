@@ -83,5 +83,10 @@ are reviewed.
    acceptable, checked locally and labelled "not connector-validated".**
 3. ~~When to start E~~ **Decided (11/22): after the user reviews C and D**
    (not scheduled automatically).
-4. Deal Review quota: the lease connector shows 3 free documents left. Bulk use
-   likely needs a paid plan.
+4. ~~Deal Review quota~~ **Decided (11/22): stay within the free allowance.**
+   One CREparser account and allowance covers both Lease Abstraction and Deal
+   Review (Free plan, 3 documents left on 11/22). A document counts only when
+   its first abstract is *shown* in the connector's viewer; validating does not
+   count. So the app's prompts ask the session to validate and save without
+   opening the viewer, and the app's own viewer is used instead. Phase E–H
+   testing uses validation only; no viewer opens unless the user asks.
