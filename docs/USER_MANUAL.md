@@ -262,6 +262,12 @@ scenario** adds four more deals (Small Bay Industrial — Phase I, Eastside
 Distribution Hub, Northgate Flex Center, Riverside Commerce Park) to Model
 Fund I.
 
+**Hold period.** Every deal defaults to a **4-year hold**: new deals, the
+opening deal, the nine sample assets and the four test-scenario deals. Change
+it per deal under **Hold** (Quick Underwrite, for linked deals) or **Hold
+Period** (deal inputs, for unlinked deals). Deals you already have keep the
+hold they were saved with.
+
 ---
 
 ## 3. Claude skills and connectors
