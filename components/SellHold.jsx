@@ -90,12 +90,12 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
   const decValue = (dec) => (!dec || dec.decision === "base" ? "base" : dec.decision === "sell" ? "sell" : `${dec.decision}:${dec.years}`);
 
   async function exportXlsx() {
-    const rows = [["Asset", "Option", "Exit date", "Value", "Net proceeds / reversion", "Cash-out", "Forward IRR %", `NPV at ${hurdle}%`, "Total IRR since purchase %", "Total multiple", "Breakeven exit cap %"]];
+    const rows = [["Asset", "Option", "Exit date", "Value", "Net proceeds / reversion", "Cash-out", "Forward IRR %", "Forward multiple", `NPV at ${hurdle}%`, "Total IRR since purchase %", "Total multiple", "Breakeven exit cap %"]];
     for (const d of fundDeals) {
       const a = analyses[d.id];
       if (a?.status !== "ok") continue;
       for (const o of [a.sell, ...a.holds, ...a.refis]) {
-        rows.push([d.inputs.propertyName, o.label, o.exitDate, Math.round(o.value), Math.round(o.proceeds), Math.round(o.cashOut ?? 0), isFinite(o.forwardIrr) ? +o.forwardIrr.toFixed(2) : "", Math.round(o.npv), isFinite(o.totalIrr) ? +o.totalIrr.toFixed(2) : "", isFinite(o.totalMultiple) ? +o.totalMultiple.toFixed(3) : "", isFinite(o.breakevenCap) ? +o.breakevenCap.toFixed(2) : ""]);
+        rows.push([d.inputs.propertyName, o.label, o.exitDate, Math.round(o.value), Math.round(o.proceeds), Math.round(o.cashOut ?? 0), isFinite(o.forwardIrr) ? +o.forwardIrr.toFixed(2) : "", isFinite(o.forwardMultiple) ? +o.forwardMultiple.toFixed(3) : "", Math.round(o.npv), isFinite(o.totalIrr) ? +o.totalIrr.toFixed(2) : "", isFinite(o.totalMultiple) ? +o.totalMultiple.toFixed(3) : "", isFinite(o.breakevenCap) ? +o.breakevenCap.toFixed(2) : ""]);
       }
     }
     downloadBlob(await writeXlsx(rows, { sheetName: "Sell hold", colWidths: [28, 26, 12, 14, 18, 12, 12, 14, 16, 12, 14] }), `${safeFileName(fundName)}-sell-hold.xlsx`);
@@ -145,7 +145,7 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
             <table className="w-full text-xs tabular-nums">
               <thead className="bg-gray-50 text-gray-500">
                 <tr>
-                  {["Asset", "Value now", "Net proceeds now", "Suggested", "Best NPV vs sell", "Decision"].map((h) => (
+                  {["Asset", "Value now", "Net proceeds now", "Suggested", "Best NPV vs sell", "Decision", "Equity multiple"].map((h) => (
                     <th key={h} className={`px-2.5 py-2 font-medium ${h === "Asset" || h === "Decision" || h === "Suggested" ? "text-left" : "text-right"}`}>{h}</th>
                   ))}
                 </tr>
@@ -154,6 +154,10 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
                 {fundDeals.map((d) => {
                   const ad = analyses[d.id];
                   const ok = ad?.status === "ok";
+                  // The option for the decision chosen (base plan = hold to the base year).
+                  const dv = decValue(decisions[d.id]);
+                  const [kind, yrs] = dv.split(":");
+                  const chosen = !ok ? null : dv === "sell" ? ad.sell : (kind === "refi" ? ad.refis : ad.holds).find((o) => o.years === (kind === "base" ? ad.baseHold : Number(yrs)));
                   return (
                     <tr key={d.id} className="border-t border-gray-100">
                       <td className="px-2.5 py-1.5 font-medium">{d.inputs.propertyName}</td>
@@ -169,6 +173,7 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
                           {ok && ad.refis.map((o) => <option key={o.key} value={`refi:${o.years}`}>Refinance, hold to year {o.years}{o.beyondTerm ? " (extension)" : ""}</option>)}
                         </select>
                       </td>
+                      <td className="px-2.5 py-1.5 text-right" title={chosen && chosen.key !== "sell" ? `Since purchase; forward ${x(chosen.forwardMultiple)}` : "Since purchase"}>{chosen ? x(chosen.totalMultiple) : "—"}</td>
                     </tr>
                   );
                 })}
@@ -260,13 +265,14 @@ function AssetView({ a, hurdle, canEdit, capRate, onCap, refiT, setRefi, decisio
   const rows = [a.sell, ...a.holds, ...a.refis];
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 lg:grid-cols-7">
         {[
           ["Year-ahead NOI", m(a.noiFwd)],
           ["Value now", m(a.valueNow), `at ${pct(a.exitCap, 2)} cap`],
           ["Loan balance", m(a.balNow)],
           ["Net proceeds now", m(a.proceedsNow), `after ${pct(a.salePct * 100, 1)} sale costs`],
           ["Suggested", a.best.label, `NPV ${m(a.best.npv)} vs selling`],
+          ["Equity multiple", x(a.best.totalMultiple), `since purchase · ${a.best.key === "sell" ? "selling now" : `forward ${x(a.best.forwardMultiple)}`}`],
           ["Base plan", `Sell end of year ${a.baseHold}`],
         ].map(([l, v, s]) => (
           <div key={l} className="rounded-lg border border-gray-200 bg-white px-3 py-2">
@@ -301,7 +307,7 @@ function AssetView({ a, hurdle, canEdit, capRate, onCap, refiT, setRefi, decisio
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs tabular-nums">
           <thead className="bg-gray-50 text-gray-500">
-            <tr>{["Option", "Sale date", "Sale value", "Net proceeds", "Cash-out", "Forward IRR", "Spread to hurdle", `NPV vs selling (${pct(hurdle, 2)})`, "Total IRR", "Total multiple", "Breakeven exit cap"].map((h) => <th key={h} className={`px-2.5 py-2 font-medium ${h === "Option" ? "text-left" : "text-right"}`}>{h}</th>)}</tr>
+            <tr>{["Option", "Sale date", "Sale value", "Net proceeds", "Cash-out", "Forward IRR", "Forward multiple", "Spread to hurdle", `NPV vs selling (${pct(hurdle, 2)})`, "Total IRR", "Total multiple", "Breakeven exit cap"].map((h) => <th key={h} className={`px-2.5 py-2 font-medium ${h === "Option" ? "text-left" : "text-right"}`}>{h}</th>)}</tr>
           </thead>
           <tbody>
             {rows.map((o) => {
@@ -315,6 +321,7 @@ function AssetView({ a, hurdle, canEdit, capRate, onCap, refiT, setRefi, decisio
                   <td className="px-2.5 py-1.5 text-right">{m(o.proceeds)}</td>
                   <td className="px-2.5 py-1.5 text-right">{o.cashOut ? m(o.cashOut) : "—"}</td>
                   <td className="px-2.5 py-1.5 text-right">{o.key === "sell" ? "—" : pct(o.forwardIrr)}</td>
+                  <td className="px-2.5 py-1.5 text-right" title="Cash from the decision date on ÷ equity left in (net proceeds now less any cash-out)">{o.key === "sell" ? "—" : x(o.forwardMultiple)}</td>
                   <td className={`px-2.5 py-1.5 text-right ${!isFinite(spread) || o.key === "sell" ? "text-gray-400" : spread >= 0 ? "text-emerald-700" : "text-red-600"}`}>{o.key === "sell" || !isFinite(spread) ? "—" : `${spread >= 0 ? "+" : ""}${spread.toFixed(1)} pts`}</td>
                   <td className={`px-2.5 py-1.5 text-right font-semibold ${o.npv > 0 ? "text-emerald-700" : o.npv < 0 ? "text-red-600" : "text-gray-500"}`}>{o.key === "sell" ? "—" : m(o.npv)}</td>
                   <td className="px-2.5 py-1.5 text-right">{pct(o.totalIrr)}</td>

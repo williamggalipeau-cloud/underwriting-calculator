@@ -231,14 +231,14 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), rate cap (market-priced or manual), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
-| **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
+| **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents; owners and editors can change them. Needs sign-in and an open database workspace. Abstracts, review and apply, critical dates and risk flags come in later phases. |
-| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins), rate schedule, covenant tests by year, TI reserve. |
+| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
 | **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
 | **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
-| **Sell / Hold** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR of holding, spread to the fund's hurdle, NPV versus selling, total IRR and multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan; scenarios can be saved and reloaded. Excel export. |
+| **Sell / Hold** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR and forward multiple of holding, spread to the fund's hurdle, NPV versus selling, total IRR and equity multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan; scenarios can be saved and reloaded. Excel export. |
 | **Return Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 | **Change log** (header button, next to User manual) | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
@@ -298,8 +298,8 @@ NOI (an entered year-1 NOI and growth rate) is still available per deal
 **Rent rolls and mark to market.** Every Model Fund I asset has a rent roll
 (`lib/sampleRentRolls.js`):
 - **Units:** the asset's unit count, about 90% leased (or 1 − the asset's
-  vacancy), sizes split evenly, fictional tenants, lease ends staggered over
-  the next five years.
+  vacancy), sizes split evenly, fictional tenants (each with a business
+  and an SIC code, §7.19), lease ends staggered over the next five years.
 - **In-place rent:** from the asset's current income (year-1 NOI ÷ leased SF
   for direct-NOI assets; its rent/SF otherwise), ±5% by unit.
 - **Market rent:** set 20–40% above in-place (each asset has its own target
@@ -695,6 +695,14 @@ Cost when bought = PV ÷ DF(start)        (forward value at purchase)
   - LTC × (price + closing costs);
   - year-1 NOI ÷ min debt yield.
   - Then plus lender-funded capex.
+- **Default tests:** min DSCR 1.25×, max LTC 75% and min debt yield 8% are
+  on for every Model Fund I asset and for new deals (Deal inputs → Loan
+  Sizing Constraints; each can be switched off or changed per asset).
+  Saved workspaces got them once when they opened (`sizingModel`, values
+  already entered kept). At these levels LTV (65%) still sets every Fund I
+  loan, so loans and returns did not change; the Asset Summary shows the
+  cushion to the next test. Deals linked to Quick Underwrite size on LTV
+  only.
 - **Loan constant** = the rate if IO, else annual payment ÷ loan.
 - **Effective rate** = (SOFR(y) + spread), capped at the strike while a cap
   is in force. A swap fixes it at the swap rate for the swap term. Fixed-rate
@@ -1056,6 +1064,8 @@ One row per asset in the selected fund.
 | Vacancy | Vacant SF ÷ rent roll SF (100% − occupancy); — without a rent roll |
 | WALT | Rent-weighted remaining lease term from today (§7.19); — without a rent roll |
 | Loan, loan / price, equity | The full engine. The loan includes lender-funded capex, so loan / price can exceed the LTV input. |
+| Sized by | The loan sizing test that sets the loan: LTV, DSCR, LTC or Debt Yield (§7.6) |
+| Sizing cushion | How much the loan could grow before the next-tightest test binds: next limit ÷ binding limit − 1; amber under 5%; — when only one test is on. The Details panel lists each test's target, the loan it allows and its room. |
 | Funding | From capital activity tags: Capital call, Sub line, Call + line, Not tagged, or — when the fund has no activity |
 | Yr-1 NOI, going-in cap, exit cap, exit value, IRR, multiple, yr-1 CoC, yr-1 DSCR | The full engine on the deal's current inputs (gross, before fund fees and promote) |
 | Fair value, NAV, unrealized, TVPI | The Valuations tab (§7.15), as of the last completed quarter |
@@ -1202,6 +1212,30 @@ days, red when past):
   has renewal options and a notice period.
 - **Termination notice date:** early termination date − termination notice
   months, when a termination date is entered.
+
+**Tenant SIC codes.** Each unit has an **SIC** column (4-digit Standard
+Industrial Classification code, `lib/sicCodes.js`) next to Business and a
+separate, optional **NAICS** column.
+- **Suggested from the business:** typing or changing a unit's Business
+  description fills the SIC code when it is blank or still the code
+  suggested for the previous business; a code you typed yourself is kept.
+  The placeholder shows the suggestion. Matching is by keywords, specific
+  first (e.g. "HVAC equipment wholesale" → 5075, "HVAC installation" →
+  1711, "stainless brewing equipment" → 3443, "craft brewery" → 2082);
+  a business it can't place stays blank.
+- **Picking a code:** the SIC cell offers a list of about 90 codes common in
+  light industrial and flex tenants (manufacturing, trades, wholesale,
+  warehousing, auto and repair services); any other 4-digit code can be
+  typed. The industry name shows under the code.
+- **Tenant industries (SIC):** a table under the lease summary with leases,
+  SF, % of leased SF and annual rent by SIC code, largest first (units
+  without a code show as "—").
+- **Sample tenants:** generated sample units named "Tenant 001", … were
+  given fictional businesses with SIC codes (names like "Summit Cabinet
+  Works"); every other tenant with a business got the suggested code.
+  Saved workspaces get this once when they open (`sicModel`), saved as a new
+  version. Lease abstracts record the tenant's business and SIC code from
+  the permitted-use clause (Leases tab).
 
 **Rent roll import and export.** **Import CSV / Excel** reads `.csv` or
 `.xlsx`; only an SF column is required (§11.5 lists every column and the
@@ -1354,10 +1388,14 @@ For each option:
 | Forward IRR | IRR of −(net proceeds now) + the cash flows after the decision date (incl. any cash-out) + the later sale |
 | Spread to hurdle | Forward IRR − the fund's hurdle rate (§7.22) |
 | NPV vs selling | Those flows discounted at the hurdle to the decision date; positive = holding beats selling |
-| Total IRR, multiple | Since purchase, under that option |
+| Forward multiple | Cash from the decision date on (income, any cash-out, the later sale) ÷ equity left in (net proceeds now less any cash-out); — for Sell now |
+| Total IRR, equity multiple | Since purchase, under that option: total distributions ÷ equity invested |
 | Breakeven exit cap | Exit cap at which that option's NPV versus selling is zero |
 
-IRRs over less than a year show n/m. The **suggested** option is the one
+IRRs over less than a year show n/m. The **Equity multiple** tile shows
+the suggested option's multiple since purchase and its forward multiple;
+the **Whole fund** table shows each asset's equity multiple under the
+decision chosen for it. The **suggested** option is the one
 with the highest NPV versus selling among options that sell within the fund
 term (extension years only if nothing inside the term is better).
 
@@ -1659,7 +1697,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 | Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `ltvPct` **Q** | `deals[].inputs.ltvPct` | % of price | 65 | LTV sizing |
-| `loanSizingConstraints` | `deals[].inputs.loanSizingConstraints` | | off | `minDSCR…`, `maxLTCPct…`, `minDebtYieldPct…`, each with an `…Enabled` switch (§7.6) |
+| `loanSizingConstraints` | `deals[].inputs.loanSizingConstraints` | | on: 1.25× DSCR, 75% LTC, 8% debt yield | `minDSCR…`, `maxLTCPct…`, `minDebtYieldPct…`, each with an `…Enabled` switch (§7.6) |
 | `floatingRate` **Q** | `deals[].inputs.floatingRate` | yes / no | yes | Floating (SOFR + spread) or fixed |
 | `indexRatePct` **Q** | `deals[].inputs.indexRatePct` | % | | Flat SOFR when there's no curve |
 | `sofrForwardCurve` **Q** | `deals[].inputs.sofrForwardCurve` | list of % | [] | SOFR by hold year |
@@ -1702,7 +1740,8 @@ also accepted (case, spaces and symbols ignored).
 | `tenantName` | `deals[].inputs.units[].tenantName` | tenant [tenantname, lessee] | text | | Tenant |
 | `businessDescription` | `deals[].inputs.units[].businessDescription` | business [description, use] | text | | Tenant's business |
 | `creditRating` | `deals[].inputs.units[].creditRating` | credit [creditrating, rating] | text | | Credit rating |
-| `naicsCode` | `deals[].inputs.units[].naicsCode` | sic [naics, naicscode, industry] | text | | Industry code |
+| `sicCode` | `deals[].inputs.units[].sicCode` | SIC [sic, siccode] | text | 4-digit SIC, e.g. 3444 | Tenant industry (SIC); suggested from the business (§7.19) |
+| `naicsCode` | `deals[].inputs.units[].naicsCode` | NAICS [naics, naicscode, industry] | text | | NAICS industry code (optional) |
 | `leaseStatus` | `deals[].inputs.units[].leaseStatus` | status [leasestatus, occupied] | occupied / vacant | occupied | "occupied", "yes", "1" etc. = occupied |
 | `leaseType` | `deals[].inputs.units[].leaseType` | lease_type [lease, type] | NNN / MG / Gross | NNN | Expense responsibility |
 | `currentRentPSF` | `deals[].inputs.units[].currentRentPSF` | rent [rentpsf, currentrent] | $/SF / yr | 0 | Contract rent |
@@ -1771,7 +1810,7 @@ column.
 | `tiers` | `funds["Fund name"].tiers` | Tier n IRR hurdle / LP split / GP split | %, %, % | 12% 80/20, 18% 70/30, above 60/40 | Promote tiers (up to 5; blank hurdle = top tier) |
 | `mgmtFeePct` | `funds["Fund name"].mgmtFeePct` | Management fee (% / yr) | % / yr | 0 (Model Fund I: 1.5) | Fund-level fee, quarterly in advance, LPs only (§7.20) |
 | `mgmtFeeBasis` | `funds["Fund name"].mgmtFeeBasis` | Management fee basis | `commitments-then-invested` / `invested` | commitments-then-invested | LP commitments during the investment period, then LP invested capital |
-| `rentRollModel`, `testDataModel`, `noiModel` | `funds["Fund name"].…` | — | text | mtm-v1, v2, rentroll-v1 (Model Fund I) | Mark one-time updates already applied to a saved workspace (rent rolls, removed sample assets, rent-roll NOI); not edited |
+| `rentRollModel`, `testDataModel`, `noiModel`, `sicModel`, `sizingModel` | `funds["Fund name"].…` | — | text | mtm-v1, v2, rentroll-v1, sic-v1, lsc-v1 (Model Fund I) | Mark one-time updates already applied to a saved workspace (rent rolls, removed sample assets, rent-roll NOI, tenant SIC codes, loan sizing tests); not edited |
 | `sellHold` | `funds["Fund name"].sellHold` | — | object | {} | Sell / hold: `decisionDate`, `capRates` {deal id: %}, `refi` {deal id: {ltvPct, minDscr, spreadPct, feePct, termYears}}, `decisions` {deal id: {decision, years}}, `scenarios` [{name, decisionDate, decisions, savedAt}] (§7.23) |
 | `cashReserveQuarters` | `funds["Fund name"].cashReserveQuarters` | Fund cash reserve (quarters of expenses) | quarters | 2 | Minimum fund cash: quarters of projected fees + sub line costs |
 | `feeModel` | `funds["Fund name"].feeModel` | — | text | fund-v1 (Model Fund I) | Marks a workspace already moved to the fund-level fee (set once; not edited) |

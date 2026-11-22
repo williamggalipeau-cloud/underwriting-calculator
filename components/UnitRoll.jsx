@@ -2,6 +2,7 @@
 
 import { Fragment, useId, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/fundTerms";
+import { SIC_CODES, sicLabel, sicTitle, suggestSic } from "@/lib/sicCodes";
 import { LEASE_FIELDS, leaseAnalytics, leaseEndOf, monthsRemainingFor, parseRentRollRows, rentRollRows, todayISO } from "@/lib/leases";
 import { readXlsxGrid, writeXlsx } from "@/lib/xlsx";
 
@@ -40,6 +41,7 @@ function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0)
     businessDescription: "",
     creditRating: "",
     naicsCode: "",
+    sicCode: "",
     leaseStatus: occupied ? "occupied" : "vacant",
     currentRentPSF: inputs.rentPerSF,
     monthsRemaining: occupied ? Math.max(1, monthsRemaining) : 0,
@@ -217,6 +219,33 @@ function LeaseSummary({ la }) {
   );
 }
 
+// Leased SF by tenant industry (SIC code).
+function IndustryMix({ la }) {
+  if (!la.leases || !la.industryMix?.length) return null;
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white">
+      <h3 className="border-b border-gray-100 px-3 py-2 text-xs font-semibold text-gray-700">Tenant industries (SIC)</h3>
+      <table className="w-full text-xs tabular-nums">
+        <thead className="text-gray-500">
+          <tr>{["SIC", "Industry", "Leases", "SF", "% of leased SF", "Annual rent"].map((h) => <th key={h} className={`px-3 py-1.5 font-medium ${h === "SIC" || h === "Industry" ? "text-left" : "text-right"}`}>{h}</th>)}</tr>
+        </thead>
+        <tbody>
+          {la.industryMix.map((e) => (
+            <tr key={e.sicCode} className="border-t border-gray-100 text-gray-800">
+              <td className="px-3 py-1.5">{e.sicCode}</td>
+              <td className="px-3 py-1.5 text-gray-600">{e.title || "—"}</td>
+              <td className="px-3 py-1.5 text-right">{e.leases}</td>
+              <td className="px-3 py-1.5 text-right">{e.sf.toLocaleString()}</td>
+              <td className="px-3 py-1.5 text-right">{e.pctSF.toFixed(1)}%</td>
+              <td className="px-3 py-1.5 text-right">{money(e.annualRent)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // Lease details form for one unit.
 function LeaseDetails({ unit, inputs, onField }) {
   const derivedEnd = leaseEndOf(unit, inputs);
@@ -255,7 +284,8 @@ const COL_HEADERS = [
   { key: "tenant",    label: "Tenant",    width: "w-28", tip: "" },
   { key: "bizDesc",   label: "Business",  width: "w-36", tip: "Business description or tenant use type" },
   { key: "credit",    label: "Credit",    width: "w-20", tip: "Tenant credit rating (e.g. A, BB+, Investment Grade)" },
-  { key: "naics",     label: "SIC/NAICS", width: "w-20", tip: "SIC or NAICS industry code" },
+  { key: "sic",       label: "SIC",       width: "w-24", tip: "SIC industry code (4 digits). Suggested from the business description; pick from the list or type a code" },
+  { key: "naics",     label: "NAICS",     width: "w-20", tip: "NAICS industry code (optional)" },
   { key: "status",    label: "Status",    width: "w-24", tip: "" },
   { key: "leaseType", label: "Lease",     width: "w-28", tip: "Lease type — determines landlord expense responsibility" },
   { key: "rent",      label: "Rent $/SF", width: "w-20", tip: "Contracted rent ($/SF/yr)" },
@@ -288,8 +318,18 @@ export default function UnitRoll({ units, inputs, onChange }) {
   const fileInput = useRef(null);
   const [csvError, setCsvError] = useState(null);
 
+  // Editing the business fills the SIC code when it is blank or still the
+  // code suggested for the previous business.
   const update = (id, field, value) =>
-    onChange(units.map((u) => (u.id === id ? { ...u, [field]: value } : u)));
+    onChange(units.map((u) => {
+      if (u.id !== id) return u;
+      const next = { ...u, [field]: value };
+      if (field === "businessDescription") {
+        const old = String(u.sicCode ?? "").trim();
+        if (!old || old === suggestSic(u.businessDescription)) next.sicCode = suggestSic(value) || old;
+      }
+      return next;
+    }));
 
   const addUnit = () => {
     const sfRemaining = inputs.squareFootage - units.reduce((s, u) => s + u.squareFeet, 0);
@@ -427,6 +467,10 @@ export default function UnitRoll({ units, inputs, onChange }) {
       {/* Summary stats */}
       <SummaryStats units={units} inputs={inputs} la={la} />
       <LeaseSummary la={la} />
+      <IndustryMix la={la} />
+      <datalist id="sic-codes">
+        {SIC_CODES.map(([code, title]) => <option key={code} value={code}>{`${code} — ${title}`}</option>)}
+      </datalist>
 
       {/* Empty state */}
       {units.length === 0 && (
@@ -504,7 +548,21 @@ export default function UnitRoll({ units, inputs, onChange }) {
                       <TextCell label="Credit rating" value={u.creditRating ?? ""} placeholder="e.g. A" onChange={(v) => update(u.id, "creditRating", v)} />
                     </td>
                     <td className="px-2 py-1.5">
-                      <TextCell label="SIC/NAICS code" value={u.naicsCode ?? ""} placeholder="e.g. 3440" onChange={(v) => update(u.id, "naicsCode", v)} />
+                      <input
+                        type="text"
+                        list="sic-codes"
+                        inputMode="numeric"
+                        aria-label="SIC code"
+                        value={u.sicCode ?? ""}
+                        placeholder={suggestSic(u.businessDescription) || "e.g. 3444"}
+                        title={sicLabel(u.sicCode) || "SIC code"}
+                        onChange={(e) => update(u.id, "sicCode", e.target.value.replace(/\s+—.*$/, "").trim())}
+                        className="w-full bg-transparent text-sm text-gray-900 border-b border-transparent hover:border-gray-300 focus:border-blue-400 focus:outline-none px-0.5"
+                      />
+                      {u.sicCode && sicTitle(u.sicCode) ? <span className="block max-w-[9rem] truncate text-[10px] leading-tight text-gray-400">{sicTitle(u.sicCode)}</span> : null}
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <TextCell label="NAICS code" value={u.naicsCode ?? ""} placeholder="e.g. 332322" onChange={(v) => update(u.id, "naicsCode", v)} />
                     </td>
                     <td className="px-2 py-1.5">
                       <button
