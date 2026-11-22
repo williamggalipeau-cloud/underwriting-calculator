@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
-import { ACTIVITY_TYPES, PURPOSES, activityFromFile, activityXlsx, newActivityId } from "@/lib/capitalActivity";
+import { ACTIVITY_TYPES, PURPOSES, activityFromFile, activityXlsx, newActivityId, withRunningTotals } from "@/lib/capitalActivity";
 
 const fmtM = (n) => {
   if (n == null || !isFinite(n)) return "—";
@@ -12,7 +12,7 @@ const fmtM = (n) => {
 const total = (rows, type) => rows.filter((a) => a.type === type).reduce((s, a) => s + (Number(a.amount) || 0), 0);
 
 // Ledger of actual capital calls and sub line draws / repayments for a fund.
-export default function CapitalActivity({ fundName, activity = [], deals, otherAssets = [], onChange }) {
+export default function CapitalActivity({ fundName, activity = [], deals, otherAssets = [], commitments = 0, onChange }) {
   // Every property in the workspace can be tagged: this fund's assets first,
   // then the rest (other funds, deals without a fund, saved copies).
   const allAssets = [...deals, ...otherAssets.filter((a) => !deals.some((d) => d.id === a.id))];
@@ -20,7 +20,11 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
   const [msg, setMsg] = useState(null);
   const fileRef = useRef(null);
   const today = new Date().toISOString().slice(0, 10);
-  const sorted = [...activity].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const sorted = withRunningTotals(activity, commitments);
+  const last = sorted.at(-1)?.run;
+  const runCell = (v, warn = false) => (
+    <td className={`px-1.5 py-1 text-right whitespace-nowrap ${warn ? "text-red-600" : "text-gray-700"}`}>{v == null ? "—" : `${v < 0 ? "−" : ""}${fmtM(v)}`}</td>
+  );
   const update = (id, patch) => onChange(activity.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   const drop = (id) => onChange(activity.filter((a) => a.id !== id));
   const add = () => onChange([...activity, { id: newActivityId(), date: today, type: "call", amount: 0, purpose: "other", notes: "" }]);
@@ -76,7 +80,7 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
           </button>
           <button
             type="button"
-            onClick={async () => downloadBlob(await activityXlsx(activity, allAssets), `${safeFileName(fundName)}-capital-activity.xlsx`)}
+            onClick={async () => downloadBlob(await activityXlsx(activity, allAssets, commitments), `${safeFileName(fundName)}-capital-activity.xlsx`)}
             className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 font-medium text-gray-700 hover:bg-gray-50"
           >
             {activity.length ? "Export" : "Template"}
@@ -89,9 +93,13 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
           <table className="w-full text-xs tabular-nums">
             <thead className="text-gray-500">
               <tr className="border-b border-gray-200">
-                {["Date", "Type", "Amount ($)", "Purpose", "Notes", ""].map((h) => (
+                {["Date", "Type", "Amount ($)", "Purpose", "Notes"].map((h) => (
                   <th key={h} className="px-1.5 py-1 text-left font-medium">{h}</th>
                 ))}
+                <th className="border-l border-gray-200 px-1.5 py-1 text-right font-medium" title="Capital calls to date, after this entry">Called to date</th>
+                <th className="px-1.5 py-1 text-right font-medium" title="Sub line draws less repayments, after this entry">Line balance</th>
+                {commitments > 0 && <th className="px-1.5 py-1 text-right font-medium" title="Commitments − called to date − line balance, after this entry">Dry powder</th>}
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -146,16 +154,33 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
                   <td className="px-1.5 py-1">
                     <input value={a.notes ?? ""} onChange={(e) => update(a.id, { notes: e.target.value })} className={`${sel} w-40`} aria-label="Notes" />
                   </td>
+                  <td className="border-l border-gray-100 px-1.5 py-1 text-right whitespace-nowrap text-gray-700">{fmtM(a.run.called)}</td>
+                  {runCell(a.run.line, a.run.line < 0)}
+                  {commitments > 0 && runCell(a.run.dryPowder, a.run.dryPowder < 0)}
                   <td className="px-1.5 py-1 text-right">
                     <button type="button" onClick={() => drop(a.id)} className="text-gray-400 hover:text-red-600" aria-label="Delete entry">✕</button>
                   </td>
                 </tr>
               ))}
             </tbody>
+            {last && (
+              <tfoot>
+                <tr className="border-t-2 border-gray-200 font-semibold text-gray-800">
+                  <td className="px-1.5 py-1.5" colSpan={2}>Total ({sorted.length} entr{sorted.length === 1 ? "y" : "ies"})</td>
+                  <td className="px-1.5 py-1.5 text-right text-[11px] font-normal text-gray-500" colSpan={3}>
+                    calls {fmtM(total(activity, "call"))} · draws {fmtM(total(activity, "draw"))} · repayments {fmtM(total(activity, "repay"))}
+                  </td>
+                  <td className="border-l border-gray-100 px-1.5 py-1.5 text-right">{fmtM(last.called)}</td>
+                  {runCell(last.line, last.line < 0)}
+                  {commitments > 0 && runCell(last.dryPowder, last.dryPowder < 0)}
+                  <td />
+                </tr>
+              </tfoot>
+            )}
           </table>
           <p className="mt-1 text-[10px] text-gray-400">
-            Calls {fmtM(total(activity, "call"))} · line draws {fmtM(total(activity, "draw"))} · line repayments {fmtM(total(activity, "repay"))}.
-            Amounts are LP + GP. Tag an acquisition with its asset so the model doesn&apos;t count that purchase again. Entries dated after
+            Running totals are after each entry, in date order: capital called to date, sub line balance (draws − repayments)
+            {commitments > 0 ? ", and dry powder (commitments − called − line balance)" : ""}. They include entries dated after today. Amounts are LP + GP. Tag an acquisition with its asset so the model doesn&apos;t count that purchase again. Entries dated after
             today are greyed out and count from their date.
           </p>
         </div>

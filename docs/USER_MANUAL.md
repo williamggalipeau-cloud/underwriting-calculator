@@ -802,7 +802,23 @@ powder → **Capital activity (actuals)**, and enter each:
 Amounts are LP + GP. **Import…** reads Excel or CSV. It needs Date and
 Amount columns; Type, Purpose (asset name or description) and Notes are
 optional, and "paydown"/"draw"/"call" wording is recognized. **Export**
-writes the ledger and doubles as a template.
+writes the ledger, with the running totals below as extra "(calculated)"
+columns that **Import…** ignores, and doubles as a template.
+
+**Running totals.** The ledger lists entries in date order (same-day
+entries in the order entered). After each entry it shows:
+
+```
+Called to date   = Σ capital calls up to and including this entry
+Line balance     = Σ draws − Σ repayments up to and including this entry
+Dry powder       = commitments − called to date − line balance
+                   (shown when the fund has commitments)
+```
+
+A **Total** row repeats the final figures with total calls, draws and
+repayments. Running totals include entries dated after today, so the last
+row can differ from the card's "today" figures; a negative line balance or
+dry powder is shown in red.
 
 Then:
 
