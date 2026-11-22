@@ -19,6 +19,9 @@ import {
 } from "@/lib/leaseDocs";
 import { STATUS_TEXT, abstractIndustry, abstractPrompt, documentTitle, fieldLabel, groupedFields, missingFields, parseAbstract } from "@/lib/leaseAbstract";
 import { sicLabel } from "@/lib/sicCodes";
+import { abstractUnitValues, applyAbstract, compareWithUnit, leaseMismatches, showValue } from "@/lib/leaseApply";
+import { leaseAnalytics, unitStats } from "@/lib/leases";
+import { newUnit } from "@/components/UnitRoll";
 
 const STATUS_STYLE = {
   uploaded: "border-gray-200 bg-gray-50 text-gray-700",
@@ -340,9 +343,170 @@ function FilePicker({ files, onChange, disabled }) {
   );
 }
 
-function LeaseCard({ lease, assetName, units, canEdit, workspaceId, email, userId, onChanged, onError }) {
+// Rent roll effect of a change: occupancy, WALT and mark to market.
+function rollStats(units, inputs) {
+  const st = unitStats({ ...inputs, units });
+  const la = leaseAnalytics({ ...inputs, units }, inputs.acquisitionDate && /^\d{4}-\d{2}-\d{2}$/.test(inputs.acquisitionDate) ? inputs.acquisitionDate : undefined);
+  return { units: st.units, vacant: st.vacant, occ: st.occupancyPct, walt: la.walt, mtm: la.markToMarketPct, inPlace: la.inPlaceRentPSF };
+}
+const pct1 = (n) => (isFinite(n) ? `${n.toFixed(1)}%` : "—");
+const yrs = (n) => (isFinite(n) ? `${n.toFixed(2)} yrs` : "—");
+
+// "Apply to rent roll": the abstract next to a rent roll unit (or a new
+// unit), field by field. Ticked fields are applied; the lease is marked
+// applied and linked to the unit; each change is logged as from the abstract.
+function ApplyPanel({ lease, units, inputs, email, onApply, onDone, onError }) {
+  const abs = lease.abstract;
+  const linked = units.filter((u) => (lease.unit_ids ?? []).includes(u.id));
+  const [target, setTarget] = useState(linked[0]?.id ?? "new");
+  const premises = String(abs.fields?.find((f) => f.key === "premises")?.value ?? "").split(",")[0].trim();
+  const [unitName, setUnitName] = useState(premises || "New unit");
+  const unit = target === "new" ? null : units.find((u) => u.id === target) ?? null;
+  const rows = useMemo(() => compareWithUnit(abs, unit, inputs), [abs, unit, inputs]);
+  const [ticked, setTicked] = useState(() => new Set(rows.filter((r) => r.differs).map((r) => r.key)));
   const [busy, setBusy] = useState(false);
-  const [panel, setPanel] = useState(null); // "abstract" | "view" | null
+  const pick = (id) => {
+    setTarget(id);
+    const u = id === "new" ? null : units.find((x) => x.id === id) ?? null;
+    setTicked(new Set(compareWithUnit(abs, u, inputs).filter((r) => r.differs).map((r) => r.key)));
+  };
+  const toggle = (k) => setTicked((p) => { const n = new Set(p); if (n.has(k)) n.delete(k); else n.add(k); return n; });
+  const make = (name, sf) => newUnit(name, sf, inputs);
+  const preview = useMemo(() => {
+    try {
+      return applyAbstract(units, abs, { target, fields: [...ticked], inputs, newUnit: make, unitName });
+    } catch {
+      return null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [units, abs, target, ticked, inputs, unitName]);
+  const before = rollStats(units, inputs);
+  const after = preview ? rollStats(preview.units, inputs) : before;
+  const differing = rows.filter((r) => r.differs).length;
+  const tenant = abstractUnitValues(abs, inputs).values.tenantName || lease.tenant;
+
+  const apply = async () => {
+    if (!preview) return;
+    if (target !== "new" && !preview.entries.length) return onError("Tick at least one field that differs.");
+    setBusy(true);
+    try {
+      const entries = preview.entries.map((e) => ({ ...e, unitId: preview.unit.id, unitName: preview.unit.name }));
+      const ok = onApply?.(lease.deal_id, preview.units, entries, `From lease abstract (${tenant})`);
+      if (!ok) throw new Error("Couldn't change the rent roll: open this asset (or unlock the workspace) and try again.");
+      await updateLease(lease.id, {
+        status: "applied",
+        applied_at: new Date().toISOString(),
+        applied_by_email: email ?? null,
+        unit_ids: [...new Set([...(lease.unit_ids ?? []), preview.unit.id])],
+        ...(lease.tenant ? {} : { tenant }),
+      });
+      await onDone();
+    } catch (e) {
+      onError(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-2 space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/40 p-3" data-testid="apply-panel">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-0.5">
+          <span className="font-medium text-gray-700">Apply to</span>
+          <select value={target} onChange={(e) => pick(e.target.value)} className="w-72 rounded-md border border-gray-300 bg-white px-2 py-1" aria-label="Rent roll unit">
+            {linked.map((u) => <option key={u.id} value={u.id}>{u.name}{u.tenantName ? ` · ${u.tenantName}` : " · vacant"} (linked)</option>)}
+            {units.filter((u) => !linked.includes(u)).map((u) => <option key={u.id} value={u.id}>{u.name}{u.tenantName ? ` · ${u.tenantName}` : " · vacant"}</option>)}
+            <option value="new">+ New unit, prefilled from the abstract</option>
+          </select>
+        </label>
+        {target === "new" && (
+          <label className="flex flex-col gap-0.5">
+            <span className="font-medium text-gray-700">New unit name</span>
+            <input value={unitName} onChange={(e) => setUnitName(e.target.value)} className="w-40 rounded-md border border-gray-300 bg-white px-2 py-1" aria-label="New unit name" />
+          </label>
+        )}
+        <p className="flex-1 text-gray-600">
+          {target === "new"
+            ? "Adds a unit with every field from the abstract (other assumptions from the deal's defaults)."
+            : `${differing} of ${rows.length} fields differ from the rent roll; those are ticked. Untick any you don't want to change.`}
+        </p>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white">
+        <table className="w-full">
+          <thead className="bg-gray-50 text-gray-500">
+            <tr>
+              <th className="w-8 px-2 py-1.5" />
+              <th className="px-2 py-1.5 text-left font-medium">Field</th>
+              <th className="px-2 py-1.5 text-left font-medium">{unit ? `Rent roll (${unit.name})` : "Rent roll"}</th>
+              <th className="px-2 py-1.5 text-left font-medium">Lease abstract</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.key} className={`border-t border-gray-100 align-top ${r.differs ? "" : "text-gray-400"}`} data-testid={`apply-row-${r.key}`}>
+                <td className="px-2 py-1.5 text-center">
+                  {target === "new" ? <span className="text-emerald-600">✓</span> : (
+                    <input type="checkbox" checked={ticked.has(r.key)} disabled={!r.differs} onChange={() => toggle(r.key)} aria-label={`Apply ${r.label}`} />
+                  )}
+                </td>
+                <td className="px-2 py-1.5 font-medium">{r.label}</td>
+                <td className="px-2 py-1.5">{unit ? showValue(r.kind, r.unitValue) : "—"}</td>
+                <td className="px-2 py-1.5">
+                  <span className={r.differs ? "text-gray-900" : ""}>{showValue(r.kind, r.abstractValue)}</span>
+                  {!r.differs && <span className="ml-1 text-[10px]">same</span>}
+                  {r.note && <p className="text-[11px] text-amber-700">{r.note}</p>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 sm:grid-cols-4" data-testid="apply-effect">
+        {[
+          ["Units / vacant", `${before.units} / ${before.vacant ?? "—"}`, `${after.units} / ${after.vacant ?? "—"}`],
+          ["Occupancy (SF)", pct1(before.occ), pct1(after.occ)],
+          ["WALT (by rent)", yrs(before.walt), yrs(after.walt)],
+          ["Mark to market", pct1(before.mtm), pct1(after.mtm)],
+        ].map(([l, a, b]) => (
+          <div key={l}>
+            <p className="text-[10px] uppercase tracking-wide text-gray-400">{l}</p>
+            <p className="tabular-nums">{a} <span className="text-gray-400">→</span> <span className={a !== b ? "font-semibold text-emerald-700" : ""}>{b}</span></p>
+          </div>
+        ))}
+      </div>
+      <p className="text-[11px] text-gray-500">
+        Rent steps drive the cash flow while this lease runs (abated months at $0); renewal options are exercised when the option rent is at or below market. Each change is logged in the Change log as from this abstract.
+      </p>
+      <div className="flex gap-2">
+        <button type="button" disabled={busy || !preview || (target !== "new" && !preview.entries.length)} onClick={apply} className={`${btn} border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700`}>
+          {busy ? "Applying…" : target === "new" ? `Add unit ${unitName || ""}` : `Apply ${preview?.entries.length ?? 0} field${preview?.entries.length === 1 ? "" : "s"}`}
+        </button>
+        <button type="button" disabled={busy} onClick={onDone} className={`${btn} border-gray-200 bg-white text-gray-600`}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// Mismatch flag: where the linked rent roll unit(s) differ from the abstract.
+function MismatchFlag({ lease, units, inputs }) {
+  if (!lease.abstract || !inputs) return null;
+  const linked = units.filter((u) => (lease.unit_ids ?? []).includes(u.id));
+  if (!linked.length) return <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-[11px] text-gray-500" data-testid="lease-flag">Not on the rent roll yet</span>;
+  const diffs = linked.flatMap((u) => leaseMismatches(lease.abstract, u, inputs).map((r) => ({ ...r, unit: u.name })));
+  if (!diffs.length) return <span className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-800" data-testid="lease-flag">✓ Rent roll matches the lease</span>;
+  const title = diffs.map((d) => `${d.unit} · ${d.label}: rent roll ${showValue(d.kind, d.unitValue)}, lease ${showValue(d.kind, d.abstractValue)}`).join("\n");
+  return (
+    <span className="rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800" title={title} data-testid="lease-flag">
+      ⚠ Rent roll differs: {[...new Set(diffs.map((d) => d.label.replace(/ \(.*\)$/, "")))].join(", ")}
+    </span>
+  );
+}
+
+function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, email, userId, onApply, onChanged, onError }) {
+  const [busy, setBusy] = useState(false);
+  const [panel, setPanel] = useState(null); // "abstract" | "view" | "apply" | null
   const [adding, setAdding] = useState([]);
   const [editing, setEditing] = useState(false);
   const [tenant, setTenant] = useState(lease.tenant);
@@ -387,14 +551,17 @@ function LeaseCard({ lease, assetName, units, canEdit, workspaceId, email, userI
             {" · added "}{fmtWhen(lease.created_at)}{lease.created_by_email ? ` by ${lease.created_by_email}` : ""}
           </p>
         </div>
-        <span className={`rounded border px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[lease.status] ?? STATUS_STYLE.uploaded}`}>{STATUS_LABEL[lease.status] ?? lease.status}</span>
+        <div className="flex flex-col items-end gap-1">
+          <span className={`rounded border px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[lease.status] ?? STATUS_STYLE.uploaded}`} title={lease.applied_at ? `Applied ${fmtWhen(lease.applied_at)}` : ""}>{STATUS_LABEL[lease.status] ?? lease.status}</span>
+          <MismatchFlag lease={lease} units={units} inputs={inputs} />
+        </div>
       </div>
 
       {editing && (
         <div className="mt-2 rounded-lg bg-gray-50 p-2">
           <p className="mb-1 font-medium text-gray-600">Rent roll units this lease covers</p>
           {units.length === 0 ? (
-            <p className="text-gray-400">This asset has no rent roll yet. Applying the abstract (phase C) will create the unit.</p>
+            <p className="text-gray-400">This asset has no rent roll yet. Apply to rent roll adds the unit from the abstract.</p>
           ) : (
             <div className="flex max-h-32 flex-wrap gap-x-3 gap-y-1 overflow-y-auto">
               {units.map((u) => (
@@ -442,6 +609,9 @@ function LeaseCard({ lease, assetName, units, canEdit, workspaceId, email, userI
       )}
 
       {panel === "view" && lease.abstract && <AbstractViewer lease={lease} onOpen={open} />}
+      {panel === "apply" && lease.abstract && canEdit && inputs && (
+        <ApplyPanel lease={lease} units={units} inputs={inputs} email={email} onApply={onApply} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />
+      )}
       {panel === "abstract" && canEdit && (
         <AbstractPanel lease={lease} assetName={assetName} units={units} userId={userId} email={email} onError={onError} onSaved={async () => { await onChanged(); }} />
       )}
@@ -457,6 +627,9 @@ function LeaseCard({ lease, assetName, units, canEdit, workspaceId, email, userI
         {lease.abstract && (
           <button type="button" onClick={() => setPanel(panel === "view" ? null : "view")} className={`${btn} ${panel === "view" ? "border-blue-600 bg-blue-600 text-white" : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"}`}>{panel === "view" ? "Hide abstract" : "View abstract"}</button>
         )}
+        {canEdit && lease.abstract && inputs && (
+          <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className={`${btn} ${panel === "apply" ? "border-emerald-600 bg-emerald-600 text-white" : "border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50"}`}>{panel === "apply" ? "Close apply" : lease.status === "applied" ? "Review against rent roll" : "Apply to rent roll"}</button>
+        )}
         {canEdit && (
           <button type="button" onClick={() => setPanel(panel === "abstract" ? null : "abstract")} className={`${btn} ${panel === "abstract" ? "border-blue-600 bg-blue-600 text-white" : "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"}`}>{lease.abstract ? "Re-abstract with Claude" : "Abstract with Claude"}</button>
         )}
@@ -471,7 +644,7 @@ function LeaseCard({ lease, assetName, units, canEdit, workspaceId, email, userI
   );
 }
 
-export default function Leases({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName }) {
+export default function Leases({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, dealInputs, onApplyUnits }) {
   const [scope, setScope] = useState("asset");
   const [leases, setLeases] = useState(null);
   const [error, setError] = useState(null);
@@ -497,7 +670,8 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
 
   const units = deal?.inputs?.units ?? [];
   const dealName = (id) => fundDeals.find((d) => d.id === id)?.inputs?.propertyName ?? (id === deal?.id ? deal.inputs.propertyName : "Asset not in this fund");
-  const unitsOf = (id) => (id === deal?.id ? units : fundDeals.find((d) => d.id === id)?.inputs?.units ?? []);
+  const inputsOf = (id) => (id === deal?.id ? deal.inputs : dealInputs?.(id) ?? fundDeals.find((d) => d.id === id)?.inputs ?? null);
+  const unitsOf = (id) => inputsOf(id)?.units ?? [];
   const shown = useMemo(() => {
     if (!leases) return [];
     if (scope === "asset") return leases.filter((l) => l.deal_id === deal?.id);
@@ -538,7 +712,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
         <div>
           <h2 className="text-lg font-bold">Leases</h2>
           <p className="text-xs text-gray-500">
-            Lease PDFs for each asset, stored privately in the database, and their abstracts (key terms, rent schedule, critical dates and risk flags, each with its clause and quote). Review and apply to the rent roll comes next.
+            Lease PDFs for each asset, stored privately in the database, and their abstracts (key terms, rent schedule, critical dates and risk flags, each with its clause and quote). Apply an abstract to the rent roll field by field; flags show where the rent roll differs from the lease.
           </p>
         </div>
         <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-xs">
@@ -608,6 +782,8 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
                       lease={l}
                       assetName={dealName(l.deal_id)}
                       units={unitsOf(l.deal_id)}
+                      inputs={inputsOf(l.deal_id)}
+                      onApply={onApplyUnits}
                       canEdit={canEdit}
                       workspaceId={wsId}
                       email={email}

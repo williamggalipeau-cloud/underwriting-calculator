@@ -30,12 +30,12 @@ export default function ChangeLog({ log: browserLog = [], user, onUserChange, si
       .reverse()
       .filter((e) => (!area || e.area === area) && (!who || e.user === who))
       .filter((e) => (!since || e.at.slice(0, 10) >= since) && (!until || e.at.slice(0, 10) <= until))
-      .filter((e) => !text || `${e.item} ${e.field} ${formatValue(e.from)} ${formatValue(e.to)} ${e.note ?? ""}`.toLowerCase().includes(text));
+      .filter((e) => !text || `${e.item} ${e.field} ${formatValue(e.from)} ${formatValue(e.to)} ${e.note ?? ""} ${e.source ?? ""}`.toLowerCase().includes(text));
   }, [log, q, area, who, since, until]);
 
   async function exportXlsx() {
     const header = ["When", "Who", "Area", "Item", "Field", "From", "To", "Note"];
-    const data = rows.map((e) => [e.at, e.user, e.area, e.item, e.field, formatValue(e.from), formatValue(e.to), e.note ?? ""]);
+    const data = rows.map((e) => [e.at, e.user, e.area, e.item, e.field, formatValue(e.from), formatValue(e.to), e.note ?? e.source ?? ""]);
     downloadBlob(await writeXlsx([header, ...data], { sheetName: "Change log", colWidths: [22, 16, 16, 26, 40, 20, 20, 30] }), `change-log-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
@@ -146,7 +146,7 @@ export default function ChangeLog({ log: browserLog = [], user, onUserChange, si
                   <td className="px-2.5 py-1.5 whitespace-nowrap font-medium">{e.user}</td>
                   <td className="px-2.5 py-1.5 whitespace-nowrap text-gray-600">{e.area}</td>
                   <td className="px-2.5 py-1.5">{e.item}</td>
-                  <td className="px-2.5 py-1.5">{e.note ? <span className="text-gray-500">{e.field}</span> : e.field}</td>
+                  <td className="px-2.5 py-1.5">{e.note ? <span className="text-gray-500">{e.field}</span> : e.field}{e.source && <span className="ml-1.5 rounded bg-violet-50 px-1 py-px text-[10px] text-violet-700" title={e.source}>{e.source}</span>}</td>
                   <td className="px-2.5 py-1.5 text-red-700">{e.note ? "" : formatValue(e.from)}</td>
                   <td className="px-2.5 py-1.5 text-emerald-700">{e.note ? "" : formatValue(e.to)}</td>
                 </tr>
