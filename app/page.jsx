@@ -21,7 +21,23 @@ import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
-import { appendChanges, auditSnapshot, diffWorkspace } from "@/lib/audit";
+import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
+import CloudPanel from "@/components/CloudPanel";
+import {
+  claimInvites,
+  createWorkspace as dbCreateWorkspace,
+  deleteWorkspace as dbDeleteWorkspace,
+  fetchAudit,
+  getSession,
+  listWorkspaces,
+  loadWorkspace as dbLoadWorkspace,
+  onAuthChange,
+  recallLink,
+  rememberLink,
+  saveWorkspace as dbSaveWorkspace,
+  signOut,
+  supabase,
+} from "@/lib/cloud";
 import ChangeLog from "@/components/ChangeLog";
 import FundTermsEditor from "@/components/FundTermsEditor";
 import {
@@ -345,6 +361,19 @@ export default function Home() {
   const fileLinked = useRef(false);
   const [fileSupported, setFileSupported] = useState(false);
   const [fileState, setFileState] = useState({ status: "none" }); // none | linked | reconnect | error; name, savedAt, dirty, error
+  // Database (Supabase): signed-in session and the workspace this browser saves to.
+  const [session, setSession] = useState(null);
+  const [dbLink, setDbLink] = useState(null); // { id, name, version, role, savedAt, dirty, error, conflict }
+  const [cloudOpen, setCloudOpen] = useState(false);
+  const [dbLog, setDbLog] = useState(null);
+  const [ready, setReady] = useState(false); // browser workspace restored
+  const dbBaseline = useRef(null); // snapshot at the last database save/open ("pending" = take on next save)
+  const dbLinkRef = useRef(null);
+  const dbSaving = useRef(false);
+  useEffect(() => {
+    dbLinkRef.current = dbLink;
+  });
+  const editorName = session?.user?.email || auditUser;
   const latestData = useRef(null); // latest workspace snapshot for the file
   const fileDirty = useRef(false); // changes not yet written to the file
   const fileWriting = useRef(false);
@@ -445,6 +474,7 @@ export default function Home() {
       })
       .finally(() => {
         hydrated.current = true;
+        setReady(true);
       })
       .then(() => fetchNyFedRates())
       .then((r) => {
@@ -491,11 +521,62 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Database sign-in: follow the Supabase session (sign-in links land here).
+  useEffect(() => {
+    let stop = false;
+    let unsub = () => {};
+    Promise.resolve()
+      .then(async () => {
+        if (!supabase()) return;
+        unsub = onAuthChange((sess) => !stop && setSession(sess));
+        const sess = await getSession();
+        if (!stop) setSession(sess);
+      })
+      .catch(() => {});
+    return () => {
+      stop = true;
+      unsub();
+    };
+  }, []);
+  // After signing in: claim invites and reopen the database workspace this
+  // browser was linked to (once the browser workspace has been restored).
+  const userId = session?.user?.id;
+  useEffect(() => {
+    if (!userId || !ready) return;
+    let stop = false;
+    claimInvites()
+      .catch(() => {})
+      .then(() => {
+        const rec = recallLink();
+        if (stop || !rec?.id || dbLinkRef.current) return;
+        return openDbWorkspace(rec, { keepLocalIfNewer: true });
+      })
+      .catch((e) => !stop && setDbLink({ id: null, name: "", error: e.message }));
+    return () => {
+      stop = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, ready]);
+  // Verified change log for the Change Log tab.
+  useEffect(() => {
+    if (activeTab !== "changes" || !dbLink?.id || !session) return;
+    let stop = false;
+    fetchAudit(dbLink.id)
+      .then((r) => !stop && setDbLog(r))
+      .catch(() => {});
+    return () => {
+      stop = true;
+    };
+  }, [activeTab, dbLink?.id, dbLink?.version, session]);
+
   // Save to the linked file every FILE_SAVE_MINUTES, and when the tab is
   // hidden or closed, if there are changes.
   const saveRef = useRef(saveToFileNow);
   useEffect(() => {
-    saveRef.current = saveToFileNow;
+    saveRef.current = () => {
+      saveToFileNow();
+      saveToDbNow().catch(() => {});
+    };
   });
   useEffect(() => {
     const id = setInterval(() => saveRef.current(), FILE_SAVE_MINUTES * 60_000);
@@ -518,12 +599,20 @@ export default function Home() {
       let log = auditLogRef.current;
       if (auditBaseline.current && !auditNote.current) {
         const changes = diffWorkspace(auditBaseline.current, snap);
-        if (changes.length) log = appendChanges(log, changes, { user: auditUser });
+        if (changes.length) log = appendChanges(log, changes, { user: editorName });
       } else if (auditNote.current) {
-        log = appendChanges(log, [], { user: auditUser, note: auditNote.current });
+        log = appendChanges(log, [], { user: editorName, note: auditNote.current });
         auditNote.current = null;
       }
       auditBaseline.current = snap;
+      // Database: take the baseline after opening, or mark unsaved changes.
+      if (dbLinkRef.current) {
+        if (!dbBaseline.current || dbBaseline.current === "pending") dbBaseline.current = snap;
+        else if (!dbLinkRef.current.dirty && diffWorkspace(dbBaseline.current, snap).length) {
+          setDbLink((l) => (l ? { ...l, dirty: true } : l));
+          markDbDirty(dbLinkRef.current);
+        }
+      }
       if (log !== auditLogRef.current) {
         auditLogRef.current = log;
         setAuditLog(log);
@@ -623,6 +712,120 @@ export default function Home() {
     } finally {
       fileWriting.current = false;
     }
+  }
+
+  // ── Database (Supabase) ──
+  const DB_DIRTY_KEY = "uw-db-dirty";
+  function markDbDirty(link) {
+    try {
+      window.localStorage.setItem(DB_DIRTY_KEY, JSON.stringify({ id: link.id, version: link.version }));
+    } catch {
+      // storage blocked
+    }
+  }
+  function clearDbDirty() {
+    try {
+      window.localStorage.removeItem(DB_DIRTY_KEY);
+    } catch {
+      // storage blocked
+    }
+  }
+  function linkDb(ws, extra = {}) {
+    const link = { id: ws.id, name: ws.name, version: ws.version, role: ws.role, savedAt: null, dirty: false, error: null, conflict: false, ...extra };
+    dbLinkRef.current = link;
+    setDbLink(link);
+    rememberLink({ id: ws.id, name: ws.name });
+  }
+
+  // Opens a database workspace (replacing what's in this browser).
+  async function openDbWorkspace(w, { keepLocalIfNewer = false } = {}) {
+    const meta = (await listWorkspaces()).find((x) => x.id === w.id);
+    if (!meta) throw new Error("You no longer have access to that workspace.");
+    const row = await dbLoadWorkspace(w.id);
+    let dirty = null;
+    try {
+      dirty = JSON.parse(window.localStorage.getItem(DB_DIRTY_KEY) ?? "null");
+    } catch {
+      dirty = null;
+    }
+    if (keepLocalIfNewer && dirty?.id === row.id) {
+      if (dirty.version === row.version) {
+        // Unsaved local changes from last time and nobody saved since: keep them.
+        linkDb({ ...meta, version: row.version }, { dirty: true });
+        dbBaseline.current = auditSnapshot(row.data);
+        return;
+      }
+      if (!window.confirm(`"${row.name}" was saved by ${row.updated_by_email || "someone else"} (version ${row.version}) after your last save, and this browser has unsaved changes. Load the database version? Cancel keeps your changes here; saving will then ask before overwriting.`)) {
+        linkDb({ ...meta, version: dirty.version }, { dirty: true, conflict: true, error: "Someone else saved a newer version." });
+        dbBaseline.current = auditSnapshot(row.data);
+        return;
+      }
+    }
+    if (!isWorkspace(row.data)) throw new Error("That database workspace has no deals yet.");
+    applyWorkspace(row.data, `Opened database workspace ${row.name} (version ${row.version})`);
+    dbBaseline.current = "pending";
+    clearDbDirty();
+    linkDb({ ...meta, version: row.version }, { savedAt: row.updated_at });
+  }
+
+  async function createDbWorkspace(name) {
+    const data = workspaceData();
+    const id = await dbCreateWorkspace(name, data);
+    dbBaseline.current = auditSnapshot(data);
+    clearDbDirty();
+    linkDb({ id, name, version: 1, role: "owner" }, { savedAt: new Date().toISOString() });
+  }
+
+  // Saves to the linked database workspace with the field-level changes since
+  // the last save (stamped with the signed-in user by the database).
+  async function saveToDbNow(force = false) {
+    const l = dbLinkRef.current;
+    if (!l || !session || l.role === "viewer" || dbSaving.current) return;
+    if (!force && !l.dirty) return;
+    if (l.conflict && !force) return;
+    const data = latestData.current ?? workspaceData();
+    const snap = auditSnapshot(data);
+    let changes = dbBaseline.current && dbBaseline.current !== "pending" ? diffWorkspace(dbBaseline.current, snap) : [];
+    const notes = (data.auditLog ?? [])
+      .filter((e) => e.note && (!l.savedAt || e.at > l.savedAt))
+      .map((e) => ({ area: "Workspace", item: e.item, field: e.field, note: e.note }));
+    if (changes.length > BULK_LIMIT) changes = [{ area: "Workspace", item: "Bulk change", field: `${changes.length} fields changed`, note: "Bulk change" }];
+    dbSaving.current = true;
+    try {
+      const version = await dbSaveWorkspace(l.id, l.version, data, [...notes, ...changes]);
+      dbBaseline.current = snap;
+      clearDbDirty();
+      const at = new Date().toISOString();
+      const next = { ...l, version, savedAt: at, dirty: false, error: null, conflict: false };
+      dbLinkRef.current = next;
+      setDbLink(next);
+      if (activeTab === "changes") fetchAudit(l.id).then(setDbLog).catch(() => {});
+    } catch (e) {
+      setDbLink((x) => (x ? { ...x, error: e.message, conflict: !!e.conflict } : x));
+      throw e;
+    } finally {
+      dbSaving.current = false;
+    }
+  }
+
+  // Conflict: keep this browser's version and save it over the newer one
+  // (the newer one stays in the database's version history).
+  async function overwriteDb() {
+    const l = dbLinkRef.current;
+    if (!l) return;
+    const row = await dbLoadWorkspace(l.id);
+    const next = { ...l, version: row.version, conflict: false, error: null, dirty: true };
+    dbLinkRef.current = next;
+    setDbLink(next);
+    await saveToDbNow(true);
+  }
+
+  function unlinkDb() {
+    dbLinkRef.current = null;
+    setDbLink(null);
+    rememberLink(null);
+    clearDbDirty();
+    setDbLog(null);
   }
 
   function linkFile(handle) {
@@ -1093,6 +1296,60 @@ export default function Home() {
             e.target.value = "";
           }}
         />
+        {session && dbLink?.id ? (
+          <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs ${dbLink.conflict || dbLink.error ? "border-red-200 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-900"}`}>
+            <span aria-hidden="true">☁</span>
+            <button type="button" onClick={() => setCloudOpen(true)} className="font-semibold hover:underline" title="Database">{dbLink.name}</button>
+            <span className="text-sky-700">v{dbLink.version}</span>
+            {dbLink.conflict ? (
+              <>
+                <span>· someone else saved a newer version</span>
+                <button type="button" onClick={() => openDbWorkspace(dbLink).catch((e) => setDbLink((l) => ({ ...l, error: e.message })))} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Open latest</button>
+                <button type="button" onClick={() => window.confirm("Save this browser's version over the newer one? The newer one stays in the database's version history.") && overwriteDb().catch(() => {})} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Keep mine</button>
+              </>
+            ) : dbLink.error ? (
+              <span>· {dbLink.error}</span>
+            ) : dbLink.role === "viewer" ? (
+              <span className="text-sky-700">· view only</span>
+            ) : dbLink.dirty ? (
+              <span className="text-amber-700">· unsaved changes</span>
+            ) : (
+              dbLink.savedAt && <span className="text-sky-700">· saved {new Date(dbLink.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
+            )}
+            {dbLink.role !== "viewer" && !dbLink.conflict && (
+              <button type="button" onClick={() => saveToDbNow(true).catch(() => {})} className="ml-1 rounded border border-sky-300 bg-white px-1.5 py-0.5 font-medium text-sky-800 hover:bg-sky-100">Save now</button>
+            )}
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setCloudOpen(true)}
+            title="Save to your Supabase database: shared workspaces, version history and a verified change log"
+            className="text-xs font-medium text-sky-800 border border-sky-200 hover:bg-sky-50 bg-white rounded-lg px-3 py-1.5 transition-colors"
+          >
+            ☁ {session ? "Database" : "Sign in"}
+          </button>
+        )}
+        {cloudOpen && (
+          <CloudPanel
+            session={session}
+            link={dbLink?.id ? dbLink : null}
+            onClose={() => setCloudOpen(false)}
+            onCreate={createDbWorkspace}
+            onOpen={(w) => openDbWorkspace(w)}
+            onSaveNow={() => saveToDbNow(true)}
+            onUnlink={unlinkDb}
+            onDelete={async (w) => {
+              await dbDeleteWorkspace(w.id);
+              if (dbLinkRef.current?.id === w.id) unlinkDb();
+            }}
+            onSignOut={async () => {
+              await signOut();
+              unlinkDb();
+              setSession(null);
+            }}
+          />
+        )}
         <button
           type="button"
           onClick={handleExportWorkspace}
@@ -1302,7 +1559,16 @@ export default function Home() {
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
             )}
-            {activeTab === "changes" && <ChangeLog log={auditLog} user={auditUser} onUserChange={changeAuditUser} />}
+            {activeTab === "changes" && (
+              <ChangeLog
+                log={auditLog}
+                user={auditUser}
+                onUserChange={changeAuditUser}
+                signedInEmail={session?.user?.email ?? null}
+                dbLog={dbLink?.id && session ? dbLog : null}
+                dbName={dbLink?.name}
+              />
+            )}
             {activeTab === "comps" && (
               <SalesComps
                 state={comps}
