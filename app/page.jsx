@@ -732,7 +732,9 @@ export default function Home() {
     const row = await dbLoadWorkspace(w.id);
     if (!isWorkspace(row.data)) throw new Error("That database workspace has no deals yet.");
     applyWorkspace(row.data, `Opened database workspace ${row.name} (version ${row.version})`);
-    dbBaseline.current = "pending";
+    // Baseline = the stored version, so updates applied on open (new terms,
+    // dates, fees) count as changes and are saved as a new version.
+    dbBaseline.current = auditSnapshot({ deals: [], savedDeals: [], funds: {}, comps: null, valuations: {}, baseCurve: null, ...row.data });
     linkDb({ ...meta, version: row.version }, { savedAt: row.updated_at });
   }
 

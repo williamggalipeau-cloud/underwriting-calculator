@@ -213,8 +213,9 @@ export default function CapitalActivity({ fundName, activity = [], autoActivity 
             The Source column shows how each entry was created: <span className="font-medium text-emerald-800">User added</span> (typed
             in), <span className="font-medium">User imported</span> (from a file), <span className="font-medium text-sky-800">Automatic</span> or{" "}
             <span className="font-medium text-indigo-800">Automatic, kept</span>; hover over it for details. Automatic rows are the fund&apos;s expenses to date: the quarterly management fee,
-            monthly sub line interest and unused fees, and the draws and quarterly calls that paid them (fund cash first, then the line,
-            then a call). They update with the model; <span className="font-medium">Keep</span> turns a quarter&apos;s automatic entries into
+            monthly sub line interest and unused fees, the line draws that paid them once fund cash ran out, and their repayment from
+            income or sale proceeds. Capital calls are never automatic: enter them yourself, no more than quarterly, once fund cash and the
+            line are exhausted. They update with the model; <span className="font-medium">Keep</span> turns a quarter&apos;s automatic entries into
             manual ones, after which that quarter is not generated. Fund expense paid rows don&apos;t change called capital or the line.
             Running totals are after each entry, in date order: capital called to date, sub line balance (draws − repayments)
             {commitments > 0 ? ", and dry powder (commitments − called − line balance)" : ""}. They include entries dated after today. Amounts are LP + GP. Tag an acquisition with its asset so the model doesn&apos;t count that purchase again. Entries dated after

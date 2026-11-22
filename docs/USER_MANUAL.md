@@ -746,9 +746,9 @@ same date.
 - **Tiers:** 80/20 to 12% IRR, 70/30 to 18%, 60/40 above. The tier is picked
   once from the fund's overall project XIRR.
 - **Fund expenses:** the management fee and sub line costs are fund-level
-  expenses, paid from fund cash, the line or quarterly calls before income
-  is distributed (§7.20). Fee calls are LP-only; the waterfall adds no fee
-  of its own.
+  expenses, paid from fund cash, then the line, before income is
+  distributed (§7.20). Capital for them is assumed called only when both are
+  exhausted (fee part LP-only); the waterfall adds no fee of its own.
 
 **Returns shown:**
 - **Gross:** XIRR of the assets' gross quarterly flows, before the
@@ -859,11 +859,11 @@ the same LP cash flows:
   the forward 30-day average SOFR + spread.
 - **After today:** the model's capital needs (unfunded purchases and
   shortfalls) draw on the line's remaining capacity as in the model.
-- **Fund expenses** (§7.20): calculated over the whole life. Up to today they
-  appear as **Automatic** entries in the ledger (Source column) and their
-  calls count as actuals; after today they are projected the same way. A
-  quarter in which you entered fee or sub line interest entries yourself is
-  not generated.
+- **Fund expenses** (§7.20): calculated over the whole life. Up to today the
+  expenses, their line draws and repayments appear as **Automatic** entries
+  (Source column); capital calls never do. A capital call you enter for
+  fees or sub line interest replaces the model's assumed expense call for
+  that quarter.
 - **Asset income and sale proceeds:** always the model's. Actual
   distributions are not entered.
 - **Sub line balance:** the actual balance up to today, then the projection.
@@ -1115,30 +1115,37 @@ month and due at month end. With actual activity, past months use the actual
 line balance; future months the projected one. Draws made to pay expenses
 bear interest at the line rate until repaid.
 
-**Fund cash and payment order.** The fund keeps a minimum cash balance of
-`cashReserveQuarters` (2) quarters of projected expenses (the next quarters'
-fees and sub line costs), plus the operating income it receives before
-distributing it. Each quarter, in date order:
+**Fund cash and payment order.** All fund cash and all sub line capacity
+are used before capital is called:
 
-1. Each expense is paid from fund cash.
-2. Any shortfall is drawn on the sub line that day.
-3. At quarter end the assets' operating income (after their own reserves,
-   §7.9) comes into fund cash and repays those draws first.
-4. A capital call repays the rest of the draws and restores cash to the
-   minimum. The part that paid the fee is called from LPs only; the rest
-   from LPs and GP by commitment.
-5. Cash above the minimum is distributed. After the last sale, all
-   remaining cash is distributed and nothing is kept.
+1. Each expense is paid from fund cash, down to zero.
+2. The rest is drawn on the sub line that day, up to the line's undrawn
+   capacity. Expense draws stay on the line, bearing interest at the line
+   rate, until repaid.
+3. Only if cash and the line are both exhausted is capital needed: the model
+   assumes one call at quarter end (the fee part from LPs only, the rest
+   from LPs and GP by commitment). Calls are never generated as activity:
+   you enter them, bundled no more than quarterly. Portfolio Return flags
+   any past quarter that needed a call you haven't entered.
+4. At quarter end the assets' operating income (after their own reserves,
+   §7.9) comes into fund cash. It first repays expense draws, then rebuilds
+   the minimum cash balance of `cashReserveQuarters` (2) quarters of
+   projected expenses; the rest is distributed.
+5. Sale proceeds repay any expense draws before they are distributed.
+   After the last sale nothing is kept.
 
 Portfolio Return shows this in **Fund expenses & fund cash**: lifetime fees,
-sub line costs, expense calls, distributions, cash now and this quarter's
-fee, and **Show by quarter** for the full schedule. Valuations adds fund cash
-to NAV in the net LP liquidation.
+sub line costs, capital needed, distributions, cash and expense draws now,
+this quarter's fee, and **Show by quarter** for the full schedule (fee
+basis, costs, paid from cash, drawn, income, draws repaid, capital needed,
+distributed, cash and expense draws at end, minimum). Valuations adds fund
+cash to NAV and deducts expense draws in the net LP liquidation.
 
 **Automatic capital activity.** For every completed month and quarter up to
 today, the ledger lists the fee and sub line cost entries (**Fund expense
-paid**), the expense draws, their repayments and the quarterly calls, with
-Source **Automatic** (hover for how each was paid). They are recalculated
+paid**), the line draws that paid them and their repayments from income or
+sale proceeds, with Source **Automatic** (hover for how each was paid). No
+capital call is ever automatic. They are recalculated
 whenever the model changes and are not stored. **Keep** turns a quarter's
 automatic entries into stored entries (Source "Automatic, kept"); a quarter
 with fee or sub line interest entries of your own is not generated. Entries
