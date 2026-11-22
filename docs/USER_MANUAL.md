@@ -225,6 +225,7 @@ full-model inputs for the active deal.
 |---|---|
 | **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), rate cap (market-priced or manual), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
+| **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents; owners and editors can change them. Needs sign-in and an open database workspace. Abstracts, review and apply, critical dates and risk flags come in later phases. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Return Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
@@ -243,6 +244,12 @@ deal (the same as clicking its tab in the left panel). Saved fund snapshots
 (**Add to Fund** copies) are listed under "Saved snapshots"; choosing one
 opens it as an editable deal and takes it off the saved list, so the fund
 still counts it once. Return Stress Testing keeps its own asset dropdown.
+
+**Location.** The Property section of the inputs has **Location** (street
+address, city, state, ZIP). The Asset Summary shows city and state. Model
+Fund I's fourteen assets have fictional addresses in California, Nevada,
+Washington and Texas, matching the sample leases (`docs/sample-leases`);
+workspaces saved before locations existed get them when they open.
 
 **Units.** The Property section of the inputs has a **Units** field. When a
 deal has a rent roll, the count comes from the rent roll instead.
@@ -418,6 +425,7 @@ underwriting-calculator/
 │   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
 │   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
 │   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
+│   ├── Leases.jsx            Leases tab (lease documents: upload, open, reorder, delete)
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
 │   └── SalesComps.jsx        Sales Comps tab
@@ -436,6 +444,8 @@ underwriting-calculator/
 │   ├── cloud.js              Supabase: sign-in, workspaces, saving, members, audit log
 │   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
+│   ├── leaseDocs.js          Lease documents in Supabase (table + storage bucket)
+│   ├── assetLocations.js     Model Fund I asset addresses; state list
 │   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
@@ -963,6 +973,7 @@ One row per asset in the selected fund.
 | Status | Pipeline (acquisition date after today), Owned, or Sold (exit date on or before today) |
 | Acquired / Exit, hold | The deal's acquisition date and hold |
 | SF, price, $/SF | Deal inputs |
+| Location | City and state from the deal's Location |
 | Units | Rent roll unit count, else the deal's Units field |
 | Occupancy | Leased SF ÷ rent roll SF; — without a rent roll |
 | WALT | Rent-weighted remaining lease term from today (§7.19); — without a rent roll |
@@ -1697,6 +1708,29 @@ desc).
 The trigger `audit_stamp` overwrites `at`, `user_id` and `user_email` on
 every insert, so the app can't set them.
 
+**`lease_documents`**: one row per lease (created by `supabase/leases.sql`).
+Index on (`workspace_id`, `deal_id`).
+
+| Column | Type | Default / set by | Meaning |
+|---|---|---|---|
+| `id` | uuid, primary key | app (random) | Lease id; also the lease's storage folder |
+| `workspace_id` | uuid → `workspaces.id` (cascade) | app | Workspace |
+| `deal_id` | text, required | app | The asset (`deals[].id` or `savedDeals[].id`) |
+| `unit_ids` | text[] | `{}` | Rent roll units covered (`units[].id`) |
+| `tenant`, `title` | text | `''` | Tenant name; optional title |
+| `files` | jsonb array | `[]` | Documents in order: `path`, `name`, `size` (bytes), `kind` (lease / amendment / other), `uploaded_at`, `uploaded_by_email` |
+| `status` | text | uploaded | uploaded → abstracted → applied |
+| `abstract` | jsonb | null | The checked abstract (phase B) |
+| `abstracted_at`, `abstracted_by_email` | timestamptz, text | null | When and by whom it was abstracted |
+| `applied_at`, `applied_by_email` | timestamptz, text | null | When and by whom it was applied to the rent roll |
+| `created_by`, `created_by_email` | uuid, text | signed-in user | Who added the lease |
+| `created_at`, `updated_at` | timestamptz | now | When added / last changed (trigger) |
+
+Every insert, change and delete writes `audit_log` rows with area
+**Leases**: "Lease added", "Documents" (file names before and after),
+"Status", "Lease details" (tenant, units, asset), "Abstract", "Lease
+deleted".
+
 **How the browser change log maps to `audit_log`:**
 
 | Browser `auditLog` field | `audit_log` column | Difference |
@@ -1746,6 +1780,9 @@ and nothing is saved; nothing is ever saved in the browser.
      functions and policies.
    - "Syntax error at end of input, LINE 0" means the editor was empty or
      only highlighted text was run. Paste again with nothing selected.
+   Then run `supabase/leases.sql` the same way. It adds the lease documents
+   table and the private **leases** storage bucket (§12.4). It is safe to
+   run again. (Both are already applied to the project.)
 2. **Set the sign-in address.** Under **Authentication → URL
    Configuration**, set **Site URL** to the address above and add it under
    **Redirect URLs**.
@@ -1804,14 +1841,27 @@ The tables, and how they relate (all cascade-delete with their workspace):
 workspaces (1) ──┬── (many) workspace_members    who can open it, and their role
                  ├── (many) workspace_invites    emails invited before first sign-in
                  ├── (many) workspace_versions   every earlier saved version
-                 └── (many) audit_log            one row per changed field
+                 ├── (many) audit_log            one row per changed field
+                 └── (many) lease_documents      one row per lease; its PDFs in Storage
 auth.users (Supabase) ── user_id in workspace_members / audit_log
+
+Storage bucket "leases" (private, PDF only, 50 MB per file):
+  <workspace id>/<deal id>/<lease id>/<timestamp>-<file name>.pdf
 ```
+
+Deleting a lease in the app removes its files from storage first. Deleting
+a whole workspace removes its lease rows; their files stay in the bucket
+until removed in **Storage → leases**.
 
 Column-by-column definitions of every table are in the data dictionary,
 [§11.13](#1113-database-tables-supabase).
 
 ### 12.5 Access rules (row-level security)
+
+**Leases** (`lease_documents` and the `leases` storage bucket): every member
+(owner, editor, viewer) can read rows and open files; owners and editors can
+add, change and delete them, directly under these rules. Storage paths must
+start with the workspace id (`lease_path_ws`).
 
 Row-level security is on for every table. Signed-in users can **read**:
 - workspaces, members, versions and audit rows of the workspaces they're a
