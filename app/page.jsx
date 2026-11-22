@@ -21,7 +21,7 @@ import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
-import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
+import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
@@ -476,6 +476,22 @@ export default function Home() {
         const current = d.quick ?? QUICK_DEFAULTS;
         const quick = typeof updater === "function" ? updater(current) : updater;
         return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
+      })
+    );
+  }
+
+  // Rate cap settings (Debt tab). They live with the deal's quick settings;
+  // linked deals re-map as usual, and unlinked deals get the cap fields
+  // priced on their own loan, hold, spread and acquisition date.
+  function setCap(patch) {
+    if (!requireEdit()) return;
+    setDeals((prev) =>
+      prev.map((d) => {
+        if (d.id !== activeDealId) return d;
+        const quick = { ...(d.quick ?? QUICK_DEFAULTS), ...patch };
+        if (d.linked) return { ...d, quick, inputs: toMainInputs(quick, d.inputs) };
+        const loan = underwrite(d.inputs).debt.loanAmount;
+        return { ...d, quick, inputs: { ...d.inputs, ...capEngineFields(capSettingsFor(quick, d.inputs), loan) } };
       })
     );
   }
@@ -1509,7 +1525,15 @@ export default function Home() {
               />
             )}
             {activeTab === "cashflow" && <CashFlowAnalysis inputs={inputs} results={results} />}
-            {activeTab === "debt" && <DebtSizingPanel debt={debt} cashFlows={annualCashFlows} inputs={inputs} />}
+            {activeTab === "debt" && (
+              <DebtSizingPanel
+                debt={debt}
+                cashFlows={annualCashFlows}
+                inputs={inputs}
+                cap={capSettingsFor(activeDeal.quick, inputs)}
+                onCapChange={setCap}
+              />
+            )}
 {activeTab === "returns" && (
               <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={fundDeals.filter((d) => d.id !== activeDealId)} />
             )}
