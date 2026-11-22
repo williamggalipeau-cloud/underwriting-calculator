@@ -466,6 +466,47 @@ I–K.
     clusters of risk in one market stand out.
   - *Valuation and market*: marks vs. cost and underwriting, cap rate
     sensitivity.
+  - *TI funding coverage* (added 11/22, user's request): whether each asset
+    can fund its coming TI/LC, quarter by quarter, and from what:
+    - *Need*: TI and leasing commissions due each quarter for the next 8
+      quarters (from the leasing plan, applied leases and the rent roll).
+    - *1. Loan TI facility*: the facility left (the model's TI reserve /
+      lender holdback today; the loan's actual draw conditions once phase F
+      reads the loan agreement) and whether the asset passes the draw test
+      that quarter (e.g. DSCR at or above the minimum, plus debt yield or
+      occupancy where the loan requires them), with the headroom: how far
+      NOI could fall before draws stop.
+    - *2. Asset cash flow*: cash left after debt service and required
+      reserves.
+    - *3. Fund subscription line*: available only while the line is active
+      (within its term) and has capacity (size less drawn), within its
+      maximum days outstanding, shared across all assets that quarter.
+    - *4. Capital call*: whatever is left.
+    - **Heat map**: assets down the side, quarters across, each cell
+      coloured by how its TI is covered: green (facility, test passed),
+      light green (asset cash flow), amber (needs the sub line), red (needs
+      a capital call, or the draw test fails), grey (no TI due). Hovering
+      shows the need, each source and the shortfall. A fund total row shows
+      the capital call needed per quarter.
+    - **Test data for Model Fund I** (user's request, 11/22): Fund I's
+      sample loans don't have TI facilities yet (the TI reserve is off on
+      every deal), so phase L adds made-up ones, like the earlier SIC and
+      loan-sizing test data: each asset gets a TI/LC facility on its loan
+      (a $/SF holdback, some larger and some none), a draw test (DSCR
+      minimum 1.10x–1.25x, a few with a debt yield test), and quarterly TI/LC
+      needs from its expiring leases. The mix is set so the heat map shows
+      every colour: most assets covered by their facility; two covered by
+      their own cash flow; two that need the sub line; one that fails its
+      draw test in a later quarter; and one quarter where the sub line is
+      full or has expired and a capital call is needed. Fund I's existing
+      sub line terms are used as they are. Added through a one-time,
+      logged workspace update to the Model Fund I sample data (flag
+      "tiFacility-v1"), and as Node test fixtures.
+    - **Actions** (modeling only, saved as a phase M-style scenario, never
+      changing actual data): postpone a TI to a later quarter, cut a TI or
+      LC budget line, or plan a capital call; the heat map updates to show
+      the effect, and the chosen actions can be carried into the business
+      plan (a new revision) by the user.
   - *Execution*: budget and capex variances (phase I), assets behind
     underwriting (phase J), fund plan gaps (phase K).
   - *Stress tests*: fund and asset results under rent, vacancy, exit cap
@@ -616,4 +657,9 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     that splits or combines units, with its capex, downtime, new units'
     rents and lease-up, operating effects and yield on cost, modelled in
     the cash flow as planned units until the user marks it complete.
+22. **TI funding coverage** (added 11/22) in phase L's risk report: per asset
+    and quarter, TI/LC need vs. the loan's TI facility (and its draw test),
+    asset cash flow, the fund sub line (while active and with capacity) and
+    capital calls, shown as a heat map, with what-if actions (postpone TI,
+    cut TI, capital call) that don't change actual data.
 

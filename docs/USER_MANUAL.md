@@ -231,7 +231,7 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 |---|---|
 | **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), rate cap (market-priced or manual), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
-| **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
+| **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. Needs sign-in and an open database workspace. Review and apply to the rent roll comes next. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), rate schedule, covenant tests by year, TI reserve. |
@@ -413,6 +413,7 @@ dataviz). The app does not need them to run.
 | `next` | 16.2.4 | App Router framework, static export (`output: "export"`). |
 | `@supabase/supabase-js` | 2.x | Database sign-in and storage (§12). |
 | `react`, `react-dom` | 19.2.4 | UI. |
+| `jspdf`, `jspdf-autotable` | 2.5.2, 3.8.4 | PDF reports, built in the browser and loaded only when you export (Valuations → Export PDF). |
 | `tailwindcss`, `@tailwindcss/postcss` | 4 | Styling (dev). |
 | `eslint`, `eslint-config-next` | 9 / 16.2.4 | Linting (dev). |
 
@@ -500,7 +501,9 @@ underwriting-calculator/
 │   ├── assetLocations.js     Model Fund I asset addresses; state list
 │   ├── sampleRentRolls.js    Model Fund I rent rolls with a 20–40% mark to market
 │   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
-│   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
+│   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule,
+│   │                         quarter-over-quarter change, effect of adjustments on returns
+│   ├── valuationPdf.js       Valuation adjustments PDF report (jsPDF)
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
 │   ├── testScenario.js       "Load test scenario" data
 │   ├── workspace.js          Workspace check; moves an old browser copy into the database
@@ -1047,13 +1050,61 @@ RVPI              = NAV ÷ contributions
 Closing costs and cap premiums are not in fair value, so TVPI starts below
 1.0× (the J-curve).
 
+**Quarter-over-quarter value change** (`valueTrend`). A table under the
+assets shows each asset's fair value for the last four completed quarters up
+to the **As of** quarter (fewer if the fund is younger), and under each value
+its change from the prior quarter:
+
+```
+Change $   = fair value this quarter − fair value last quarter
+Change %   = change $ ÷ fair value last quarter
+```
+
+- The acquisition quarter has no prior value and shows "Acquired".
+- The change includes capex added to the value (roll-forward adds capex).
+- **Exit cap (plan)** is the exit cap rate in the asset's plan (the deal's
+  exit cap input; the business plan's exit cap once phase I is built).
+  **Implied cap now** is forward NOI ÷ fair value at the As of quarter.
+- **Fund total:** gross asset value each quarter and its change, which
+  includes acquisitions and sales, plus the **same-store** change: only
+  assets valued in both quarters. The fund exit cap is weighted by value.
+
+**PDF report: valuation adjustments** (**Export PDF**, `lib/valuationPdf.js`).
+A landscape PDF for the As of quarter and the three before it:
+1. **Fund summary:** gross asset value, change in $ and %, and same-store %
+   by quarter, with the fund's value-weighted exit cap.
+2. **By asset:** value, change $ and change % each quarter, exit cap (plan)
+   and implied cap.
+3. **Adjustment detail:** every asset-quarter whose value changed: prior and
+   new value, change, basis (appraisal, internal mark, roll-forward, cost)
+   and support (appraiser, cap rate, capex, notes).
+4. **Effect on returns** (`valuationImpact`): for each quarter with
+   adjustments, returns with the adjustments against returns with each
+   adjusted asset carried at its prior-quarter value plus capex (everything
+   else unchanged; the whole fund is rerun), for each adjusted asset, the
+   fund (gross) and the fund (net LP):
+
+```
+Adjustment      = fair value − (prior-quarter value + capex this quarter)
+Interim IRR     = without / with, and the change in points
+Equity multiple = TVPI, without / with, and the change
+Cash-on-cash    = trailing-12-month distributions ÷ contributions
+                  (cash-based, so the same with or without)
+Cash yield on equity NAV = trailing-12-month distributions ÷ equity NAV
+                  (without / with)
+```
+
+   IRRs under one year show "n/m", as elsewhere on the tab.
+
 **Import / export.**
 - **Import:** Excel or CSV with Asset, Quarter end, Fair value, and
   optionally Source, Appraiser, Cap rate, Capex since last mark and Notes.
   Assets are matched by deal name. Any date in a quarter, or "2026 Q2", is
   filed at that quarter end.
 - **Export history:** writes every asset-quarter (the importable columns
-  first, then the computed values) and the fund-by-quarter table.
+  first, then the computed values, including the change from the prior
+  quarter in $ and % and the exit cap) and the fund-by-quarter table (with
+  the change in gross asset value).
 - Marks are saved with the workspace and included in Export / Import
   workspace.
 
@@ -2458,7 +2509,10 @@ not used. Nothing changes your data until you click to apply it.
   and metro, with a map), each against the fund's limits from the LPA and
   PPM (actual vs. limit, headroom, breaches, and a check on pipeline deals
   before purchase), lease risk flags, insurance gaps and expiries, debt
-  maturities and covenant cushions, valuation sensitivity, budget and
+  maturities and covenant cushions, a TI funding heat map (whether each
+  asset's TI is covered by its loan's TI facility and draw test, its own
+  cash flow, the sub line or a capital call, quarter by quarter, with
+  what-if actions), valuation sensitivity, budget and
   underwriting variances, stress tests and a watch list. Investor records,
   capital accounts and notices stay in your CRM and investor portal.
 - **M. Fund impact modeling.** Add one or more candidate assets to a fund as
