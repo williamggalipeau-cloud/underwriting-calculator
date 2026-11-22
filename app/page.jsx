@@ -16,7 +16,7 @@ import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, currentSampleDate, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
+import { buildSampleDeals, currentSampleDate, currentSampleHold, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -43,12 +43,14 @@ const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calcu
 
 // Brings a saved deal up to date: fills settings added since it was saved
 // with their defaults, moves sample assets off old default acquisition
-// dates, and re-maps linked deals onto the full model.
+// dates and hold periods, and re-maps linked deals onto the full model.
 function migrateSavedDeal(d) {
   if (!d.quick) return d;
   const quick = { ...QUICK_DEFAULTS, ...d.quick };
   quick.acquisitionDate = currentSampleDate(d.id, quick.acquisitionDate);
-  const inputs = d.inputs?.acquisitionDate ? { ...d.inputs, acquisitionDate: currentSampleDate(d.id, d.inputs.acquisitionDate) } : d.inputs;
+  quick.holdYears = currentSampleHold(d.id, quick.holdYears);
+  let inputs = d.inputs?.acquisitionDate ? { ...d.inputs, acquisitionDate: currentSampleDate(d.id, d.inputs.acquisitionDate) } : d.inputs;
+  if (inputs?.holdPeriodYears != null) inputs = { ...inputs, holdPeriodYears: currentSampleHold(d.id, inputs.holdPeriodYears) };
   return { ...d, quick, inputs: d.linked ? toMainInputs(quick, inputs) : inputs };
 }
 
