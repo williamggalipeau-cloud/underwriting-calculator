@@ -400,3 +400,16 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     phase L shows actual vs. limit, headroom and breaches, and checks
     pipeline deals before purchase. Reading these is legal interpretation, so
     every limit shows its clause and quote and is applied only by the user.
+15. **Made-up sample documents for test data** (user confirmed 11/22): each
+    phase adds fictional sample documents in `docs/sample-deal-docs/`,
+    like `docs/sample-leases/`: every page marked "SAMPLE – FICTIONAL – FOR
+    TESTING ONLY", invented parties and addresses, and figures consistent
+    with Model Fund I's assets (prices, loans, NOI, dates) so they apply
+    cleanly. The set: a fund LPA and PPM for Model Fund I; per asset where
+    useful an OM, rent roll, T-12, LOI, PSA, IC memo, acquisition closing
+    statement, loan agreement, appraisal, estoppels and a CAM
+    reconciliation; a disposition closing statement for one test sale; and
+    tenant credit reports and financial statements for the sample tenants.
+    A README lists each file with its asset and what it tests, and the
+    validated abstracts are saved beside them, as with the sample leases.
+
