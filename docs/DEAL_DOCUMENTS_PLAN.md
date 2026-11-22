@@ -1,4 +1,4 @@
-# Lease, documents and performance plan (phases A–K)
+# Lease, documents and performance plan (phases A–L)
 
 One plan for everything from lease documents to fund performance: what has
 been built, what is scheduled, and what each phase will do. Each phase is
@@ -22,6 +22,7 @@ changes the model without the user clicking to apply it.
 | I | Asset budget vs. plan | ⛓ Starts when H is complete |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
+| L | Investor reporting | ⛓ Starts when K is complete |
 
 Each finished phase is marked here (and in the user manual's §13 Roadmap)
 with what was built and how it was tested; the user gets a progress note in the Claude session after each one.
@@ -256,13 +257,47 @@ against what the fund actually does, using phases I and J for each asset.
   charts of plan vs. actual over time, Excel export and a printable
   quarterly fund report suitable for LP updates.
 
+## Phase L: investor reporting (added 11/22)
+
+Reporting to the fund's investors (LPs), built on phases I–K and the
+existing Portfolio Return, Valuations and waterfall figures.
+
+- **Investors and commitments:** an investor list per fund (name, entity,
+  contact, commitment, closing date, class or side-letter terms such as fee
+  discounts), with each investor's share of every capital call and
+  distribution.
+- **Capital accounts:** per investor and quarter: beginning balance,
+  contributions, distributions (return of capital, preferred return,
+  profit), allocated income and expenses, management fees, GP promote
+  (from the fund waterfall) and unrealized gain from the valuation marks,
+  ending balance. Unfunded commitment and each investor's net IRR, TVPI,
+  DPI and RVPI.
+- **Notices:** capital call and distribution notices per investor (amount,
+  due or payment date, purpose, wire details placeholder), generated as
+  PDFs for the user to review and send; the app never sends them.
+- **Quarterly report:** a fund report for investors: letter text (drafted
+  for the user to edit), fund summary and performance (net and gross),
+  NAV and its movement, capital called and distributed, portfolio table,
+  one page per asset (photo or map, business plan status, occupancy,
+  leasing, NOI vs. plan, valuation, key lease events from phase D), plan
+  vs. actual from phase K, and debt summary. PDF and Excel.
+- **Investor statements:** a capital account statement per investor per
+  quarter (PDF), plus a year-end summary that supports tax reporting
+  (not a K-1).
+- **History and sign-off:** each report and statement is saved as an issued
+  version with who approved it and when; figures are frozen once issued.
+- **Access:** owners and editors prepare and issue. An optional read-only
+  investor login that shows each investor only their own statements and
+  the reports issued to them is proposed, not built, until the user
+  decides.
+
 ## Order and review
 
-A → B → C → D → E → F → G → H → I → J → K. Each phase starts as soon as the
+A → B → C → D → E → F → G → H → I → J → K → L. Each phase starts as soon as the
 previous one is complete (no review in between), is built on the working
 branch with the manual and Node + Playwright tests, and goes into one open
 pull request; nothing is merged without the user. If a session ends before
-K, the work is pushed and resumes about 15 minutes later at the next phase.
+L, the work is pushed and resumes about 15 minutes later at the next phase.
 
 ## Decisions (all made 11/22)
 
@@ -287,3 +322,6 @@ K, the work is pushed and resumes about 15 minutes later at the next phase.
    step, done by the user, not by editing the sample rent rolls.
 9. **Phases I–K** (budget vs. plan, underwritten vs. actual, fund plan vs.
    actual) are their own phases after H.
+10. **Phase L, investor reporting** (added 11/22): after K; notices and
+    reports are generated for the user to send, never sent by the app; an
+    investor login is proposed, not built, until the user decides.
