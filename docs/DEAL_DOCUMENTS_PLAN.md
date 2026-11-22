@@ -159,3 +159,28 @@ tracks the deal against what was underwritten to buy it.
 - **Views:** per asset (Asset Summary Details) and whole fund (Portfolio
   Return), with a table of assets ranked by return shortfall or outperformance.
   Excel export and the printable asset-management report.
+
+### 3. Fund-level plan vs. actual (added 11/22)
+
+The fund's own plan (from the fund model at launch or final close) tracked
+against what the fund actually does, using items 1 and 2 for each asset.
+
+- **Fund plan, frozen:** commitments and capital call schedule, deployment
+  pace (assets and equity by quarter), target asset count and mix, leverage,
+  fund NOI and cash yield by year, distributions, fees and expenses, exits
+  and timing, and target net and gross returns (IRR, TVPI, DPI, RVPI,
+  multiple), plus the GP promote / waterfall. Re-forecasts are saved as new
+  versions; the original stays.
+- **Actuals:** capital called and distributed to date, assets acquired
+  (when, price, equity), fees and fund expenses, the latest marks
+  (Valuations tab), and each asset's actual + projected cash flows (item 2).
+- **Comparison:** plan vs. actual by quarter and since inception: capital
+  deployed vs. plan, called vs. plan, distributions and DPI, NAV, fund NOI
+  and yield, leverage, and projected net/gross IRR and multiple vs. target,
+  with the GP promote under each.
+- **Attribution:** the gap to target returns split by asset (which assets
+  are adding or costing return) and by cause (deployment pace and timing,
+  pricing, operations, financing, exits, fees).
+- **Views:** a fund dashboard on Portfolio Return (or a new Fund Plan tab),
+  charts of plan vs. actual over time, Excel export and a printable
+  quarterly fund report suitable for LP updates.
