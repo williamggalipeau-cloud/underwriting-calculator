@@ -366,6 +366,8 @@ export default function Home() {
   const [session, setSession] = useState(null);
   const [dbLink, setDbLink] = useState(null); // { id, name, version, role, savedAt, dirty, error, conflict }
   const [cloudOpen, setCloudOpen] = useState(false);
+  // True after a "Forgot password?" link is opened: the panel asks for a new password.
+  const [pwRecovery, setPwRecovery] = useState(false);
   const [dbLog, setDbLog] = useState(null);
   const [ready, setReady] = useState(false); // browser workspace restored
   const dbBaseline = useRef(null); // snapshot at the last database save/open ("pending" = take on next save)
@@ -567,14 +569,22 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Database sign-in: follow the Supabase session (sign-in links land here).
+  // Database sign-in: follow the Supabase session (confirmation and password
+  // reset links land here).
   useEffect(() => {
     let stop = false;
     let unsub = () => {};
     Promise.resolve()
       .then(async () => {
         if (!supabase()) return;
-        unsub = onAuthChange((sess) => !stop && setSession(sess));
+        unsub = onAuthChange((sess, event) => {
+          if (stop) return;
+          setSession(sess);
+          if (event === "PASSWORD_RECOVERY") {
+            setPwRecovery(true);
+            setCloudOpen(true);
+          }
+        });
         const sess = await getSession();
         if (!stop) setSession(sess);
       })
@@ -1404,6 +1414,8 @@ export default function Home() {
           <CloudPanel
             session={session}
             link={dbLink?.id ? dbLink : null}
+            recovery={pwRecovery}
+            onRecoveryDone={() => setPwRecovery(false)}
             onClose={() => setCloudOpen(false)}
             onCreate={createDbWorkspace}
             onOpen={(w) => openDbWorkspace(w)}
@@ -1415,6 +1427,7 @@ export default function Home() {
             }}
             onSignOut={async () => {
               await signOut();
+              setPwRecovery(false);
               unlinkDb();
               setSession(null);
             }}

@@ -46,8 +46,8 @@ a dry-powder calculation. It also has a sales comps tool.
 
 ### Signing in
 
-You sign in with your email address. There is no password: the app emails
-you a one-time sign-in link.
+You sign in with your **email and a password**. Email is only used twice:
+once to confirm a new account, and if you ever click **Forgot password?**.
 
 **What works without signing in.** You can open every tab, look at the
 sample deals, sort tables and read results. Anything you type is not kept,
@@ -55,27 +55,47 @@ and a yellow **View only** banner appears at the top. Opening or importing
 workspace files, loading samples and resetting are also blocked until you
 sign in.
 
-**How to sign in**
+**First time: create an account**
 1. Click **☁ Sign in** in the top header (or the **☁ Sign in** button on
    the View only banner).
-2. Enter your email and click **Email me a sign-in link**.
-3. Open the email from Supabase and click the link. Open it in the
-   **same browser** you want to work in, because the sign-in belongs to the
-   browser where the link is opened.
-4. The app opens signed in. The header shows ☁ with your workspace name (or
-   **Database**), and the View only banner disappears.
+2. Click **Create an account**.
+3. Enter your email and a password (at least 8 characters), type the
+   password again, and click **Create account**.
+4. Open the confirmation email from Supabase and click its link. This is
+   needed only once, to prove the email is yours.
+5. Back in the app, sign in with your email and password.
 
-Each link works **once** and expires after about an hour. If it has
-expired or was already used, request a new one.
+**Every time after that: sign in**
+1. Click **☁ Sign in**.
+2. Enter your email and password and click **Sign in**.
+3. The header shows ☁ with your workspace name (or **Database**), and the
+   View only banner disappears.
+
+Your browser can save the password for you; the app labels the fields so
+password managers recognise them.
+
+**Staying signed in.** You stay signed in on this browser, even after
+closing the tab or restarting the computer, until you sign out. Other
+browsers and devices need their own sign-in.
+
+**Forgot your password?**
+1. Click **☁ Sign in → Forgot password?**, enter your email and click
+   **Email me a reset link**.
+2. Open the email and click the link, in this browser.
+3. The app opens and asks for a new password. Type it twice and click
+   **Save password**. You're signed in, and the new password works from
+   now on.
+
+Reset links work once and expire after about an hour.
+
+**Changing your password.** While signed in, open **☁ Database** and click
+**Change password** next to "Signed in as …".
 
 **After you sign in**
 - Any workspace someone shared with your email is added to your list
   automatically (**☁ Database → Your workspaces**).
 - If this browser was saving to a database workspace before, it reopens
   automatically.
-- You stay signed in on this browser, even after closing the tab or
-  restarting the computer, until you sign out. Other browsers and devices
-  need their own sign-in.
 
 **What you can do depends on your role** in a shared database workspace:
 
@@ -94,30 +114,34 @@ saving to the database workspace. After signing in again, reopen it from
 **Your workspaces**. Sign out on shared or public computers.
 
 **Getting access to someone else's workspace.** Ask an owner to add your
-email under **☁ Database → People with access**. You don't need to sign in
+email under **☁ Database → People with access**. You don't need an account
 first: the invite waits, and the workspace appears the first time you sign
-in with that email. Use the exact email address the owner entered.
+in with that email. Create your account with the exact email the owner
+entered.
 
 **How your data is protected**
 - **The database checks who you are on every request.** You can only read
   workspaces you are a member of, and only owners and editors can save.
   These rules are enforced by the database itself, not just by the screen.
-- **Signed-out visitors can't call the database** at all. Only signed-in
-  users can run saves, sharing and invites.
+- **Signed-out visitors can't call the database.** Only signed-in users can
+  run saves, sharing and invites.
 - **Every change is stamped by the server** with your signed-in email and
   the server's clock. Nobody can type in someone else's name or edit the
   verified change log.
-- **No passwords are stored**, so there is no password to leak or reuse.
-  Keep your email account secure: anyone who can read your email can sign
-  in as you.
+- **Passwords are handled by Supabase**, stored scrambled (hashed), and
+  never seen by the app or saved in the workspace. Use a password you don't
+  use anywhere else.
 
 **Sign-in problems**
 
 | What you see | What to do |
 |---|---|
-| No email arrives | Check spam and wait a minute. The sign-in sender allows only a few emails per hour, so don't request many links in a row. |
-| The link says it is invalid or expired | It was already used or is over an hour old. Request a new one. |
-| The link opens a page that isn't the app | The project's sign-in address isn't set. An admin fixes it (§12.2 step 2). |
+| "Wrong email or password" | Check both. If you've never set a password (for example, you only used email links before), use **Forgot password?** to set one. |
+| "Confirm your email first" | Open the confirmation email from when you created the account. If it's lost, create the account again or ask an admin to resend it. |
+| "There's already an account for this email" | Sign in instead, or use **Forgot password?**. |
+| No confirmation or reset email | Check spam and wait a minute. The email sender allows only a few emails per hour, so don't request many in a row. |
+| The reset link says it is invalid or expired | It was already used or is over an hour old. Request a new one. |
+| A link opens a page that isn't the app | The project's sign-in address isn't set. An admin fixes it (§12.2 step 2). |
 | Signed in, but still View only | You are a viewer on this workspace. Ask an owner for editor access. |
 | Signed in, but a shared workspace is missing | The owner may have used a different email. Ask them to check **People with access**, then click **Refresh** under **Your workspaces**. |
 | Signed in on one computer but not another | Each browser needs its own sign-in. |
@@ -159,8 +183,8 @@ The change log (§7.17) is part of the workspace, so it is saved in both
 places and travels with exports.
 
 **Database (Supabase): shared and verified.** Click **☁ Sign in** in the
-top header (next to User manual), enter your email and open the sign-in
-link. Then **☁ Database →
+top header (next to User manual) and sign in with your email and password
+(see [Signing in](#signing-in)). Then **☁ Database →
 Save to database** creates a shared workspace.
 - **Saving:** changes save to it on the same schedule as a linked file
   (every 10 minutes when changed, on **Save now**, and when you leave), and
@@ -1621,7 +1645,7 @@ files.
 | Secret / `service_role` key | Never in the app, the repository or chat. It bypasses all security. Use it only in the Supabase dashboard. |
 | Setup script | [`supabase/setup.sql`](../supabase/setup.sql) |
 | Client library | `@supabase/supabase-js` 2.x |
-| Sign-in method | Email sign-in links (no passwords) |
+| Sign-in method | Email + password (Authentication → Sign In / Providers → Email). Email is used to confirm new accounts and for password resets. |
 | Site / Redirect URL | `https://williamggalipeau-cloud.github.io/underwriting-calculator/` (Authentication → URL Configuration) |
 
 ### 12.2 One-time setup
@@ -1639,7 +1663,10 @@ files.
 3. **Optional hardening** (Authentication settings):
    - turn off new sign-ups and invite people only;
    - require multi-factor authentication;
-   - use a custom SMTP sender so sign-in emails come from your domain.
+   - use a custom SMTP sender so confirmation and reset emails come from
+     your domain;
+   - turn on **leaked password protection** (Authentication → Passwords),
+     which rejects passwords known from data breaches.
 
 ### 12.3 How the app uses it
 
@@ -1660,7 +1687,7 @@ files.
 
 | Action in the app | What happens in the database |
 |---|---|
-| **☁ Sign in** (top header) | Supabase emails a sign-in link. Opening it starts a session, kept in this browser. The app then calls `claim_invites()`. |
+| **☁ Sign in** (top header) | Email + password sign-in through Supabase Auth. **Create an account** sends a one-time confirmation email; **Forgot password?** sends a reset link that reopens the app to choose a new password. The session is kept in this browser. After sign-in the app calls `claim_invites()`. |
 | **☁ Database → Save to database** | `create_workspace(name, data)`: a new `workspaces` row (version 1). You become its owner, and a "Created workspace" audit row is written. |
 | Editing, then a save (every 10 min when changed, on **Save now**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
 | Someone else saved first | The save is refused (conflict). The app offers **Open latest** (load theirs) or **Keep mine** (save over it; theirs stays in `workspace_versions`). |
@@ -1777,8 +1804,8 @@ and doesn't bump the version.
 | Message | Cause / fix |
 |---|---|
 | "The database isn't set up yet" | Run `supabase/setup.sql` (§12.2) |
-| The sign-in link opens a page that isn't the app, or says "redirect URL not allowed" | Set the Site URL and Redirect URL (§12.2 step 2) |
-| No sign-in email | Check spam. Supabase's built-in sender is rate-limited (a few emails per hour); for regular use set up custom SMTP. |
+| A confirmation or reset link opens a page that isn't the app, or says "redirect URL not allowed" | Set the Site URL and Redirect URL (§12.2 step 2) |
+| No confirmation or reset email | Check spam. Supabase's built-in sender is rate-limited (a few emails per hour); for regular use set up custom SMTP. |
 | "Someone else saved this workspace…" | Another person saved first. Choose **Open latest** or **Keep mine**. |
 | "You don't have permission…" | Your role doesn't allow it (viewers can't save; only owners manage access) |
 | The project is paused | Supabase dashboard → **Restore project** |
