@@ -455,7 +455,7 @@ function DealRow({ deal, onRemove, fund }) {
 }
 
 // Fund-level expenses and fund cash (lib/fundExpenses), by quarter.
-function FundExpensesCard({ fx, terms, ipEnd, todayISO }) {
+function FundExpensesCard({ fx, terms, ipEnd, todayISO, callsNeeded = [] }) {
   const [open, setOpen] = useState(false);
   if (!fx || !fx.periods.length) return null;
   const t = fx.totals;
@@ -475,9 +475,9 @@ function FundExpensesCard({ fx, terms, ipEnd, todayISO }) {
         {[
           ["Management fees", fm(t.fees), "Over the fund's life"],
           ["Sub line costs", fm(t.lineCosts), "Interest + unused fees, incl. expense draws"],
-          ["Expense calls", fm(t.called), "Quarterly calls to repay draws and restore cash"],
+          ["Capital needed", fm(t.called), "Only when fund cash and the line are exhausted; you enter the calls"],
           ["Distributed", fm(t.distributed), "Operating income after expenses and cash"],
-          ["Fund cash now", now ? fm(now.cashEnd) : "—", now ? `End of ${qLabel(now.quarter)}` : ""],
+          ["Fund cash now", now ? fm(now.cashEnd) : "—", now ? `End of ${qLabel(now.quarter)} · expense draws on line ${fm(now.bridgeEnd)}` : ""],
           ["Fee this quarter", now ? fm(now.fee) : "—", now ? `on ${fmtM(now.feeBasis)}` : ""],
         ].map(([label, value, sub]) => (
           <div key={label}>
@@ -487,6 +487,13 @@ function FundExpensesCard({ fx, terms, ipEnd, todayISO }) {
           </div>
         ))}
       </div>
+      {callsNeeded.length > 0 && (
+        <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+          <span className="font-semibold">Capital call needed for fund expenses:</span>{" "}
+          {callsNeeded.map((c) => `${c.quarter.replace("-", " ")} ${fmtM(c.amount)}`).join(" · ")}. Fund cash and the sub line were exhausted; the model
+          assumes a call at quarter end until you enter it in Capital activity (Capital call, purpose Fees &amp; expenses or Sub line interest &amp; fees).
+        </p>
+      )}
       <button type="button" onClick={() => setOpen((o) => !o)} className="mt-2 text-[11px] font-medium text-blue-700 hover:underline">
         {open ? "Hide" : "Show"} by quarter
       </button>
@@ -495,7 +502,7 @@ function FundExpensesCard({ fx, terms, ipEnd, todayISO }) {
           <table className="w-full tabular-nums">
             <thead className="text-gray-500">
               <tr className="border-b border-gray-200">
-                {["Quarter", "Fee basis", "Mgmt fee", "Line interest", "Unused fee", "Expense-draw interest", "Paid from cash", "Drawn on line", "Income in", "Called", "Distributed", "Cash at end", "Minimum"].map((h) => (
+                {["Quarter", "Fee basis", "Mgmt fee", "Line interest", "Unused fee", "Expense-draw interest", "Paid from cash", "Drawn on line", "Income in", "Draws repaid", "Capital needed", "Distributed", "Cash at end", "Expense draws at end", "Minimum"].map((h) => (
                   <th key={h} className={`px-1.5 py-1 font-medium ${h === "Quarter" ? "text-left" : "text-right"}`}>{h}</th>
                 ))}
               </tr>
@@ -504,14 +511,18 @@ function FundExpensesCard({ fx, terms, ipEnd, todayISO }) {
               {fx.periods.map((p) => (
                 <tr key={p.quarter} className={`border-b border-gray-100 ${p.quarter > todayISO ? "text-gray-500" : "text-gray-800"}`}>
                   <td className="px-1.5 py-1">{qLabel(p.quarter)}</td>
-                  {[p.feeBasis, p.fee, p.lineInterest, p.lineUnused, p.bridgeInterest, p.fromCash, p.drawn, p.income, p.called, p.distributed, p.cashEnd, p.target].map((v, i) => (
+                  {[p.feeBasis, p.fee, p.lineInterest, p.lineUnused, p.bridgeInterest, p.fromCash, p.drawn, p.income, p.repaidFromIncome + p.repaidFromSales, p.called, p.distributed, p.cashEnd, p.bridgeEnd, p.target].map((v, i) => (
                     <td key={i} className="px-1.5 py-1 text-right">{fm(v)}</td>
                   ))}
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="mt-1 text-[10px] text-gray-400">Quarters after today (grey) are projections. Fees are LP-only; the part of a call that paid fees is called from LPs only.</p>
+          <p className="mt-1 text-[10px] text-gray-400">
+            Quarters after today (grey) are projections. Expenses are paid from fund cash, then drawn on the line up to its capacity;
+            income repays the draws, then rebuilds the minimum cash, then is distributed. Capital is needed only when cash and the line are
+            both exhausted (one call at quarter end; the fee part from LPs only).
+          </p>
         </div>
       )}
     </div>
@@ -778,7 +789,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         </div>
       </div>
 
-      <FundExpensesCard fx={flows.expenses} terms={terms} ipEnd={fd.investmentPeriodEnd} todayISO={todayISO} />
+      <FundExpensesCard fx={flows.expenses} terms={terms} ipEnd={fd.investmentPeriodEnd} todayISO={todayISO} callsNeeded={flows.expenseCallsNeeded ?? []} />
 
       {/* Subscription line */}
       {line && (
