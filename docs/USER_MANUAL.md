@@ -998,14 +998,19 @@ mark:
 
 | Quarter | Value used |
 |---|---|
-| Acquisition quarter | Cost = purchase price + capex budget |
-| Q2 and Q4 | The independent appraisal you enter or import |
-| Q1 and Q3 | Last mark rolled forward + capex entered since |
-| Any quarter | An entered value overrides the rule |
+| First 6 months: every quarter ending within 6 months of the acquisition date (the acquisition quarter and usually the next), whatever the quarter | Cost = purchase price + capex budget, plus capex entered since. No appraisal is due, and a value entered for these quarters is not used (shown struck through) |
+| Q2 and Q4 after that | The independent appraisal you enter or import |
+| Q1 and Q3 after that | Last mark rolled forward + capex entered since |
+| Any later quarter | An entered value overrides the rule |
+
+For example, an asset bought 1/30/2026 is held at cost at 3/31 and 6/30/2026
+(6/30 is within 6 months), and its first appraisal is due at 12/31/2026; one
+bought 8/14/2026 is held at cost at 9/30 and 12/31/2026, with its first
+appraisal at 6/30/2027 (`COST_HOLD_MONTHS = 6`).
 
 **Appraisal schedule.**
-- An appraisal is required at each Q2 and Q4 end after the acquisition
-  quarter.
+- An appraisal is required at each Q2 and Q4 end after the first 6 months
+  (none while the asset is held at cost).
 - It is "due" for 60 days after the quarter end, then "overdue".
 - Until an appraisal is entered, the asset stays at its roll-forward value.
 
