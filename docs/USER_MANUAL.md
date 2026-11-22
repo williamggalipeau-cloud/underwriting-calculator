@@ -60,6 +60,7 @@ full-model inputs for the active deal.
 | **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
 | **Asset Return** | Deal returns, the deal-level LP/GP waterfall and a comparison with the other saved deals. |
 | **Portfolio Return** | Funds: fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
+| **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 
 **Linked deals.** A linked deal's Quick Underwrite inputs are mapped onto the
@@ -182,6 +183,7 @@ underwriting-calculator/
 │   ├── ReturnsAnalysis.jsx   Asset Return tab
 │   ├── FundAnalysis.jsx      Portfolio Return tab (funds, waterfall, sub line, dry powder)
 │   ├── FundTermsEditor.jsx   New / edit fund dialog, template upload
+│   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
 │   └── SalesComps.jsx        Sales Comps tab
 ├── lib/                      Calculation engine and data (no UI)
 │   ├── calculations.js       Core engine: underwrite(), loan math, IRR, waterfall, sensitivity
@@ -195,6 +197,7 @@ underwriting-calculator/
 │   ├── fundTerms.js          Fund terms defaults, template, import/export, CSV parser
 │   ├── subLine.js            Subscription line simulation
 │   ├── samplePortfolio.js    Nine sample assets, deal snapshot for funds
+│   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
 │   ├── testScenario.js       "Load test scenario" data
 │   └── xlsx.js               Dependency-free .xlsx reader and writer
@@ -578,7 +581,68 @@ Structured like the base deal:
 - **Apply to deal:** exit cap = median cap + spread (25 bp default), rounded
   to 0.01%.
 
-### 7.15 Stress test and sensitivity
+### 7.15 Fair value and interim returns (`lib/valuations.js`)
+
+Every completed calendar quarter end (on or before today) that an asset is
+held, from its acquisition quarter to the quarter before its sale, gets a
+mark:
+
+| Quarter | Value used |
+|---|---|
+| Acquisition quarter | Cost = purchase price + capex budget |
+| Q2 and Q4 | The independent appraisal you enter or import |
+| Q1 and Q3 | Last mark rolled forward + capex entered since |
+| Any quarter | An entered value overrides the rule |
+
+**Appraisal schedule.**
+- An appraisal is required at each Q2 and Q4 end after the acquisition
+  quarter.
+- It is "due" for 60 days after the quarter end, then "overdue".
+- Until an appraisal is entered, the asset stays at its roll-forward value.
+
+**Per asset, each quarter:**
+
+```
+Equity NAV        = fair value − loan balance + asset cash reserve
+Unrealized gain   = fair value − (cost basis + capex since)
+Implied cap       = forward 12-month NOI (current hold year) ÷ fair value
+Contributions     = asset capital calls to date
+Distributions     = asset income + sale distributions to date
+Interim IRR       = XIRR of actual flows to date + NAV on the quarter end
+TVPI              = (distributions + NAV) ÷ contributions
+DPI               = distributions ÷ contributions
+RVPI              = NAV ÷ contributions
+```
+
+- The loan balance is the balance at the start of the hold year.
+- The cash reserve is the balance kept under the distribution policy (§7.9).
+
+**Fund, each quarter:**
+- **Fund NAV** = Σ asset NAV.
+- **Gross** interim returns use all assets' flows plus fund NAV.
+- **Net LP** assumes a hypothetical liquidation on the quarter end:
+  1. NAV less the subscription line balance becomes a capital event.
+  2. That event runs through the fund waterfall (§7.10) with the actual
+     flows to date.
+  3. LP NAV is the LP share of that event.
+- Net LP shows "n/m" while LPs have funded nothing (purchases still on the
+  sub line).
+- IRRs over less than one year show "n/m".
+
+Closing costs and cap premiums are not in fair value, so TVPI starts below
+1.0× (the J-curve).
+
+**Import / export.**
+- **Import:** Excel or CSV with Asset, Quarter end, Fair value, and
+  optionally Source, Appraiser, Cap rate, Capex since last mark and Notes.
+  Assets are matched by deal name. Any date in a quarter, or "2026 Q2", is
+  filed at that quarter end.
+- **Export history:** writes every asset-quarter (the importable columns
+  first, then the computed values) and the fund-by-quarter table.
+- Marks are saved with the workspace and included in Export / Import
+  workspace.
+
+### 7.16 Stress test and sensitivity
 
 **Stress sliders:**
 - **Vacancy +x pts:**
