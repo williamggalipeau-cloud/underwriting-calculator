@@ -12,6 +12,7 @@ import Leases from "@/components/Leases";
 import SellHold from "@/components/SellHold";
 import { withLocation } from "@/lib/assetLocations";
 import { MTM_MODEL, mtmIndex, toRentRollNOI, withMarkToMarket } from "@/lib/sampleRentRolls";
+import { withSicCodes } from "@/lib/sicCodes";
 import UnitRoll from "@/components/UnitRoll";
 import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
@@ -158,11 +159,26 @@ function normalizeWorkspaceFunds(saved) {
       savedDeals: out.savedDeals.map((d) => (inFund(d) ? { ...d, ...snapshotDeal(mtm(d.inputs), d.id) } : d)),
     };
   }
-  return runNoi(out);
+  return runSic(runNoi(out));
+}
+
+// Tenant SIC codes (once per workspace): generic sample tenants ("Tenant
+// 001") get a fictional business, and every tenant with a business and no
+// SIC code gets the suggested code. Applies to every deal in the workspace.
+function runSic(o) {
+  const f = o.funds[SAMPLE_FUND_NAME];
+  if (!f || f.sicModel === SIC_MODEL) return o;
+  const has = (d) => (d.inputs?.units ?? []).length > 0;
+  const sic = (inputs) => ({ ...inputs, units: withSicCodes(inputs.units, mtmIndex(inputs.propertyName)) });
+  return {
+    funds: { ...o.funds, [SAMPLE_FUND_NAME]: { ...f, sicModel: SIC_MODEL } },
+    deals: o.deals.map((d) => (has(d) ? { ...d, inputs: sic(d.inputs) } : d)),
+    savedDeals: o.savedDeals.map((d) => (has(d) ? { ...d, ...snapshotDeal(sic(d.inputs), d.id) } : d)),
+  };
 }
 
 function initialFunds() {
-  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS, rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL } };
+  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS, rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL } };
 }
 
 function fmtISODate(iso) {
@@ -334,6 +350,7 @@ function linkedDeal(id = "deal-1") {
 const REMOVED_SAMPLE_ASSETS = ["Light Industrial (30k SF)", ...REMOVED_TEST_ASSETS];
 const TEST_DATA_MODEL = "v2";
 const NOI_MODEL = "rentroll-v1";
+const SIC_MODEL = "sic-v1";
 
 // The app opens with a live fund: the nine sample assets, all editable
 // deals in Model Fund I.
@@ -1048,7 +1065,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL } };
     });
     setActiveTab("fund");
   }
