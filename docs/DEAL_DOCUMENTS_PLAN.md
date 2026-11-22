@@ -81,6 +81,7 @@ are reviewed.
    a separate Documents tab.**
 2. ~~PSA abstracts without connector validation~~ **Decided (11/22):
    acceptable, checked locally and labelled "not connector-validated".**
-3. Start E automatically after D, or after you review C and D (recommended).
+3. ~~When to start E~~ **Decided (11/22): after the user reviews C and D**
+   (not scheduled automatically).
 4. Deal Review quota: the lease connector shows 3 free documents left. Bulk use
    likely needs a paid plan.
