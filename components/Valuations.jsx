@@ -11,6 +11,8 @@ import {
   marksTemplateXlsx,
   quarterLabel,
   valuationHistoryXlsx,
+  valuationImpact,
+  valueTrend,
 } from "@/lib/valuations";
 
 const fmt = (n, d = 0) =>
@@ -29,6 +31,70 @@ const fmtDate = (iso) => {
   return `${Number(m)}/${Number(d)}/${y}`;
 };
 const irrText = (irr, years) => (years < MIN_IRR_YEARS ? "n/m" : fmtPct(irr));
+const signed = (n, f) => (n == null || !isFinite(n) ? "—" : n > 0 ? `+${f(n)}` : f(n));
+const tone = (n) => (n > 0 ? "text-emerald-700" : n < 0 ? "text-red-600" : "text-gray-500");
+
+function Change({ c }) {
+  if (!c) return null;
+  if (c.acquired) return <div className="text-[10px] text-gray-400">Acquired</div>;
+  return (
+    <div className={`text-[10px] ${tone(c.change)}`}>
+      {signed(c.change, fmtM)} <span className="text-gray-400">·</span> {signed(c.changePct, (n) => fmtPct(n, 1))}
+    </div>
+  );
+}
+
+// Fair value for the last four quarters with the change from each prior quarter.
+function ValueTrend({ trend }) {
+  if (!trend.quarters.length) return null;
+  return (
+    <div className="overflow-x-auto rounded-xl border border-gray-200" data-testid="value-trend">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 bg-gray-50 px-3 py-2">
+        <h4 className="text-xs font-semibold text-gray-700">Value change, quarter over quarter</h4>
+        <span className="text-[10px] text-gray-400">Last four quarters to {quarterLabel(trend.quarters.at(-1))} · change from the prior quarter in $ and %</span>
+      </div>
+      <table className="w-full text-xs tabular-nums">
+        <thead className="text-gray-500">
+          <tr>
+            <th className="px-2.5 py-2 text-left font-medium">Asset</th>
+            {trend.quarters.map((q) => <th key={q} className="px-2.5 py-2 text-right font-medium whitespace-nowrap">{quarterLabel(q)}</th>)}
+            <th className="px-2.5 py-2 text-right font-medium whitespace-nowrap" title="Exit cap rate in the asset's plan (deal inputs)">Exit cap (plan)</th>
+            <th className="px-2.5 py-2 text-right font-medium whitespace-nowrap" title="Forward NOI ÷ fair value at the latest quarter">Implied cap now</th>
+          </tr>
+        </thead>
+        <tbody>
+          {trend.assets.map((a) => (
+            <tr key={a.id} className="border-t border-gray-100">
+              <td className="px-2.5 py-1.5 text-left font-medium text-gray-800">{a.name}</td>
+              {a.cells.map((c, i) => (
+                <td key={i} className="px-2.5 py-1.5 text-right align-top">
+                  {c ? <><div className="font-medium text-gray-900">{fmtM(c.value)}</div><Change c={c} /></> : <span className="text-gray-300">—</span>}
+                </td>
+              ))}
+              <td className="px-2.5 py-1.5 text-right align-top">{fmtPct(a.exitCapPct, 2)}</td>
+              <td className="px-2.5 py-1.5 text-right align-top text-gray-600">{fmtPct(a.impliedCap, 2)}</td>
+            </tr>
+          ))}
+          <tr className="border-t-2 border-gray-200 bg-gray-50/60">
+            <td className="px-2.5 py-1.5 text-left font-semibold text-gray-800">
+              Fund total
+              <div className="text-[10px] font-normal text-gray-400">Same-store: assets valued in both quarters</div>
+            </td>
+            {trend.fund.map((f) => (
+              <td key={f.quarterEnd} className="px-2.5 py-1.5 text-right align-top">
+                <div className="font-semibold text-gray-900">{fmtM(f.value)}</div>
+                <div className={`text-[10px] ${tone(f.change)}`}>{signed(f.change, fmtM)} · {signed(f.changePct, (n) => fmtPct(n, 1))}</div>
+                <div className={`text-[10px] ${tone(f.sameStoreChange)}`}>same-store {signed(f.sameStorePct, (n) => fmtPct(n, 1))}</div>
+              </td>
+            ))}
+            <td className="px-2.5 py-1.5 text-right align-top font-semibold" title="Weighted by fair value">{fmtPct(trend.fundExitCapPct, 2)}</td>
+            <td />
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 const BASIS = {
   appraisal: { label: "Appraisal", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -251,6 +317,21 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
           <button
             type="button"
             disabled={!quarters.length}
+            title="PDF summary of quarter-over-quarter value changes by asset (four quarters to the As of quarter)"
+            onClick={async () => {
+              const { valueTrendPdf } = await import("@/lib/valuationPdf");
+              const trend = valueTrend(val, asOf, 4);
+              const impact = valuationImpact(fundDeals, marks, terms, { todayISO, curve }, val, trend.quarters);
+              const blob = await valueTrendPdf(val, trend, { fundName, todayISO, impact });
+              downloadBlob(blob, `${safeFileName(fundName)}-valuation-changes-${asOf}.pdf`);
+            }}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+          >
+            Export PDF
+          </button>
+          <button
+            type="button"
+            disabled={!quarters.length}
             onClick={async () => downloadBlob(await valuationHistoryXlsx(val), `${safeFileName(fundName)}-valuations.xlsx`)}
             className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40"
           >
@@ -399,6 +480,8 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
               </tbody>
             </table>
           </div>
+
+          <ValueTrend trend={valueTrend(val, asOf, 4)} />
 
           {/* Fund by quarter */}
           <div className="overflow-x-auto rounded-xl border border-gray-200">
