@@ -152,8 +152,10 @@ Underwrite edit. Unlink the deal to edit the full model directly.
 field.
 - **Matching:** names match regardless of capitals or extra spaces, so
   "Model Fund I" and "model fund i " are one fund. The sample fund's former
-  name, "Light Industrial Fund I", is merged into Model Fund I. Workspaces
-  saved under either spelling are cleaned up when they load.
+  name, "Light Industrial Fund I", is merged into Model Fund I, and so is
+  "Fund I", the separate fund the test scenario used to create. Workspaces
+  saved under any of these names are cleaned up when they load. (Because of
+  this, a fund can't be named "Fund I"; use another name.)
 - **Open deals with no fund:** these (for example after **Remove** in a fund's
   roster) are listed on Portfolio Return with an **Add to fund** button.
   Until then they are left out of fund returns, attribution, capital
@@ -163,7 +165,10 @@ field.
 
 **Sample portfolio.** The app opens with "Model Fund I": your deal
 plus nine illustrative light-industrial assets (§7.13). **Load Model
-Fund I** restores them and **Clear test data** removes them.
+Fund I** restores them and **Clear test data** removes them. **Load test
+scenario** adds four more deals (Small Bay Industrial — Phase I, Eastside
+Distribution Hub, Northgate Flex Center, Riverside Commerce Park) to Model
+Fund I.
 
 ---
 
