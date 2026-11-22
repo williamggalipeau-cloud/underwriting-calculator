@@ -96,6 +96,7 @@ full-model inputs for the active deal.
 | **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
 | **Asset Return** | Deal returns, the deal-level LP/GP waterfall and a comparison with the other saved deals. |
 | **Portfolio Return** | Funds: fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
+| **Asset Summary** | One row per asset in a fund: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 
@@ -219,6 +220,7 @@ underwriting-calculator/
 │   ├── ReturnsAnalysis.jsx   Asset Return tab
 │   ├── FundAnalysis.jsx      Portfolio Return tab (funds, waterfall, sub line, dry powder)
 │   ├── FundTermsEditor.jsx   New / edit fund dialog, template upload
+│   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
 │   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
 │   └── SalesComps.jsx        Sales Comps tab
 ├── lib/                      Calculation engine and data (no UI)
@@ -233,6 +235,7 @@ underwriting-calculator/
 │   ├── fundTerms.js          Fund terms defaults, template, import/export, CSV parser
 │   ├── subLine.js            Subscription line simulation
 │   ├── samplePortfolio.js    Nine sample assets, deal snapshot for funds
+│   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
 │   ├── testScenario.js       "Load test scenario" data
@@ -749,7 +752,33 @@ Closing costs and cap premiums are not in fair value, so TVPI starts below
 - Marks are saved with the workspace and included in Export / Import
   workspace.
 
-### 7.16 Stress test and sensitivity
+### 7.16 Asset Summary (`lib/assetSummary.js`)
+
+One row per asset in the selected fund.
+
+| Column | Source |
+|---|---|
+| Status | Pipeline (acquisition date after today), Owned, or Sold (exit date on or before today) |
+| Acquired / Exit, hold | The deal's acquisition date and hold |
+| SF, price, $/SF | Deal inputs |
+| Loan, loan / price, equity | The full engine. The loan includes lender-funded capex, so loan / price can exceed the LTV input. |
+| Funding | From capital activity tags: Capital call, Sub line, Call + line, Not tagged, or — when the fund has no activity |
+| Yr-1 NOI, going-in cap, exit cap, exit value, IRR, multiple, yr-1 CoC, yr-1 DSCR | The full engine on the deal's current inputs (gross, before fund fees and promote) |
+| Fair value, NAV, unrealized, TVPI | The Valuations tab (§7.15), as of the last completed quarter |
+
+**Fund total row:**
+- **Summed:** SF and all dollar figures.
+- **Weighted:** $/SF = total price ÷ total SF; loan / price = total loan ÷
+  total price; going-in cap = total year-1 NOI ÷ total price; exit cap =
+  total exit NOI ÷ total exit value.
+- **IRR:** pooled XIRR of all assets' dated equity cash flows.
+- **Multiple:** total distributions ÷ total equity.
+- **TVPI:** (total distributions to date + total NAV) ÷ total
+  contributions.
+
+**Export to Excel** writes every row plus the total.
+
+### 7.17 Stress test and sensitivity
 
 **Stress sliders:**
 - **Vacancy +x pts:**

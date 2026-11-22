@@ -14,6 +14,7 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Valuations from "@/components/Valuations";
+import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
 import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -241,6 +242,7 @@ const TABS = [
   { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
   { id: "fund",        label: "Portfolio Return" },
+  { id: "assets",      label: "Asset Summary" },
   { id: "valuations",  label: "Valuations" },
   { id: "comps",       label: "Sales Comps" },
 ];
@@ -1171,6 +1173,19 @@ export default function Home() {
                 onEditFund={(name) => setFundEditor({ mode: "edit", name })}
                 onDeleteFund={handleDeleteFund}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
+              />
+            )}
+            {activeTab === "assets" && (
+              <AssetSummary
+                deals={fundDeals}
+                funds={funds}
+                marks={valuations}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                onOpenDeal={(id) => {
+                  if (!deals.some((d) => d.id === id)) return;
+                  setActiveDealId(id);
+                  setActiveTab("quick");
+                }}
               />
             )}
             {activeTab === "valuations" && (
