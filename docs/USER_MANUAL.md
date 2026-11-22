@@ -32,6 +32,8 @@ a dry-powder calculation. It also has a sales comps tool.
 - **Your work can be saved to a file** (Chrome or Edge). See
   [Saving your work](#saving-your-work) below. It is also always saved in
   your browser as a backup.
+- **Changes are logged.** The Change Log tab records what changed, when and
+  who changed it, using the name entered in each browser (§7.17).
 - **Live data:** the only automatic outside calls are to the New York Fed for
   current SOFR, and an optional one for CME SOFR futures (see §5).
 
@@ -63,6 +65,9 @@ imported forward curve. It is saved in two places.
   **Save now** first if you made changes in the last few minutes.
 - **One tab at a time:** keep the file open in one tab. Two tabs saving to the
   same file overwrite each other.
+
+The change log (§7.17) is part of the workspace, so it is saved in both
+places and travels with exports.
 
 **2. The browser (always on).** Every change is also saved instantly in this
 browser (`localStorage`, key `uw-workspace-v1`), as a backup. That save stays
@@ -957,6 +962,10 @@ The inputs are the Quick Underwrite defaults:
 12. **The linked file saves every 10 minutes.** Changes made since the last
     save are only in the browser until then. Use Save now before closing if
     in doubt.
+13. **The change log is a working record, not a tamper-proof audit
+    trail.** Names are typed in each browser and not verified, and anyone
+    who can edit the workspace file can edit the log. A verified audit trail
+    needs a database with user logins.
 
 ---
 
