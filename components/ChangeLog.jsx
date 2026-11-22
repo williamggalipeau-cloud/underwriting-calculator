@@ -11,7 +11,10 @@ const fmtTime = (iso) => {
 };
 const PAGE = 200;
 
-export default function ChangeLog({ log = [], user, onUserChange }) {
+export default function ChangeLog({ log: browserLog = [], user, onUserChange, signedInEmail = null, dbLog = null, dbName }) {
+  const [source, setSource] = useState("auto");
+  const useDb = dbLog && source !== "browser";
+  const log = useDb ? dbLog : browserLog;
   const [q, setQ] = useState("");
   const [area, setArea] = useState("");
   const [who, setWho] = useState("");
@@ -46,18 +49,44 @@ export default function ChangeLog({ log = [], user, onUserChange }) {
             Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: what changed, when, and who made it.
           </p>
         </div>
-        <label className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs">
-          <span className="font-medium text-blue-900">Your name</span>
-          <input
-            value={user}
-            onChange={(e) => onUserChange(e.target.value)}
-            placeholder="Enter your name"
-            className="w-44 rounded-md border border-blue-200 bg-white px-2 py-1 text-gray-900"
-            aria-label="Your name for the change log"
-          />
-        </label>
+        {signedInEmail ? (
+          <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+            Signed in as <span className="font-semibold">{signedInEmail}</span>. Your changes are attributed to this email.
+          </span>
+        ) : (
+          <label className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs">
+            <span className="font-medium text-blue-900">Your name</span>
+            <input
+              value={user}
+              onChange={(e) => onUserChange(e.target.value)}
+              placeholder="Enter your name"
+              className="w-44 rounded-md border border-blue-200 bg-white px-2 py-1 text-gray-900"
+              aria-label="Your name for the change log"
+            />
+          </label>
+        )}
       </div>
-      {!user.trim() && (
+      {dbLog && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-gray-500">Show</span>
+          {[["auto", `Database: ${dbName || "workspace"} (verified)`], ["browser", "This browser"]].map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setSource(k)}
+              className={`rounded-lg border px-2.5 py-1 font-medium ${(k === "browser") === (source === "browser") ? "border-blue-300 bg-blue-50 text-blue-800" : "border-gray-200 bg-white text-gray-600"}`}
+            >
+              {label}
+            </button>
+          ))}
+          {useDb && (
+            <span className="text-gray-500">
+              Recorded by the database on each save: user from sign-in, server time; entries can&apos;t be edited or deleted.
+            </span>
+          )}
+        </div>
+      )}
+      {!signedInEmail && !user.trim() && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
           Enter your name above so your changes are attributed to you. Until then they are logged as &quot;Unknown user&quot;.
         </p>

@@ -69,6 +69,37 @@ imported forward curve. It is saved in two places.
 The change log (§7.17) is part of the workspace, so it is saved in both
 places and travels with exports.
 
+**Database (Supabase): shared and verified.** Click **☁ Sign in** (top
+right), enter your email and open the sign-in link. Then **☁ Database →
+Save to database** creates a shared workspace.
+- **Saving:** changes save to it on the same schedule as a linked file
+  (every 10 minutes when changed, on **Save now**, and when you leave), and
+  every save is a new version.
+- **Status:** the ☁ label shows the workspace name, version and save status.
+- **Reopening:** next time you sign in on this browser, the linked workspace
+  reopens automatically.
+- **Conflicts:** if someone else saved first, choose **Open latest** (load
+  theirs) or **Keep mine** (save over it; theirs stays in the version
+  history).
+- **Sharing:** owners add people under **☁ Database → People with access**
+  as owner, editor or viewer. People who haven't signed in yet get access on
+  their first sign-in with that email.
+- **Verified change log:** the database records every changed field with
+  the signed-in email and the server's time, and no one can edit or delete
+  those entries.
+
+One-time setup:
+1. In Supabase, open **SQL Editor → New query**, paste
+   [`supabase/setup.sql`](../supabase/setup.sql) and click **Run**. It's safe
+   to run again.
+2. Under **Authentication → URL Configuration**, set the **Site URL** and a
+   **Redirect URL** to
+   `https://williamggalipeau-cloud.github.io/underwriting-calculator/`.
+3. The project URL and publishable key are in `lib/cloud.js`. The
+   publishable key is designed to be public: sign-in and the database's
+   row-level security rules protect the data. Never put the `service_role`
+   (secret) key in the app.
+
 **2. The browser (always on).** Every change is also saved instantly in this
 browser (`localStorage`, key `uw-workspace-v1`), as a backup. That save stays
 in this browser and doesn't follow you to another browser or device.
@@ -242,6 +273,7 @@ underwriting-calculator/
 │   ├── FundTermsEditor.jsx   New / edit fund dialog, template upload
 │   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
 │   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
+│   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
 │   └── SalesComps.jsx        Sales Comps tab
 ├── lib/                      Calculation engine and data (no UI)
@@ -256,6 +288,7 @@ underwriting-calculator/
 │   ├── fundTerms.js          Fund terms defaults, template, import/export, CSV parser
 │   ├── subLine.js            Subscription line simulation
 │   ├── samplePortfolio.js    Nine sample assets, deal snapshot for funds
+│   ├── cloud.js              Supabase: sign-in, workspaces, saving, members, audit log
 │   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
 │   ├── valuations.js         Fair value marks, asset/fund NAV, interim returns, appraisal schedule
@@ -264,6 +297,7 @@ underwriting-calculator/
 │   ├── workspaceFile.js      Linked workspace file (save to / open a .json file)
 │   └── xlsx.js               Dependency-free .xlsx reader and writer
 ├── docs/USER_MANUAL.md       This manual
+├── supabase/setup.sql        Database setup (run once in the Supabase SQL Editor)
 ├── public/                   Static icons
 ├── .github/workflows/deploy.yml   Build and publish to GitHub Pages on push to main
 ├── next.config.js            Static export, basePath /underwriting-calculator
@@ -851,6 +885,13 @@ previous save and records one entry per changed field:
   load.
 - **Size:** the latest 10,000 entries are kept.
 
+**Database (verified) log.** When the workspace is saved to the database,
+each save sends the fields changed since the previous save. The database
+stamps every row with the signed-in user's email and the server time, and
+rows can't be changed or deleted. Change Log shows this verified log by
+default (**Database (verified)**), with **This browser** for the local log.
+Signed in, local entries also use your email instead of a typed name.
+
 **Storage.** The log is saved with the workspace (`auditLog`), so it goes
 with linked files and exports. Your name is stored in this browser only
 (key `uw-audit-user`).
@@ -962,10 +1003,14 @@ The inputs are the Quick Underwrite defaults:
 12. **The linked file saves every 10 minutes.** Changes made since the last
     save are only in the browser until then. Use Save now before closing if
     in doubt.
-13. **The change log is a working record, not a tamper-proof audit
-    trail.** Names are typed in each browser and not verified, and anyone
-    who can edit the workspace file can edit the log. A verified audit trail
-    needs a database with user logins.
+13. **The browser change log is a working record.** Names are typed in
+    each browser and not verified, and anyone who can edit the workspace
+    file can edit that log. For a verified log, save to the database: there
+    the signed-in user and server time are recorded on each save, and
+    entries can't be edited or deleted.
+14. **The database is only as private as its access list.** Owners decide
+    who can open a workspace. Supabase hosts the data (encrypted at rest).
+    Deleting a workspace deletes its versions and audit history.
 
 ---
 
@@ -1019,6 +1064,8 @@ units, its default, and what it means.
 | **Browser database** (IndexedDB `uw-workspace-file`, store `handles`, key `workspace`) | Which linked file to reopen | Only the file's handle, not its contents |
 | **Export workspace** file (`underwriting-workspace-<date>.json`) | A copy of the workspace | Written only when you click Export |
 | **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once | Their contents are copied into the workspace; the files aren't kept |
+| **Supabase database** (project `nydqmigxorahfkfpkjnq`) | Shared workspaces: `workspaces` (the workspace JSON, `version`, last saved by/at), `workspace_versions` (every earlier version), `workspace_members` / `workspace_invites` (who has access, role), `audit_log` (one row per changed field: `at`, `user_email`, `area`, `item`, `field`, `path`, `from_value`, `to_value`, `note`, `version`) | Created by `supabase/setup.sql`; written only through database functions |
+| **Browser storage** (keys `sb-nydqmigxorahfkfpkjnq-auth-token`, `uw-db-link`, `uw-db-dirty`) | Your sign-in session; which database workspace this browser saves to; whether it has unsaved changes | This browser only |
 | **Not stored** | Live NY Fed rates, calculated results (§11.12), snapshots of open deals | Recalculated each time the page loads or an input changes |
 
 The **Stored at** column gives each field's path inside the workspace JSON:
