@@ -13,6 +13,7 @@ import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
+import Valuations from "@/components/Valuations";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
 import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -226,6 +227,7 @@ const TABS = [
   { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
   { id: "fund",        label: "Portfolio Return" },
+  { id: "valuations",  label: "Valuations" },
   { id: "comps",       label: "Sales Comps" },
 ];
 
@@ -251,6 +253,8 @@ export default function Home() {
   const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
   const [savedAt, setSavedAt] = useState(null);
   const [comps, setComps] = useState(DEFAULT_COMPS_STATE);
+  // Fair value marks: { [dealId]: { [quarterEndISO]: { value, source, appraiser, capRate, capex, notes } } }
+  const [valuations, setValuations] = useState({});
   const hydrated = useRef(false);
   const importRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null); // { ok, text }
@@ -349,6 +353,7 @@ export default function Home() {
         if (saved.deals.some((d) => d.id === saved.activeDealId)) setActiveDealId(saved.activeDealId);
         setSavedAt(saved.savedAt ?? null);
         if (saved.comps) setComps({ ...DEFAULT_COMPS_STATE, ...saved.comps });
+        if (saved.valuations && typeof saved.valuations === "object") setValuations(saved.valuations);
       })
       .finally(() => {
         hydrated.current = true;
@@ -375,7 +380,7 @@ export default function Home() {
         const at = new Date().toISOString();
         window.localStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps })
+          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations })
         );
         setSavedAt(at);
       } catch {
@@ -383,13 +388,13 @@ export default function Home() {
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps]);
+  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations]);
 
   // ── Export / import the workspace as a JSON file (to move it between
   // browsers or computers). Same content as the browser save.
   function handleExportWorkspace() {
     const at = new Date().toISOString();
-    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps };
+    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations };
     downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `underwriting-workspace-${at.slice(0, 10)}.json`);
     setImportMsg({ ok: true, text: `Exported ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
@@ -424,6 +429,7 @@ export default function Home() {
     setAnchorToLive(anchor);
     setActiveDealId(saved.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : saved.deals[0].id);
     setComps({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
+    setValuations(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
     // Re-anchor the imported curve to today's live rate, as on page load.
     if (anchor && live?.avg30) applyCurveToDeals(anchorCurveToLive(base, live.avg30.rate).curve);
     setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
@@ -439,6 +445,7 @@ export default function Home() {
     const fresh = initialDeals();
     setSavedDeals([]);
     setComps(DEFAULT_COMPS_STATE);
+    setValuations({});
     setFunds(initialFunds());
     setBaseCurve(DEFAULT_CURVE);
     setAnchorToLive(true);
@@ -949,6 +956,15 @@ export default function Home() {
                 onNewFund={() => setFundEditor({ mode: "new" })}
                 onEditFund={(name) => setFundEditor({ mode: "edit", name })}
                 onDeleteFund={handleDeleteFund}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+              />
+            )}
+            {activeTab === "valuations" && (
+              <Valuations
+                deals={fundDeals}
+                funds={funds}
+                marks={valuations}
+                onMarksChange={setValuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
             )}
