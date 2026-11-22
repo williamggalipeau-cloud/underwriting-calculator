@@ -139,7 +139,7 @@ function AssetDetail({ row, onOpenDeal, onClose }) {
   const cell = (v) => (Math.abs(v) < 0.5 ? <span className="text-gray-300">—</span> : <span className={v < 0 ? "text-red-600" : ""}>{fmtM(v)}</span>);
 
   return (
-    <div id="asset-detail" className="rounded-xl border border-blue-200 bg-white p-4 space-y-4">
+    <div id="asset-detail" className="rounded-xl border border-blue-200 bg-white p-4 space-y-4 text-gray-900">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="text-base font-bold text-gray-900">{row.name}</h3>
@@ -349,7 +349,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-gray-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Asset Summary</h2>
@@ -393,7 +393,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-gray-200">
-        <table className="w-full text-xs tabular-nums">
+        <table className="w-full text-xs tabular-nums text-gray-900">
           <thead>
             <tr className="text-[10px] uppercase tracking-wide text-gray-400">
               <th className="sticky left-0 z-10 bg-white px-2.5 pt-2 text-left font-medium"></th>

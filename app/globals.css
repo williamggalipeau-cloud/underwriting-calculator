@@ -12,11 +12,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* The app is designed for a light background (white panels and tables), so
+   it stays light even when the computer is in dark mode. Following dark mode
+   only for the page text made it near-white on white panels. */
+:root {
+  color-scheme: light;
 }
 
 body {
