@@ -48,6 +48,8 @@ const COLUMNS = [
   ["pricePSF", "$/SF", (r) => `$${fmt(r.pricePSF)}`, (r) => r.pricePSF, "Capital"],
   ["loan", "Loan", (r) => fmtM(r.loan), (r) => r.loan, "Capital"],
   ["ltv", "Loan / price", (r) => fmtPct(r.ltv, 0), (r) => r.ltv, "Capital"],
+  ["sizedBy", "Sized by", (r) => <span title={`${r.sizing.tested} sizing test${r.sizing.tested === 1 ? "" : "s"} on (Debt tab)`}>{r.sizing.binding}</span>, (r) => r.sizing.binding, "Capital"],
+  ["cushion", "Sizing cushion", (r) => (isFinite(r.sizing.cushionPct) ? <span className={r.sizing.cushionPct < 5 ? "text-amber-700" : ""} title={`Loan could grow ${fmtPct(r.sizing.cushionPct)} before ${r.sizing.next} binds`}>{fmtPct(r.sizing.cushionPct)}</span> : <span className="text-gray-400" title="Only one sizing test is on">—</span>), (r) => (isFinite(r.sizing.cushionPct) ? r.sizing.cushionPct : -Infinity), "Capital"],
   ["equity", "Equity", (r) => fmtM(r.equity), (r) => r.equity, "Capital"],
   ["funding", "Funding", (r) => <span className={FUNDING[r.funding.label] ?? ""}>{r.funding.label}</span>, (r) => r.funding.label, "Capital"],
   ["noi1", "Yr-1 NOI", (r) => fmtM(r.noi1), (r) => r.noi1, "Underwriting"],
@@ -184,6 +186,15 @@ function AssetDetail({ row, onOpenDeal, onClose }) {
           <Fact label="Extension fee" value={inp.extensionFeeAmount ? fmtM(inp.extensionFeeAmount) : inp.extensionFeePct ? fmtPct(inp.extensionFeePct, 2) : "—"} />
           <Fact label="Rate cap strike" value={sofrStrike != null ? `${fmtPct(sofrStrike, 2)} SOFR` : "—"} sub={inp.capTermYears ? `${inp.capTermYears}-yr caps` : ""} />
           <Fact label="Year-1 DSCR" value={isFinite(row.dscr1) ? `${row.dscr1.toFixed(2)}x` : "—"} sub={`debt yield ${fmtPct(debt.debtYield)}`} />
+          <h4 className="mb-1 mt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Loan sizing</h4>
+          {row.sizing.tests.map((t) => (
+            <Fact
+              key={t.name}
+              label={`${t.name} ${t.target}`}
+              value={t.on && t.amount > 0 ? fmtM(t.amount) : "off"}
+              sub={t.name === row.sizing.binding ? "sets the loan" : t.on && t.amount > 0 && debt.loanAmount > 0 ? `+${fmtPct((t.amount / (row.sizing.tests.find((x) => x.name === row.sizing.binding)?.amount || 1) - 1) * 100)} room` : ""}
+            />
+          ))}
         </div>
         <div>
           <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Fees & exit</h4>
@@ -352,7 +363,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
     occupancy: t.rentRolls ? <span title={`${t.rentRolls} assets with a rent roll`}>{fmtPct(t.occupancyPct, 0)}</span> : "—",
     vacancy: t.rentRolls ? <span title="Vacant SF ÷ rent roll SF, assets with a rent roll">{fmtPct(t.vacancyPct, 0)}</span> : "—",
     walt: isFinite(t.walt) ? `${t.walt.toFixed(1)} yrs` : "—",
-    price: fmtM(t.price), pricePSF: `$${fmt(t.pricePSF)}`, loan: fmtM(t.loan), ltv: fmtPct(t.ltv, 0), equity: fmtM(t.equity), funding: "",
+    price: fmtM(t.price), pricePSF: `$${fmt(t.pricePSF)}`, loan: fmtM(t.loan), ltv: fmtPct(t.ltv, 0), sizedBy: "", cushion: "", equity: fmtM(t.equity), funding: "",
     noi1: fmtM(t.noi1), goingInCap: fmtPct(t.goingInCap, 2), exitCap: fmtPct(t.exitCap, 2), exitValue: fmtM(t.exitValue),
     irr: fmtPct(t.irr), em: fmtX(t.em), coc1: "", dscr1: "",
     fv: t.valuation ? fmtM(t.valuation.value) : "—", nav: t.valuation ? fmtM(t.valuation.nav) : "—",

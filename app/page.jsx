@@ -22,7 +22,7 @@ import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
+import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -166,6 +166,24 @@ function normalizeWorkspaceFunds(saved) {
 // 001") get a fictional business, and every tenant with a business and no
 // SIC code gets the suggested code. Applies to every deal in the workspace.
 function runSic(o) {
+  return runSizing(runSicCodes(o));
+}
+
+// Loan sizing tests (once per workspace): every Model Fund I asset sizes its
+// loan on the lesser of LTV, 1.25x DSCR, 75% LTC and an 8% debt yield
+// (values already entered are kept).
+function runSizing(o) {
+  const f = o.funds[SAMPLE_FUND_NAME];
+  if (!f || f.sizingModel === SIZING_MODEL) return o;
+  const inFund = (d) => d.inputs?.fundName === SAMPLE_FUND_NAME;
+  return {
+    funds: { ...o.funds, [SAMPLE_FUND_NAME]: { ...f, sizingModel: SIZING_MODEL } },
+    deals: o.deals.map((d) => (inFund(d) ? { ...d, inputs: withSizingConstraints(d.inputs) } : d)),
+    savedDeals: o.savedDeals.map((d) => (inFund(d) ? { ...d, ...snapshotDeal(withSizingConstraints(d.inputs), d.id) } : d)),
+  };
+}
+
+function runSicCodes(o) {
   const f = o.funds[SAMPLE_FUND_NAME];
   if (!f || f.sicModel === SIC_MODEL) return o;
   const has = (d) => (d.inputs?.units ?? []).length > 0;
@@ -178,7 +196,7 @@ function runSic(o) {
 }
 
 function initialFunds() {
-  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS, rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL } };
+  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS, rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
 }
 
 function fmtISODate(iso) {
@@ -267,11 +285,11 @@ const DEFAULT_INPUTS = {
   lenderName: "",
 
   loanSizingConstraints: {
-    minDSCREnabled:     false,
+    minDSCREnabled:     true,
     minDSCR:            1.25,
-    maxLTCEnabled:      false,
+    maxLTCEnabled:      true,
     maxLTCPct:          75,
-    minDebtYieldEnabled: false,
+    minDebtYieldEnabled: true,
     minDebtYieldPct:    8.0,
   },
 
@@ -351,6 +369,7 @@ const REMOVED_SAMPLE_ASSETS = ["Light Industrial (30k SF)", ...REMOVED_TEST_ASSE
 const TEST_DATA_MODEL = "v2";
 const NOI_MODEL = "rentroll-v1";
 const SIC_MODEL = "sic-v1";
+const SIZING_MODEL = "lsc-v1";
 
 // The app opens with a live fund: the nine sample assets, all editable
 // deals in Model Fund I.
@@ -1065,7 +1084,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
     });
     setActiveTab("fund");
   }
