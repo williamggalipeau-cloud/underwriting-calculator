@@ -1087,6 +1087,76 @@ the database, so it also goes with exports. Nothing is kept in the browser.
   the log. Treat it as a working record. A tamper-proof audit trail needs a
   server with user accounts.
 
+### 7.18 Stress test and sensitivity
+
+**Stress sliders:**
+- **Vacancy +x pts:**
+  - Rent roll: vacancy % + x, renewal probability − 2x, downtime + 0.15x
+    months.
+  - Direct NOI: year-1 NOI × (1 − x%).
+- **Rent / NOI growth −x pts.**
+- **Rate +x bp:** added to the spread (floating) or the fixed rate.
+- **Exit cap +x pts.**
+- **Opex +x%:** scales each expense line and the management %.
+- **Construction / TI / capex +x%.**
+- The portfolio impact re-runs the stressed asset's quarterly flows and
+  recomputes the portfolio XIRR.
+
+**Sensitivity:** a 5×5 grid around the base value for any two inputs:
+
+| Input | Step |
+|---|---|
+| Exit cap | 0.25% |
+| Rent / SF | $0.50 |
+| Price | 5% |
+| NOI growth | 5 pts |
+| Year-1 NOI | 5% |
+
+Cells are colored by their difference from the base case.
+
+---
+
+### 7.19 Units and leases (`lib/leases.js`)
+
+Reference figures from each deal's rent roll (`inputs.units`), shown on the
+Unit Roll tab and in the Asset Summary. They don't change the cash flow.
+
+**Lease end and months remaining.** The engine (§7.1) runs each unit from
+its **months remaining**, counted from the analysis start: the deal's
+acquisition date, or today when it has none.
+- Entering a **Lease end** date sets months remaining = whole months from
+  the analysis start to that date (at least 1 for an occupied unit).
+- Editing months remaining clears the entered date; the date then shown
+  (grey) is the analysis start + months remaining.
+- Importing a rent roll with lease end dates does the same.
+
+| Figure | Calculation |
+|---|---|
+| Units, leased | Rent roll rows; rows with status Occupied |
+| Occupancy | Leased SF ÷ total rent roll SF |
+| Annual rent (per lease) | Contract rent $/SF × SF |
+| WALT | Σ (years from today to lease end × annual rent) ÷ Σ annual rent, over occupied units; expired leases count 0 years |
+| In-place rent | Σ annual rent ÷ leased SF |
+| Mark to market | Market rent (deal input) ÷ in-place rent − 1 |
+| Rolling 12 mo | Annual rent of leases ending within 12 months ÷ total annual rent |
+| Expirations by year | Leases, SF and annual rent by calendar year of lease end; leases already past their end (holdover) fall in the current year; % and cumulative % of rent |
+
+**Critical dates** (from 30 days ago to 12 months ahead; amber within 90
+days, red when past):
+- **Lease expires:** the lease end.
+- **Renewal notice due:** lease end − renewal notice months, when the unit
+  has renewal options and a notice period.
+- **Termination notice date:** early termination date − termination notice
+  months, when a termination date is entered.
+
+**Rent roll import and export.** **Import CSV / Excel** reads `.csv` or
+`.xlsx`; only an SF column is required (§11.5 lists every column and the
+header names accepted). Numbers may include `$`, `,` and `%`; dates may be
+`YYYY-MM-DD`, `M/D/YYYY` or Excel dates. Missing values take the deal's
+defaults. Importing over an existing rent roll asks first. **Download
+Excel** (or **Download template** when empty) writes the same columns, so a
+downloaded file can be edited and imported back.
+
 ### 7.20 Fund expenses and fund cash (`lib/fundExpenses.js`)
 
 Fund-level expenses are the **management fee** and the **sub line's
@@ -1193,76 +1263,6 @@ Profitability idx = PV of money returned ÷ PV of money invested
 
 Positive NPV (index above 1.0x) means the fund creates value above its cost
 of capital. (Asset Return's NPV still uses its own 8% rate.)
-
-### 7.19 Units and leases (`lib/leases.js`)
-
-Reference figures from each deal's rent roll (`inputs.units`), shown on the
-Unit Roll tab and in the Asset Summary. They don't change the cash flow.
-
-**Lease end and months remaining.** The engine (§7.1) runs each unit from
-its **months remaining**, counted from the analysis start: the deal's
-acquisition date, or today when it has none.
-- Entering a **Lease end** date sets months remaining = whole months from
-  the analysis start to that date (at least 1 for an occupied unit).
-- Editing months remaining clears the entered date; the date then shown
-  (grey) is the analysis start + months remaining.
-- Importing a rent roll with lease end dates does the same.
-
-| Figure | Calculation |
-|---|---|
-| Units, leased | Rent roll rows; rows with status Occupied |
-| Occupancy | Leased SF ÷ total rent roll SF |
-| Annual rent (per lease) | Contract rent $/SF × SF |
-| WALT | Σ (years from today to lease end × annual rent) ÷ Σ annual rent, over occupied units; expired leases count 0 years |
-| In-place rent | Σ annual rent ÷ leased SF |
-| Mark to market | Market rent (deal input) ÷ in-place rent − 1 |
-| Rolling 12 mo | Annual rent of leases ending within 12 months ÷ total annual rent |
-| Expirations by year | Leases, SF and annual rent by calendar year of lease end; leases already past their end (holdover) fall in the current year; % and cumulative % of rent |
-
-**Critical dates** (from 30 days ago to 12 months ahead; amber within 90
-days, red when past):
-- **Lease expires:** the lease end.
-- **Renewal notice due:** lease end − renewal notice months, when the unit
-  has renewal options and a notice period.
-- **Termination notice date:** early termination date − termination notice
-  months, when a termination date is entered.
-
-**Rent roll import and export.** **Import CSV / Excel** reads `.csv` or
-`.xlsx`; only an SF column is required (§11.5 lists every column and the
-header names accepted). Numbers may include `$`, `,` and `%`; dates may be
-`YYYY-MM-DD`, `M/D/YYYY` or Excel dates. Missing values take the deal's
-defaults. Importing over an existing rent roll asks first. **Download
-Excel** (or **Download template** when empty) writes the same columns, so a
-downloaded file can be edited and imported back.
-
-### 7.18 Stress test and sensitivity
-
-**Stress sliders:**
-- **Vacancy +x pts:**
-  - Rent roll: vacancy % + x, renewal probability − 2x, downtime + 0.15x
-    months.
-  - Direct NOI: year-1 NOI × (1 − x%).
-- **Rent / NOI growth −x pts.**
-- **Rate +x bp:** added to the spread (floating) or the fixed rate.
-- **Exit cap +x pts.**
-- **Opex +x%:** scales each expense line and the management %.
-- **Construction / TI / capex +x%.**
-- The portfolio impact re-runs the stressed asset's quarterly flows and
-  recomputes the portfolio XIRR.
-
-**Sensitivity:** a 5×5 grid around the base value for any two inputs:
-
-| Input | Step |
-|---|---|
-| Exit cap | 0.25% |
-| Rent / SF | $0.50 |
-| Price | 5% |
-| NOI growth | 5 pts |
-| Year-1 NOI | 5% |
-
-Cells are colored by their difference from the base case.
-
----
 
 ## 8. Worked example: the default deal
 
@@ -1955,7 +1955,7 @@ and nothing is saved; nothing is ever saved in the browser.
 | **☁ Database → Save to database** | `create_workspace(name, data)`: a new `workspaces` row (version 1). You become its owner, and a "Created workspace" audit row is written. |
 | Editing, then a save (about 20 seconds after the last change, on **Save now**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
 | Someone else saved first | The save is refused (conflict). The app offers **Open latest** (load theirs) or **Keep mine** (save over it; theirs stays in `workspace_versions`). |
-| **Open** a workspace | Reads `workspaces.data` and loads it into the app. On sign-in, the app opens your most recently saved workspace, or creates one if you have none. |
+| **Open** a workspace | Reads `workspaces.data` and loads it into the app. On sign-in, the app opens your most recently saved workspace, or creates one if you have none. If opening applies updates (for example new fund terms, the fund-level fee, or new sample dates and holds), they are saved straight away as a new version, with the changes in the audit log. |
 | **People with access** | `add_member` / `remove_member`. If the person hasn't signed in yet, a `workspace_invites` row waits until they do. |
 | **Delete** (owners) | Deletes the workspace and, by cascade, its members, invites, versions and audit rows. |
 | **Change Log** tab | Reads `audit_log` for the open workspace (latest 1,000 rows) and shows it as **Database (verified)**. |
