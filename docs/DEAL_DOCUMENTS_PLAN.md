@@ -12,7 +12,8 @@ reviews and applies it field by field. Nothing changes the model without a click
 - **Database:** a `deal_documents` table and a private `deal-docs` storage bucket,
   set up like `lease_documents`: workspace members read, owners and editors
   write, every change goes to `audit_log`. Columns: `doc_type` (om, rent_roll,
-  t12, loi, psa, ic_memo, loan, appraisal, estoppel, cam, billing, other), `deal_id`,
+  t12, loi, psa, ic_memo, closing_acq, closing_disp, loan, appraisal, estoppel,
+  cam, billing, other), `deal_id`,
   `files` (in order), `status` (uploaded, abstracted, applied), `abstract`,
   `applied_fields`, and who and when for each step.
   `save_deal_abstract(doc, abstract)` mirrors `save_lease_abstract`. Leases stay
@@ -37,6 +38,9 @@ reviews and applies it field by field. Nothing changes the model without a click
 | LOI | `loi_validate` / `loi_show` | **Deal terms**: price vs underwritten price, deposit, due diligence and closing periods, financing contingency; dates to critical dates |
 | PSA | `cre_read_document` + `cre_search_text` (no PSA validator) | **Deal terms and critical dates**: price, deposits and when each goes hard, due diligence expiry, closing and extension notices, title and survey objection dates, estoppel and SNDA delivery, reps and warranties survival and cap, assignment, default remedies. The app's own PSA template is checked locally (every quote must be in the PDF) and shown as "not connector-validated" |
 | Final IC memo | `cre_read_document` + `cre_search_text` (no IC memo validator; uses no free documents) | **As-approved baseline**: approval date and approvers, approved price and total cost, sources and uses, debt terms, business plan (capex, lease-up), projected IRR, multiple, cash-on-cash, hold, going-in and exit cap, key risks, and conditions of approval. Checked locally and shown as "not connector-validated" |
+
+| Closing statement, acquisition (settlement statement / ALTA) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Actual cost basis**: contract price, credits and prorations (rent, taxes, CAM, security deposits transferred, TI/LC and repair credits), closing costs by type (title, escrow, transfer tax, legal, lender fees), loan proceeds, and equity actually funded; closing date. Replaces the underwritten price/closing costs as the asset's actual basis (shown side by side, applied by choice). Checked locally, "not connector-validated" |
+| Closing statement, disposition | same | **Realized sale**: sale price, credits and prorations, selling costs (commission, transfer tax, legal), loan payoff and prepayment, and net proceeds to equity; closing date. Marks the asset sold, records the actual exit in the cash flows, and fixes realized IRR and multiple (Portfolio Return, Sell / Hold). Checked locally, "not connector-validated" |
 
 **IC memo in the app:**
 - **Approved vs current:** for each asset, the IC-approved figures beside the
@@ -88,6 +92,12 @@ apply and mismatch features and D's critical dates, so it starts after C and D
 are reviewed.
 
 ## Open decisions
+
+6. **Closing statements** (added 11/22 at the user's request): acquisition
+   and disposition closing statements per asset, in phase E. They set the
+   actual basis and realized proceeds that the backlog's plan-vs-actual and
+   underwritten-vs-actual tracking compare against.
+
 
 5. **IC memo** (added 11/22 at the user's request): as-approved baseline,
    approved-vs-current variances and a conditions checklist, in phase E.
