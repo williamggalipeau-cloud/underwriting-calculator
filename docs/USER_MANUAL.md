@@ -16,6 +16,7 @@ This manual covers:
 9. [Key assumptions and limitations](#9-key-assumptions-and-limitations)
 10. [Maintenance: building, deploying, refreshing data](#10-maintenance)
 11. [Data dictionary](#11-data-dictionary)
+12. [Database (Supabase)](#12-database-supabase)
 
 ---
 
@@ -89,7 +90,7 @@ Save to database** creates a shared workspace.
   the signed-in email and the server's time, and no one can edit or delete
   those entries.
 
-One-time setup:
+One-time setup (full detail, table layout and admin queries in §12):
 1. In Supabase, open **SQL Editor → New query**, paste
    [`supabase/setup.sql`](../supabase/setup.sql) and click **Run**. It's safe
    to run again.
@@ -218,6 +219,7 @@ dataviz). The app does not need them to run.
 | Package | Version | Role |
 |---|---|---|
 | `next` | 16.2.4 | App Router framework, static export (`output: "export"`). |
+| `@supabase/supabase-js` | 2.x | Database sign-in and storage (§12). |
 | `react`, `react-dom` | 19.2.4 | UI. |
 | `tailwindcss`, `@tailwindcss/postcss` | 4 | Styling (dev). |
 | `eslint`, `eslint-config-next` | 9 / 16.2.4 | Linting (dev). |
@@ -239,6 +241,7 @@ repository. Excel files are unzipped with the browser's built-in
 |---|---|---|---|
 | **Pensford forward curve** (pensford.com/forward-curve, Floating tab) | Built-in snapshot, plus **Update from Pensford** to import a newer export (Excel, CSV, or pasted table) | Projected SOFR for each year of the hold (loan interest, cap pricing, sub line interest) | Snapshot as of **11/20/2026**: 121 monthly resets of 1-Month Term SOFR and 30-Day Average SOFR (`lib/forwardCurve.js`). Pensford's data API only serves its own site, so the app can't fetch it live; you download the Excel and import it. |
 | **Pensford cap pricer** (pensford.com/calculators/cap-pricer) | Calibration only | The volatility surface for market-priced caps | Six quotes from 11/21/2026 ($7.3M notional, 30D Avg SOFR, 12–48 months, strikes 3.91% / 4.50% / 5.50%) were used to back out normal vols. The model reproduces all six within 3% (§7.5). |
+| **Supabase** (nydqmigxorahfkfpkjnq.supabase.co) | Sign-in, then saves and opens | Shared workspaces, version history, verified change log | Optional; see §12 |
 | **NY Fed Markets Data API** (markets.newyorkfed.org) | Fetched live when the page opens, and on **Refresh** | Current SOFR and the 30/90/180-day SOFR averages; anchoring the curve to the live 30-day average | Public, free and allows browser requests. If it is unreachable, the app keeps working on the snapshot curve. |
 | **CME SOFR futures via Yahoo Finance** | **Fetch CME** button (optional) | A per-year manual SOFR curve (December 3-month SOFR futures; rate = 100 − price) | Goes through public CORS proxies and may fail; Pensford is the default. |
 | **CoStar** (and Crexi, LoopNet, RCA, broker sheets) | Upload an export on the Sales Comps tab | Sale comps: $/SF, cap rates, exit cap check | CoStar has no public API. In CoStar, run a Sale Comps search, then Export → Excel. Column names are recognized automatically (§7.14). |
@@ -1057,32 +1060,51 @@ units, its default, and what it means.
 
 ### 11.0 Where data is stored
 
-| Location | What it holds | Notes |
-|---|---|---|
-| **Browser storage** (`localStorage`, key `uw-workspace-v1`) | The whole workspace (§11.1) | Saved instantly on every change; this browser only |
-| **Linked workspace file** (`.json` you choose) | The same workspace | Saved every 10 minutes when changed, on **Save now**, and when you leave the tab (Chrome / Edge) |
-| **Browser storage** (`localStorage`, key `uw-audit-user`) | Your name for the change log | This browser only |
-| **Browser database** (IndexedDB `uw-workspace-file`, store `handles`, key `workspace`) | Which linked file to reopen | Only the file's handle, not its contents |
-| **Export workspace** file (`underwriting-workspace-<date>.json`) | A copy of the workspace | Written only when you click Export |
-| **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once | Their contents are copied into the workspace; the files aren't kept |
-| **Supabase database** (project `nydqmigxorahfkfpkjnq`) | Shared workspaces: `workspaces` (the workspace JSON, `version`, last saved by/at), `workspace_versions` (every earlier version), `workspace_members` / `workspace_invites` (who has access, role), `audit_log` (one row per changed field: `at`, `user_email`, `area`, `item`, `field`, `path`, `from_value`, `to_value`, `note`, `version`) | Created by `supabase/setup.sql`; written only through database functions |
-| **Browser storage** (keys `sb-nydqmigxorahfkfpkjnq-auth-token`, `uw-db-link`, `uw-db-dirty`) | Your sign-in session; which database workspace this browser saves to; whether it has unsaved changes | This browser only |
-| **Not stored** | Live NY Fed rates, calculated results (§11.12), snapshots of open deals | Recalculated each time the page loads or an input changes |
+The app's data is one **workspace**: a JSON object holding deals, funds,
+comps, valuations, settings and the browser change log (§11.1–11.11). That
+same JSON is stored in several places:
 
-The **Stored at** column gives each field's path inside the workspace JSON:
+| Location | What it holds | When it's written |
+|---|---|---|
+| **Supabase database** (project `nydqmigxorahfkfpkjnq`) | `workspaces.data`: the current workspace JSON. `workspace_versions.data`: every earlier version. `audit_log`: the verified change log. Members and invites (§11.13). | When signed in and linked: every 10 minutes when changed, on **Save now**, and on leaving the page |
+| **Browser storage** (`localStorage` key `uw-workspace-v1`) | The same workspace JSON | Instantly on every change (this browser only) |
+| **Linked workspace file** (`.json`) | The same workspace JSON | Every 10 minutes when changed, on **Save now**, on leaving (Chrome / Edge) |
+| **Export workspace** file | A copy of the workspace JSON | When you click Export |
+| **Browser storage**, other keys | `uw-audit-user`: your typed name. `uw-db-link`: which database workspace this browser saves to. `uw-db-dirty`: unsaved database changes. `sb-nydqmigxorahfkfpkjnq-auth-token`: your sign-in session. | This browser only |
+| **Browser database** (IndexedDB `uw-workspace-file`) | The linked file's handle (not its contents) | When you link a file |
+| **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once; contents copied into the workspace | — |
+| **Not stored anywhere** | Live NY Fed rates, calculated results (§11.12), snapshots of open deals | Recalculated on every load or change |
+
+**Reading the "Stored at" column (§11.1–11.11).** Paths are inside the
+workspace JSON, which is the `data` column of the `workspaces` table:
 - `deals[]` means "in each deal".
 - `funds["Fund name"]` means "under that fund's name".
-- `valuations["deal id"]["quarter end"]` means "under the deal's id, then the quarter-end date".
+- `valuations["deal id"]["quarter end"]` means "under the deal's id, then
+  the quarter-end date".
 
-In §11.4, a saved copy keeps the same fields under `savedDeals[].inputs.` as
-well.
+In Supabase SQL a path is written with `->` for each step:
 
-### 11.1 Workspace (saved in the browser, a linked file, or an export)
+```sql
+-- Model Fund I's commitments, and each deal's exit cap, in the current version
+select data -> 'funds' -> 'Model Fund I' ->> 'targetEquity' as commitments
+from workspaces where name = 'Model Fund I';
 
-Browser key `uw-workspace-v1`. A linked file or **Export workspace** holds
-the same JSON object.
+select d -> 'inputs' ->> 'propertyName' as deal, d -> 'quick' ->> 'exitCapPct' as exit_cap
+from workspaces, jsonb_array_elements(data -> 'deals') d
+where name = 'Model Fund I';
+```
 
-| Field | Stored at | Type | Meaning |
+Earlier versions use the same paths in `workspace_versions.data`.
+Database-level columns (`id`, `version`, who saved and when) are in §11.13.
+
+### 11.1 Workspace (`workspaces.data` in Supabase; also the browser, linked file and exports)
+
+The workspace JSON. In Supabase it's the `data` column of `workspaces`
+(current version) and `workspace_versions` (earlier versions). In the
+browser it's under the key `uw-workspace-v1`. Linked and exported files hold
+the same object.
+
+| Field | Stored at (`workspaces.data`) | Type | Meaning |
 |---|---|---|---|
 | `v` | `v` | number | Format version (1) |
 | `app` | `app` | text | `"industrial-uw"` (files written by the app) |
@@ -1094,12 +1116,12 @@ the same JSON object.
 | `anchorToLive` | `anchorToLive` | yes / no | Shift the curve to today's NY Fed 30-day average SOFR |
 | `activeDealId` | `activeDealId` | text | The deal open in the left panel |
 | `comps` | `comps` | Sales comps (§11.10) | Comps and their settings |
-| `auditLog` | `auditLog` | list of Change (§7.17) | The change log: `id`, `at`, `user`, `area`, `item`, `field`, `path`, `from`, `to`, `note` |
+| `auditLog` | `auditLog` | list of Change (§7.17) | The browser change log: `id`, `at`, `user`, `area`, `item`, `field`, `path`, `from`, `to`, `note`. The verified log is the `audit_log` table (§11.13). |
 | `valuations` | `valuations` | map: deal id → quarter end → Mark (§11.9) | Fair value marks |
 
 ### 11.2 Deal
 
-| Field | Stored at | Type | Meaning |
+| Field | Stored at (`workspaces.data`) | Type | Meaning |
 |---|---|---|---|
 | `id` | `deals[].id` | text | Unique id (`deal-1`, `sample-deal-1` … `sample-deal-9`, or generated) |
 | `linked` | `deals[].linked` | yes / no | Quick Underwrite drives every tab (§7.3) |
@@ -1108,7 +1130,7 @@ the same JSON object.
 
 ### 11.3 Quick Underwrite inputs (`quick`)
 
-| Field | Stored at | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `propertyType` | `deals[].quick.propertyType` | text | Light industrial | Label only |
 | `purchasePrice` | `deals[].quick.purchasePrice` | $ | 10,000,000 | Purchase price |
@@ -1151,7 +1173,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 
 **Property and fund:**
 
-| Field | Stored at | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `propertyName` | `deals[].inputs.propertyName` | text | | Deal name shown everywhere |
 | `fundName` | `deals[].inputs.fundName` | text | | Fund the deal belongs to (matched ignoring capitals and spaces; §2) |
@@ -1164,7 +1186,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 
 **NOI source:**
 
-| Field | Stored at | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `noiOverrideEnabled` **Q** | `deals[].inputs.noiOverrideEnabled` | yes / no | no | Direct NOI (yes) instead of the rent roll |
 | `noiYear1` **Q** | `deals[].inputs.noiYear1` | $ | | Year-1 NOI before PM (direct NOI) |
@@ -1174,7 +1196,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 
 **Rent roll and operations** (used when direct NOI is off):
 
-| Field | Stored at | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `leaseType` | `deals[].inputs.leaseType` | NNN / MG / Gross | NNN | Who pays expenses (§7.1) |
 | `rentPerSF` | `deals[].inputs.rentPerSF` | $/SF / yr | 14.00 | Market rent |
@@ -1199,7 +1221,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 
 **Debt:**
 
-| Field | Stored at | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `ltvPct` **Q** | `deals[].inputs.ltvPct` | % of price | 65 | LTV sizing |
 | `loanSizingConstraints` | `deals[].inputs.loanSizingConstraints` | | off | `minDSCR…`, `maxLTCPct…`, `minDebtYieldPct…`, each with an `…Enabled` switch (§7.6) |
@@ -1224,7 +1246,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 
 **Exit and deal waterfall:**
 
-| Field | Stored at | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `holdPeriodYears` **Q** | `deals[].inputs.holdPeriodYears` | years | 7 | Hold period |
 | `exitCapRatePct` **Q** | `deals[].inputs.exitCapRatePct` | % | 6.75 | Exit cap rate |
@@ -1237,7 +1259,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 **Unit Roll → Import CSV** reads these columns. Header names in brackets
 are also accepted.
 
-| Field | Stored at | CSV column | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | CSV column | Units | Default | Meaning |
 |---|---|---|---|---|---|
 | `name` | `deals[].inputs.units[].name` | unit [unitname, name, suite] | text | row no. | Unit / suite |
 | `squareFeet` | `deals[].inputs.units[].squareFeet` | **sf** [squarefeet, sqft, size] | SF | required | Unit size (rows without SF are skipped) |
@@ -1263,7 +1285,7 @@ Every fund view works from snapshots of each deal. **Add to Fund** stores
 one as a fixed copy in `savedDeals`. Live deals are snapshotted fresh every
 time they change.
 
-| Field | Stored at | Meaning |
+| Field | Stored at (`workspaces.data`) | Meaning |
 |---|---|---|
 | `id`, `inputs` | `savedDeals[].id`<br>`savedDeals[].inputs` | Deal id and its full-model inputs at the snapshot |
 | `irrFlows` | `savedDeals[].irrFlows` | Equity cash flows by hold year: [year 0 (negative), year 1 … year N incl. sale] |
@@ -1278,7 +1300,7 @@ time they change.
 **Fund terms template** (Excel or CSV) uses the labels in the second
 column.
 
-| Field | Stored at | Template label | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Template label | Units | Default | Meaning |
 |---|---|---|---|---|---|
 | `name` | `funds["Fund name"].name` | Fund name | text | | Must match the deals' Fund field |
 | `finalClose` | `funds["Fund name"].finalClose` | Final close date | date | 2025-12-31 | Start of the fund timeline |
@@ -1304,7 +1326,7 @@ column.
 
 ### 11.8 Capital activity entry (`capitalActivity[]`)
 
-| Field | Stored at | Import column [also accepted] | Units | Meaning |
+| Field | Stored at (`workspaces.data`) | Import column [also accepted] | Units | Meaning |
 |---|---|---|---|---|
 | `id` | `funds["Fund name"].capitalActivity[].id` | — | text | Unique id |
 | `date` | `funds["Fund name"].capitalActivity[].date` | **Date** [call date, value date, transaction date] | date | Date of the call, draw or repayment |
@@ -1315,7 +1337,7 @@ column.
 
 ### 11.9 Valuation mark (`valuations[dealId][quarterEnd]`)
 
-| Field | Stored at | Import column | Units | Meaning |
+| Field | Stored at (`workspaces.data`) | Import column | Units | Meaning |
 |---|---|---|---|---|
 | (key) quarter end | `valuations["deal id"]` key | **Quarter end** (any date in the quarter, or "2026 Q2") | date | Calendar quarter end the mark applies to |
 | `value` | `valuations["deal id"]["quarter end"].value` | **Fair value ($)** | $ | Gross asset fair value; blank = roll-forward |
@@ -1330,7 +1352,7 @@ column.
 
 **Settings:**
 
-| Field | Stored at | Units | Default | Meaning |
+| Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
 | `marketGrowthPct` | `comps.marketGrowthPct` | % / yr | 3 | Time adjustment of $/SF to the acquisition date |
 | `spreadBp` | `comps.spreadBp` | bp | 25 | Exit cap = comps median + spread |
@@ -1339,7 +1361,7 @@ column.
 
 **Comp:**
 
-| Field | Stored at | Import column (CoStar names recognized) | Units | Meaning |
+| Field | Stored at (`workspaces.data`) | Import column (CoStar names recognized) | Units | Meaning |
 |---|---|---|---|---|
 | `name` | `comps.comps[].name` | Property / address [Property Address, Building Name] | text | Property |
 | `city`, `state`, `submarket` | `comps.comps[].city`<br>`comps.comps[].state`<br>`comps.comps[].submarket` | City, State, Submarket [Property City, Submarket Name] | text | Location |
@@ -1357,7 +1379,7 @@ column.
 
 ### 11.11 Forward curve
 
-| Field | Stored at | Meaning |
+| Field | Stored at (`workspaces.data`) | Meaning |
 |---|---|---|
 | `source` | `baseCurve.source`, `deals[].quick.forwardCurve.source` | "Pensford" (or the imported file) |
 | `asOf` | `baseCurve.asOf`, `deals[].quick.forwardCurve.asOf` | Curve date (snapshot: 2026-11-20) |
@@ -1368,24 +1390,282 @@ column.
 
 | Metric | Stored | Definition | Where |
 |---|---|---|---|
-| NOI | Calculated, not stored | Net operating income: revenue less operating expenses (direct NOI: entered NOI less PM fee) | §7.1 |
-| EGR | Calculated, not stored | Effective gross revenue: gross revenue less vacancy and credit loss | §7.1 |
-| Going-in cap | Calculated, not stored | Year-1 NOI ÷ purchase price | §7.7 |
-| Exit value | Calculated, not stored | Final-year NOI ÷ exit cap | §7.7 |
-| Equity | Calculated, not stored | Price + closing costs + cap premium + capex − loan | §7.6 |
-| Loan / price | Calculated, not stored | Loan (incl. lender-funded capex) ÷ purchase price | §7.16 |
-| Loan constant | Calculated, not stored | Annual debt service ÷ loan (the rate if interest-only) | §7.6 |
-| DSCR | Calculated, not stored | NOI ÷ debt service | §7.6 |
-| Debt yield | Calculated, not stored | NOI ÷ loan balance | §7.6 |
-| Cash-on-cash | Calculated, not stored | Year's cash flow ÷ equity | §7.7 |
-| IRR | Calculated, not stored | Rate that sets the NPV of equity cash flows to zero. Annual periods for deals; actual dates (XIRR) for funds and interim returns. | §7.7, §7.10 |
-| Equity multiple | Calculated, not stored | Total distributions ÷ equity contributed | §7.7 |
-| Gross / Net fund / Net LP | Calculated, not stored | Assets before fund costs / all investors after fund costs / LPs after pref, promote and fees | §7.10 |
-| Pooled IRR | Calculated, not stored | XIRR of all assets' dated equity cash flows together | §7.16 |
-| Fair value | Calculated, not stored | Gross asset value from an appraisal, internal mark, roll-forward or cost | §7.15 |
-| NAV | Calculated, not stored | Fair value − loan balance + asset cash reserve | §7.15 |
-| TVPI / DPI / RVPI | Calculated, not stored | (Distributions + NAV) ÷ contributions / distributions ÷ contributions / NAV ÷ contributions | §7.15 |
-| Unrealized gain | Calculated, not stored | Fair value − cost (price + capex) | §7.15 |
-| Dry powder | Calculated, not stored | Commitments − capital called − sub line outstanding (− untagged purchases) | §7.12 |
-| Uncommitted capital | Calculated, not stored | Dry powder − future capital needs of current deals | §7.12 |
-| Status | Calculated, not stored | Pipeline (acquisition after today), Owned, Sold (exit on or before today) | §7.16 |
+| NOI | Calculated, not stored (not in the database) | Net operating income: revenue less operating expenses (direct NOI: entered NOI less PM fee) | §7.1 |
+| EGR | Calculated, not stored (not in the database) | Effective gross revenue: gross revenue less vacancy and credit loss | §7.1 |
+| Going-in cap | Calculated, not stored (not in the database) | Year-1 NOI ÷ purchase price | §7.7 |
+| Exit value | Calculated, not stored (not in the database) | Final-year NOI ÷ exit cap | §7.7 |
+| Equity | Calculated, not stored (not in the database) | Price + closing costs + cap premium + capex − loan | §7.6 |
+| Loan / price | Calculated, not stored (not in the database) | Loan (incl. lender-funded capex) ÷ purchase price | §7.16 |
+| Loan constant | Calculated, not stored (not in the database) | Annual debt service ÷ loan (the rate if interest-only) | §7.6 |
+| DSCR | Calculated, not stored (not in the database) | NOI ÷ debt service | §7.6 |
+| Debt yield | Calculated, not stored (not in the database) | NOI ÷ loan balance | §7.6 |
+| Cash-on-cash | Calculated, not stored (not in the database) | Year's cash flow ÷ equity | §7.7 |
+| IRR | Calculated, not stored (not in the database) | Rate that sets the NPV of equity cash flows to zero. Annual periods for deals; actual dates (XIRR) for funds and interim returns. | §7.7, §7.10 |
+| Equity multiple | Calculated, not stored (not in the database) | Total distributions ÷ equity contributed | §7.7 |
+| Gross / Net fund / Net LP | Calculated, not stored (not in the database) | Assets before fund costs / all investors after fund costs / LPs after pref, promote and fees | §7.10 |
+| Pooled IRR | Calculated, not stored (not in the database) | XIRR of all assets' dated equity cash flows together | §7.16 |
+| Fair value | Calculated, not stored (not in the database) | Gross asset value from an appraisal, internal mark, roll-forward or cost | §7.15 |
+| NAV | Calculated, not stored (not in the database) | Fair value − loan balance + asset cash reserve | §7.15 |
+| TVPI / DPI / RVPI | Calculated, not stored (not in the database) | (Distributions + NAV) ÷ contributions / distributions ÷ contributions / NAV ÷ contributions | §7.15 |
+| Unrealized gain | Calculated, not stored (not in the database) | Fair value − cost (price + capex) | §7.15 |
+| Dry powder | Calculated, not stored (not in the database) | Commitments − capital called − sub line outstanding (− untagged purchases) | §7.12 |
+| Uncommitted capital | Calculated, not stored (not in the database) | Dry powder − future capital needs of current deals | §7.12 |
+| Status | Calculated, not stored (not in the database) | Pipeline (acquisition after today), Owned, Sold (exit on or before today) | §7.16 |
+
+---
+
+### 11.13 Database tables (Supabase)
+
+Created by `supabase/setup.sql`. Relationships and access rules are in §12.4
+and §12.5. All tables are in the `public` schema. Users come from Supabase
+Auth (`auth.users`).
+
+**`workspaces`**: one row per shared workspace.
+
+| Column | Type | Default | Meaning |
+|---|---|---|---|
+| `id` | uuid, primary key | random | Workspace id |
+| `name` | text, required | | Name shown in the app |
+| `data` | jsonb, required | | The whole workspace (§11.1) |
+| `version` | integer, required | 1 | +1 on every save; used to detect conflicting saves |
+| `created_by` | uuid | signed-in user | Creator's user id |
+| `created_at` | timestamptz, required | now | When created |
+| `updated_by` | uuid | signed-in user | Last saver's user id |
+| `updated_by_email` | text | signed-in email | Last saver's email |
+| `updated_at` | timestamptz, required | now | When last saved |
+
+**`workspace_members`**: who can open a workspace.
+Primary key (`workspace_id`, `user_id`).
+
+| Column | Type | Default | Meaning |
+|---|---|---|---|
+| `workspace_id` | uuid → `workspaces.id` | | Workspace |
+| `user_id` | uuid | | Supabase user id |
+| `email` | text | | Their email (for display) |
+| `role` | text: `owner` / `editor` / `viewer` | `editor` | **Owner**: save, manage access, delete. **Editor**: save. **Viewer**: read only. |
+| `added_at` | timestamptz, required | now | When added |
+
+**`workspace_invites`**: people invited before their first sign-in.
+Primary key (`workspace_id`, `email`).
+
+| Column | Type | Default | Meaning |
+|---|---|---|---|
+| `workspace_id` | uuid → `workspaces.id` | | Workspace |
+| `email` | text, required | | Invited email (lower case) |
+| `role` | text: `owner` / `editor` / `viewer` | `editor` | Role they'll get |
+| `invited_by` | uuid | signed-in user | Who invited them |
+| `invited_at` | timestamptz, required | now | When invited |
+
+**`workspace_versions`**: every earlier version, written on each save.
+Index on (`workspace_id`, `version` desc).
+
+| Column | Type | Meaning |
+|---|---|---|
+| `id` | bigserial, primary key | Row id |
+| `workspace_id` | uuid → `workspaces.id` | Workspace |
+| `version` | integer, required | The version number this data had |
+| `data` | jsonb, required | The workspace as it was |
+| `saved_by` | uuid | Who had saved that version |
+| `saved_by_email` | text | Their email |
+| `saved_at` | timestamptz, required | When that version was saved |
+
+**`audit_log`**: the verified change log. Index on (`workspace_id`, `at`
+desc).
+
+| Column | Type | Set by | Meaning |
+|---|---|---|---|
+| `id` | bigserial, primary key | database | Row id |
+| `workspace_id` | uuid → `workspaces.id` | function | Workspace |
+| `version` | integer | function | Version the change was saved in |
+| `at` | timestamptz, required | **database** (`now()`) | When it was saved |
+| `user_id` | uuid | **database** (`auth.uid()`) | Who saved it |
+| `user_email` | text | **database** (sign-in email) | Their email |
+| `area` | text | app | Deal, Saved deal, Fund terms, Capital activity, Valuation, Sales comps, Forward curve, Workspace, Members |
+| `item` | text | app | Deal, fund, asset or member |
+| `field` | text | app | What changed, e.g. "Quick Underwrite › Exit cap (%)" |
+| `path` | jsonb | app | Location in the workspace JSON |
+| `from_value` / `to_value` | jsonb | app | Old and new value |
+| `note` | text | app / function | Events: "Created workspace", "Added as editor", "Bulk change", imports … |
+
+The trigger `audit_stamp` overwrites `at`, `user_id` and `user_email` on
+every insert, so the app can't set them.
+
+**How the browser change log maps to `audit_log`:**
+
+| Browser `auditLog` field | `audit_log` column | Difference |
+|---|---|---|
+| `id` | `id` | Database row number |
+| `at` | `at` | Database: server time at save; can't be set by the app |
+| `user` | `user_email` (+ `user_id`) | Database: the signed-in email; browser: email if signed in, else the typed name |
+| `area`, `item`, `field`, `path` | same names | Same values |
+| `from`, `to` | `from_value`, `to_value` | Same values (JSON) |
+| `note` | `note` | Same, plus database events (e.g. "Added as editor") |
+| — | `workspace_id`, `version` | Which workspace and the version it was saved in |
+
+The browser log merges quick repeat edits (§7.17). The database log records
+the net change between saves.
+
+## 12. Database (Supabase)
+
+The app can save workspaces to a hosted Postgres database on
+[Supabase](https://supabase.com). It's optional: without signing in, the app
+works exactly as before, saving in the browser and in linked or exported
+files.
+
+**What the database adds:**
+- **Sharing:** shared workspaces with owner, editor and viewer access.
+- **Version history:** every save is kept.
+- **Verified change log:** entries record the signed-in user and the
+  server's time, and can't be edited or deleted.
+
+### 12.1 Project and keys
+
+| Item | Value / location |
+|---|---|
+| Project | `nydqmigxorahfkfpkjnq` (Supabase dashboard → your project) |
+| Project URL | `https://nydqmigxorahfkfpkjnq.supabase.co` (in `lib/cloud.js`) |
+| Publishable (anon) key | In `lib/cloud.js`. Designed to be public: sign-in and row-level security decide what anyone can read or write. |
+| Secret / `service_role` key | Never in the app, the repository or chat. It bypasses all security. Use it only in the Supabase dashboard. |
+| Setup script | [`supabase/setup.sql`](../supabase/setup.sql) |
+| Client library | `@supabase/supabase-js` 2.x |
+| Sign-in method | Email sign-in links (no passwords) |
+| Site / Redirect URL | `https://williamggalipeau-cloud.github.io/underwriting-calculator/` (Authentication → URL Configuration) |
+
+### 12.2 One-time setup
+
+1. **Run the setup script.** Go to **SQL Editor → + New query**, paste
+   `supabase/setup.sql` and click **Run**. You should see "Success. No rows
+   returned".
+   - It's safe to run again: it creates what's missing and replaces the
+     functions and policies.
+   - "Syntax error at end of input, LINE 0" means the editor was empty or
+     only highlighted text was run. Paste again with nothing selected.
+2. **Set the sign-in address.** Under **Authentication → URL
+   Configuration**, set **Site URL** to the address above and add it under
+   **Redirect URLs**.
+3. **Optional hardening** (Authentication settings):
+   - turn off new sign-ups and invite people only;
+   - require multi-factor authentication;
+   - use a custom SMTP sender so sign-in emails come from your domain.
+
+### 12.3 How the app uses it
+
+| Action in the app | What happens in the database |
+|---|---|
+| **☁ Sign in** (top header) | Supabase emails a sign-in link. Opening it starts a session, kept in this browser. The app then calls `claim_invites()`. |
+| **☁ Database → Save to database** | `create_workspace(name, data)`: a new `workspaces` row (version 1). You become its owner, and a "Created workspace" audit row is written. |
+| Editing, then a save (every 10 min when changed, on **Save now**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
+| Someone else saved first | The save is refused (conflict). The app offers **Open latest** (load theirs) or **Keep mine** (save over it; theirs stays in `workspace_versions`). |
+| **Open** a workspace | Reads `workspaces.data` and loads it into the app. On sign-in, the app reopens the workspace this browser was linked to (`uw-db-link`). |
+| **People with access** | `add_member` / `remove_member`. If the person hasn't signed in yet, a `workspace_invites` row waits until they do. |
+| **Delete** (owners) | Deletes the workspace and, by cascade, its members, invites, versions and audit rows. |
+| **Change Log** tab | Reads `audit_log` for the open workspace (latest 1,000 rows) and shows it as **Database (verified)**. |
+
+**Saved data.** Each saved workspace is the same JSON as the workspace
+file (§11.1): deals, saved deals, funds (with capital activity), comps,
+valuations, curve settings and the browser change log.
+
+**Audit rows.** The changes sent with each save are the field-level
+differences since the previous save, using the same comparison as the
+browser log (§7.17). More than 60 changes in one save are sent as a single
+"Bulk change" row.
+
+### 12.4 Table layout
+
+The tables, and how they relate (all cascade-delete with their workspace):
+
+```
+workspaces (1) ──┬── (many) workspace_members    who can open it, and their role
+                 ├── (many) workspace_invites    emails invited before first sign-in
+                 ├── (many) workspace_versions   every earlier saved version
+                 └── (many) audit_log            one row per changed field
+auth.users (Supabase) ── user_id in workspace_members / audit_log
+```
+
+Column-by-column definitions of every table are in the data dictionary,
+[§11.13](#1113-database-tables-supabase).
+
+### 12.5 Access rules (row-level security)
+
+Row-level security is on for every table. Signed-in users can **read**:
+- workspaces, members, versions and audit rows of the workspaces they're a
+  member of;
+- invites, owners only.
+
+There are **no direct insert or update rules**. All writes go through the
+functions below, which check the caller's role first. Owners may also
+delete a workspace. Nobody can update or delete `audit_log` rows.
+
+**Functions:**
+
+| Function | Who | Returns | What it does |
+|---|---|---|---|
+| `create_workspace(ws_name, ws_data)` | any signed-in user | new id | Creates a workspace; the creator becomes owner (trigger `ws_after_insert`); writes "Created workspace" |
+| `save_workspace(ws, expected_version, new_data, changes, new_name)` | owner, editor | new version | Conflict check → keep old version → save → audit rows, in one transaction. A stale version raises `conflict: version N`. |
+| `log_note(ws, note_text)` | owner, editor | — | Adds a note row to the audit log |
+| `add_member(ws, member_email, member_role)` | owner | `added` / `invited` | Adds or updates a member, or records an invite; logs it |
+| `remove_member(ws, member_email)` | owner | — | Removes a member or invite (never the last owner); logs it |
+| `claim_invites()` | the signed-in user | count | Turns invites for your email into memberships |
+| `ws_role(ws)`, `ws_can(ws, roles)` | internal | role / yes-no | Used by the rules above |
+
+### 12.6 Looking at the data
+
+- **Table Editor:** browse the tables.
+- **SQL Editor:** run queries. It runs as the database owner, so it sees
+  every workspace.
+
+```sql
+-- Workspaces and their members
+select w.name, w.version, w.updated_at, w.updated_by_email, m.email, m.role
+from workspaces w join workspace_members m on m.workspace_id = w.id
+order by w.name, m.role;
+
+-- Latest changes in a workspace
+select at, user_email, area, item, field, from_value, to_value, note
+from audit_log
+where workspace_id = (select id from workspaces where name = 'Model Fund I')
+order by at desc limit 200;
+
+-- Who changed a given field, ever
+select at, user_email, item, from_value, to_value
+from audit_log where field ilike '%Exit cap%' order by at desc;
+
+-- Versions of a workspace
+select version, saved_at, saved_by_email from workspace_versions
+where workspace_id = (select id from workspaces where name = 'Model Fund I')
+order by version desc;
+```
+
+**Restoring an earlier version.** The usual way:
+1. Open the workspace in the app.
+2. Export it (a safety copy).
+3. In the SQL Editor, copy the old `data` from `workspace_versions`.
+4. Paste it into a `.json` file and **Import workspace**, then **Save now**.
+
+Doing it this way records the restore in the audit log. Editing
+`workspaces.data` directly in the SQL Editor works too, but it isn't logged
+and doesn't bump the version.
+
+### 12.7 Backups, limits and costs
+
+- **Backups:** the free plan has no automatic backups you can restore
+  yourself. Paid plans keep daily backups. Use **Export workspace** now and
+  then as your own copy.
+- **Free plan pause:** free projects pause after about a week without
+  activity. Open the dashboard and click **Restore** to wake one up.
+- **Size:** each save stores a full copy in `workspace_versions`. A
+  workspace is small (tens to hundreds of KB), so thousands of saves fit in
+  the free plan's 500 MB.
+- **Data location:** data lives in the Supabase region chosen when the
+  project was created, encrypted at rest.
+
+### 12.8 Troubleshooting
+
+| Message | Cause / fix |
+|---|---|
+| "The database isn't set up yet" | Run `supabase/setup.sql` (§12.2) |
+| The sign-in link opens a page that isn't the app, or says "redirect URL not allowed" | Set the Site URL and Redirect URL (§12.2 step 2) |
+| No sign-in email | Check spam. Supabase's built-in sender is rate-limited (a few emails per hour); for regular use set up custom SMTP. |
+| "Someone else saved this workspace…" | Another person saved first. Choose **Open latest** or **Keep mine**. |
+| "You don't have permission…" | Your role doesn't allow it (viewers can't save; only owners manage access) |
+| The project is paused | Supabase dashboard → **Restore project** |
