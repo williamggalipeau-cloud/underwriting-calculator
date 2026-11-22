@@ -88,7 +88,7 @@ reviews and applies it field by field. Nothing changes the model without a click
 E, then F, G, H, then I, J, K, each on the working branch, each with the manual, Node and
 Playwright tests, and a PR left for review before merging. E depends on C's
 apply and mismatch features and D's critical dates, so it starts as soon as D
-is complete.
+is complete, and F through K each follow the previous phase the same way.
 
 ## Open decisions
 
@@ -107,7 +107,10 @@ is complete.
    acceptable, checked locally and labelled "not connector-validated".**
 3. ~~When to start E~~ **Decided (11/22): after the user reviews C and D**,
    then changed the same night: **E starts automatically when D is complete**
-   (same 10:30am PT session), with its PR left open for review.
+   (same 10:30am PT session), with its PR left open for review. Later that
+   night the user extended this to every remaining phase: **E, F, G, H, I, J
+   and K each start as soon as the previous one is complete**, with no review
+   in between; nothing is merged without the user.
 4. ~~Deal Review quota~~ **Decided (11/22): stay within the free allowance.**
    One CREparser account and allowance covers both Lease Abstraction and Deal
    Review (Free plan, 3 documents left on 11/22). A document counts only when
@@ -121,7 +124,8 @@ is complete.
 Decided 11/22: three new phases, run in order after phase H
 (E → F → G → H → I → J → K). They need phase E's IC memo and closing
 statements for their baselines; J uses I's actuals and K rolls up I and J.
-Not scheduled; each starts when the user says so.
+Scheduled (11/22): each starts as soon as the previous phase is complete,
+following H.
 
 ### Phase I: asset budget vs. plan (added 11/22)
 
