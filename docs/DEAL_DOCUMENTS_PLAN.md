@@ -543,7 +543,7 @@ Model what adding a new asset would do to a fund before buying it, without
 changing the fund.
 
 - **Add a candidate:** pick a fund and add one or more candidate assets:
-  from a saved or pipeline deal, from Quick Underwrite, or from an OM read in
+  from a saved or pipeline deal, from Deal Screener, or from an OM read in
   phase E. Each candidate has its price, closing date, equity and loan,
   business plan and exit, using the same underwriting as any deal. Nothing
   is added to the fund until the user chooses **Add to fund**.
@@ -587,14 +587,15 @@ changing the fund.
   stamped with the scenario name, version, date, author and "Scenario — not
   actual". An exported report always matches its version.
 - Reuses phase L's pre-acquisition limit check.
-- **Quick Underwrite folds into phase M** (decided 11/22, user's request):
-  the candidate screen gets two ways to add a candidate: a *quick
-  underwrite* (the same few inputs as today's Quick Underwrite tab: price,
+- **Deal Screener folds into phase M** (decided 11/22, user's request; the
+  Quick Underwrite tab was renamed Deal Screener the same night): the
+  candidate screen gets two ways to add a candidate: **Deal Screener** (the
+  same few inputs as today's Deal Screener tab: price,
   closing costs, year-1 NOI and growth, hold, exit cap, loan, SOFR and
   spread, fees, with the forward curve; the rate cap is set as on the Debt
-  tab) or a *full rent-roll deal*. A quick candidate can later be converted
-  to a full deal (its inputs carried over, as linking does today). Once
-  this works, the separate **Quick Underwrite tab is retired**: existing
+  tab) or **Full Underwrite** (a full rent-roll deal). A Deal Screener
+  candidate can later be converted to a Full Underwrite deal (its inputs carried over, as linking does today). Once
+  this works, the separate **Deal Screener tab is retired**: existing
   deals keep their quick settings, linked deals are converted to full deals
   with the same inputs (results unchanged, checked by a test), and the
   forward curve controls move to the Debt tab next to the rate cap. Nothing
@@ -700,9 +701,9 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     counterparty, dates, notional, index, strike and premium, and applied to
     that cap's row (executed terms replace modeled ones); checked against
     the loan's cap requirement; expiry to critical dates.
-24. **Quick Underwrite folds into phase M** (decided 11/22): quick
-    underwrite becomes one of the two ways to add a candidate (with a full
-    rent-roll deal), and the separate tab is retired once the candidate
+24. **Deal Screener folds into phase M** (decided 11/22; Quick Underwrite
+    renamed Deal Screener): Deal Screener becomes one of the two ways to add a
+    candidate (with Full Underwrite, a full rent-roll deal), and the separate tab is retired once the candidate
     screen covers it; linked deals become full deals with unchanged results,
     and the forward curve controls move to the Debt tab.
 
