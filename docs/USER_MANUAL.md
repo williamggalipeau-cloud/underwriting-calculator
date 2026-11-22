@@ -2378,7 +2378,7 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
-*Lease, documents, performance and investor reporting: phases A–L.* What has been built and
+*Lease, documents, performance and reporting: phases A–L.* What has been built and
 what is coming, kept up to date as each phase finishes. The full scope of
 each phase and the decisions behind it are in
 [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
@@ -2396,7 +2396,7 @@ each phase and the decisions behind it are in
 | I. Asset budget vs. plan | Life-of-asset plan locked at closing; actuals; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
-| L. Investor reporting | Investors and commitments, capital accounts, call and distribution notices, quarterly investor report and statements | ⛓ After K |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report | ⛓ After K |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
@@ -2426,8 +2426,10 @@ not used. Nothing changes your data until you click to apply it.
   read the same way and checked against the model and the leases.
 - **I–K.** Track each asset's budget, each deal's underwriting and the
   fund's plan against actual results, with variances explained.
-- **L. Investor reporting.** Investor list and commitments, capital
-  accounts per investor (contributions, distributions, fees, promote,
-  returns), capital call and distribution notices, a quarterly investor
-  report and per-investor statements, saved as issued versions. The app
-  prepares them; you review and send.
+- **L. Performance and risk reporting.** A quarterly performance report in
+  a shareable version (to post to your investor portal) and an internal
+  version with more detail, plus an internal-only risk report: lease
+  rollover, tenant and industry concentration, lease risk flags, debt
+  maturities and covenant cushions, valuation sensitivity, budget and
+  underwriting variances, stress tests and a watch list. Investor records,
+  capital accounts and notices stay in your CRM and investor portal.

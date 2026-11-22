@@ -22,7 +22,7 @@ changes the model without the user clicking to apply it.
 | I | Asset budget vs. plan | ⛓ Starts when H is complete |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
-| L | Investor reporting | ⛓ Starts when K is complete |
+| L | Performance reporting (shareable and internal) and internal risk reports | ⛓ Starts when K is complete |
 
 Each finished phase is marked here (and in the user manual's §13 Roadmap)
 with what was built and how it was tested; the user gets a progress note in the Claude session after each one.
@@ -257,39 +257,50 @@ against what the fund actually does, using phases I and J for each asset.
   charts of plan vs. actual over time, Excel export and a printable
   quarterly fund report suitable for LP updates.
 
-## Phase L: investor reporting (added 11/22)
+## Phase L: performance and risk reporting (added 11/22, revised 11/22)
 
-Reporting to the fund's investors (LPs), built on phases I–K and the
-existing Portfolio Return, Valuations and waterfall figures.
+Investor administration (investor records, commitments, capital accounts,
+call and distribution notices, statements and the investor portal) stays in
+the user's CRM and investor portal (Juniper); the app does not duplicate it.
+Phase L produces reports from the app's own figures, built on phases D and
+I–K.
 
-- **Investors and commitments:** an investor list per fund (name, entity,
-  contact, commitment, closing date, class or side-letter terms such as fee
-  discounts), with each investor's share of every capital call and
-  distribution.
-- **Capital accounts:** per investor and quarter: beginning balance,
-  contributions, distributions (return of capital, preferred return,
-  profit), allocated income and expenses, management fees, GP promote
-  (from the fund waterfall) and unrealized gain from the valuation marks,
-  ending balance. Unfunded commitment and each investor's net IRR, TVPI,
-  DPI and RVPI.
-- **Notices:** capital call and distribution notices per investor (amount,
-  due or payment date, purpose, wire details placeholder), generated as
-  PDFs for the user to review and send; the app never sends them.
-- **Quarterly report:** a fund report for investors: letter text (drafted
-  for the user to edit), fund summary and performance (net and gross),
-  NAV and its movement, capital called and distributed, portfolio table,
-  one page per asset (photo or map, business plan status, occupancy,
-  leasing, NOI vs. plan, valuation, key lease events from phase D), plan
-  vs. actual from phase K, and debt summary. PDF and Excel.
-- **Investor statements:** a capital account statement per investor per
-  quarter (PDF), plus a year-end summary that supports tax reporting
-  (not a K-1).
-- **History and sign-off:** each report and statement is saved as an issued
-  version with who approved it and when; figures are frozen once issued.
-- **Access:** owners and editors prepare and issue. An optional read-only
-  investor login that shows each investor only their own statements and
-  the reports issued to them is proposed, not built, until the user
-  decides.
+- **Quarterly performance report**, in two versions from the same figures:
+  - *Shareable*: suitable to post to the investor portal or send to
+    investors: fund summary, net and gross returns (IRR, TVPI, DPI, multiple)
+    since inception and for the quarter, NAV and its movement, capital
+    called and distributed, portfolio table, one page per asset (photo or
+    map, business plan status, occupancy, leasing, NOI vs. plan, valuation),
+    plan vs. actual from phase K, debt summary, and an editable letter
+    drafted for the user.
+  - *Internal*: the same plus underwritten vs. actual by asset (phase J),
+    budget variances with comments (phase I) and notes the user marks
+    internal.
+  - PDF and Excel; each report saved as an issued version (who, when),
+    figures frozen once issued. The app never sends anything; the user
+    uploads to Juniper.
+- **Risk report (internal only)**, watermarked "Internal — not for
+  distribution", never included in the shareable report:
+  - *Leasing*: lease expirations by year (% of SF and rent) by asset and
+    fund, near-term rollover, renewal and termination options, mark to
+    market, vacancy and downtime vs. plan.
+  - *Tenants*: largest tenants by rent and SF, concentration by industry
+    (SIC), credit notes, personal guaranties, defaults and arrears.
+  - *Lease risk flags* (phase D): relocation, termination rights, uncapped
+    expenses, environmental duties, exclusives.
+  - *Debt*: maturities and extension dates, covenant cushions (DSCR, debt
+    yield, LTV) vs. tests, floating-rate exposure and rate cap expiries,
+    refinance risk at current rates.
+  - *Valuation and market*: marks vs. cost and underwriting, cap rate
+    sensitivity, concentration by market and state.
+  - *Execution*: budget and capex variances (phase I), assets behind
+    underwriting (phase J), fund plan gaps (phase K).
+  - *Stress tests*: fund and asset results under rent, vacancy, exit cap
+    and interest rate shocks, with covenant breaches flagged.
+  - *Watch list*: assets ranked by risk score with the reasons, and a
+    comment per item.
+  - Shown on a Reports tab (owners and editors; viewers do not see the
+    risk report), with PDF and Excel, saved as issued versions.
 
 ## Order and review
 
@@ -322,6 +333,8 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
    step, done by the user, not by editing the sample rent rolls.
 9. **Phases I–K** (budget vs. plan, underwritten vs. actual, fund plan vs.
    actual) are their own phases after H.
-10. **Phase L, investor reporting** (added 11/22): after K; notices and
-    reports are generated for the user to send, never sent by the app; an
-    investor login is proposed, not built, until the user decides.
+10. **Phase L, performance and risk reporting** (added 11/22, revised the
+    same night): investor administration stays in Juniper (CRM and investor
+    portal); L builds a quarterly performance report (shareable and internal
+    versions) and an internal-only risk report. The app never sends
+    anything.
