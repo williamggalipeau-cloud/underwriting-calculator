@@ -35,11 +35,12 @@ const BASIS = {
   internal: { label: "Internal", cls: "bg-blue-50 text-blue-700 border-blue-200" },
   rollforward: { label: "Roll-forward", cls: "bg-gray-50 text-gray-600 border-gray-200" },
   cost: { label: "Cost", cls: "bg-gray-50 text-gray-500 border-gray-200" },
+  held: { label: "Cost (first 6 mo)", cls: "bg-gray-50 text-gray-500 border-gray-200" },
 };
 function BasisBadge({ row }) {
   if (row.overdue) return <span className="rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700">Appraisal overdue</span>;
   if (row.appraisalPending) return <span className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">Appraisal due</span>;
-  const b = BASIS[row.basis];
+  const b = BASIS[row.heldAtCost ? "held" : row.basis];
   return <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${b.cls}`}>{b.label}</span>;
 }
 
@@ -81,15 +82,17 @@ function MarkEditor({ asset, marks, onChange }) {
             return (
               <tr key={r.quarterEnd} className="border-b border-gray-100">
                 <td className="px-2 py-1 whitespace-nowrap font-medium text-gray-700">{quarterLabel(r.quarterEnd)}</td>
-                <td className="px-2 py-1 whitespace-nowrap text-gray-500">{r.appraisalQuarter ? "Appraisal" : r.basis === "cost" && !m.value ? "Acquisition" : "Internal"}</td>
+                <td className="px-2 py-1 whitespace-nowrap text-gray-500" title={r.heldAtCost ? "Held at cost for the first 6 months after acquisition" : ""}>{r.heldAtCost ? "At cost (first 6 mo)" : r.appraisalQuarter ? "Appraisal" : "Internal"}</td>
                 <td className="px-2 py-1">
                   <input
                     type="number"
                     step="10000"
                     value={m.value ?? ""}
                     placeholder={fmt(r.value)}
+                    disabled={r.heldAtCost && !(m.value > 0)}
+                    title={r.heldAtCost ? (r.markIgnored ? "Not used: the asset is held at cost for its first 6 months. Clear it or keep it for reference." : "Held at cost for the first 6 months after acquisition") : ""}
                     onChange={(e) => set(r.quarterEnd, { value: numIn(e.target.value), source: m.source ?? (r.appraisalQuarter ? "appraisal" : "internal") })}
-                    className="w-32 rounded border border-gray-300 px-1.5 py-0.5 text-right"
+                    className={`w-32 rounded border px-1.5 py-0.5 text-right disabled:bg-gray-50 ${r.markIgnored ? "border-amber-300 text-gray-400 line-through" : "border-gray-300"}`}
                     aria-label={`Fair value ${quarterLabel(r.quarterEnd)}`}
                   />
                 </td>
@@ -126,7 +129,7 @@ function MarkEditor({ asset, marks, onChange }) {
         </tbody>
       </table>
       <p className="mt-1.5 text-[10px] text-gray-400">
-        Leave Fair value blank to use the roll-forward (last mark plus capex since). An entered Q1/Q3 value overrides the roll-forward.
+        Quarters ending within 6 months of acquisition are held at cost (purchase price + capex budget, plus capex added), whatever the quarter; no appraisal is due for them. After that, leave Fair value blank to use the roll-forward (last mark plus capex since). An entered Q1/Q3 value overrides the roll-forward.
       </p>
     </div>
   );
