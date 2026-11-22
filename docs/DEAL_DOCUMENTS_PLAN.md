@@ -118,8 +118,9 @@ reviews and applies it field by field.
 - **Database:** a `deal_documents` table and a private `deal-docs` storage bucket,
   set up like `lease_documents`: workspace members read, owners and editors
   write, every change goes to `audit_log`. Columns: `doc_type` (om, rent_roll,
-  t12, loi, psa, ic_memo, closing_acq, closing_disp, loan, appraisal, estoppel,
-  cam, billing, other), `deal_id`,
+  t12, loi, psa, ic_memo, closing_acq, closing_disp, lpa, ppm, loan,
+  appraisal, estoppel, cam, billing, other); `deal_id` is empty for fund-level
+  documents (LPA, PPM), `deal_id`,
   `files` (in order), `status` (uploaded, abstracted, applied), `abstract`,
   `applied_fields`, and who and when for each step.
   `save_deal_abstract(doc, abstract)` mirrors `save_lease_abstract`. Leases stay
@@ -144,6 +145,7 @@ reviews and applies it field by field.
 | LOI | `loi_validate` / `loi_show` | **Deal terms**: price vs underwritten price, deposit, due diligence and closing periods, financing contingency; dates to critical dates |
 | PSA | `cre_read_document` + `cre_search_text` (no PSA validator) | **Deal terms and critical dates**: price, deposits and when each goes hard, due diligence expiry, closing and extension notices, title and survey objection dates, estoppel and SNDA delivery, reps and warranties survival and cap, assignment, default remedies. The app's own PSA template is checked locally (every quote must be in the PDF) and shown as "not connector-validated" |
 | Final IC memo | `cre_read_document` + `cre_search_text` (no IC memo validator; uses no free documents) | **As-approved baseline**: approval date and approvers, approved price and total cost, sources and uses, debt terms, business plan (capex, lease-up), projected IRR, multiple, cash-on-cash, hold, going-in and exit cap, key risks, and conditions of approval. Checked locally and shown as "not connector-validated" |
+| Fund LPA / operating agreement and PPM (fund-level, not per asset) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Fund investment limits**: each restriction with its clause and quote: single-asset and single-tenant limits, geography (state, metro, region), property type and non-core/development, leverage (fund and per-asset LTV, total borrowing), investment period and hold limits, other caps. Reviewed and applied one by one to become the fund's limits (phase L checks actual vs. limit). Checked locally, "not connector-validated" |
 | Closing statement, acquisition (settlement statement / ALTA) | `cre_read_document` + `cre_search_text` (no validator; uses no free documents) | **Actual cost basis**: contract price, credits and prorations (rent, taxes, CAM, security deposits transferred, TI/LC and repair credits), closing costs by type (title, escrow, transfer tax, legal, lender fees), loan proceeds, and equity actually funded; closing date. Replaces the underwritten price/closing costs as the asset's actual basis (shown side by side, applied by choice). Checked locally, "not connector-validated" |
 | Closing statement, disposition | same | **Realized sale**: sale price, credits and prorations, selling costs (commission, transfer tax, legal), loan payoff and prepayment, and net proceeds to equity; closing date. Marks the asset sold, records the actual exit in the cash flows, and fixes realized IRR and multiple (Portfolio Return, Sell / Hold). Checked locally, "not connector-validated" |
 
@@ -293,6 +295,15 @@ I–K.
   - PDF and Excel; each report saved as an issued version (who, when),
     figures frozen once issued. The app never sends anything; the user
     uploads to Juniper.
+- **Fund limits, actual vs. limit** (added 11/22): the investment limits
+  applied from the fund's LPA / operating agreement and PPM (phase E), plus
+  any internal limits the user adds, each shown with its source (document,
+  clause and quote), the actual figure, headroom and status (within, near
+  at 90% of the limit, breached). Covers every limit the documents set:
+  geography, industry, single asset and tenant, property type, leverage,
+  investment period and others. A **pre-acquisition check** shows whether a
+  deal in the pipeline would breach a limit if bought. Included in the risk
+  report and summarised in the internal performance report.
 - **Risk report (internal only)**, watermarked "Internal — not for
   distribution", never included in the shareable report:
   - *Leasing*: lease expirations by year (% of SF and rent) by asset and
@@ -303,8 +314,8 @@ I–K.
   - *Industry (SIC) concentration*, at **both levels**: for each asset
     (share of the asset's rent and SF by SIC code and 2-digit industry
     group, building on the Unit Roll's industry mix) and for the fund
-    (rolled up across all assets, weighted by rent, SF and NOI). User-set
-    limits at each level (e.g. no industry above 40% of an asset's rent or
+    (rolled up across all assets, weighted by rent, SF and NOI). Limits at each
+    level (from the LPA/PPM or set by the user) (e.g. no industry above 40% of an asset's rent or
     20% of fund rent), breaches flagged, and change vs. last quarter.
   - *Lease risk flags* (phase D): relocation, termination rights, uncapped
     expenses, environmental duties, exclusives.
@@ -315,8 +326,8 @@ I–K.
     asset sits in one place, so it is a fund measure): exposure by state, metro
     area (MSA), city and submarket, as % of fund value (NAV), equity, NOI,
     rent, SF and asset count, using each asset's address (Phase A asset
-    locations; ZIP mapped to its MSA). User-set limits (e.g. no more than
-    30% of NAV in one state or 25% in one metro) with breaches flagged,
+    locations; ZIP mapped to its MSA). Limits from the LPA/PPM, or set by
+    the user (e.g. no more than 30% of NAV in one state or 25% in one metro) with breaches flagged,
     change vs. last quarter, and a map of the assets sized by value. Also
     shows lease rollover and debt maturities by state and metro, so
     clusters of risk in one market stand out.
@@ -376,3 +387,8 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     and a map.
 13. **Industry (SIC) concentration** (added 11/22) in phase L's risk
     report: at the asset and the fund level, each with its own limits.
+14. **Fund limits from the LPA and PPM** (added 11/22): uploaded as
+    fund-level documents in phase E, each restriction reviewed and applied;
+    phase L shows actual vs. limit, headroom and breaches, and checks
+    pipeline deals before purchase. Reading these is legal interpretation, so
+    every limit shows its clause and quote and is applied only by the user.
