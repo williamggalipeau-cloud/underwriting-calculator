@@ -13,6 +13,8 @@ import {
 } from "@/lib/fundTimeline";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName, termsToCSV, termsToXlsx } from "@/lib/fundTerms";
 import { applySubLine } from "@/lib/subLine";
+import { actualCapital } from "@/lib/capitalActivity";
+import CapitalActivity from "@/components/CapitalActivity";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 
 // Last day of a "YYYY-Qn" quarter as ISO.
@@ -539,7 +541,7 @@ function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChang
   // balance is already spoken for: dry powder = commitments − LP capital
   // called − line outstanding.
   const lineAt = (iso) => (line ? line.balanceAt(iso) : 0);
-  const capital = {
+  const modelCapital = {
     commitments,
     calledToDate,
     dryPowderToday: commitments - calledToDate - lineAt(todayISO),
@@ -550,6 +552,25 @@ function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChang
     ipOpen: todayISO <= fd.investmentPeriodEnd,
     lineToday: lineAt(todayISO),
   };
+  // Actual capital activity (calls, line draws / repayments) replaces the
+  // model up to today; only needs after today come from the model: asset
+  // capital needs before the sub line (purchases, shortfalls) and fund fees.
+  const activity = terms.capitalActivity ?? [];
+  const modelNeeds = [
+    ...waterfallEvents
+      .filter((e) => e.kind === "call" && e.amount < 0)
+      .map((e) => ({ date: e.date, amount: -e.amount, dealId: e.dealId, purchase: e.purchase })),
+    ...fundWf.ledger.filter((r) => r.kind === "fee" && r.fee > 0).map((r) => ({ date: r.date, amount: r.fee })),
+  ];
+  const actual = actualCapital(activity, {
+    todayISO,
+    ipEndISO: fd.investmentPeriodEnd,
+    commitments,
+    modelCalls: modelNeeds,
+  });
+  const capital = actual.hasActuals
+    ? { ...actual, commitments, ipOpen: modelCapital.ipOpen, actual: true }
+    : modelCapital;
   const outsideIP = deals.filter((d) => {
     const acq = acquisitionDate(d, fund);
     return acq <= fund.finalClose || acq > fd.investmentPeriodEnd;
@@ -746,9 +767,11 @@ function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChang
             </span>
           </label>
           {[
-            ["Called to date", fmtM(capital.calledToDate), capital.commitments > 0 ? `${fmtPct(capital.pctCalledToDate, 0)} of commitments` : "LP + GP, incl. fees"],
-            ["Dry powder today", capital.commitments > 0 ? fmtM(capital.dryPowderToday) : "—", line ? "Commitments − called − sub line outstanding" : "Commitments − called to date", capital.dryPowderToday < 0],
-            ["Planned deals will call", fmtM(capital.projectedCalls), line ? "LP calls incl. sub line repayments & costs" : "All calls for the fund's current deals"],
+            ["Called to date", fmtM(capital.calledToDate), `${capital.commitments > 0 ? `${fmtPct(capital.pctCalledToDate, 0)} of commitments` : "LP + GP, incl. fees"}${capital.actual ? " · actual" : ""}`],
+            ["Dry powder today", capital.commitments > 0 ? fmtM(capital.dryPowderToday) : "—", capital.actual || line ? "Commitments − called − sub line outstanding" : "Commitments − called to date", capital.dryPowderToday < 0],
+            capital.actual
+              ? ["Commitments used incl. plans", fmtM(capital.projectedCalls), `Called + line + ${fmtM(capital.futureNeeds)} future needs`]
+              : ["Planned deals will call", fmtM(capital.projectedCalls), line ? "LP calls incl. sub line repayments & costs" : "All calls for the fund's current deals"],
             ["Uncommitted capital", capital.commitments > 0 ? fmtM(capital.uncommitted) : "—", "Left for new deals after planned ones", capital.uncommitted < 0],
             ["Dry powder at IP end", capital.commitments > 0 ? fmtM(capital.dryPowderAtIPEnd) : "—", `If no other deals by ${fmtDate(fd.investmentPeriodEnd)}`, capital.dryPowderAtIPEnd < 0],
           ].map(([label, value, sub, bad]) => (
@@ -764,15 +787,37 @@ function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChang
             {`Planned deals need ${fmtM(-capital.uncommitted)} more than the fund's commitments.`}
           </p>
         )}
-        {line && (
+        {capital.actual ? (
           <p className="mt-2 text-[11px] text-gray-500">
-            Sub line outstanding today: <span className="font-semibold text-gray-800">{fmtM(capital.lineToday)}</span>. It is repaid with
-            future LP calls, so it is deducted from dry powder alongside capital already called.
+            From your capital activity through {fmtDate(capital.lastDate)}: sub line outstanding today{" "}
+            <span className="font-semibold text-gray-800">{fmtM(capital.lineToday)}</span>{" "}(deducted from dry powder, as it is repaid with
+            future calls). Future needs are the model&apos;s purchases dated after today (except assets you&apos;ve tagged as funded),
+            shortfalls and fund fees, before any sub line. The model alone assumed {fmtM(modelCapital.calledToDate)} called and{" "}
+            {fmtM(modelCapital.lineToday)} on the line by today.
+          </p>
+        ) : (
+          line && (
+            <p className="mt-2 text-[11px] text-gray-500">
+              Modelled: every purchase is drawn on the sub line and repaid by a call after {fmt(terms.subLineMaxDays, 0)} days. Sub line
+              outstanding today: <span className="font-semibold text-gray-800">{fmtM(capital.lineToday)}</span>. Enter your actual capital
+              calls below to replace this with what happened.
+            </p>
+          )
+        )}
+        {capital.actual && capital.untaggedPast.length > 0 && (
+          <p className="mt-2 text-[11px] text-amber-700">
+            No capital activity is tagged to{" "}
+            {capital.untaggedPast
+              .map((c) => `${deals.find((d) => d.id === c.dealId)?.inputs.propertyName ?? "an asset"} (bought ${fmtDate(c.date)})`)
+              .join(", ")}
+            . If it was funded by a call or line draw entered under another purpose, set that entry&apos;s purpose to the asset. If it
+            hasn&apos;t closed yet, move its acquisition date to the expected closing date.
           </p>
         )}
         {!(capital.commitments > 0) && (
           <p className="mt-2 text-[11px] text-gray-500">Enter the fund&apos;s total commitments to see dry powder.</p>
         )}
+        <CapitalActivity fundName={fundName} activity={activity} deals={deals} onChange={(next) => onTermsChange({ capitalActivity: next })} />
       </div>
 
       {/* Fund terms */}

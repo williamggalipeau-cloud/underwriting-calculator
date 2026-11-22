@@ -633,7 +633,8 @@ export default function Home() {
   }
 
   function handleFundSave(terms, { addCurrentDeal } = {}) {
-    setFunds((prev) => ({ ...prev, [terms.name]: terms }));
+    // Keep data stored on the fund that the terms editor doesn't edit (capital activity).
+    setFunds((prev) => ({ ...prev, [terms.name]: { ...(prev[terms.name] ?? {}), ...terms } }));
     if (addCurrentDeal) setInputs((prev) => ({ ...prev, fundName: terms.name }));
     setFundEditor(null);
   }
