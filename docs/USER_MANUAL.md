@@ -647,7 +647,7 @@ tomorrow onward.
 ### 7.13 Sample portfolio (`lib/samplePortfolio.js`)
 
 Model Fund I has **$100M of total commitments** (LP + GP). It holds your
-deal plus nine illustrative assets, all owned: acquired 1/30/2026 – 11/13/2026:
+deal plus nine illustrative assets, acquired 4/30/2026 – 12/15/2027:
 
 | Assumption | Value |
 |---|---|
@@ -655,7 +655,7 @@ deal plus nine illustrative assets, all owned: acquired 1/30/2026 – 11/13/2026
 | Price | $5.4M–$14.8M |
 | Year-1 NOI | $365K–$962K |
 | NOI growth | 20–35% |
-| Hold | 4 years (all exit in 2030, within the fund term) |
+| Hold | 4 years |
 | Exit caps | 6.25–7.00% |
 | Spreads | 1.75–2.25% |
 
