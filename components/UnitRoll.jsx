@@ -1,10 +1,12 @@
 "use client";
 
-import { Fragment, useId, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/fundTerms";
 import { SIC_CODES, sicLabel, sicTitle, suggestSic } from "@/lib/sicCodes";
 import { LEASE_FIELDS, leaseAnalytics, leaseEndOf, monthsRemainingFor, parseRentRollRows, rentRollRows, todayISO } from "@/lib/leases";
 import { readXlsxGrid, writeXlsx } from "@/lib/xlsx";
+import { leaseMismatches, showValue } from "@/lib/leaseApply";
+import { listLeases } from "@/lib/leaseDocs";
 
 // ─── CSV / Excel import ──────────────────────────────────────────────────────
 
@@ -32,7 +34,7 @@ function csvRows(text) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0) {
+export function newUnit(name, squareFeet, inputs, occupied = true, monthsRemaining = 0) {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     name,
@@ -250,8 +252,16 @@ function IndustryMix({ la }) {
 function LeaseDetails({ unit, inputs, onField }) {
   const derivedEnd = leaseEndOf(unit, inputs);
   const input = "w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 focus:border-blue-400 focus:outline-none";
+  const steps = Array.isArray(unit.rentSteps) ? unit.rentSteps : [];
   return (
     <div className="grid gap-3 px-3 py-3 sm:grid-cols-2 lg:grid-cols-4">
+      {steps.length > 0 && (
+        <div className="rounded-md border border-violet-200 bg-violet-50/60 px-2 py-1.5 text-[11px] text-violet-900 sm:col-span-2 lg:col-span-4" data-testid="rent-steps">
+          <span className="font-medium">Rent steps from the lease</span> (drive the cash flow while this lease runs; $/SF/yr):{" "}
+          {steps.map((st) => `${st.start} $${Number(st.rentPSF).toFixed(2)}`).join(" · ")}
+          <button type="button" onClick={() => onField("rentSteps", undefined)} className="ml-2 text-violet-600 underline hover:text-violet-800">Remove steps</button>
+        </div>
+      )}
       {LEASE_FIELDS.map((f) => {
         const v = unit[f.key] ?? "";
         const shown = f.key === "leaseEnd" && !v && derivedEnd ? derivedEnd : v;
@@ -313,10 +323,30 @@ const COL_HEADERS = [
   { key: "tiConcR",   label: "TI Conc R", width: "w-20", tip: "TI concession $/SF — renewal (income-side deduction)" },
 ];
 
-export default function UnitRoll({ units, inputs, onChange }) {
+export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId }) {
   const headerId  = useId();
   const fileInput = useRef(null);
   const [csvError, setCsvError] = useState(null);
+  // Abstracted leases for this asset (signed in with a workspace): rows whose
+  // unit differs from its lease abstract are flagged.
+  const [leases, setLeases] = useState([]);
+  useEffect(() => {
+    // Loads this asset's leases; nothing to load without a workspace.
+    if (!workspaceId || !dealId) return;
+    let alive = true;
+    listLeases(workspaceId)
+      .then((list) => alive && setLeases(list.filter((l) => l.deal_id === dealId && l.abstract)))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [workspaceId, dealId]);
+  const leaseFlag = (u) => {
+    if (!workspaceId) return null;
+    const l = leases.find((x) => x.deal_id === dealId && (x.unit_ids ?? []).includes(u.id));
+    if (!l) return null;
+    return { lease: l, diffs: leaseMismatches(l.abstract, u, inputs) };
+  };
 
   // Editing the business fills the SIC code when it is blank or still the
   // code suggested for the previous business.
@@ -534,6 +564,21 @@ export default function UnitRoll({ units, inputs, onChange }) {
                     </td>
                     <td className="px-2 py-1.5">
                       <TextCell label="Unit name" value={u.name} onChange={(v) => update(u.id, "name", v)} />
+                      {(() => {
+                        const f = leaseFlag(u);
+                        if (!f) return null;
+                        return f.diffs.length ? (
+                          <span
+                            className="mt-0.5 block whitespace-nowrap rounded bg-amber-100 px-1 text-[10px] font-medium text-amber-800"
+                            title={`Differs from the lease abstract (${f.lease.tenant || "lease"}):\n${f.diffs.map((d) => `${d.label}: rent roll ${showValue(d.kind, d.unitValue)}, lease ${showValue(d.kind, d.abstractValue)}`).join("\n")}\nApply or review it on the Leases tab.`}
+                            data-testid="unit-lease-flag"
+                          >
+                            ⚠ {f.diffs.length} vs lease
+                          </span>
+                        ) : (
+                          <span className="mt-0.5 block whitespace-nowrap text-[10px] text-emerald-700" title="Matches its lease abstract" data-testid="unit-lease-flag">✓ lease</span>
+                        );
+                      })()}
                     </td>
                     <td className="px-2 py-1.5">
                       <NumCell label="Square feet" value={u.squareFeet} step={100} onChange={(v) => update(u.id, "squareFeet", v)} />

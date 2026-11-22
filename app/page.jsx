@@ -445,6 +445,9 @@ export default function Home() {
   function noteAudit(note) {
     auditNote.current = note;
   }
+  // Changes made by applying a lease abstract: logged field by field with
+  // their source instead of as one rent roll change.
+  const auditSource = useRef(null); // { dealId, label, entries: [{ unitId, unitName, field, key, from, to }] }
   const hydrated = useRef(false);
   const importRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null); // { ok, text }
@@ -722,7 +725,24 @@ export default function Home() {
       const snap = auditSnapshot({ deals, savedDeals, funds, comps, valuations, baseCurve });
       let log = auditLogRef.current;
       if (auditBaseline.current && !auditNote.current) {
-        const changes = diffWorkspace(auditBaseline.current, snap);
+        let changes = diffWorkspace(auditBaseline.current, snap);
+        const src = auditSource.current;
+        auditSource.current = null;
+        if (src) {
+          const key = ["deals", "savedDeals"].find((k) => (snap[k] ?? []).some((d) => d.id === src.dealId)) ?? "deals";
+          const deal = (snap[key] ?? []).find((d) => d.id === src.dealId);
+          const unitsPath = JSON.stringify([key, src.dealId, "inputs", "units"]);
+          changes = changes.filter((c) => JSON.stringify(c.path?.slice(0, 4)) !== unitsPath);
+          changes.push(...src.entries.map((e) => ({
+            area: key === "deals" ? "Deal" : "Saved deal",
+            item: deal?.inputs?.propertyName || src.dealId,
+            field: `Unit ${e.unitName} › ${e.field}`,
+            path: [key, src.dealId, "inputs", "units", e.unitId, e.key],
+            from: e.from,
+            to: e.to,
+            source: src.label,
+          })));
+        }
         if (changes.length) log = appendChanges(log, changes, { user: editorName });
       } else if (auditNote.current) {
         log = appendChanges(log, [], { user: editorName, note: auditNote.current });
@@ -847,7 +867,15 @@ export default function Home() {
     const notes = (data.auditLog ?? [])
       .filter((e) => e.note && (!l.savedAt || e.at > l.savedAt))
       .map((e) => ({ area: "Workspace", item: e.item, field: e.field, note: e.note }));
+    // Rent roll fields set from a lease abstract: logged field by field with
+    // their source (the note) instead of as one rent roll change.
+    const sourced = (data.auditLog ?? []).filter((e) => e.source && (!l.savedAt || e.at > l.savedAt));
+    if (sourced.length) {
+      const prefixes = new Set(sourced.map((e) => JSON.stringify(e.path.slice(0, 4))));
+      changes = changes.filter((c) => !prefixes.has(JSON.stringify(c.path?.slice(0, 4))));
+    }
     if (changes.length > BULK_LIMIT) changes = [{ area: "Workspace", item: "Bulk change", field: `${changes.length} fields changed`, note: "Bulk change" }];
+    changes.push(...sourced.map((e) => ({ area: e.area, item: e.item, field: e.field, path: e.path, from: e.from, to: e.to, note: e.source })));
     dbSaving.current = true;
     try {
       const version = await dbSaveWorkspace(l.id, l.version, data, [...notes, ...changes]);
@@ -958,6 +986,21 @@ export default function Home() {
           : d
       )
     );
+  }
+
+  // Leases tab → Apply to rent roll: replaces the deal's units (open or
+  // saved) and logs each field as from the lease abstract.
+  function handleApplyLease(dealId, units, entries, label) {
+    if (!requireEdit()) return false;
+    auditSource.current = { dealId, label, entries };
+    const set = (list) => list.map((d) => (d.id === dealId ? { ...d, inputs: { ...d.inputs, units } } : d));
+    if (deals.some((d) => d.id === dealId)) setDeals(set);
+    else if (savedDeals.some((d) => d.id === dealId)) setSavedDeals(set);
+    else {
+      auditSource.current = null;
+      return false;
+    }
+    return true;
   }
 
   // Exit cap from the Sales Comps tab: linked deals change the Quick
@@ -1513,6 +1556,8 @@ export default function Home() {
                 units={inputs.units}
                 inputs={inputs}
                 onChange={(units) => setInputs((prev) => ({ ...prev, units }))}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                dealId={activeDeal.id}
               />
             )}
             {activeTab === "quick" && (
@@ -1624,6 +1669,8 @@ export default function Home() {
                 deal={activeDeal}
                 fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName))}
                 fundName={resolveFund(inputs.fundName)}
+                dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
+                onApplyUnits={handleApplyLease}
               />
             )}
             {activeTab === "comps" && (

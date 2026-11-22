@@ -233,7 +233,7 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
-| **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. Needs sign-in and an open database workspace. Review and apply to the rent roll comes next. |
+| **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. Needs sign-in and an open database workspace. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
@@ -474,7 +474,7 @@ underwriting-calculator/
 │   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
 │   ├── CashYield.jsx         Cash-on-cash yield charts and table
 │   ├── SellHold.jsx          Sell / Hold tab
-│   ├── Leases.jsx            Leases tab (lease documents: upload, open, reorder, delete)
+│   ├── Leases.jsx            Leases tab (lease documents, abstracts, apply to rent roll, mismatch flags)
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
 │   └── SalesComps.jsx        Sales Comps tab
@@ -499,6 +499,7 @@ underwriting-calculator/
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
 │   ├── leaseDocs.js          Lease documents in Supabase (table + storage bucket), save abstract
 │   ├── leaseAbstract.js      Abstract template, prompt, parsing and grouping
+│   ├── leaseApply.js         Abstract → rent roll unit fields, comparison, apply, mismatch flags
 │   ├── assetLocations.js     Model Fund I asset addresses; state list
 │   ├── sampleRentRolls.js    Model Fund I rent rolls with a 20–40% mark to market
 │   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
@@ -1575,16 +1576,78 @@ Each draft is produced by `scripts/sample-leases/abstract_all.py` (all 67
 template fields, rent schedule, critical dates and risk flags, with every
 quote checked against the PDF text) and then validated by the connector.
 Where the PDF's rent table splits a date across cells (free-rent rows), the
-row's dates are recorded as calculated from the Commencement Date. Lakeshore (10, with its
-amendment) is not yet abstracted. To use one, upload that lease's PDF on the asset's
-Leases tab and paste the JSON into **Save abstract**.
+row's dates are recorded as calculated from the Commencement Date. All 12
+are validated, including Lakeshore (10 with its first amendment, which
+deletes the early termination right, adds one five-year renewal option at
+95% of market and abates rent for February and March 2025; SIC 7538), and
+all 12 are attached to their leases in the Model Fund I workspace (11/22).
+To use one elsewhere, upload that lease's PDF on the asset's Leases tab and
+paste the JSON into **Save abstract**.
 
 The sample leases' tenants and suites are not on the generated rent rolls
 (for example, Desert Aero Parts' Building B, Suite 104 is not a unit at Airport
-Flex Park), so leave **Rent roll unit** blank when you upload one. Attaching an
-abstract does not change the Unit Roll; the tenant reaches the rent roll only
-when the lease is applied to it, either replacing a unit or added as a new one
-(review and apply, coming next).
+Flex Park). Attaching an abstract does not change the Unit Roll; the tenant
+reaches the rent roll only when you apply the lease (§7.25), replacing a
+unit or adding a new one. That is your choice to make: nothing was applied
+to the live workspace.
+
+### 7.25 Applying abstracts to the rent roll (`lib/leaseApply.js`)
+
+**Apply to rent roll** (Leases tab, owners and editors) reads the abstract
+into rent roll fields and shows them next to the chosen unit:
+
+| Rent roll field | From the abstract |
+|---|---|
+| Tenant | `tenant`, the name before ", a … company/corporation" |
+| SF | `rentable_area` (all suites the lease covers) |
+| Status, months remaining | occupied when the expiration is on or after the analysis start; months from the analysis start to the expiration |
+| Lease type | `lease_type`: modified gross → MG; gross → Gross; net / NNN → NNN |
+| Lease start / end | `commencement_date` / `expiration_date` |
+| Rent $/SF | the rent step in force at the analysis start (acquisition date, else today); a lease starting later takes its first step |
+| Escalation % | the % in `rent_escalations`; for fixed $ increases, the % between the first two paying steps (noted; the steps drive the cash flow) |
+| Rent steps | the rent schedule as dated steps, $/SF/yr on the whole leased area; abated months are $0 steps; suites with their own schedules are added up |
+| Security deposit | first $ amount in `security_deposit` |
+| Guarantor | `guarantor` (blank when None) |
+| Expense recoveries | lease type, tenant's share and expense cap |
+| Renewal options, years, notice | the counts in `renewal_option` ("One (1) option(s) of five (5) years, on at least nine (9) months' notice"); 0 when None |
+| Renewal rent | "95% of market", "greater of current rent and 95% of market", or "fixed $x" |
+| Early termination date, notice, fee | the termination critical dates (notice months = notice date to effective date) and any $ fee; cleared when None |
+| Other rights | expansion / ROFR / ROFO, purchase option and the landlord's relocation right |
+| Business, SIC | the abstract's tenant business and SIC code |
+
+- **Existing unit**: fields that differ are ticked (untick any you want to
+  keep); fields that match show "same". Months remaining always follows an
+  applied lease end. **New unit**: every field from the abstract, other
+  assumptions (TI, LC, renewal %, downtime, expenses) from the deal's
+  defaults, named after the abstract's premises (editable).
+- Before you apply, the panel shows units / vacant, occupancy (SF), WALT
+  (by rent) and mark to market now → after.
+- Applying sets the lease to **Applied to rent roll** (with the date and
+  who applied it) and links it to the unit. The Change log records each
+  field (unit › field, from → to) with the source "From lease abstract
+  (tenant)", in the working log and the database's verified log.
+- **Rent steps in the cash flow** (`simulateUnit`): while the lease on the
+  rent roll at the analysis start runs, each month's rent is the step in
+  force on that month's date (abated months $0). After the last step the
+  rent escalates from it at the unit's escalation %. Once the lease rolls,
+  the steps no longer apply. Units without steps are modelled as before.
+- **Renewal options in the cash flow**: when the lease ends and the unit has
+  options left with a readable option rent, the tenant renews on the
+  option if the option rent is at or below market that month: no
+  downtime, renewal TI, commissions and free rent, rent = option rent,
+  term = years per option (else the unit's new-lease term). Otherwise (or
+  with no options left) the usual renewal probability and re-leasing
+  apply. "Greater of current rent and x% of market" uses the higher of the
+  two, so it is exercised only when current rent is at or below market.
+- **Mismatch flags**: each abstracted lease's card shows "✓ Rent roll
+  matches the lease", "⚠ Rent roll differs: …" (hover for each value) or
+  "Not on the rent roll yet". On the Unit Roll, a unit linked to an
+  abstracted lease shows "✓ lease" or "⚠ n vs lease". Flagged fields: tenant,
+  SF, lease start and end, rent $/SF, escalation, lease type, security
+  deposit and renewal options. A lease covering two rent roll units
+  compares the lease's total SF with each unit, so SF is flagged on both.
+- **Unit Roll → ▸ Lease details** lists a unit's rent steps, with **Remove
+  steps** to go back to rent and escalation.
 
 ## 8. Worked example: the default deal
 
@@ -1950,6 +2013,7 @@ reference data except lease end, which sets months remaining (§7.19).
 | `terminationFee` | `deals[].inputs.units[].terminationFee` | Termination fee | $ | Fee payable on termination |
 | `otherRights` | `deals[].inputs.units[].otherRights` | Other rights [expansion, rofr] | text | Expansion, ROFR, ROFO, relocation, etc. |
 | `leaseNotes` | `deals[].inputs.units[].leaseNotes` | Notes [comments] | text | Free-form notes |
+| `rentSteps` | `deals[].inputs.units[].rentSteps` | (from an applied lease abstract; not imported) | [{ start, end, rentPSF }] | Dated rent steps, $/SF/yr on the unit's SF; drive the rent while the in-place lease runs (§7.25) |
 
 ### 11.6 Deal snapshot (fund deals and saved deals)
 
@@ -2460,8 +2524,8 @@ each phase and the decisions behind it are in
 |---|---|---|
 | A. Lease documents | Upload, store and open each lease's PDFs per asset (Leases tab) | ✅ Live |
 | B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
-| C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags | ⏰ Scheduled 11/22/2026, 5:30am PT |
-| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | ⏰ Scheduled 11/22/2026, 10:30am PT |
+| C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags (§7.25) | ✅ Built 11/22 (pull request, awaiting merge) |
+| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | 🔨 In progress |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
