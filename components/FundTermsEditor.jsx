@@ -133,6 +133,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 />
               </label>
               <Num label="Total commitments" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint="Fund size; drives dry powder" />
+              <Num label="Hurdle rate" suffix="%/yr" step={0.5} value={t.hurdleRatePct ?? 10} onChange={set("hurdleRatePct")} hint="Cost of capital: return investors require" />
               <Num label="Mgmt fee" suffix="%/yr" step={0.25} value={t.mgmtFeePct} onChange={set("mgmtFeePct")} hint="Quarterly in advance, LPs only" />
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fee basis</span>

@@ -10,9 +10,12 @@ import {
   fundDates,
   parseDate,
   xirr,
+  hurdleStats,
 } from "@/lib/fundTimeline";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName, termsToCSV, termsToXlsx } from "@/lib/fundTerms";
 import { fundLpEvents, subLineTerms } from "@/lib/fundFlows";
+import { fundCashYield } from "@/lib/cashYield";
+import { FundCashYield } from "@/components/CashYield";
 import { actualCapital } from "@/lib/capitalActivity";
 import CapitalActivity from "@/components/CapitalActivity";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -454,6 +457,66 @@ function DealRow({ deal, onRemove, fund }) {
   );
 }
 
+// Returns against the fund's hurdle rate (cost of capital).
+function HurdleCard({ rate, asOf, rows, onRate }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h4 className="font-semibold text-gray-700">Cost of capital</h4>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Hurdle rate
+          <input
+            type="number"
+            step={0.5}
+            min={0}
+            value={rate}
+            onChange={(e) => {
+              const v = parseFloat(e.target.value);
+              if (isFinite(v) && v >= 0) onRate(v);
+            }}
+            className="w-16 rounded-md border border-gray-200 px-2 py-1 text-right text-gray-900"
+            aria-label="Hurdle rate (% per year)"
+          />
+          %/yr
+        </label>
+      </div>
+      <table className="w-full tabular-nums">
+        <thead className="text-gray-500">
+          <tr className="border-b border-gray-200">
+            {["Returns", "IRR", "Spread over hurdle", `NPV at ${fmt(rate, 1)}%`, "PV invested", "PV returned", "Profitability index"].map((h) => (
+              <th key={h} className={`px-2 py-1 font-medium ${h === "Returns" ? "text-left" : "text-right"}`}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([label, sub, flows]) => {
+            const h = hurdleStats(flows, rate, asOf);
+            const good = h.npv >= 0;
+            return (
+              <tr key={label} className="border-b border-gray-100 text-gray-800">
+                <td className="px-2 py-1.5"><span className="font-semibold">{label}</span> <span className="text-gray-400">{sub}</span></td>
+                <td className="px-2 py-1.5 text-right">{fmtPct(h.irr)}</td>
+                <td className={`px-2 py-1.5 text-right font-semibold ${!isFinite(h.spread) ? "" : h.spread >= 0 ? "text-emerald-700" : "text-red-600"}`}>
+                  {isFinite(h.spread) ? `${h.spread >= 0 ? "+" : ""}${fmt(h.spread, 1)} pts` : "—"}
+                </td>
+                <td className={`px-2 py-1.5 text-right font-semibold ${good ? "text-emerald-700" : "text-red-600"}`}>{h.npv < 0 ? `(${fmtM(-h.npv)})` : fmtM(h.npv)}</td>
+                <td className="px-2 py-1.5 text-right">{fmtM(h.pvIn)}</td>
+                <td className="px-2 py-1.5 text-right">{fmtM(h.pvOut)}</td>
+                <td className="px-2 py-1.5 text-right">{isFinite(h.pi) ? `${h.pi.toFixed(2)}x` : "—"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <p className="mt-1 text-[10px] text-gray-400">
+        The hurdle rate is the fund&apos;s cost of capital: the annual return investors require. NPV discounts each dated cash flow to the final
+        close ({fmtDate(asOf)}) at that rate; positive NPV means the fund creates value above it. Spread = IRR − hurdle. Profitability index =
+        present value of money returned ÷ present value of money invested.
+      </p>
+    </div>
+  );
+}
+
 // Fund-level expenses and fund cash (lib/fundExpenses), by quarter.
 function FundExpensesCard({ fx, terms, ipEnd, todayISO, callsNeeded = [] }) {
   const [open, setOpen] = useState(false);
@@ -789,6 +852,17 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         </div>
       </div>
 
+      <HurdleCard
+        rate={terms.hurdleRatePct ?? 10}
+        asOf={terms.finalClose}
+        rows={[
+          ["Gross", "Assets, before fund expenses and promote", allFlows],
+          ["Net fund", "All investors, after fund expenses", [...fundWf.lpFlows, ...fundWf.gpFlows]],
+          ["Net LP", "LPs, after fees, pref and promote", fundWf.lpFlows],
+        ]}
+        onRate={(v) => onTermsChange({ hurdleRatePct: v })}
+      />
+
       <FundExpensesCard fx={flows.expenses} terms={terms} ipEnd={fd.investmentPeriodEnd} todayISO={todayISO} callsNeeded={flows.expenseCallsNeeded ?? []} />
 
       {/* Subscription line */}
@@ -1008,6 +1082,15 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
           {terms.mgmtFeePct > 0 ? ` · ${fmt(terms.mgmtFeePct, 2)}% management fee (${fmtM(flows.expenses?.totals.fees ?? 0)} total, paid as a fund expense)` : " · no fund-level management fee"}.
         </p>
       </div>
+
+      <FundCashYield
+        data={fundCashYield({
+          assetFlows,
+          purchases: waterfallEvents.filter((e) => e.kind === "call" && e.purchase),
+          sales: waterfallEvents.filter((e) => e.kind === "capital" && e.dealId),
+          distributions: flows.events.filter((e) => e.kind === "income"),
+        })}
+      />
 
       {/* Combined cash flow table */}
       <div>
