@@ -1163,6 +1163,17 @@ export default function Home() {
               </svg>
               User manual
             </a>
+            <button
+              type="button"
+              onClick={() => setCloudOpen(true)}
+              title={session ? `Signed in as ${session.user.email}. Open the database panel.` : "Sign in to save to the database: shared workspaces, version history and a verified change log"}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${
+                session ? "border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100" : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              <span aria-hidden="true">☁</span>
+              {!session ? "Sign in" : dbLink?.id ? `${dbLink.name}${dbLink.dirty ? " · unsaved" : ""}` : "Database"}
+            </button>
           </div>
         </div>
       </header>
@@ -1320,16 +1331,7 @@ export default function Home() {
               <button type="button" onClick={() => saveToDbNow(true).catch(() => {})} className="ml-1 rounded border border-sky-300 bg-white px-1.5 py-0.5 font-medium text-sky-800 hover:bg-sky-100">Save now</button>
             )}
           </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setCloudOpen(true)}
-            title="Save to your Supabase database: shared workspaces, version history and a verified change log"
-            className="text-xs font-medium text-sky-800 border border-sky-200 hover:bg-sky-50 bg-white rounded-lg px-3 py-1.5 transition-colors"
-          >
-            ☁ {session ? "Database" : "Sign in"}
-          </button>
-        )}
+        ) : null}
         {cloudOpen && (
           <CloudPanel
             session={session}

@@ -69,8 +69,9 @@ imported forward curve. It is saved in two places.
 The change log (§7.17) is part of the workspace, so it is saved in both
 places and travels with exports.
 
-**Database (Supabase): shared and verified.** Click **☁ Sign in** (top
-right), enter your email and open the sign-in link. Then **☁ Database →
+**Database (Supabase): shared and verified.** Click **☁ Sign in** in the
+top header (next to User manual), enter your email and open the sign-in
+link. Then **☁ Database →
 Save to database** creates a shared workspace.
 - **Saving:** changes save to it on the same schedule as a linked file
   (every 10 minutes when changed, on **Save now**, and when you leave), and
