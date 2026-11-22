@@ -2433,7 +2433,7 @@ not used. Nothing changes your data until you click to apply it.
 - **F–H.** Loan agreements, appraisals, estoppels and CAM reconciliations
   read the same way and checked against the model and the leases. Phase H
   also imports Yardi's monthly aged delinquency report: arrears by tenant
-  and age, delinquency % by asset and fund, default and cure terms, and
+  in 30, 60, 90, 180 and over-180-day buckets, delinquency % by asset and fund, default and cure terms, and
   deposit and guarantor coverage.
 - **I–K.** Track each asset's budget, each deal's underwriting and the
   fund's plan against actual results, with variances explained.

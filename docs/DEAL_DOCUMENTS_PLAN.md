@@ -205,8 +205,9 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   Yardi property and tenant codes to the app's assets and units, and of
   its columns, so real exports load the same way as the test files.
   - Arrears by tenant and charge type (rent, CAM, taxes, insurance, other)
-    in aging buckets (current, 0–30, 31–60, 61–90, over 90 days), with
-    prepayments and credits.
+    in aging buckets (user's choice, 11/22): current, 1–30, 31–60,
+    61–90, 91–180 and over 180 days, with prepayments and credits. Each
+    bucket shown in $ and as % of monthly rent, by tenant, asset and fund.
   - A delinquency badge on each unit in the Unit Roll; delinquency as a %
     of monthly rent per asset and for the fund, and the month-to-month
     trend.
@@ -226,8 +227,8 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   codes (e.g. t0000102): an aged delinquency report for three consecutive
   months, a tenant ledger (charges, payments, credits) for a few tenants,
   and a monthly income statement per asset for phase I. Scenarios: most
-  tenants current; a few 30 and 60 days late; one over 90 days and in
-  default; a partial payment; a prepaid tenant with a credit balance; one
+  tenants current; a few 30 and 60 days late; one 91–180 days late and in
+  default; one over 180 days (written off or in legal); a partial payment; a prepaid tenant with a credit balance; one
   tenant with disputed CAM charges; and one that catches up after a late
   month. Totals tie to the sample rent rolls.
 
