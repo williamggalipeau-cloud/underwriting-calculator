@@ -1,0 +1,1493 @@
+{
+ "title": "Portside Marine Electric — Harbor Light Industrial, Suite 210",
+ "summary": "Triple-net industrial lease dated November 1, 2023 to Portside Marine Electric for Suite 210 (2,300 RSF), January 1, 2024 to December 31, 2030 at $17.40/RSF rising 4% a year. The First Amendment (July 15, 2025) adds Suite 212 (1,100 RSF) from September 1, 2025 at $18.10/RSF rising 4.0% each January 1 from 2027, raises Tenant's Share to 9.44% and gave an $8,800 allowance to be requested by June 30, 2026.",
+ "property_type": "industrial",
+ "fields": [
+  {
+   "key": "landlord",
+   "value": "Model Fund I — Pier Junction LLC, a Delaware limited liability company",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Model Fund I — Pier Junction LLC, a Delaware limited liability company",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant",
+   "value": "Portside Marine Electric, Inc., a California corporation",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Portside Marine Electric, Inc., a California corporation",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant_business",
+   "value": "Storage, testing and repair of marine electrical systems and batteries",
+   "status": "found",
+   "label": "Tenant business",
+   "section": "parties",
+   "clause": "1, 7.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall use the Premises only for storage, testing and repair of marine electrical systems and batteries, and related office use (the \"Permitted Use\"), and for no other purpose.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "sic_code",
+   "value": "7629 — Electrical & electronic repair shops, NEC",
+   "status": "calculated",
+   "label": "SIC code",
+   "section": "use",
+   "clause": "7.1",
+   "calculation": "Business: storage, testing and repair of marine electrical systems and batteries → SIC 7629 Electrical & electronic repair shops, NEC",
+   "evidence": [
+    {
+     "quote": "Tenant shall use the Premises only for storage, testing and repair of marine electrical systems and batteries, and related office use (the \"Permitted Use\"), and for no other purpose.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "guarantor",
+   "value": "None",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Portside Marine Electric, Inc., a California corporation None Harbor Light Industrial,",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "guaranty",
+   "value": "None",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Portside Marine Electric, Inc., a California corporation None Harbor Light Industrial,",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "property",
+   "value": "Harbor Light Industrial, 2715 Pier Junction Avenue, Long Beach, California 90810",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Harbor Light Industrial, 2715 Pier Junction Avenue, Long Beach, California 90810",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "premises",
+   "value": "Suite 210 and, from September 1, 2025, Suite 212",
+   "status": "found",
+   "clause": "Amendment 1",
+   "evidence": [
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "Suite 210",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "Suite 210, containing approximately 2,300 rentable square feet",
+       "page": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "rentable_area",
+   "value": "3,400 rentable square feet (Suite 210 plus 1,100 RSF Suite 212)",
+   "status": "found",
+   "clause": "Amendment 1",
+   "evidence": [
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "2,300 rentable square feet",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "Suite 210, containing approximately 2,300 rentable square feet",
+       "page": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "pro_rata_share",
+   "value": "9.44%",
+   "status": "found",
+   "clause": "Amendment 4",
+   "evidence": [
+    {
+     "quote": "Tenant's Share is increased from 6.39% to 9.44%.",
+     "page": 8
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "6.39%",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "In addition to Base Rent, Tenant shall pay Tenant's Share (6.39%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+       "page": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "lease_date",
+   "value": "November 1, 2023",
+   "status": "found",
+   "clause": "Preamble",
+   "evidence": [
+    {
+     "quote": "This Industrial Lease is made as of November 1, 2023",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "lease_type",
+   "value": "Triple net (NNN)",
+   "status": "found",
+   "clause": "5.1",
+   "evidence": [
+    {
+     "quote": "This is a triple net lease.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "term_length",
+   "value": "84 months, January 1, 2024 to December 31, 2030",
+   "status": "found",
+   "clause": "1, 3.1",
+   "evidence": [
+    {
+     "quote": "eighty-four (84) months",
+     "page": 1
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, January 1, 2024, and ends on the Expiration Date, December 31, 2030",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "commencement_date",
+   "value": "January 1, 2024",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "The Term begins on the Commencement Date, January 1, 2024",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "expiration_date",
+   "value": "December 31, 2030",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "ends on the Expiration Date, December 31, 2030",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_commencement_date",
+   "value": "Same as the Commencement Date, January 1, 2024 (no free rent)",
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2024 December 31, 2024 $17.40 $3,335.00",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "rent_abatement",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "base_rent",
+   "value": "Suite 210: $17.40/RSF/yr initially, currently $18.82/RSF ($3,607.17/month); Suite 212: $18.10/RSF ($1,659.17/month) from the Expansion Date, September 1, 2025",
+   "status": "found",
+   "clause": "4.1; Amendment 3",
+   "evidence": [
+    {
+     "quote": "$17.40 per rentable square foot per year, as scheduled in Section 4",
+     "page": 1
+    },
+    {
+     "quote": "January 1, 2026 December 31, 2026 $18.82 $3,607.17",
+     "page": 2
+    },
+    {
+     "quote": "Base Rent for the Expansion Space is $18.10 per rentable square foot per year ($1,659.17 per month) from the Expansion Date",
+     "page": 8
+    },
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ],
+   "governed_by": "amend1"
+  },
+  {
+   "key": "rent_escalations",
+   "value": "Suite 210: 4% on each anniversary of the Commencement Date; Suite 212: 4.0% on each January 1 beginning January 1, 2027",
+   "status": "found",
+   "clause": "4.1; Amendment 3",
+   "evidence": [
+    {
+     "quote": "Base Rent increases by 4% on each anniversary of the Commencement Date.",
+     "page": 2
+    },
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    }
+   ],
+   "governed_by": "amend1"
+  },
+  {
+   "key": "late_charge",
+   "value": "5% of the overdue amount if not received within 5 days after due",
+   "status": "found",
+   "clause": "4.2",
+   "evidence": [
+    {
+     "quote": "Any rent not received within five (5) days after its",
+     "page": 2
+    },
+    {
+     "quote": "due date bears a late charge of five percent (5%) of the overdue amount.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "security_deposit",
+   "value": "$3,335.00; restore within 10 days after demand",
+   "status": "found",
+   "clause": "6.1, 6.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall deposit $3,335.00 with Landlord",
+     "page": 2
+    },
+    {
+     "quote": "within ten (10) days after demand",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "letter_of_credit",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "renewal_option",
+   "value": "One (1) option(s) of five (5) years, on at least twelve (12) months' notice; Base Rent for each extension term shall be 100% of the Fair Market Rent.",
+   "status": "found",
+   "clause": "16.1-16.3",
+   "evidence": [
+    {
+     "quote": "Tenant has one (1) option to extend the Term for five (5) years each, exercisable by written notice to Landlord given at least twelve (12) months before the then-scheduled Expiration Date, provided Tenant is not then in default and occupies the entire Premises.",
+     "page": 5
+    },
+    {
+     "quote": "Base Rent for each extension term shall be 100% of the Fair Market Rent.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "termination_option",
+   "value": "None",
+   "status": "found",
+   "clause": "17.1",
+   "evidence": [
+    {
+     "quote": "Tenant has no right to terminate this Lease before the Expiration Date.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "expansion_rights",
+   "value": "None (no ROFR, ROFO or expansion option)",
+   "status": "found",
+   "clause": "18.1",
+   "evidence": [
+    {
+     "quote": "Tenant has no right of first refusal, right of first offer or expansion option",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "relocation_right",
+   "value": "None",
+   "status": "found",
+   "clause": "18.1",
+   "evidence": [
+    {
+     "quote": "Landlord has no right to",
+     "page": 5
+    },
+    {
+     "quote": "relocate Tenant",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "purchase_option",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "permitted_use",
+   "value": "Storage, testing and repair of marine electrical systems and batteries, and related office use",
+   "status": "found",
+   "clause": "1, 7.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall use the Premises only for storage, testing and repair of marine electrical systems and batteries, and related office use (the \"Permitted Use\"), and for no other purpose.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "exclusive_use",
+   "value": "None",
+   "status": "found",
+   "clause": "7.3",
+   "evidence": [
+    {
+     "quote": "Tenant has no exclusive right to conduct any business in the Project.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "co_tenancy",
+   "value": "None — obligations not conditioned on other tenants",
+   "status": "found",
+   "clause": "7.4",
+   "evidence": [
+    {
+     "quote": "Tenant's obligations under this Lease are not conditioned on the occupancy or operation of any other tenant.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "prohibited_uses",
+   "value": "Any use that creates a nuisance, emits odors or vibrations noticeable outside the Premises, or increases Landlord's insurance premiums",
+   "status": "found",
+   "clause": "7.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall not use the Premises for any use that creates a nuisance, emits odors or vibrations noticeable outside the Premises, or increases Landlord's insurance premiums.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "hazardous_materials",
+   "value": "Tenant may store lead-acid and lithium-ion marine batteries as described in Tenant's Hazardous Materials Business Plan filed with the local agency, not to exceed 2,000 pounds on site at any time; Tenant indemnity survives; Tenant remediates its releases",
+   "status": "found",
+   "clause": "8.1, 8.3, 8.4",
+   "evidence": [
+    {
+     "quote": "Tenant may store lead-acid and lithium-ion marine batteries as described in Tenant's Hazardous Materials Business Plan filed with the local agency, not to exceed 2,000 pounds on site at any time.",
+     "page": 3
+    },
+    {
+     "quote": "This indemnity survives the expiration or termination of this Lease.",
+     "page": 3
+    },
+    {
+     "quote": "Tenant shall promptly remediate, at its sole cost and to the standard required by the governing agency",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "environmental_baseline",
+   "value": "Baseline: a Phase I Environmental Site Assessment dated November 15, 2023, attached as Exhibit D, establishes the baseline condition of the Premises.",
+   "status": "found",
+   "label": "Environmental baseline",
+   "section": "legal",
+   "clause": "8.5",
+   "evidence": [
+    {
+     "quote": "Baseline: a Phase I Environmental Site Assessment dated November 15, 2023, attached as Exhibit D, establishes the baseline condition of the Premises.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "insurance_requirements",
+   "value": "CGL $2,000,000 per occurrence and $4,000,000 in the aggregate; umbrella $5,000,000; auto $1,000,000 combined single limit; property at replacement cost; workers' comp; additional insureds; mutual waiver of subrogation; Tenant shall carry pollution legal liability insurance of at least $1,000,000 per claim.",
+   "status": "found",
+   "clause": "12.1-12.4",
+   "evidence": [
+    {
+     "quote": "commercial general liability insurance of at least $2,000,000 per occurrence and $4,000,000 in the aggregate",
+     "page": 4
+    },
+    {
+     "quote": "umbrella or excess liability insurance of at least $5,000,000",
+     "page": 4
+    },
+    {
+     "quote": "business automobile liability insurance of at least $1,000,000 combined single limit",
+     "page": 4
+    },
+    {
+     "quote": "Tenant shall carry pollution legal liability insurance of at least $1,000,000 per claim.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "indemnification",
+   "value": "Tenant indemnifies Landlord for claims from its use or acts, except Landlord's negligence or willful misconduct",
+   "status": "found",
+   "clause": "13.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall indemnify, defend and hold Landlord harmless from all claims arising from Tenant's use of the Premises or",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "landlord_maintenance",
+   "value": "Roof: Landlord, as an Operating Expense; Structure: Landlord, at its sole cost (foundation, exterior walls and structural elements); Parking, truck court and yard: Landlord, as an Operating Expense (paving, striping, lighting and sweeping)",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+     "page": 3
+    },
+    {
+     "quote": "Landlord, as an Operating Expense (paving, striping, lighting and sweeping)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "tenant_maintenance",
+   "value": "Interior: Tenant, at its sole cost (doors, dock levelers, plumbing and electrical within the Premises)",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Tenant, at its sole cost (doors, dock levelers, plumbing and electrical within the Premises)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "roof_structure",
+   "value": "Roof: Landlord, as an Operating Expense; structure: Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Roof Landlord, as an Operating Expense",
+     "page": 3
+    },
+    {
+     "quote": "Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "hvac_maintenance",
+   "value": "Tenant, under a quarterly service contract with a licensed contractor; Landlord replaces units at the end of their useful life, amortized as an Operating Expense",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Tenant, under a quarterly service contract with a licensed",
+     "page": 3
+    },
+    {
+     "quote": "end of their useful life, amortized as an Operating Expense",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "repair_caps",
+   "value": "None",
+   "status": "found",
+   "label": "Caps on tenant repairs",
+   "section": "obligations",
+   "clause": "9.2",
+   "evidence": [
+    {
+     "quote": "Caps on Tenant's repair obligations: None.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "operating_hours",
+   "value": "24 hours a day, 7 days a week, subject to the Rules and Regulations",
+   "status": "found",
+   "label": "Hours",
+   "section": "use",
+   "clause": "15.1",
+   "evidence": [
+    {
+     "quote": "Operating hours: Tenant may access and operate in the Premises 24 hours a day, 7 days a week, subject to the Rules and Regulations.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "parking",
+   "value": "Non-exclusive use of the parking areas at 1.5 spaces per 1,000 rentable square feet",
+   "status": "found",
+   "clause": "15.2",
+   "evidence": [
+    {
+     "quote": "Parking: Tenant shall have non-exclusive use of the parking areas of the Project at a ratio of 1.5 spaces per 1,000 rentable square feet of the Premises.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "truck_court_yard",
+   "value": "Tenant may use the truck court only for loading and unloading, and may not park trailers overnight",
+   "status": "found",
+   "label": "Truck court and yard",
+   "section": "use",
+   "clause": "15.3",
+   "evidence": [
+    {
+     "quote": "Truck court and yard: Tenant may use the truck court only for loading and unloading, and may not park trailers overnight.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "loading_docks",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "signage",
+   "value": "One (1) building-standard sign above the entry door, at Tenant's cost, subject to Landlord's approval and applicable codes",
+   "status": "found",
+   "clause": "15.5",
+   "evidence": [
+    {
+     "quote": "Signage: Tenant may install one (1) building-standard sign above the entry door of the Premises, at Tenant's cost, subject to Landlord's approval and applicable codes.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "outdoor_storage",
+   "value": "Not permitted",
+   "status": "found",
+   "clause": "15.4",
+   "evidence": [
+    {
+     "quote": "Outside storage: No outside storage of any kind is permitted.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "operating_expenses",
+   "value": "This is a triple net lease. In addition to Base Rent, Tenant shall pay Tenant's Share (6.39%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+   "status": "found",
+   "clause": "5.1",
+   "evidence": [
+    {
+     "quote": "This is a triple net lease.",
+     "page": 2
+    },
+    {
+     "quote": "In addition to Base Rent, Tenant shall pay Tenant's Share (6.39%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "real_estate_taxes",
+   "value": "In addition to Base Rent, Tenant shall pay Tenant's Share (6.39%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+   "status": "found",
+   "clause": "5.1",
+   "evidence": [
+    {
+     "quote": "In addition to Base Rent, Tenant shall pay Tenant's Share (6.39%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "expense_cap",
+   "value": "None",
+   "status": "found",
+   "clause": "5.4",
+   "evidence": [
+    {
+     "quote": "Operating Expenses are not subject to any cap.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "management_fee",
+   "value": "Capped at 4% of gross revenues of the Project",
+   "status": "found",
+   "clause": "5.3",
+   "evidence": [
+    {
+     "quote": "shall not exceed 4% of gross revenues of the Project",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "audit_rights",
+   "value": "Notice within 120 days after the annual statement; Landlord pays if overstated by more than 3%",
+   "status": "found",
+   "clause": "5.5",
+   "evidence": [
+    {
+     "quote": "hundred twenty (120) days after receiving Landlord's annual statement",
+     "page": 2
+    },
+    {
+     "quote": "overstated by more than 3%, Landlord shall pay the reasonable cost of the audit",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "base_year",
+   "value": "Not addressed (no base year)",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "subordination",
+   "value": "Subordinate to mortgages with non-disturbance; SNDA within fifteen (15) days after request",
+   "status": "found",
+   "clause": "21.1",
+   "evidence": [
+    {
+     "quote": "subordination, non-disturbance and attornment agreement (SNDA) within fifteen (15) days after request",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "estoppel",
+   "value": "Within ten (10) days after request",
+   "status": "found",
+   "clause": "21.2",
+   "evidence": [
+    {
+     "quote": "Within ten (10) days after Landlord's request, Tenant shall deliver a signed estoppel certificate",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "default_cure",
+   "value": "Monetary: 5 days after written notice; non-monetary: 30 days (longer if diligently pursued); insolvency or abandonment",
+   "status": "found",
+   "clause": "19.1",
+   "evidence": [
+    {
+     "quote": "Tenant fails to pay any rent within five (5) days after",
+     "page": 5
+    },
+    {
+     "quote": "written notice that it is past due",
+     "page": 5
+    },
+    {
+     "quote": "Tenant fails to perform any other obligation within thirty (30) days after",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "landlord_default_cure",
+   "value": "30 days after written notice (longer if diligently pursued)",
+   "status": "found",
+   "label": "Landlord default and cure",
+   "section": "legal",
+   "clause": "19.3",
+   "evidence": [
+    {
+     "quote": "Landlord is in default only if it fails to perform an obligation within thirty (30) days after written notice",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "holdover",
+   "value": "Tenant at sufferance at 150% of the last Base Rent",
+   "status": "found",
+   "clause": "20.1",
+   "evidence": [
+    {
+     "quote": "shall pay Base Rent at 150% of the rate in effect at the end of the Term",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "assignment_subletting",
+   "value": "Landlord consent, not unreasonably withheld; Landlord may recapture and takes 50% of any transfer premium",
+   "status": "found",
+   "clause": "14.1",
+   "evidence": [
+    {
+     "quote": "which shall not be unreasonably withheld, conditioned or delayed",
+     "page": 4
+    },
+    {
+     "quote": "Landlord may recapture the space proposed to be assigned or sublet and is entitled to 50% of any transfer premium.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "governing_law",
+   "value": "California",
+   "status": "found",
+   "clause": "25.1",
+   "evidence": [
+    {
+     "quote": "This Lease is governed by the laws of the State of California.",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "notices",
+   "value": "In writing by hand, overnight courier or certified mail; Landlord c/o Model Fund I, Tenant at the Premises",
+   "status": "found",
+   "clause": "23.1",
+   "evidence": [
+    {
+     "quote": "Notices shall be in writing and delivered by hand, overnight courier or certified mail",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "ti_allowance",
+   "value": "Expansion Space: $8.00/RSF ($8,800.00), to be requested by June 30, 2026; any unused portion is forfeited (none under the original lease)",
+   "status": "found",
+   "clause": "11.2; Amendment 5",
+   "evidence": [
+    {
+     "quote": "Landlord shall provide an allowance of $8.00 per rentable square foot ($8,800.00) for improvements to the",
+     "page": 8
+    },
+    {
+     "quote": "to be requested by June 30, 2026, after which any unused portion is forfeited",
+     "page": 8
+    }
+   ],
+   "governed_by": "amend1",
+   "history": [
+    {
+     "value": "No improvement allowance",
+     "document": "lease",
+     "evidence": [
+      {
+       "quote": "Landlord provides no improvement allowance.",
+       "page": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "ti_unpaid_balance",
+   "value": "Unknown; the request deadline (June 30, 2026) has passed, so any unused portion is forfeited",
+   "status": "unclear",
+   "label": "Unpaid allowance balance",
+   "section": "obligations",
+   "clause": "Amendment 5",
+   "evidence": [
+    {
+     "quote": "Landlord shall provide an allowance of $8.00 per rentable square foot ($8,800.00) for improvements to the",
+     "page": 8
+    },
+    {
+     "quote": "to be requested by June 30, 2026, after which any unused portion is forfeited",
+     "page": 8
+    }
+   ],
+   "governed_by": "amend1",
+   "detail": "The documents do not record how much of the $8,800.00 was requested before June 30, 2026; whatever was not requested is forfeited."
+  },
+  {
+   "key": "landlord_work",
+   "value": "None; Premises accepted AS IS with building systems in good working order",
+   "status": "found",
+   "label": "Landlord's work",
+   "section": "obligations",
+   "clause": "11.1",
+   "evidence": [
+    {
+     "quote": "Landlord's work: None. Tenant accepts the Premises in their \"AS IS\" condition",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "alterations",
+   "value": "Landlord consent required, except non-structural interior work under $10,000 a year (notice only)",
+   "status": "found",
+   "clause": "10.1",
+   "evidence": [
+    {
+     "quote": "non-structural interior Alterations costing less than $10,000 in the",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "surrender",
+   "value": "Broom clean and in good condition, reasonable wear and tear and casualty excepted",
+   "status": "found",
+   "clause": "22.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall surrender the Premises broom clean and in good condition",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "restoration",
+   "value": "Remove trade fixtures, equipment and cabling and repair damage; approved Alterations stay unless Landlord elected removal when approving",
+   "status": "found",
+   "label": "Restoration",
+   "section": "obligations",
+   "clause": "22.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall remove its trade fixtures, equipment and cabling and repair any damage caused by the",
+     "page": 6
+    },
+    {
+     "quote": "Tenant is not required to remove Landlord-approved Alterations",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "amendments",
+   "value": "First Amendment to Lease (Expansion) dated July 15, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This First Amendment to Lease (Expansion) (this \"Amendment\") is made as of July 15, 2025",
+     "page": 8
+    }
+   ]
+  }
+ ],
+ "rent_schedule": [
+  {
+   "period": "Lease Year 1",
+   "start": "2024-01-01",
+   "end": "2024-12-31",
+   "rate": 17.4,
+   "monthly_rent": 3335.0,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2024 December 31, 2024 $17.40 $3,335.00",
+     "page": 2
+    }
+   ],
+   "space": "Suite 210"
+  },
+  {
+   "period": "Lease Year 2",
+   "start": "2025-01-01",
+   "end": "2025-12-31",
+   "rate": 18.1,
+   "monthly_rent": 3469.17,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2025 December 31, 2025 $18.10 $3,469.17",
+     "page": 2
+    }
+   ],
+   "space": "Suite 210"
+  },
+  {
+   "period": "Lease Year 3",
+   "start": "2026-01-01",
+   "end": "2026-12-31",
+   "rate": 18.82,
+   "monthly_rent": 3607.17,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2026 December 31, 2026 $18.82 $3,607.17",
+     "page": 2
+    }
+   ],
+   "space": "Suite 210"
+  },
+  {
+   "period": "Lease Year 4",
+   "start": "2027-01-01",
+   "end": "2027-12-31",
+   "rate": 19.57,
+   "monthly_rent": 3750.92,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2027 December 31, 2027 $19.57 $3,750.92",
+     "page": 2
+    }
+   ],
+   "space": "Suite 210"
+  },
+  {
+   "period": "Lease Year 5",
+   "start": "2028-01-01",
+   "end": "2028-12-31",
+   "rate": 20.36,
+   "monthly_rent": 3902.33,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2028 December 31, 2028 $20.36 $3,902.33",
+     "page": 2
+    }
+   ],
+   "space": "Suite 210"
+  },
+  {
+   "period": "Lease Year 6",
+   "start": "2029-01-01",
+   "end": "2029-12-31",
+   "rate": 21.17,
+   "monthly_rent": 4057.58,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2029 December 31, 2029 $21.17 $4,057.58",
+     "page": 2
+    }
+   ],
+   "space": "Suite 210"
+  },
+  {
+   "period": "Lease Year 7",
+   "start": "2030-01-01",
+   "end": "2030-12-31",
+   "rate": 22.02,
+   "monthly_rent": 4220.5,
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2030 December 31, 2030 $22.02 $4,220.50",
+     "page": 2
+    }
+   ],
+   "space": "Suite 210"
+  },
+  {
+   "period": "Suite 212, Expansion Date to December 31, 2026",
+   "space": "Suite 212",
+   "start": "2025-09-01",
+   "end": "2026-12-31",
+   "rate": 18.1,
+   "monthly_rent": 1659.17,
+   "status": "calculated",
+   "clause": "Amendment 1, 3",
+   "governed_by": "amend1",
+   "calculation": "Starts on the Expansion Date, September 1, 2025; ends the day before the first increase on January 1, 2027 = December 31, 2026",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Expansion Space is $18.10 per rentable square foot per year ($1,659.17 per month) from the Expansion Date",
+     "page": 8
+    },
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    },
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "period": "Suite 212, 2027",
+   "space": "Suite 212",
+   "start": "2027-01-01",
+   "end": "2027-12-31",
+   "rate": 18.824,
+   "monthly_rent": 1725.53,
+   "status": "calculated",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "calculation": "$18.10 × 1.04 = $18.824 per RSF per year; $18.824 × 1,100 RSF ÷ 12 = $1,725.53 per month; January 1, 2027 to December 31, 2027",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Expansion Space is $18.10 per rentable square foot per year ($1,659.17 per month) from the Expansion Date",
+     "page": 8
+    },
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    },
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "period": "Suite 212, 2028",
+   "space": "Suite 212",
+   "start": "2028-01-01",
+   "end": "2028-12-31",
+   "rate": 19.577,
+   "monthly_rent": 1794.56,
+   "status": "calculated",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "calculation": "$18.10 × 1.04 × 1.04 = $19.577 per RSF per year; $19.577 × 1,100 RSF ÷ 12 = $1,794.56 per month; January 1, 2028 to December 31, 2028",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Expansion Space is $18.10 per rentable square foot per year ($1,659.17 per month) from the Expansion Date",
+     "page": 8
+    },
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    },
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "period": "Suite 212, 2029",
+   "space": "Suite 212",
+   "start": "2029-01-01",
+   "end": "2029-12-31",
+   "rate": 20.36,
+   "monthly_rent": 1866.33,
+   "status": "calculated",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "calculation": "$18.10 × 1.04 × 1.04 × 1.04 = $20.36 per RSF per year; $20.36 × 1,100 RSF ÷ 12 = $1,866.33 per month; January 1, 2029 to December 31, 2029",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Expansion Space is $18.10 per rentable square foot per year ($1,659.17 per month) from the Expansion Date",
+     "page": 8
+    },
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    },
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "period": "Suite 212, 2030",
+   "space": "Suite 212",
+   "start": "2030-01-01",
+   "end": "2030-12-31",
+   "rate": 21.1744,
+   "monthly_rent": 1940.99,
+   "status": "calculated",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "calculation": "$18.10 × 1.04 × 1.04 × 1.04 × 1.04 = $21.1744 per RSF per year; $21.1744 × 1,100 RSF ÷ 12 = $1,940.99 per month; January 1, 2030 to December 31, 2030",
+   "evidence": [
+    {
+     "quote": "Base Rent for the Expansion Space is $18.10 per rentable square foot per year ($1,659.17 per month) from the Expansion Date",
+     "page": 8
+    },
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    },
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ]
+  }
+ ],
+ "critical_dates": [
+  {
+   "date": "2023-11-01",
+   "kind": "lease_date",
+   "label": "Lease signed",
+   "status": "found",
+   "clause": "Preamble",
+   "evidence": [
+    {
+     "quote": "This Industrial Lease is made as of November 1, 2023",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2024-01-01",
+   "kind": "commencement",
+   "label": "Commencement",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "The Term begins on the Commencement Date, January 1, 2024",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2025-07-15",
+   "kind": "other",
+   "label": "First Amendment signed",
+   "status": "found",
+   "governed_by": "amend1",
+   "evidence": [
+    {
+     "quote": "is made as of July 15, 2025",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "date": "2025-09-01",
+   "kind": "other",
+   "label": "Expansion Date: Suite 212 added; rent $1,659.17/month",
+   "status": "found",
+   "clause": "Amendment 1, 3",
+   "governed_by": "amend1",
+   "action": "Bill Suite 212 rent",
+   "evidence": [
+    {
+     "quote": "Effective September 1, 2025 (the \"Expansion Date\"), the Premises shall include Suite 212, containing 1,100 rentable square feet, so that the Premises total 3,400 rentable square feet.",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "date": "2026-06-30",
+   "kind": "other",
+   "label": "Allowance request deadline (passed)",
+   "status": "found",
+   "clause": "Amendment 5",
+   "governed_by": "amend1",
+   "notice": "Tenant must request the $8,800.00 allowance by this date",
+   "action": "Confirm what was requested; the rest is forfeited",
+   "evidence": [
+    {
+     "quote": "to be requested by June 30, 2026, after which any unused portion is forfeited",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "date": "2027-01-01",
+   "kind": "rent_increase",
+   "label": "Rent increase to $19.57/RSF",
+   "status": "found",
+   "clause": "4.1",
+   "action": "Bill $3,750.92/month",
+   "evidence": [
+    {
+     "quote": "January 1, 2027 December 31, 2027 $19.57 $3,750.92",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "date": "2027-01-01",
+   "kind": "rent_increase",
+   "label": "Suite 212 rent increase (+4.0%)",
+   "status": "found",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "evidence": [
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "date": "2028-01-01",
+   "kind": "rent_increase",
+   "label": "Rent increase to $20.36/RSF",
+   "status": "found",
+   "clause": "4.1",
+   "action": "Bill $3,902.33/month",
+   "evidence": [
+    {
+     "quote": "January 1, 2028 December 31, 2028 $20.36 $3,902.33",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "date": "2028-01-01",
+   "kind": "rent_increase",
+   "label": "Suite 212 rent increase (+4.0%)",
+   "status": "calculated",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "calculation": "January 1, 2027 + 1 year = January 1, 2028",
+   "evidence": [
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "date": "2029-01-01",
+   "kind": "rent_increase",
+   "label": "Rent increase to $21.17/RSF",
+   "status": "found",
+   "clause": "4.1",
+   "action": "Bill $4,057.58/month",
+   "evidence": [
+    {
+     "quote": "January 1, 2029 December 31, 2029 $21.17 $4,057.58",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "date": "2029-01-01",
+   "kind": "rent_increase",
+   "label": "Suite 212 rent increase (+4.0%)",
+   "status": "calculated",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "calculation": "January 1, 2027 + 2 years = January 1, 2029",
+   "evidence": [
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "date": "2029-12-31",
+   "kind": "renewal_notice",
+   "label": "Renewal notice deadline",
+   "status": "calculated",
+   "clause": "16.1",
+   "notice": "Written notice at least 12 months before the Expiration Date",
+   "action": "Watch for Tenant's renewal notice; options lapse if not exercised on time",
+   "calculation": "December 31, 2030 − 12 months = December 31, 2029",
+   "evidence": [
+    {
+     "quote": "given at least twelve (12) months before the then-scheduled Expiration Date",
+     "page": 5
+    },
+    {
+     "quote": "ends on the Expiration Date, December 31, 2030",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2030-01-01",
+   "kind": "rent_increase",
+   "label": "Rent increase to $22.02/RSF",
+   "status": "found",
+   "clause": "4.1",
+   "action": "Bill $4,220.50/month",
+   "evidence": [
+    {
+     "quote": "January 1, 2030 December 31, 2030 $22.02 $4,220.50",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "date": "2030-01-01",
+   "kind": "rent_increase",
+   "label": "Suite 212 rent increase (+4.0%)",
+   "status": "calculated",
+   "clause": "Amendment 3",
+   "governed_by": "amend1",
+   "calculation": "January 1, 2027 + 3 years = January 1, 2030",
+   "evidence": [
+    {
+     "quote": "increasing by 4.0% on each January 1 beginning January 1, 2027",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "date": "2030-12-31",
+   "kind": "expiration",
+   "label": "Expiration",
+   "status": "found",
+   "clause": "3.1",
+   "action": "Re-lease, renew or document an extension; holdover is at 150% of the last Base Rent",
+   "evidence": [
+    {
+     "quote": "ends on the Expiration Date, December 31, 2030",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "risks": [
+  {
+   "severity": "medium",
+   "title": "Uncapped operating expenses",
+   "clause": "5.4",
+   "detail": "Operating Expenses have no cap, so the tenant bears all increases.",
+   "evidence": [
+    {
+     "quote": "Operating Expenses are not subject to any cap.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "severity": "medium",
+   "title": "Thin credit support",
+   "clause": "1, 6.1",
+   "detail": "No guarantor; security deposit $3,335.00.",
+   "evidence": [
+    {
+     "quote": "Portside Marine Electric, Inc., a California corporation None Harbor Light Industrial,",
+     "page": 1
+    },
+    {
+     "quote": "Tenant shall deposit $3,335.00 with Landlord",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "severity": "medium",
+   "title": "Environmental use",
+   "clause": "8.1",
+   "detail": "Use involves hazardous materials beyond ordinary office and light industrial quantities: Tenant may store lead-acid and lithium-ion marine batteries as described in Tenant's Hazardous Materials Business Plan filed with the local agency, not to exceed 2,000 pounds on site at any time.",
+   "evidence": [
+    {
+     "quote": "Tenant may store lead-acid and lithium-ion marine batteries as described in Tenant's Hazardous Materials Business Plan filed with the local agency, not to exceed 2,000 pounds on site at any time.",
+     "page": 3
+    }
+   ]
+  }
+ ],
+ "documents": [
+  {
+   "id": "lease",
+   "title": "Industrial Lease",
+   "date": "2023-11-01",
+   "start_page": 1,
+   "end_page": 7
+  },
+  {
+   "id": "amend1",
+   "title": "First Amendment to Lease (Expansion)",
+   "date": "2025-07-15",
+   "start_page": 8,
+   "end_page": 9
+  }
+ ],
+ "app": {
+  "tenant_business": "Storage, testing and repair of marine electrical systems and batteries",
+  "sic_code": "7629",
+  "files": [
+   "04-harbor-light-portside-marine.pdf",
+   "04a-harbor-light-portside-marine-first-amendment.pdf"
+  ],
+  "made_with": "CREparser Lease Abstraction",
+  "template": "Light industrial (Model Fund I)",
+  "version": 1,
+  "draft_id": "4a4f99395f259728f5fa5552aa9f1902",
+  "validated": true
+ }
+}

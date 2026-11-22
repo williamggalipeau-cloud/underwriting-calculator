@@ -1479,13 +1479,14 @@ validated by the connector (67 fields, 12 rent periods, 10 critical dates,
 it into **Save abstract** after uploading those two PDFs to Mill Creek to
 see a finished abstract.
 
-**Sample abstracts.** Validated abstracts of nine sample leases are in
+**Sample abstracts.** Validated abstracts of ten sample leases are in
 `docs/sample-leases/abstracts/`, one JSON file per lease, each with its
 connector draft id in `app.draft_id`:
 
 | File | Asset | Tenant | Notable terms |
 |---|---|---|---|
 | 03-route-9… | Route 9 Small Bay | Cascade Cabinet Works | Expires 5/31/2027; renewal notice due 11/30/2026 |
+| 04-harbor-light… | Harbor Light Industrial | Portside Marine Electric | With the first amendment: Suite 212 added 9/1/2025 (3,400 RSF total, 9.44% share); $8,800 allowance request deadline 6/30/2026 passed; battery storage up to 2,000 lb |
 | 05-ridgeway… | Ridgeway Trade Center | Lone Star HVAC Supply | Tenant termination right (effective 7/31/2027, notice by 1/31/2027); ROFO on Suite 310 |
 | 06-canal-street… | Canal Street Workshops | Bayou Fabrication Studio | Gross lease; personal guaranty |
 | 07-mill-creek… | Mill Creek Business Park | Snohomish Brewing Equipment | With the first amendment: extended to 3/31/2032, renewal option deleted |
@@ -1500,8 +1501,7 @@ template fields, rent schedule, critical dates and risk flags, with every
 quote checked against the PDF text) and then validated by the connector.
 Where the PDF's rent table splits a date across cells (free-rent rows), the
 row's dates are recorded as calculated from the Commencement Date. Airport
-Flex (02) and the two leases with amendments (Harbor Light 04, Lakeshore 10)
-are not yet abstracted. To use one, upload that lease's PDF on the asset's
+Flex (02) and Lakeshore (10, with its amendment) are not yet abstracted. To use one, upload that lease's PDF on the asset's
 Leases tab and paste the JSON into **Save abstract**.
 
 ## 8. Worked example: the default deal
