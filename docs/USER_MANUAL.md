@@ -2378,7 +2378,7 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
-*Lease, documents and performance: phases A–K.* What has been built and
+*Lease, documents, performance and reporting: phases A–L.* What has been built and
 what is coming, kept up to date as each phase finishes. The full scope of
 each phase and the decisions behind it are in
 [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
@@ -2388,14 +2388,15 @@ each phase and the decisions behind it are in
 | A. Lease documents | Upload, store and open each lease's PDFs per asset (Leases tab) | ✅ Live |
 | B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags | ⏰ Scheduled 11/22/2026, 5:30am PT |
-| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary | ⏰ Scheduled 11/22/2026, 10:30am PT |
-| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements | ⛓ After D |
+| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | ⏰ Scheduled 11/22/2026, 10:30am PT |
+| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
 | H. Estoppels, CAM and billing | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms | ⛓ After G |
 | I. Asset budget vs. plan | Life-of-asset plan locked at closing; actuals; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; quarterly LP report | ⛓ After J |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report | ⛓ After K |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
@@ -2416,12 +2417,31 @@ not used. Nothing changes your data until you click to apply it.
   Rent steps set the rent while the lease runs; renewal options decide
   renewals when the option rent is at or below market.
 - **D. Fund lease views.** Every deadline and risk flag across the fund,
-  with exports, and lease status on the Asset Summary.
+  with exports, and lease status on the Asset Summary. Each lease also gets
+  a Tenant credit section for credit reports and tenant or guarantor
+  financial statements (owners and editors only), with key figures and
+  flags for stale statements and falling credit.
 - **E. Acquisition documents.** Each document's key figures shown beside the
   model and applied by choice; the IC memo gives approved vs. current and a
   conditions checklist; closing statements set the actual cost basis and
-  the realized sale.
+  the realized sale. The fund's LPA and PPM, uploaded when you create a fund
+  (New fund) or later, are read for the fund terms (fees, preferred return,
+  promote, term, investment period) and the investment limits, which you
+  review and apply one by one. Insurance certificates (the owner's policies
+  and each tenant's) are checked against lease and loan requirements, with
+  expiry dates tracked.
 - **F–H.** Loan agreements, appraisals, estoppels and CAM reconciliations
   read the same way and checked against the model and the leases.
 - **I–K.** Track each asset's budget, each deal's underwriting and the
   fund's plan against actual results, with variances explained.
+- **L. Performance and risk reporting.** A quarterly performance report in
+  a shareable version (to post to your investor portal) and an internal
+  version with more detail, plus an internal-only risk report: lease
+  rollover, tenant concentration and credit, industry (SIC) concentration
+  by asset and for the fund, geographic concentration for the fund (state
+  and metro, with a map), each against the fund's limits from the LPA and
+  PPM (actual vs. limit, headroom, breaches, and a check on pipeline deals
+  before purchase), lease risk flags, insurance gaps and expiries, debt
+  maturities and covenant cushions, valuation sensitivity, budget and
+  underwriting variances, stress tests and a watch list. Investor records,
+  capital accounts and notices stay in your CRM and investor portal.
