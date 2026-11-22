@@ -284,6 +284,7 @@ Claude Code) built and maintains it, using the tools below.
 | **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. |
 | **CREparser Lease Abstraction** | Opened at the start for lease abstraction. Not used in the app's calculations. |
 | **FactIQ** | Searching for SOFR data series while choosing a live rate source. The app uses the NY Fed API instead (§5). |
+| **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). |
 
 ### Skills loaded while building
 
@@ -306,6 +307,11 @@ These are optional and not wired into the app:
   roll on the Unit Roll tab.
 - **OloLand** (`run_cre_debt_sizing`, `run_cre_stress_test`) — an independent
   check of the Debt and Stress tabs.
+- **Supabase connector** — lets Claude read the database directly: check the
+  setup, list workspaces and members, query the audit log and run the
+  security and performance advisors. Add it at claude.ai → Settings →
+  Connectors, then start a new Claude session. It acts as your Supabase
+  account, so prefer read-only access and ask for changes explicitly.
 - **Claude with your documents** — Claude can read an LPA, PPM or credit
   facility term sheet and fill in the Fund Terms template (Portfolio Return →
   New fund → Download template), which you then upload.
@@ -1735,6 +1741,17 @@ signed-out visitors (`anon`) can't. The trigger functions `ws_after_insert`
 and `audit_stamp` can't be called directly by anyone; the database runs
 them on its own.
 
+**Security advisor.** Supabase's advisor (Database → Advisors) reports:
+- *"Signed-in users can execute SECURITY DEFINER function"* (8 functions).
+  Expected, by design. The functions above are the only way to write, and
+  each checks the caller's role before doing anything. `ws_role` and
+  `ws_can` only tell a caller their own role.
+- *"Leaked password protection disabled."* Turn it on (Authentication →
+  Passwords) now that the app signs in with passwords (§12.2 step 3).
+
+Re-run the advisor after any change to `setup.sql`. A new warning about a
+table without row-level security, or a missing policy, does need fixing.
+
 ### 12.6 Looking at the data
 
 - **Table Editor:** browse the tables.
@@ -1796,3 +1813,27 @@ and doesn't bump the version.
 | "Someone else saved this workspace…" | Another person saved first. Choose **Open latest** or **Keep mine**. |
 | "You don't have permission…" | Your role doesn't allow it (viewers can't save; only owners manage access) |
 | The project is paused | Supabase dashboard → **Restore project** |
+
+### 12.9 Saved workspaces
+
+| Workspace | Created | Contents |
+|---|---|---|
+| **Model Fund I** | 11/22/2026, version 1, by the project owner (who is its owner) | The sample fund with the test scenario loaded: 14 assets, 621,000 SF, $135.9M total purchase price, $100M commitments. The 14 are the base deal "Light Industrial (30k SF)", the nine sample assets, and the four test scenario deals (Small Bay Industrial — Phase I, Eastside Distribution Hub, Northgate Flex Center, Riverside Commerce Park). No capital activity, valuations or comps yet. |
+
+It was created by Claude through the Supabase connector, using the same
+`create_workspace` function as the app's **Save to database** button and
+signed as the owner, so its audit row ("Created workspace") shows the
+owner's email.
+
+Its four test scenario deals were saved before the test scenario changed
+to a 4-year hold, so they keep their original holds (Small Bay Industrial —
+Phase I and Eastside Distribution Hub 7 years, Northgate Flex Center 5,
+Riverside Commerce Park 8). Change them on each deal, or delete the four
+and click **Load test scenario** again.
+
+**To start using it:** sign in on the site. As the most recently saved
+workspace, it opens automatically. If the browser still held data from an
+earlier version of the app, that is moved in first as **Moved from
+browser** and opens instead; switch with **☁ Database → Your workspaces →
+Model Fund I → Open**.
+
