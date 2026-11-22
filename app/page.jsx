@@ -33,32 +33,17 @@ import {
   listWorkspaces,
   loadWorkspace as dbLoadWorkspace,
   onAuthChange,
-  recallLink,
-  rememberLink,
   saveWorkspace as dbSaveWorkspace,
   signOut,
   supabase,
 } from "@/lib/cloud";
 import ChangeLog from "@/components/ChangeLog";
 import FundTermsEditor from "@/components/FundTermsEditor";
-import {
-  createWorkspaceFile,
-  fileAccessSupported,
-  forgetHandle,
-  isWorkspace,
-  openWorkspaceFile,
-  permission,
-  readWorkspace,
-  recallHandle,
-  rememberHandle,
-  writeWorkspace,
-} from "@/lib/workspaceFile";
+import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace, readLegacyWorkspace } from "@/lib/workspace";
 
-// Workspace saved in this browser (deals, funds, snapshots, curve).
-const STORAGE_KEY = "uw-workspace-v1";
-const AUDIT_USER_KEY = "uw-audit-user";
-// Minutes between automatic saves to the linked workspace file.
-const FILE_SAVE_MINUTES = 10;
+// Workspaces are saved only in the database, never in the browser. Changes
+// save this many seconds after the last edit, on Save now, and when you leave.
+const DB_SAVE_SECONDS = 20;
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calculator/blob/main/docs/USER_MANUAL.md";
 
@@ -216,7 +201,7 @@ const DEFAULT_INPUTS = {
   swapFixedRatePct: 7.75,
   swapTermYears: 3,
 
-  holdPeriodYears: 7,
+  holdPeriodYears: 4,
   exitCapRatePct: 6.75,
   sellingCostsPct: 2.0,
   sellingCosts: {
@@ -318,12 +303,11 @@ export default function Home() {
   // Fund terms by fund name (timeline, waterfall, fee).
   const [funds, setFundsRaw] = useState(initialFunds);
   const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
-  const [savedAt, setSavedAt] = useState(null);
   const [comps, setCompsRaw] = useState(DEFAULT_COMPS_STATE);
   // Fair value marks: { [dealId]: { [quarterEndISO]: { value, source, appraiser, capRate, capex, notes } } }
   const [valuations, setValuationsRaw] = useState({});
-  // Change log (lib/audit): entries saved with the workspace; the editor's
-  // name is kept in this browser only.
+  // Change log (lib/audit): entries saved with the workspace. Signed-in users
+  // are recorded by email; the typed name is kept in memory only.
   const [auditLog, setAuditLog] = useState([]);
   const [auditUser, setAuditUser] = useState("");
   const auditBaseline = useRef(null); // last tracked snapshot (null = take a new baseline)
@@ -332,22 +316,8 @@ export default function Home() {
   useEffect(() => {
     auditLogRef.current = auditLog;
   });
-  useEffect(() => {
-    Promise.resolve().then(() => {
-      try {
-        setAuditUser(window.localStorage.getItem(AUDIT_USER_KEY) ?? "");
-      } catch {
-        // storage blocked
-      }
-    });
-  }, []);
   function changeAuditUser(name) {
     setAuditUser(name);
-    try {
-      window.localStorage.setItem(AUDIT_USER_KEY, name);
-    } catch {
-      // storage blocked
-    }
   }
   // Records a bulk action (import, reset, …) as one log entry: the next save
   // logs this note and takes a new baseline.
@@ -357,17 +327,15 @@ export default function Home() {
   const hydrated = useRef(false);
   const importRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null); // { ok, text }
-  // Linked workspace file: saved there every FILE_SAVE_MINUTES (and on leave).
-  const fileHandle = useRef(null);
-  const fileLinked = useRef(false);
-  const [fileSupported, setFileSupported] = useState(false);
-  const [fileState, setFileState] = useState({ status: "none" }); // none | linked | reconnect | error; name, savedAt, dirty, error
-  // Database (Supabase): signed-in session and the workspace this browser saves to.
+  // Database (Supabase): signed-in session and the open workspace. The
+  // database is the only place the workspace is saved.
   const [session, setSession] = useState(null);
   const [dbLink, setDbLink] = useState(null); // { id, name, version, role, savedAt, dirty, error, conflict }
   const [cloudOpen, setCloudOpen] = useState(false);
+  // True after a "Forgot password?" link is opened: the panel asks for a new password.
+  const [pwRecovery, setPwRecovery] = useState(false);
   const [dbLog, setDbLog] = useState(null);
-  const [ready, setReady] = useState(false); // browser workspace restored
+  const [ready, setReady] = useState(false); // first load finished
   const dbBaseline = useRef(null); // snapshot at the last database save/open ("pending" = take on next save)
   const dbLinkRef = useRef(null);
   const dbSaving = useRef(false);
@@ -375,9 +343,8 @@ export default function Home() {
     dbLinkRef.current = dbLink;
   });
   const editorName = session?.user?.email || auditUser;
-  const latestData = useRef(null); // latest workspace snapshot for the file
-  const fileDirty = useRef(false); // changes not yet written to the file
-  const fileWriting = useRef(false);
+  const latestData = useRef(null); // latest workspace snapshot to save
+  const dbTimer = useRef(null); // pending save after the last edit
   // Quick Underwrite inputs live on each deal. When a deal is linked, every
   // change is mapped onto its full-model inputs so all tabs stay in sync.
   function setQuick(updater) {
@@ -424,9 +391,11 @@ export default function Home() {
   const setValuations = guarded(setValuationsRaw);
   const setBaseCurve = guarded(setBaseCurveRaw);
   const setAnchorToLive = guarded(setAnchorToLiveRaw);
-  // View-only until signed in (and for viewers of a database workspace).
+  // View-only until signed in with a database workspace open (changes are
+  // saved only there), and for viewers of a database workspace.
   const viewerOnly = !!(session && dbLink?.id && dbLink.role === "viewer");
-  const locked = REQUIRE_SIGN_IN && (!session || viewerOnly);
+  const noWorkspace = !!session && !dbLink?.id;
+  const locked = REQUIRE_SIGN_IN && (!session || viewerOnly || noWorkspace);
   useEffect(() => {
     lockedRef.current = locked;
   });
@@ -485,49 +454,21 @@ export default function Home() {
       });
   }
 
-  // On load: restore the saved workspace (if any), then fetch live NY Fed
-  // rates and re-anchor the restored curve.
+  // On load: fetch live NY Fed rates and anchor the default curve. Nothing is
+  // restored from the browser: the workspace opens from the database after
+  // sign-in. Old browser data (other than an unmigrated workspace) is deleted.
   useEffect(() => {
     let cancelled = false;
-    let restoredBase = DEFAULT_CURVE;
-    let restoredAnchor = true;
+    clearLegacyExtras();
+    hydrated.current = true;
     Promise.resolve()
-      .then(() => {
-        let saved = null;
-        try {
-          saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "null");
-        } catch {
-          saved = null;
-        }
-        if (cancelled || !saved?.deals?.length) return;
-        // Fill settings added since the workspace was saved (e.g. new fees)
-        // with their defaults, and re-map linked deals onto the full model.
-        {
-          const w = normalizeWorkspaceFunds(saved);
-          setDealsRaw(w.deals);
-          setSavedDealsRaw(w.savedDeals);
-          setFundsRaw(w.funds);
-        }
-        if (saved.baseCurve?.points?.length) restoredBase = saved.baseCurve;
-        if (typeof saved.anchorToLive === "boolean") restoredAnchor = saved.anchorToLive;
-        setBaseCurveRaw(restoredBase);
-        setAnchorToLiveRaw(restoredAnchor);
-        if (saved.deals.some((d) => d.id === saved.activeDealId)) setActiveDealId(saved.activeDealId);
-        setSavedAt(saved.savedAt ?? null);
-        if (saved.comps) setCompsRaw({ ...DEFAULT_COMPS_STATE, ...saved.comps });
-        if (saved.valuations && typeof saved.valuations === "object") setValuationsRaw(saved.valuations);
-        if (Array.isArray(saved.auditLog)) setAuditLog(saved.auditLog);
-      })
-      .finally(() => {
-        hydrated.current = true;
-        setReady(true);
-      })
+      .then(() => setReady(true))
       .then(() => fetchNyFedRates())
       .then((r) => {
         if (cancelled) return;
         setLive(r);
         setLiveStatus("ok");
-        if (r.avg30 && restoredAnchor) applyCurveToDeals(anchorCurveToLive(restoredBase, r.avg30.rate).curve);
+        if (r.avg30) applyCurveToDeals(anchorCurveToLive(DEFAULT_CURVE, r.avg30.rate).curve);
       })
       .catch(() => !cancelled && setLiveStatus("error"));
     return () => {
@@ -536,45 +477,22 @@ export default function Home() {
     // Runs once on mount; later updates go through the handlers above.
   }, []);
 
-  // Linked workspace file: find the file picked on an earlier visit. If the
-  // browser still allows access, load it (it is the source of truth);
-  // otherwise offer a one-click Reconnect.
-  useEffect(() => {
-    let stop = false;
-    Promise.resolve()
-      .then(() => {
-        const ok = fileAccessSupported();
-        setFileSupported(ok);
-        return ok ? recallHandle() : null;
-      })
-      .then(async (h) => {
-        if (stop || !h) return;
-        fileHandle.current = h;
-        if ((await permission(h)) !== "granted") {
-          setFileState({ status: "reconnect", name: h.name });
-          return;
-        }
-        const saved = await readWorkspace(h);
-        if (stop) return;
-        if (saved && isWorkspace(saved)) applyWorkspace(saved, `Loaded linked file ${h.name}`);
-        linkFile(h);
-      })
-      .catch(() => !stop && fileHandle.current && setFileState({ status: "reconnect", name: fileHandle.current.name }));
-    return () => {
-      stop = true;
-    };
-    // Runs once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Database sign-in: follow the Supabase session (sign-in links land here).
+  // Database sign-in: follow the Supabase session (confirmation and password
+  // reset links land here).
   useEffect(() => {
     let stop = false;
     let unsub = () => {};
     Promise.resolve()
       .then(async () => {
         if (!supabase()) return;
-        unsub = onAuthChange((sess) => !stop && setSession(sess));
+        unsub = onAuthChange((sess, event) => {
+          if (stop) return;
+          setSession(sess);
+          if (event === "PASSWORD_RECOVERY") {
+            setPwRecovery(true);
+            setCloudOpen(true);
+          }
+        });
         const sess = await getSession();
         if (!stop) setSession(sess);
       })
@@ -584,18 +502,33 @@ export default function Home() {
       unsub();
     };
   }, []);
-  // After signing in: claim invites and reopen the database workspace this
-  // browser was linked to (once the browser workspace has been restored).
+  // After signing in: claim invites, move any workspace an earlier version
+  // saved in this browser into the database, then open the most recently
+  // saved workspace (creating one if the user has none).
   const userId = session?.user?.id;
   useEffect(() => {
     if (!userId || !ready) return;
     let stop = false;
     claimInvites()
       .catch(() => {})
-      .then(() => {
-        const rec = recallLink();
-        if (stop || !rec?.id || dbLinkRef.current) return;
-        return openDbWorkspace(rec, { keepLocalIfNewer: true });
+      .then(async () => {
+        if (stop || dbLinkRef.current) return;
+        const legacy = readLegacyWorkspace();
+        if (legacy) {
+          const name = `Moved from browser ${new Date().toLocaleDateString()}`;
+          const id = await dbCreateWorkspace(name, { ...legacy, app: "industrial-uw" });
+          clearLegacyBrowserData();
+          if (!stop) await openDbWorkspace({ id });
+          return;
+        }
+        const list = await listWorkspaces();
+        if (stop || dbLinkRef.current) return;
+        if (list.length) {
+          await openDbWorkspace(list[0]);
+        } else {
+          const id = await dbCreateWorkspace(SAMPLE_FUND_NAME, workspaceData());
+          if (!stop) await openDbWorkspace({ id });
+        }
       })
       .catch((e) => !stop && setDbLink({ id: null, name: "", error: e.message }));
     return () => {
@@ -615,28 +548,36 @@ export default function Home() {
     };
   }, [activeTab, dbLink?.id, dbLink?.version, session]);
 
-  // Save to the linked file every FILE_SAVE_MINUTES, and when the tab is
-  // hidden or closed, if there are changes.
-  const saveRef = useRef(saveToFileNow);
+  // Save to the database DB_SAVE_SECONDS after the last change (scheduled in
+  // the effect below), on Save now, and when the tab is hidden or closed.
+  // Leaving with unsaved changes asks first, because nothing is kept in the
+  // browser.
+  const saveRef = useRef(null);
   useEffect(() => {
-    saveRef.current = () => {
-      saveToFileNow();
-      saveToDbNow().catch(() => {});
-    };
+    saveRef.current = () => saveToDbNow().catch(() => {});
   });
   useEffect(() => {
-    const id = setInterval(() => saveRef.current(), FILE_SAVE_MINUTES * 60_000);
-    const onHide = () => document.visibilityState === "hidden" && saveRef.current();
+    const onHide = () => document.visibilityState === "hidden" && saveRef.current?.();
+    const onLeave = (e) => {
+      const l = dbLinkRef.current;
+      if (l && (l.dirty || dbSaving.current) && l.role !== "viewer") {
+        saveRef.current?.();
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
     document.addEventListener("visibilitychange", onHide);
     window.addEventListener("pagehide", onHide);
+    window.addEventListener("beforeunload", onLeave);
     return () => {
-      clearInterval(id);
       document.removeEventListener("visibilitychange", onHide);
       window.removeEventListener("pagehide", onHide);
+      window.removeEventListener("beforeunload", onLeave);
+      clearTimeout(dbTimer.current);
     };
   }, []);
 
-  // Save the workspace whenever it changes (after the initial restore).
+  // Track every change: update the change log and schedule a database save.
   useEffect(() => {
     if (!hydrated.current) return;
     const t = setTimeout(() => {
@@ -652,32 +593,24 @@ export default function Home() {
       }
       auditBaseline.current = snap;
       // Database: take the baseline after opening, or mark unsaved changes.
+      let schedule = false;
       if (dbLinkRef.current) {
         if (!dbBaseline.current || dbBaseline.current === "pending") dbBaseline.current = snap;
-        else if (!dbLinkRef.current.dirty && diffWorkspace(dbBaseline.current, snap).length) {
+        else if (dbLinkRef.current.dirty) schedule = true;
+        else if (diffWorkspace(dbBaseline.current, snap).length) {
+          dbLinkRef.current = { ...dbLinkRef.current, dirty: true };
           setDbLink((l) => (l ? { ...l, dirty: true } : l));
-          markDbDirty(dbLinkRef.current);
+          schedule = true;
         }
       }
       if (log !== auditLogRef.current) {
         auditLogRef.current = log;
         setAuditLog(log);
       }
-      try {
-        const at = new Date().toISOString();
-        window.localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog: log })
-        );
-        setSavedAt(at);
-      } catch {
-        // Storage full or blocked: the app keeps working, unsaved.
-      }
-      // The linked file is written on a timer (see saveToFileNow); mark it behind.
       latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog: log };
-      if (fileLinked.current && !fileDirty.current) {
-        fileDirty.current = true;
-        setFileState((f) => (f.status === "linked" ? { ...f, dirty: true } : f));
+      if (schedule) {
+        clearTimeout(dbTimer.current);
+        dbTimer.current = setTimeout(() => saveRef.current?.(), DB_SAVE_SECONDS * 1000);
       }
     }, 400);
     return () => clearTimeout(t);
@@ -685,11 +618,11 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations]);
 
-  // ── Export / import the workspace as a JSON file (to move it between
-  // browsers or computers). Same content as the browser save.
+  // ── Export / import the workspace as a JSON file (a backup copy you keep,
+  // or to load one into the open database workspace).
   function handleExportWorkspace() {
     const at = new Date().toISOString();
-    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog };
+    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog };
     downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `underwriting-workspace-${at.slice(0, 10)}.json`);
     setImportMsg({ ok: true, text: `Exported ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
@@ -707,15 +640,15 @@ export default function Home() {
       setImportMsg({ ok: false, text: "That file isn't a workspace export (no deals found)." });
       return;
     }
-    if (!window.confirm(`Replace this browser's workspace with the file (${saved.deals.length} deals)? Your current deals, funds and comps here will be overwritten.`)) return;
+    if (!window.confirm(`Replace the open workspace${dbLink?.name ? ` (${dbLink.name})` : ""} with the file (${saved.deals.length} deals)? It saves to the database as a new version; the current one stays in the version history.`)) return;
     applyWorkspace(saved, `Imported workspace file ${file.name}`);
     setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
   }
 
-  // Loads a saved workspace (export or linked file) into the app.
+  // Loads a saved workspace (database row or export) into the app.
   function applyWorkspace(saved, note) {
-    // Same migration as the browser restore: fill new settings with defaults
-    // and re-map linked deals onto the full model.
+    // Fill settings added since it was saved with their defaults and re-map
+    // linked deals onto the full model.
     {
       const w = normalizeWorkspaceFunds(saved);
       setDealsRaw(w.deals);
@@ -738,80 +671,22 @@ export default function Home() {
     if (anchor && live?.avg30) applyCurveToDeals(anchorCurveToLive(base, live.avg30.rate).curve);
   }
 
-  // ── Linked workspace file ──
-  // Writes the latest workspace to the linked file (if anything changed).
-  // Runs every FILE_SAVE_MINUTES, on Save now, and when the tab is hidden.
-  async function saveToFileNow(force = false) {
-    const h = fileHandle.current;
-    if (!h || !fileLinked.current || fileWriting.current) return;
-    if (!force && !fileDirty.current) return;
-    const data = latestData.current;
-    if (!data) return;
-    fileWriting.current = true;
-    fileDirty.current = false;
-    const at = new Date().toISOString();
-    try {
-      await writeWorkspace(h, { ...data, savedAt: at });
-      setFileState((f) => (f.status === "linked" ? { ...f, savedAt: at, dirty: fileDirty.current, error: null } : f));
-    } catch (e) {
-      fileDirty.current = true;
-      setFileState((f) => ({ ...f, dirty: true, error: `Couldn't save to the file: ${e.message || e}` }));
-    } finally {
-      fileWriting.current = false;
-    }
-  }
-
   // ── Database (Supabase) ──
-  const DB_DIRTY_KEY = "uw-db-dirty";
-  function markDbDirty(link) {
-    try {
-      window.localStorage.setItem(DB_DIRTY_KEY, JSON.stringify({ id: link.id, version: link.version }));
-    } catch {
-      // storage blocked
-    }
-  }
-  function clearDbDirty() {
-    try {
-      window.localStorage.removeItem(DB_DIRTY_KEY);
-    } catch {
-      // storage blocked
-    }
-  }
   function linkDb(ws, extra = {}) {
     const link = { id: ws.id, name: ws.name, version: ws.version, role: ws.role, savedAt: null, dirty: false, error: null, conflict: false, ...extra };
     dbLinkRef.current = link;
     setDbLink(link);
-    rememberLink({ id: ws.id, name: ws.name });
   }
 
-  // Opens a database workspace (replacing what's in this browser).
-  async function openDbWorkspace(w, { keepLocalIfNewer = false } = {}) {
+  // Opens a database workspace (replacing what's on screen).
+  async function openDbWorkspace(w) {
+    clearTimeout(dbTimer.current);
     const meta = (await listWorkspaces()).find((x) => x.id === w.id);
     if (!meta) throw new Error("You no longer have access to that workspace.");
     const row = await dbLoadWorkspace(w.id);
-    let dirty = null;
-    try {
-      dirty = JSON.parse(window.localStorage.getItem(DB_DIRTY_KEY) ?? "null");
-    } catch {
-      dirty = null;
-    }
-    if (keepLocalIfNewer && dirty?.id === row.id) {
-      if (dirty.version === row.version) {
-        // Unsaved local changes from last time and nobody saved since: keep them.
-        linkDb({ ...meta, version: row.version }, { dirty: true });
-        dbBaseline.current = auditSnapshot(row.data);
-        return;
-      }
-      if (!window.confirm(`"${row.name}" was saved by ${row.updated_by_email || "someone else"} (version ${row.version}) after your last save, and this browser has unsaved changes. Load the database version? Cancel keeps your changes here; saving will then ask before overwriting.`)) {
-        linkDb({ ...meta, version: dirty.version }, { dirty: true, conflict: true, error: "Someone else saved a newer version." });
-        dbBaseline.current = auditSnapshot(row.data);
-        return;
-      }
-    }
     if (!isWorkspace(row.data)) throw new Error("That database workspace has no deals yet.");
     applyWorkspace(row.data, `Opened database workspace ${row.name} (version ${row.version})`);
     dbBaseline.current = "pending";
-    clearDbDirty();
     linkDb({ ...meta, version: row.version }, { savedAt: row.updated_at });
   }
 
@@ -819,7 +694,6 @@ export default function Home() {
     const data = workspaceData();
     const id = await dbCreateWorkspace(name, data);
     dbBaseline.current = auditSnapshot(data);
-    clearDbDirty();
     linkDb({ id, name, version: 1, role: "owner" }, { savedAt: new Date().toISOString() });
   }
 
@@ -841,7 +715,6 @@ export default function Home() {
     try {
       const version = await dbSaveWorkspace(l.id, l.version, data, [...notes, ...changes]);
       dbBaseline.current = snap;
-      clearDbDirty();
       const at = new Date().toISOString();
       const next = { ...l, version, savedAt: at, dirty: false, error: null, conflict: false };
       dbLinkRef.current = next;
@@ -868,87 +741,17 @@ export default function Home() {
   }
 
   function unlinkDb() {
+    clearTimeout(dbTimer.current);
     dbLinkRef.current = null;
     setDbLink(null);
-    rememberLink(null);
-    clearDbDirty();
     setDbLog(null);
   }
 
-  function linkFile(handle) {
-    fileHandle.current = handle;
-    fileLinked.current = true;
-    fileDirty.current = false;
-    rememberHandle(handle);
-    setFileState({ status: "linked", name: handle.name, savedAt: null, dirty: false, error: null });
-  }
   const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog });
-  const cancelled = (e) => e?.name === "AbortError";
-
-  // New file: write the current workspace to it and keep it linked.
-  async function handleSaveToFile() {
-    try {
-      const h = await createWorkspaceFile();
-      await writeWorkspace(h, workspaceData());
-      linkFile(h);
-      setFileState((f) => ({ ...f, savedAt: new Date().toISOString() }));
-    } catch (e) {
-      if (!cancelled(e)) setFileState((f) => ({ ...f, error: `Couldn't create the file: ${e.message || e}` }));
-    }
-  }
-
-  // Existing file: load it (replacing this browser's workspace) and keep it linked.
-  async function handleOpenFile() {
-    if (!requireEdit()) return;
-    try {
-      const h = await openWorkspaceFile();
-      if ((await permission(h, true)) !== "granted") return;
-      const saved = await readWorkspace(h);
-      if (saved && !isWorkspace(saved)) {
-        setFileState((f) => ({ ...f, error: `${h.name} isn't a workspace file.` }));
-        return;
-      }
-      if (saved) {
-        if (!window.confirm(`Open ${h.name} (${saved.deals.length} deals)? It replaces the workspace in this browser, and changes will save to that file.`)) return;
-        applyWorkspace(saved, `Opened workspace file ${h.name}`);
-      } else {
-        await writeWorkspace(h, workspaceData()); // empty file: start it from the current workspace
-      }
-      linkFile(h);
-    } catch (e) {
-      if (!cancelled(e)) setFileState((f) => ({ ...f, error: `Couldn't open the file: ${e.message || e}` }));
-    }
-  }
-
-  // After a reload the browser asks again before the page can use the file.
-  async function handleReconnectFile() {
-    const h = fileHandle.current;
-    if (!h) return;
-    try {
-      if ((await permission(h, true)) !== "granted") return;
-      const saved = await readWorkspace(h);
-      if (saved && isWorkspace(saved)) applyWorkspace(saved, `Reconnected workspace file ${h.name}`);
-      linkFile(h);
-    } catch (e) {
-      setFileState({ status: "error", name: h.name, error: `Couldn't reopen ${h.name}: ${e.message || e}. It may have been moved or deleted.` });
-    }
-  }
-
-  function handleUnlinkFile() {
-    fileHandle.current = null;
-    fileLinked.current = false;
-    forgetHandle();
-    setFileState({ status: "none" });
-  }
 
   function handleResetWorkspace() {
     if (!requireEdit()) return;
-    if (!window.confirm("Reset the workspace? This removes your saved deals, funds and imported curve from this browser.")) return;
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
+    if (!window.confirm(`Reset ${dbLink?.name ? `"${dbLink.name}"` : "the workspace"} to the starting deals? Your deals, funds and imported curve are replaced; the current version stays in the database's version history.`)) return;
     const fresh = initialDeals();
     noteAudit("Reset the workspace");
     setSavedDeals([]);
@@ -962,7 +765,6 @@ export default function Home() {
       const quick = { ...d.quick, forwardCurve: anchorCurveToLive(DEFAULT_CURVE, live.avg30.rate).curve };
       return { ...d, quick, inputs: toMainInputs(quick, d.inputs) };
     }) : fresh);
-    setSavedAt(null);
   }
 
   // ── Fund terms ──
@@ -1319,45 +1121,8 @@ export default function Home() {
           Clear test data
         </button>
         <span className="ml-auto text-[11px] text-gray-400">
-          {fileState.status === "linked"
-            ? `Also saved in this browser`
-            : savedAt ? `Saved in this browser ${new Date(savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Not saved yet"}
+          {!session ? "Not saved. Sign in to save to the database" : !dbLink ? "Opening your workspace…" : null}
         </span>
-        {fileSupported ? (
-          fileState.status === "linked" ? (
-            <span className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-800" title={`Saved to this file every ${FILE_SAVE_MINUTES} minutes when there are changes, and when you leave the page`}>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Saving to <span className="font-semibold">{fileState.name}</span>
-              {fileState.dirty ? (
-                <span className="text-amber-700">· unsaved changes (auto-saves every {FILE_SAVE_MINUTES} min)</span>
-              ) : (
-                fileState.savedAt && <span className="text-emerald-600">· saved {new Date(fileState.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
-              )}
-              <button type="button" onClick={() => saveToFileNow(true)} className="ml-1 rounded border border-emerald-300 bg-white px-1.5 py-0.5 font-medium text-emerald-700 hover:bg-emerald-100">Save now</button>
-              <button type="button" onClick={handleUnlinkFile} className="ml-1 text-emerald-600 hover:text-red-600" title="Stop saving to this file (the file is kept)">Unlink</button>
-            </span>
-          ) : fileState.status === "reconnect" ? (
-            <span className="flex items-center gap-1.5">
-              <button type="button" onClick={handleReconnectFile} className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100">
-                Reconnect {fileState.name}
-              </button>
-              <button type="button" onClick={handleUnlinkFile} className="text-[11px] text-gray-400 hover:text-red-600">Unlink</button>
-            </span>
-          ) : (
-            <>
-              <button type="button" onClick={handleSaveToFile} title="Create a workspace file; every change is saved to it" className="text-xs font-medium text-blue-700 border border-blue-200 hover:bg-blue-50 bg-white rounded-lg px-3 py-1.5 transition-colors">
-                Save to file…
-              </button>
-              <button type="button" onClick={handleOpenFile} title="Open a workspace file; changes are saved back to it" className="text-xs font-medium text-blue-700 border border-blue-200 hover:bg-blue-50 bg-white rounded-lg px-3 py-1.5 transition-colors">
-                Open file…
-              </button>
-            </>
-          )
-        ) : (
-          <span className="text-[11px] text-gray-400" title="Safari and Firefox don't let web pages save to a file. Use Chrome or Edge, or Export / Import workspace.">
-            Auto-save to a file needs Chrome or Edge
-          </span>
-        )}
         <input
           ref={importRef}
           type="file"
@@ -1378,7 +1143,7 @@ export default function Home() {
               <>
                 <span>· someone else saved a newer version</span>
                 <button type="button" onClick={() => openDbWorkspace(dbLink).catch((e) => setDbLink((l) => ({ ...l, error: e.message })))} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Open latest</button>
-                <button type="button" onClick={() => window.confirm("Save this browser's version over the newer one? The newer one stays in the database's version history.") && overwriteDb().catch(() => {})} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Keep mine</button>
+                <button type="button" onClick={() => window.confirm("Save your version over the newer one? The newer one stays in the database's version history.") && overwriteDb().catch(() => {})} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Keep mine</button>
               </>
             ) : dbLink.error ? (
               <span>· {dbLink.error}</span>
@@ -1397,26 +1162,28 @@ export default function Home() {
           <span className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-800">
             <span aria-hidden="true">☁</span> Couldn&apos;t open your database workspace: {dbLink.error}
             <button type="button" onClick={() => setCloudOpen(true)} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Database…</button>
-            <button type="button" onClick={unlinkDb} className="text-red-500 hover:text-red-700" aria-label="Dismiss">✕</button>
+
           </span>
         ) : null}
         {cloudOpen && (
           <CloudPanel
             session={session}
             link={dbLink?.id ? dbLink : null}
+            recovery={pwRecovery}
+            onRecoveryDone={() => setPwRecovery(false)}
             onClose={() => setCloudOpen(false)}
             onCreate={createDbWorkspace}
             onOpen={(w) => openDbWorkspace(w)}
             onSaveNow={() => saveToDbNow(true)}
-            onUnlink={unlinkDb}
             onDelete={async (w) => {
               await dbDeleteWorkspace(w.id);
               if (dbLinkRef.current?.id === w.id) unlinkDb();
             }}
             onSignOut={async () => {
+              await saveToDbNow().catch(() => {});
               await signOut();
-              unlinkDb();
-              setSession(null);
+              // Clear the workspace from the screen: nothing stays in the browser.
+              window.location.reload();
             }}
           />
         )}
@@ -1443,12 +1210,6 @@ export default function Home() {
         >
           Reset workspace
         </button>
-        {fileState.error && (
-          <p className="basis-full text-right text-[11px] text-red-600">
-            {fileState.error}
-            <button type="button" onClick={() => setFileState((f) => ({ ...f, error: null }))} className="ml-2 text-gray-400 hover:text-gray-700" aria-label="Dismiss">✕</button>
-          </p>
-        )}
         {importMsg && (
           <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
             {importMsg.text}
@@ -1533,8 +1294,17 @@ export default function Home() {
                 <span className="font-semibold">View only.</span>{" "}
                 {viewerOnly
                   ? `You have viewer access to ${dbLink.name}. Ask an owner for editor access to make changes.`
-                  : "Sign in to enter or change data. You can still look around every tab."}
+                  : noWorkspace
+                    ? dbLink?.error
+                      ? `Couldn't open your workspace: ${dbLink.error}`
+                      : "Opening your workspace from the database…"
+                    : "Sign in to enter or change data. You can still look around every tab. Nothing is saved until you sign in."}
               </span>
+              {noWorkspace && dbLink?.error && (
+                <button type="button" onClick={() => setCloudOpen(true)} className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100">
+                  ☁ Database…
+                </button>
+              )}
               {!session && (
                 <button type="button" onClick={() => setCloudOpen(true)} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
                   ☁ Sign in

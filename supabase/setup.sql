@@ -101,7 +101,7 @@ create trigger ws_after_insert after insert on public.workspaces
 
 -- Audit rows always carry the real user and server time.
 create or replace function public.audit_stamp()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.at := now();
   new.user_id := auth.uid();
@@ -261,6 +261,13 @@ begin
   delete from public.workspace_invites where lower(email) = lower(auth.jwt() ->> 'email');
   return n;
 end $$;
+
+-- Functions are callable only by signed-in users; trigger functions by no one.
+revoke execute on function public.create_workspace(text, jsonb), public.save_workspace(uuid, integer, jsonb, jsonb, text),
+  public.log_note(uuid, text), public.add_member(uuid, text, text), public.remove_member(uuid, text),
+  public.claim_invites(), public.ws_role(uuid), public.ws_can(uuid, text[]),
+  public.ws_after_insert(), public.audit_stamp() from public, anon;
+revoke execute on function public.ws_after_insert(), public.audit_stamp() from authenticated;
 
 grant usage on schema public to anon, authenticated;
 grant select, delete on public.workspaces to authenticated;

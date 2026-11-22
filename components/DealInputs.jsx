@@ -714,7 +714,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
   async function handleFetchCurve() {
     setCurveLoading(true);
     setCurveError(null);
-    const holdYears = inputs.holdPeriodYears ?? 7;
+    const holdYears = inputs.holdPeriodYears ?? 4;
     const rates = await fetchSofrCurve(holdYears);
     // Fill any nulls (far-dated contracts) by forward-filling last known rate
     let last = inputs.indexRatePct ?? 0;
@@ -1196,7 +1196,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           {inputs.floatingRate ? (
             (() => {
               const curve = inputs.sofrForwardCurve ?? [];
-              const holdYears = inputs.holdPeriodYears ?? 7;
+              const holdYears = inputs.holdPeriodYears ?? 4;
               const spread = inputs.spreadPct ?? 0;
               const capStrike = inputs.capStrikeRatePct ?? Infinity;
               const capTerm = inputs.capTermYears ?? inputs.loanTermYears ?? 999;

@@ -296,7 +296,10 @@ export default function DebtSizingPanel({ debt, cashFlows, inputs }) {
     <div className="space-y-8">
       <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-gray-900">Debt</h2>
+        <div className="min-w-0">
+          <p className="truncate text-lg font-bold text-gray-900" title={inputs.propertyName || "Unnamed deal"}>{inputs.propertyName || "Unnamed deal"}</p>
+          <h2 className="text-sm font-semibold text-gray-500">Debt</h2>
+        </div>
         <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${bindingColor}`}>
           Sized by {binding}
         </span>

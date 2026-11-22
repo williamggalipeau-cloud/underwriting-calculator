@@ -69,7 +69,7 @@ export default function ChangeLog({ log: browserLog = [], user, onUserChange, si
       {dbLog && (
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="text-gray-500">Show</span>
-          {[["auto", `Database: ${dbName || "workspace"} (verified)`], ["browser", "This browser"]].map(([k, label]) => (
+          {[["auto", `Database: ${dbName || "workspace"} (verified)`], ["browser", "Working log"]].map(([k, label]) => (
             <button
               key={k}
               type="button"
@@ -165,9 +165,9 @@ export default function ChangeLog({ log: browserLog = [], user, onUserChange, si
 
       <p className="text-[11px] leading-relaxed text-gray-400">
         Repeated edits to the same field by the same person within a minute are combined into one entry; an edit undone within that
-        minute is dropped. Loading, importing or resetting a workspace and loading the sample fund are recorded as one entry. Names are
-        entered in each browser and not verified, and the log is stored in the workspace file, so it is a working record rather than
-        a tamper-proof audit trail. The latest {(10000).toLocaleString()} changes are kept.
+        minute is dropped. Loading, importing or resetting a workspace and loading the sample fund are recorded as one entry. The working
+        log is stored in the workspace data, so it is a working record rather than a tamper-proof audit trail; the database log is the
+        verified one. The latest {(10000).toLocaleString()} changes are kept.
       </p>
     </div>
   );
