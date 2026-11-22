@@ -37,6 +37,11 @@ export default function CloudPanel({ session, link, onClose, onCreate, onOpen, o
   const refreshMembers = () => link && run(async () => setMembers(await listMembers(link.id)));
 
   useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  useEffect(() => {
     if (!signedIn) return;
     let stop = false;
     listWorkspaces()
