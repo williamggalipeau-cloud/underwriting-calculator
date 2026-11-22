@@ -208,6 +208,14 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
     in aging buckets (user's choice, 11/22): current, 1–30, 31–60,
     61–90, 91–180 and over 180 days, with prepayments and credits. Each
     bucket shown in $ and as % of monthly rent, by tenant, asset and fund.
+  - **Fund total** (user asked 11/22): a fund-level delinquency summary with
+    the total $ owed across all assets, the total in each aging bucket, the
+    total as % of the fund's monthly rent, the number of tenants
+    delinquent, total net of security deposits held, and change vs. last
+    month, with a click-through to each asset and tenant. Shown on the
+    Unit Roll's Whole fund view and on Portfolio Return, and in the phase L
+    reports (fund total in the internal performance report; the detail in
+    the risk report).
   - A delinquency badge on each unit in the Unit Roll; delinquency as a %
     of monthly rent per asset and for the fund, and the month-to-month
     trend.
