@@ -126,6 +126,9 @@ function WaterfallSection({ wf }) {
   );
 }
 
+import { AssetCashYield } from "@/components/CashYield";
+import { assetCashYield } from "@/lib/cashYield";
+
 export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs, savedDeals = [] }) {
   const [selectedId, setSelectedId] = useState("active");
 
@@ -213,6 +216,8 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
           </div>
         ))}
       </div>
+
+      <AssetCashYield data={assetCashYield(cfs, r.totalEquityInvested)} equity={r.totalEquityInvested} />
 
       {/* Cash flow table */}
       <div>
