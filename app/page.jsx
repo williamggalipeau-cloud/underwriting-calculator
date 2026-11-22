@@ -19,7 +19,7 @@ import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
+import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -89,15 +89,37 @@ function normalizeWorkspaceFunds(saved) {
   const savedDeals = (Array.isArray(saved.savedDeals) ? saved.savedDeals : []).map(withTestDate);
   const funds = saved.funds && typeof saved.funds === "object" ? saved.funds : initialFunds();
   const resolve = fundNameResolver(funds, deals, savedDeals);
-  return {
+  let out = {
     deals: deals.map((d) => withCanonicalFund(d, resolve)),
     savedDeals: savedDeals.map((d) => withCanonicalFund(d, resolve)),
     funds: mergeFundTerms(funds, resolve),
   };
+  // Model Fund I moved its 1.5% fee from each asset to the fund: once per
+  // workspace, set the fund fee terms and remove the asset-level AM fee.
+  const sample = out.funds[SAMPLE_FUND_NAME];
+  if (sample && sample.feeModel !== SAMPLE_FUND_FEE_TERMS.feeModel) {
+    const inFund = (d) => d.inputs?.fundName === SAMPLE_FUND_NAME;
+    const noAmFee = (inputs) => ({ ...inputs, amFeeItems: (inputs.amFeeItems ?? []).filter((x) => x.id !== "quick-am-fee") });
+    out = {
+      funds: { ...out.funds, [SAMPLE_FUND_NAME]: { ...sample, ...SAMPLE_FUND_FEE_TERMS } },
+      deals: out.deals.map((d) => {
+        if (!inFund(d)) return d;
+        if (d.quick) {
+          const quick = { ...d.quick, amFeePct: 0 };
+          return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : noAmFee(d.inputs) };
+        }
+        return { ...d, inputs: noAmFee(d.inputs) };
+      }),
+      savedDeals: out.savedDeals.map((d) =>
+        inFund(d) && (d.inputs.amFeeItems ?? []).some((x) => x.id === "quick-am-fee") ? { ...d, ...snapshotDeal(noAmFee(d.inputs), d.id) } : d
+      ),
+    };
+  }
+  return out;
 }
 
 function initialFunds() {
-  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS } };
+  return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...SAMPLE_FUND_FEE_TERMS } };
 }
 
 function fmtISODate(iso) {
@@ -993,7 +1015,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS) } };
     });
     setActiveTab("fund");
   }

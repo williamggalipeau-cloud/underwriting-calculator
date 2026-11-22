@@ -133,7 +133,16 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 />
               </label>
               <Num label="Total commitments" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint="Fund size; drives dry powder" />
-              <Num label="Mgmt fee" suffix="%/yr" step={0.25} value={t.mgmtFeePct} onChange={set("mgmtFeePct")} hint="On LP invested capital" />
+              <Num label="Mgmt fee" suffix="%/yr" step={0.25} value={t.mgmtFeePct} onChange={set("mgmtFeePct")} hint="Quarterly in advance, LPs only" />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fee basis</span>
+                <select value={t.mgmtFeeBasis ?? "commitments-then-invested"} onChange={(e) => set("mgmtFeeBasis")(e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900">
+                  <option value="commitments-then-invested">Commitments, then invested</option>
+                  <option value="invested">Invested capital</option>
+                </select>
+                <span className="text-[10px] text-gray-400">Commitments during the investment period, then invested capital in assets held</span>
+              </label>
+              <Num label="Fund cash reserve" suffix="qtrs" step={1} value={t.cashReserveQuarters ?? 2} onChange={set("cashReserveQuarters")} hint="Quarters of projected fund expenses" />
             </div>
           </section>
 
