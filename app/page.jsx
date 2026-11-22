@@ -16,7 +16,7 @@ import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, toMainInputs } from "@/lib/quickUnderwrite";
-import { buildSampleDeals, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
+import { buildSampleDeals, currentSampleDate, snapshotDeal, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -40,6 +40,17 @@ const STORAGE_KEY = "uw-workspace-v1";
 const FILE_SAVE_MINUTES = 10;
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calculator/blob/main/docs/USER_MANUAL.md";
+
+// Brings a saved deal up to date: fills settings added since it was saved
+// with their defaults, moves sample assets off old default acquisition
+// dates, and re-maps linked deals onto the full model.
+function migrateSavedDeal(d) {
+  if (!d.quick) return d;
+  const quick = { ...QUICK_DEFAULTS, ...d.quick };
+  quick.acquisitionDate = currentSampleDate(d.id, quick.acquisitionDate);
+  const inputs = d.inputs?.acquisitionDate ? { ...d.inputs, acquisitionDate: currentSampleDate(d.id, d.inputs.acquisitionDate) } : d.inputs;
+  return { ...d, quick, inputs: d.linked ? toMainInputs(quick, inputs) : inputs };
+}
 
 function initialFunds() {
   return { [SAMPLE_FUND_NAME]: { ...DEFAULT_FUND_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS } };
@@ -362,11 +373,7 @@ export default function Home() {
         // Fill settings added since the workspace was saved (e.g. new fees)
         // with their defaults, and re-map linked deals onto the full model.
         setDeals(
-          saved.deals.map((d) => {
-            if (!d.quick) return d;
-            const quick = { ...QUICK_DEFAULTS, ...d.quick };
-            return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
-          })
+          saved.deals.map(migrateSavedDeal)
         );
         setSavedDeals(saved.savedDeals ?? []);
         setFunds(saved.funds ?? initialFunds());
@@ -500,11 +507,7 @@ export default function Home() {
     // Same migration as the browser restore: fill new settings with defaults
     // and re-map linked deals onto the full model.
     setDeals(
-      saved.deals.map((d) => {
-        if (!d.quick) return d;
-        const quick = { ...QUICK_DEFAULTS, ...d.quick };
-        return { ...d, quick, inputs: d.linked ? toMainInputs(quick, d.inputs) : d.inputs };
-      })
+      saved.deals.map(migrateSavedDeal)
     );
     setSavedDeals(Array.isArray(saved.savedDeals) ? saved.savedDeals : []);
     setFunds(saved.funds && typeof saved.funds === "object" ? saved.funds : initialFunds());
