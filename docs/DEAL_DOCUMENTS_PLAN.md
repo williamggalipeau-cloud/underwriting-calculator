@@ -277,6 +277,26 @@ actual results are then tracked against each other.
     vs. underwriting, each with its target.
   - *Risks and mitigants*, and a hold / sell / refinance recommendation at
     each annual review.
+- **Photos, map and floor plan** (added 11/22, user's request):
+  - *Asset photos*: upload photos per asset (exterior, aerial, docks,
+    interior, capex before/after), each with a caption, date and order;
+    one marked as the cover photo. Stored in the private storage bucket;
+    owners and editors upload, viewers see them.
+  - *Location map*: a map of the asset from its address (Phase A asset
+    locations, geocoded once and saved), with a pin, the street map around
+    it, and optionally the fund's other assets nearby. Uses an open map
+    source with its attribution; the map is saved as an image with each
+    plan revision so the PDF does not depend on a live map.
+  - *Floor plan*: upload the building's floor or site plan (image or PDF),
+    then mark each unit on it (draw a box or outline and pick the unit);
+    the app labels every unit with its number, size (SF), tenant and lease
+    expiry, and colours it by status (leased, vacant, expiring within 12
+    months, under renovation). Where no plan is uploaded, the app draws a
+    simple schematic of the units sized by SF from the rent roll. Updates
+    as the rent roll changes (a new plan revision).
+  - Included in the business plan screen and its PDF (cover photo, photo
+    page, map, floor plan with the unit table), and reused for the asset
+    pages of phase L's performance report.
 - **Revisions:** the plan at closing is **revision 1** and is never
   overwritten. While the asset is held, any change to the asset that
   affects the plan creates a **new revision** rather than editing the last
@@ -568,4 +588,8 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     per asset; revision 1 at closing, and any change to the asset while held
     creates a new revision (never overwritten); each revision exports to
     PDF.
+20. **Photos, map and floor plan** (added 11/22) in phase I: uploaded asset
+    photos, a location map from the address, and a floor plan with each
+    unit marked (number, SF, tenant, expiry, status), all in the business
+    plan and its PDF, and in the phase L asset pages.
 
