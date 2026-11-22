@@ -201,7 +201,7 @@ const DEFAULT_INPUTS = {
   swapFixedRatePct: 7.75,
   swapTermYears: 3,
 
-  holdPeriodYears: 7,
+  holdPeriodYears: 4,
   exitCapRatePct: 6.75,
   sellingCostsPct: 2.0,
   sellingCosts: {

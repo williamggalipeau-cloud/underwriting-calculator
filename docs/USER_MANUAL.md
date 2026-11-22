@@ -1345,7 +1345,7 @@ Fields set from Quick Underwrite on linked deals are marked **Q**.
 
 | Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
-| `holdPeriodYears` **Q** | `deals[].inputs.holdPeriodYears` | years | 7 | Hold period |
+| `holdPeriodYears` **Q** | `deals[].inputs.holdPeriodYears` | years | 4 | Hold period |
 | `exitCapRatePct` **Q** | `deals[].inputs.exitCapRatePct` | % | 6.75 | Exit cap rate |
 | `sellingCosts` **Q** | `deals[].inputs.sellingCosts` | %, $ | 2.0 / 0.5 / 0.2 %, $15k, $5k | `brokerCommissionPct`, `transferTaxPct`, `titleInsurancePct`, `legalFees`, `miscDispositionCosts` |
 | `customDispositionItems` | `deals[].inputs.customDispositionItems` | `{label, basis, value}` | [] | Extra sale costs; `basis` `pct` of exit value or fixed $ |
