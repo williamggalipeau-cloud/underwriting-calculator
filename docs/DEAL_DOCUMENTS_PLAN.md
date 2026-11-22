@@ -1,4 +1,4 @@
-# Deal documents plan (phases E–H)
+# Deal documents and performance plan (phases E–K)
 
 Plan only, nothing coded yet. Builds on lease abstraction phases A–D (review and
 apply field by field, mismatch flags, critical dates, whole-fund views). Uses the
@@ -85,7 +85,7 @@ reviews and applies it field by field. Nothing changes the model without a click
 
 ## Order and review
 
-E, then F, G, H, each on the working branch, each with the manual, Node and
+E, then F, G, H, then I, J, K, each on the working branch, each with the manual, Node and
 Playwright tests, and a PR left for review before merging. E depends on C's
 apply and mismatch features and D's critical dates, so it starts after C and D
 are reviewed.
@@ -95,7 +95,7 @@ are reviewed.
 6. **Closing statements** (added 11/22 at the user's request): acquisition
    and disposition closing statements per asset, in phase E. They set the
    actual basis and realized proceeds that the backlog's plan-vs-actual and
-   underwritten-vs-actual tracking compare against.
+   underwritten-vs-actual tracking (phases I–K) compares against.
 
 
 5. **IC memo** (added 11/22 at the user's request): as-approved baseline,
@@ -115,12 +115,14 @@ are reviewed.
    opening the viewer, and the app's own viewer is used instead. Phase E–H
    testing uses validation only; no viewer opens unless the user asks.
 
-## Backlog: after everything above is live
+## Phases I–K: performance tracking (after H)
 
-Not scheduled. Start only when the user says so, after phases C–H, the PSA
-and the IC memo are live.
+Decided 11/22: three new phases, run in order after phase H
+(E → F → G → H → I → J → K). They need phase E's IC memo and closing
+statements for their baselines; J uses I's actuals and K rolls up I and J.
+Not scheduled; each starts when the user says so.
 
-### 1. Business plan budget vs. actual (added 11/22)
+### Phase I: asset budget vs. plan (added 11/22)
 
 At closing, each asset gets a budget for its whole life (the "plan"). The
 current budget and actual results are then tracked against it.
@@ -145,9 +147,9 @@ current budget and actual results are then tracked against it.
 - **Exports:** Excel and a printable asset-management report.
 - Every change logged; owners/editors edit, viewers read.
 
-### 2. Underwritten vs. actual performance (added 11/22)
+### Phase J: underwritten vs. actual performance (added 11/22)
 
-Builds on item 1. Item 1 tracks the operating budget line by line; this
+Builds on phase I. Phase I tracks the operating budget line by line; this
 tracks the deal against what was underwritten to buy it.
 
 - **Underwritten baseline:** the acquisition underwriting (IC-approved
@@ -155,7 +157,7 @@ tracks the deal against what was underwritten to buy it.
   price and total cost, loan terms, year-by-year NOI, occupancy and leasing,
   capex, cash flow, exit cap and value, and returns (levered and unlevered
   IRR, equity multiple, cash-on-cash by year, DSCR and debt yield).
-- **Actual and projected:** actual results to date (from item 1's actuals,
+- **Actual and projected:** actual results to date (from phase I's actuals,
   the rent roll and the Debt tab) joined to the current model for the
   remaining hold, giving "actual + projected" returns, with the latest
   valuation mark from the Valuations tab for value to date.
@@ -169,10 +171,10 @@ tracks the deal against what was underwritten to buy it.
   Return), with a table of assets ranked by return shortfall or outperformance.
   Excel export and the printable asset-management report.
 
-### 3. Fund-level plan vs. actual (added 11/22)
+### Phase K: fund-level plan vs. actual (added 11/22)
 
 The fund's own plan (from the fund model at launch or final close) tracked
-against what the fund actually does, using items 1 and 2 for each asset.
+against what the fund actually does, using phases I and J for each asset.
 
 - **Fund plan, frozen:** commitments and capital call schedule, deployment
   pace (assets and equity by quarter), target asset count and mix, leverage,
@@ -182,7 +184,7 @@ against what the fund actually does, using items 1 and 2 for each asset.
   versions; the original stays.
 - **Actuals:** capital called and distributed to date, assets acquired
   (when, price, equity), fees and fund expenses, the latest marks
-  (Valuations tab), and each asset's actual + projected cash flows (item 2).
+  (Valuations tab), and each asset's actual + projected cash flows (phase J).
 - **Comparison:** plan vs. actual by quarter and since inception: capital
   deployed vs. plan, called vs. plan, distributions and DPI, NAV, fund NOI
   and yield, leverage, and projected net/gross IRR and multiple vs. target,
