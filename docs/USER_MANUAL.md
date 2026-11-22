@@ -1505,6 +1505,13 @@ row's dates are recorded as calculated from the Commencement Date. Lakeshore (10
 amendment) is not yet abstracted. To use one, upload that lease's PDF on the asset's
 Leases tab and paste the JSON into **Save abstract**.
 
+The sample leases' tenants and suites are not on the generated rent rolls
+(for example, Desert Aero Parts' Building B, Suite 104 is not a unit at Airport
+Flex Park), so leave **Rent roll unit** blank when you upload one. Attaching an
+abstract does not change the Unit Roll; the tenant reaches the rent roll only
+when the lease is applied to it, either replacing a unit or added as a new one
+(review and apply, coming next).
+
 ## 8. Worked example: the default deal
 
 The inputs are the Quick Underwrite defaults:
