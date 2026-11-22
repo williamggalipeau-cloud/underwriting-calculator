@@ -825,7 +825,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         {!(capital.commitments > 0) && (
           <p className="mt-2 text-[11px] text-gray-500">Enter the fund&apos;s total commitments to see dry powder.</p>
         )}
-        <CapitalActivity fundName={fundName} activity={activity} deals={deals} otherAssets={otherAssets} onChange={(next) => onTermsChange({ capitalActivity: next })} />
+        <CapitalActivity fundName={fundName} activity={activity} deals={deals} otherAssets={otherAssets} commitments={terms.targetEquity ?? 0} onChange={(next) => onTermsChange({ capitalActivity: next })} />
       </div>
 
       {/* Fund terms */}
