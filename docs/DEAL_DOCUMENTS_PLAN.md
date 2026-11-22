@@ -580,6 +580,19 @@ changing the fund.
   phase E. Each candidate has its price, closing date, equity and loan,
   business plan and exit, using the same underwriting as any deal. Nothing
   is added to the fund until the user chooses **Add to fund**.
+- **Pipeline assets in Deal Screener** (added 11/22, user's request): the
+  Deal Screener has a **Model in fund** picker listing the fund's pipeline
+  assets (acquisition date after today) and any saved deals not yet in a
+  fund. Picking one loads its inputs into the screener as a candidate copy,
+  so price, NOI, loan, cap or closing date can be changed for the scenario
+  without changing the pipeline deal itself (an explicit **Save to deal**
+  writes the changes back, logged). The fund impact view then shows the
+  fund with vs. without that asset. Because the app already counts
+  pipeline assets in fund figures, the comparison lets the user choose the
+  base: **owned assets only**, or **owned plus the other pipeline assets**
+  (the default), and the candidate is always left out of the "without"
+  side. Several pipeline assets can be picked at once to see their
+  combined effect and each one's share of it.
 - **Fund with vs. without:** side by side for the fund as it is, the fund
   with the candidate(s), and the difference:
   - Returns: net and gross IRR, TVPI, DPI, equity multiple, cash-on-cash by
@@ -743,4 +756,9 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     (added 11/22) in phase L's risk report: fund debt and capped notional
     and cap market value grouped by lender and by cap counterparty, with
     maturities, ratings vs. loan requirements, limits, breaches and HHI.
+26. **Pipeline assets in Deal Screener** (added 11/22): a Model in fund
+    picker loads a pipeline asset (or unassigned saved deal) as a candidate
+    copy for phase M's fund impact view, with a choice of base (owned only,
+    or owned plus other pipeline); edits stay in the scenario unless saved
+    back to the deal.
 

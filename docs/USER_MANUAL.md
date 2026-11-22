@@ -2545,7 +2545,10 @@ not used. Nothing changes your data until you click to apply it.
   a what-if (nothing changes until you choose Add to fund) and see the fund
   with and without them: net and gross IRR, multiple, promote, capital
   calls and dry powder, NOI and yield, leverage, concentration and fund
-  limits. Compare candidates and find the highest price that still meets
+  limits. In the Deal Screener you can pick a pipeline asset (Model in
+  fund) and model its effect on the fund, against owned assets only or owned
+  plus the other pipeline assets, without changing the pipeline deal unless
+  you save back. Compare candidates and find the highest price that still meets
   the fund's target. Modeling only: scenarios never change your actual
   data. Each scenario is named and saved; a saved version is never
   overwritten, and any change creates a new version. Every version exports
