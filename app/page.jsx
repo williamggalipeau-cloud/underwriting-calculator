@@ -9,6 +9,7 @@ import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import Leases from "@/components/Leases";
+import SellHold from "@/components/SellHold";
 import { withLocation } from "@/lib/assetLocations";
 import { MTM_MODEL, mtmIndex, toRentRollNOI, withMarkToMarket } from "@/lib/sampleRentRolls";
 import UnitRoll from "@/components/UnitRoll";
@@ -347,24 +348,25 @@ function newDeal(overrides = {}) {
   };
 }
 
+// Tab order. The Change Log opens from the header button (id "changes").
 const TABS = [
   { id: "quick",       label: "Quick Underwrite" },
+  { id: "assets",      label: "Asset Summary" },
+  { id: "valuations",  label: "Valuations" },
   { id: "units",       label: "Unit Roll" },
   { id: "leases",      label: "Leases" },
   { id: "debt",        label: "Debt" },
   { id: "cashflow",    label: "Cash Flow" },
-  { id: "stress",      label: "Return Stress Testing" },
-  { id: "sensitivity", label: "Sensitivity" },
   { id: "returns",     label: "Asset Return" },
   { id: "fund",        label: "Portfolio Return" },
-  { id: "assets",      label: "Asset Summary" },
-  { id: "valuations",  label: "Valuations" },
+  { id: "sensitivity", label: "Sensitivity" },
+  { id: "sellhold",    label: "Sell / Hold" },
+  { id: "stress",      label: "Return Stress Testing" },
   { id: "comps",       label: "Sales Comps" },
-  { id: "changes",     label: "Change Log" },
 ];
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "debt", "cashflow", "returns", "sensitivity", "comps"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
 
 function fmtPct(n) {
   return isFinite(n) ? `${n.toFixed(1)}%` : "—";
@@ -1115,6 +1117,18 @@ export default function Home() {
               </svg>
               User manual
             </a>
+            <button
+              type="button"
+              onClick={() => setActiveTab("changes")}
+              aria-pressed={activeTab === "changes"}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${
+                activeTab === "changes" ? "border-gray-700 bg-gray-800 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+              title="What changed, when, and who changed it"
+            >
+              <span aria-hidden="true">↺</span>
+              Change log
+            </button>
             {/* Signed out, sign in from the View only banner; this button is only the database panel. */}
             {session && (
               <button
@@ -1508,6 +1522,17 @@ export default function Home() {
                   setActiveDealId(id);
                   setActiveTab("quick");
                 }}
+              />
+            )}
+            {activeTab === "sellhold" && (
+              <SellHold
+                deal={fundDeals.find((d) => d.id === activeDealId) ?? null}
+                fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName))}
+                fundName={resolveFund(inputs.fundName)}
+                terms={inputs.fundName?.trim() ? { ...DEFAULT_FUND_TERMS, ...(funds[resolveFund(inputs.fundName)] ?? {}), name: resolveFund(inputs.fundName) } : null}
+                canEdit={!locked}
+                onTermsChange={(patch) => handleFundTermsChange(resolveFund(inputs.fundName), patch)}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
             )}
             {activeTab === "valuations" && (
