@@ -105,3 +105,33 @@ are reviewed.
    count. So the app's prompts ask the session to validate and save without
    opening the viewer, and the app's own viewer is used instead. Phase E–H
    testing uses validation only; no viewer opens unless the user asks.
+
+## Backlog: after everything above is live
+
+Not scheduled. Start only when the user says so, after phases C–H, the PSA
+and the IC memo are live.
+
+### 1. Business plan budget vs. actual (added 11/22)
+
+At closing, each asset gets a budget for its whole life (the "plan"). The
+current budget and actual results are then tracked against it.
+
+- **Lock the plan at closing:** snapshot the closing underwriting as the
+  asset's plan, by year and month: rental income, recoveries, other income,
+  vacancy and credit loss, each operating expense line, NOI, capex, TI/LC,
+  debt service and cash flow. Leasing assumptions are included per unit
+  (downtime, new rent, renewals). The IC-approved figures (phase E) can seed
+  it. The plan never changes after it is locked; a re-forecast is saved as a
+  new version (e.g. "2027 budget", "Q2 reforecast").
+- **Actuals:** monthly or quarterly actuals by line, entered by hand or
+  imported from Excel/CSV (a T-12 or GL export; the phase E T-12 reader can
+  help map lines).
+- **Reports:** plan vs. current budget vs. actual, by line for the month,
+  quarter, year to date and since closing, in $ and $/SF with variances and
+  %. Amber/red flags over a threshold, with a comment per variance.
+  Leasing vs. plan (units leased, rents achieved, downtime vs. plan) and
+  capex spent vs. plan.
+- **Roll-up:** whole-fund view on Portfolio Return; feeds the Valuations
+  tab (NOI used in marks) and Sell / Hold (current vs. plan returns).
+- **Exports:** Excel and a printable asset-management report.
+- Every change logged; owners/editors edit, viewers read.
