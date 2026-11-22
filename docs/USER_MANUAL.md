@@ -1430,8 +1430,10 @@ Abstraction connector, not in the app, and saved on the lease row.
    **Make a new prompt** if needed.
 3. The session imports the PDFs, combines them in order, reads the whole
    lease, drafts the abstract and runs the connector's validation until
-   every quote, figure and date matches the PDF, then shows it in the
-   connector's viewer.
+   every quote, figure and date matches the PDF. It does **not** open the
+   connector's viewer unless you ask: on the free CREparser plan, a document
+   counts against the allowance only when its abstract is shown there, while
+   validating is free. The app's **View abstract** shows it instead.
 4. **Save:** with the Supabase connector the session saves it directly
    (`save_lease_abstract`, as you); otherwise paste the JSON it returns into
    **Save abstract**. The app accepts the stored object or the connector's
