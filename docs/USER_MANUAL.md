@@ -439,7 +439,9 @@ underwriting-calculator/
 │   ├── capPricer.js          Bachelier cap pricer and vol surface
 │   ├── fundTimeline.js       Dates, XIRR, quarterly asset events, dated waterfall
 │   ├── fundTerms.js          Fund terms defaults, template, import/export, CSV parser
-│   ├── subLine.js            Subscription line simulation
+│   ├── subLine.js            Subscription line simulation (monthly interest and unused fees)
+│   ├── fundFlows.js          Fund LP cash flows: model or actuals to date + model after
+│   ├── fundExpenses.js       Fund expenses: management fee, sub line costs, fund cash, expense calls
 │   ├── samplePortfolio.js    Nine sample assets, deal snapshot for funds
 │   ├── cloud.js              Supabase: sign-in, workspaces, saving, members, audit log
 │   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
@@ -743,9 +745,10 @@ same date.
   4. Split by the active tier.
 - **Tiers:** 80/20 to 12% IRR, 70/30 to 18%, 60/40 above. The tier is picked
   once from the fund's overall project XIRR.
-- **Fund management fee** (0% by default, since fees are charged at the
-  asset level): % of LP invested capital, called on each anniversary of
-  final close.
+- **Fund expenses:** the management fee and sub line costs are fund-level
+  expenses, paid from fund cash, the line or quarterly calls before income
+  is distributed (§7.20). Fee calls are LP-only; the waterfall adds no fee
+  of its own.
 
 **Returns shown:**
 - **Gross:** XIRR of the assets' gross quarterly flows, before the
@@ -856,8 +859,11 @@ the same LP cash flows:
   the forward 30-day average SOFR + spread.
 - **After today:** the model's capital needs (unfunded purchases and
   shortfalls) draw on the line's remaining capacity as in the model.
-- **Fund management fees:** charged only after today; earlier ones are in
-  your actual calls.
+- **Fund expenses** (§7.20): calculated over the whole life. Up to today they
+  appear as **Automatic** entries in the ledger (Source column) and their
+  calls count as actuals; after today they are projected the same way. A
+  quarter in which you entered fee or sub line interest entries yourself is
+  not generated.
 - **Asset income and sale proceeds:** always the model's. Actual
   distributions are not entered.
 - **Sub line balance:** the actual balance up to today, then the projection.
@@ -1078,6 +1084,66 @@ the database, so it also goes with exports. Nothing is kept in the browser.
 - **It isn't tamper-proof.** Anyone who can edit the workspace file can edit
   the log. Treat it as a working record. A tamper-proof audit trail needs a
   server with user accounts.
+
+### 7.20 Fund expenses and fund cash (`lib/fundExpenses.js`)
+
+Fund-level expenses are the **management fee** and the **sub line's
+interest and unused fees**. Property management and construction management
+fees stay at the asset level. Model Fund I's former 1.5% asset management fee
+(on each asset's equity) was removed when the fee moved to the fund, so it
+is charged once.
+
+**Management fee** (Model Fund I: 1.5% a year):
+
+```
+Fee each quarter = fee % ÷ 4 × basis, charged on the first day of the
+                   quarter (in advance), from the day after final close
+                   until the last asset is sold
+Basis            = LP commitments (total commitments × (1 − GP %))
+                   while the quarter starts on or before the investment
+                   period end; then LP invested capital in assets still
+                   held (purchase equity × (1 − GP %))
+                   ("Invested" basis: LP invested capital throughout)
+```
+
+Model Fund I: $100M × 95% = $95M of LP commitments → $356,250 a quarter
+through 2027. Fees are borne by LPs only.
+
+**Sub line costs:** interest on the balance (forward 30-day average SOFR +
+spread, Actual/360) and the unused fee on the undrawn facility, added up by
+month and due at month end. With actual activity, past months use the actual
+line balance; future months the projected one. Draws made to pay expenses
+bear interest at the line rate until repaid.
+
+**Fund cash and payment order.** The fund keeps a minimum cash balance of
+`cashReserveQuarters` (2) quarters of projected expenses (the next quarters'
+fees and sub line costs), plus the operating income it receives before
+distributing it. Each quarter, in date order:
+
+1. Each expense is paid from fund cash.
+2. Any shortfall is drawn on the sub line that day.
+3. At quarter end the assets' operating income (after their own reserves,
+   §7.9) comes into fund cash and repays those draws first.
+4. A capital call repays the rest of the draws and restores cash to the
+   minimum. The part that paid the fee is called from LPs only; the rest
+   from LPs and GP by commitment.
+5. Cash above the minimum is distributed. After the last sale, all
+   remaining cash is distributed and nothing is kept.
+
+Portfolio Return shows this in **Fund expenses & fund cash**: lifetime fees,
+sub line costs, expense calls, distributions, cash now and this quarter's
+fee, and **Show by quarter** for the full schedule. Valuations adds fund cash
+to NAV in the net LP liquidation.
+
+**Automatic capital activity.** For every completed month and quarter up to
+today, the ledger lists the fee and sub line cost entries (**Fund expense
+paid**), the expense draws, their repayments and the quarterly calls, with
+Source **Automatic** (hover for how each was paid). They are recalculated
+whenever the model changes and are not stored. **Keep** turns a quarter's
+automatic entries into stored entries (Source "Automatic, kept"); a quarter
+with fee or sub line interest entries of your own is not generated. Entries
+you add or import are never changed. Fund expense paid entries don't change
+called capital or the line balance.
 
 ### 7.19 Units and leases (`lib/leases.js`)
 
@@ -1374,7 +1440,7 @@ files hold the same object.
 | `capVolShiftBp` | `deals[].quick.capVolShiftBp` | bp | 0 | Parallel shift to the cap vol surface (market pricing) |
 | `initialCapCost` | `deals[].quick.initialCapCost` | $ | 350,000 | Initial cap cost (manual pricing) |
 | `replacementCapCost` | `deals[].quick.replacementCapCost` | $ | 250,000 | Each replacement cap (manual pricing) |
-| `amFeePct` | `deals[].quick.amFeePct` | % of equity / yr | 1.5 | Asset management fee |
+| `amFeePct` | `deals[].quick.amFeePct` | % of equity / yr | 0 | Asset-level asset management fee (Model Fund I charges its fee at the fund level, §7.20) |
 | `pmFeePct` | `deals[].quick.pmFeePct` | % / yr | 5 | Property management fee |
 | `pmFeeBasis` | `deals[].quick.pmFeeBasis` | `noi` / `value` | noi | PM fee basis: NOI before the fee, or purchase price |
 | `cmFeePct` | `deals[].quick.cmFeePct` | % of price / yr | 1.5 | Construction management fee |
@@ -1546,7 +1612,10 @@ column.
 | `prefPct` | `funds["Fund name"].prefPct` | Preferred return (% / yr) | % | 9 | LP pref, compounding annually |
 | `catchUpGpPct` | `funds["Fund name"].catchUpGpPct` | GP catch-up (%) | % | 100 | Share of distributions to the GP during catch-up |
 | `tiers` | `funds["Fund name"].tiers` | Tier n IRR hurdle / LP split / GP split | %, %, % | 12% 80/20, 18% 70/30, above 60/40 | Promote tiers (up to 5; blank hurdle = top tier) |
-| `mgmtFeePct` | `funds["Fund name"].mgmtFeePct` | Management fee (% / yr) | % of LP invested | 0 | Fund-level fee (0 when fees are at the asset level) |
+| `mgmtFeePct` | `funds["Fund name"].mgmtFeePct` | Management fee (% / yr) | % / yr | 0 (Model Fund I: 1.5) | Fund-level fee, quarterly in advance, LPs only (§7.20) |
+| `mgmtFeeBasis` | `funds["Fund name"].mgmtFeeBasis` | Management fee basis | `commitments-then-invested` / `invested` | commitments-then-invested | LP commitments during the investment period, then LP invested capital |
+| `cashReserveQuarters` | `funds["Fund name"].cashReserveQuarters` | Fund cash reserve (quarters of expenses) | quarters | 2 | Minimum fund cash: quarters of projected fees + sub line costs |
+| `feeModel` | `funds["Fund name"].feeModel` | — | text | fund-v1 (Model Fund I) | Marks a workspace already moved to the fund-level fee (set once; not edited) |
 | `distributionPolicy` | `funds["Fund name"].distributionPolicy` | Distribution policy | `reserve` / `payout` | reserve | How quarterly income is distributed (§7.9) |
 | `reserveYears` | `funds["Fund name"].reserveYears` | Reserve (years of …) | years | 1 | Reserve policy target |
 | `incomePayoutPct` | `funds["Fund name"].incomePayoutPct` | Quarterly income payout (%) | % | 100 | Payout policy share |
@@ -1564,10 +1633,11 @@ column.
 |---|---|---|---|---|
 | `id` | `funds["Fund name"].capitalActivity[].id` | — | text | Unique id |
 | `date` | `funds["Fund name"].capitalActivity[].date` | **Date** [call date, value date, transaction date] | date | Date of the call, draw or repayment |
-| `type` | `funds["Fund name"].capitalActivity[].type` | Type [transaction, activity] | `call` / `draw` / `repay` | Capital call, sub line draw, sub line repayment ("paydown", "draw", "call" recognized; blank = call) |
+| `type` | `funds["Fund name"].capitalActivity[].type` | Type [transaction, activity] | `call` / `draw` / `repay` / `expense` | Capital call, sub line draw, sub line repayment ("paydown", "draw", "call" recognized; blank = call), or fund expense paid (record only) |
 | `amount` | `funds["Fund name"].capitalActivity[].amount` | **Amount** [total, call amount, capital called] | $ (LP + GP) | Positive; "(500,000)" and "-500,000" are read as 500,000 |
 | `purpose` | `funds["Fund name"].capitalActivity[].purpose` | Purpose [asset, use, description] | `acq:<deal id>` / `fees` / `line-repay` / `line-interest` / `other` | What it funded. An asset name in the text tags that asset. |
-| `notes` | `funds["Fund name"].capitalActivity[].notes` | Notes [memo, comments] | text | Free text |
+| `notes` | `funds["Fund name"].capitalActivity[].notes` | Notes [memo, comments, details] | text | Details; shown when hovering over the Source label |
+| `source` | `funds["Fund name"].capitalActivity[].source` | — (export: Source) | blank / `import` / `kept` | How the entry was created: User added (blank), User imported, or Automatic, kept. Automatic entries (§7.20) are not stored. |
 
 ### 11.9 Valuation mark (`valuations[dealId][quarterEnd]`)
 

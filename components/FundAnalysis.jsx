@@ -12,7 +12,6 @@ import {
   xirr,
 } from "@/lib/fundTimeline";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName, termsToCSV, termsToXlsx } from "@/lib/fundTerms";
-import { applySubLine } from "@/lib/subLine";
 import { fundLpEvents, subLineTerms } from "@/lib/fundFlows";
 import { actualCapital } from "@/lib/capitalActivity";
 import CapitalActivity from "@/components/CapitalActivity";
@@ -455,6 +454,70 @@ function DealRow({ deal, onRemove, fund }) {
   );
 }
 
+// Fund-level expenses and fund cash (lib/fundExpenses), by quarter.
+function FundExpensesCard({ fx, terms, ipEnd, todayISO }) {
+  const [open, setOpen] = useState(false);
+  if (!fx || !fx.periods.length) return null;
+  const t = fx.totals;
+  const fm = (n) => (Math.abs(n) < 0.5 ? "—" : fmtM(n));
+  const qLabel = (iso) => `Q${Math.floor((Number(iso.slice(5, 7)) - 1) / 3) + 1} ${iso.slice(0, 4)}`;
+  const now = fx.periods.findLast((p) => p.quarter <= todayISO);
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h4 className="font-semibold text-gray-700">Fund expenses &amp; fund cash</h4>
+        <span className="text-[11px] text-gray-400">
+          {fmt(terms.mgmtFeePct ?? 0, 2)}% management fee, quarterly in advance, on {terms.mgmtFeeBasis === "invested" ? "LP invested capital" : `LP commitments to ${fmtDate(ipEnd)}, then LP invested capital`} · sub line costs monthly ·
+          minimum cash {fmt(terms.cashReserveQuarters ?? 2, 0)} quarters of projected expenses
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {[
+          ["Management fees", fm(t.fees), "Over the fund's life"],
+          ["Sub line costs", fm(t.lineCosts), "Interest + unused fees, incl. expense draws"],
+          ["Expense calls", fm(t.called), "Quarterly calls to repay draws and restore cash"],
+          ["Distributed", fm(t.distributed), "Operating income after expenses and cash"],
+          ["Fund cash now", now ? fm(now.cashEnd) : "—", now ? `End of ${qLabel(now.quarter)}` : ""],
+          ["Fee this quarter", now ? fm(now.fee) : "—", now ? `on ${fmtM(now.feeBasis)}` : ""],
+        ].map(([label, value, sub]) => (
+          <div key={label}>
+            <p className="text-gray-500">{label}</p>
+            <p className="text-sm font-bold tabular-nums text-gray-900">{value}</p>
+            <p className="text-[10px] text-gray-400">{sub}</p>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={() => setOpen((o) => !o)} className="mt-2 text-[11px] font-medium text-blue-700 hover:underline">
+        {open ? "Hide" : "Show"} by quarter
+      </button>
+      {open && (
+        <div className="mt-2 overflow-x-auto">
+          <table className="w-full tabular-nums">
+            <thead className="text-gray-500">
+              <tr className="border-b border-gray-200">
+                {["Quarter", "Fee basis", "Mgmt fee", "Line interest", "Unused fee", "Expense-draw interest", "Paid from cash", "Drawn on line", "Income in", "Called", "Distributed", "Cash at end", "Minimum"].map((h) => (
+                  <th key={h} className={`px-1.5 py-1 font-medium ${h === "Quarter" ? "text-left" : "text-right"}`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {fx.periods.map((p) => (
+                <tr key={p.quarter} className={`border-b border-gray-100 ${p.quarter > todayISO ? "text-gray-500" : "text-gray-800"}`}>
+                  <td className="px-1.5 py-1">{qLabel(p.quarter)}</td>
+                  {[p.feeBasis, p.fee, p.lineInterest, p.lineUnused, p.bridgeInterest, p.fromCash, p.drawn, p.income, p.called, p.distributed, p.cashEnd, p.target].map((v, i) => (
+                    <td key={i} className="px-1.5 py-1 text-right">{fm(v)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-1 text-[10px] text-gray-400">Quarters after today (grey) are projections. Fees are LP-only; the part of a call that paid fees is called from LPs only.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_CURVE, onTermsChange, onEditTerms, onRemove, onRemoveFund }) {
   // Fund terms (timeline, GP commitment, pref, catch-up, tiers, fee) come
   // from the fund's saved terms; the inline inputs below edit them.
@@ -486,7 +549,9 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
     preferredReturnPct: prefPct,
     catchUpGpPct: terms.catchUpGpPct,
     tiers: terms.tiers,
-    mgmtFeePct: terms.mgmtFeePct,
+    // The management fee is a fund expense (lib/fundExpenses): its calls are
+    // already in the event stream, so the waterfall adds none of its own.
+    mgmtFeePct: 0,
     incomeTreatment: terms.incomeTreatment ?? "prefThenROC",
     feeStartISO: terms.finalClose,
   };
@@ -494,13 +559,9 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
   const todayISO = new Date().toISOString().slice(0, 10);
   // Subscription line (model): capital needs draw on the line first; LP calls
   // repay each draw after maxDays (plus interest and unused fees).
-  const modelSub = applySubLine(waterfallEvents, {
-    line: subLineTerms(terms),
-    commitments: terms.targetEquity ?? 0,
-    finalClose: terms.finalClose,
-    investmentPeriodEnd: fd.investmentPeriodEnd,
-    curve,
-  });
+  // The model alone (no capital activity): sub line + fund expenses.
+  const modelFlows = fundLpEvents(waterfallEvents, { ...terms, capitalActivity: [] }, { todayISO, curve, investmentPeriodEnd: fd.investmentPeriodEnd });
+  const modelSub = { events: modelFlows.events, stats: modelFlows.lineStats };
   // LP flows the fund returns use: the model, or actual capital activity to
   // date plus the model after today (lib/fundFlows).
   const flows = fundLpEvents(waterfallEvents, terms, { todayISO, curve, investmentPeriodEnd: fd.investmentPeriodEnd });
@@ -508,7 +569,9 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
   const line = usingActuals ? flows.lineStats : modelSub.stats;
   const fundWf = computeDatedWaterfall(flows.events, { ...fundWaterfallConfig, feeAfterISO: flows.feeAfterISO });
   const modelWf = usingActuals ? computeDatedWaterfall(modelSub.events, fundWaterfallConfig) : fundWf;
-  const fundWfNoLine = modelSub.stats ? computeDatedWaterfall(waterfallEvents, fundWaterfallConfig) : modelWf;
+  const fundWfNoLine = modelSub.stats
+    ? computeDatedWaterfall(fundLpEvents(waterfallEvents, { ...terms, capitalActivity: [], subLineEnabled: false }, { todayISO, curve, investmentPeriodEnd: fd.investmentPeriodEnd }).events, fundWaterfallConfig)
+    : modelWf;
   const netLpIRR = fundWf ? fundWf.lpIRR : NaN;
 
   // Header returns, all on one basis: multiple = total distributions ÷ total
@@ -560,9 +623,12 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
     ...waterfallEvents
       .filter((e) => e.kind === "call" && e.amount < 0)
       .map((e) => ({ date: e.date, amount: -e.amount, dealId: e.dealId, purchase: e.purchase })),
-    ...modelWf.ledger.filter((r) => r.kind === "fee" && r.fee > 0).map((r) => ({ date: r.date, amount: r.fee })),
+    // Fund expense calls (management fee, sub line costs, cash top-ups).
+    ...modelSub.events.filter((e) => e.fundExpense && e.amount < 0).map((e) => ({ date: e.date, amount: -e.amount })),
   ];
-  const actual = actualCapital(activity, {
+  // Automatic fund-expense entries count as activity alongside manual ones.
+  const manualActivity = activity.filter((a) => !a.auto);
+  const actual = actualCapital(manualActivity.length ? [...manualActivity, ...(flows.autoActivity ?? [])] : manualActivity, {
     todayISO,
     ipEndISO: fd.investmentPeriodEnd,
     commitments,
@@ -712,6 +778,8 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         </div>
       </div>
 
+      <FundExpensesCard fx={flows.expenses} terms={terms} ipEnd={fd.investmentPeriodEnd} todayISO={todayISO} />
+
       {/* Subscription line */}
       {line && (
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
@@ -825,7 +893,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         {!(capital.commitments > 0) && (
           <p className="mt-2 text-[11px] text-gray-500">Enter the fund&apos;s total commitments to see dry powder.</p>
         )}
-        <CapitalActivity fundName={fundName} activity={activity} deals={deals} otherAssets={otherAssets} commitments={terms.targetEquity ?? 0} onChange={(next) => onTermsChange({ capitalActivity: next })} />
+        <CapitalActivity fundName={fundName} activity={activity} autoActivity={flows.autoActivity ?? []} deals={deals} otherAssets={otherAssets} commitments={terms.targetEquity ?? 0} onChange={(next) => onTermsChange({ capitalActivity: next })} />
       </div>
 
       {/* Fund terms */}
@@ -926,7 +994,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         <p className="text-xs text-gray-400 mt-2">
           Fund terms: {fmt(gpCommitPct, 1)}% GP commitment, {fmt(prefPct, 1)}% pref, {fmt(terms.catchUpGpPct, 0)}% GP catch-up,
           tiers {terms.tiers.map((t) => `${t.irrThreshold == null ? "above" : `≤${t.irrThreshold}%`} ${t.lpSplit}/${t.gpSplit}`).join(" · ")}
-          {terms.mgmtFeePct > 0 ? ` · ${fmt(terms.mgmtFeePct, 2)}% management fee (${fmtM(fundWf.mgmtFees)} total)` : " · no fund-level management fee"}.
+          {terms.mgmtFeePct > 0 ? ` · ${fmt(terms.mgmtFeePct, 2)}% management fee (${fmtM(flows.expenses?.totals.fees ?? 0)} total, paid as a fund expense)` : " · no fund-level management fee"}.
         </p>
       </div>
 

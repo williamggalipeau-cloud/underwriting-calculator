@@ -12,7 +12,7 @@ const fmtM = (n) => {
 const total = (rows, type) => rows.filter((a) => a.type === type).reduce((s, a) => s + (Number(a.amount) || 0), 0);
 
 // Ledger of actual capital calls and sub line draws / repayments for a fund.
-export default function CapitalActivity({ fundName, activity = [], deals, otherAssets = [], commitments = 0, onChange }) {
+export default function CapitalActivity({ fundName, activity = [], autoActivity = [], deals, otherAssets = [], commitments = 0, onChange }) {
   // Every property in the workspace can be tagged: this fund's assets first,
   // then the rest (other funds, deals without a fund, saved copies).
   const allAssets = [...deals, ...otherAssets.filter((a) => !deals.some((d) => d.id === a.id))];
@@ -20,7 +20,15 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
   const [msg, setMsg] = useState(null);
   const fileRef = useRef(null);
   const today = new Date().toISOString().slice(0, 10);
-  const sorted = withRunningTotals(activity, commitments);
+  // Automatic fund-expense entries (lib/fundExpenses) are shown with the
+  // manual ones; "Keep" turns a quarter's automatic entries into manual ones.
+  const sorted = withRunningTotals([...activity, ...autoActivity], commitments);
+  const quarterOf = (iso) => `${iso.slice(0, 4)}-Q${Math.floor((Number(iso.slice(5, 7)) - 1) / 3) + 1}`;
+  const keepQuarter = (q) =>
+    onChange([
+      ...activity,
+      ...autoActivity.filter((a) => quarterOf(a.date) === q).map(({ auto, id, ...a }) => ({ ...a, id: newActivityId(), source: "kept" })),
+    ]);
   const last = sorted.at(-1)?.run;
   const runCell = (v, warn = false) => (
     <td className={`px-1.5 py-1 text-right whitespace-nowrap ${warn ? "text-red-600" : "text-gray-700"}`}>{v == null ? "—" : `${v < 0 ? "−" : ""}${fmtM(v)}`}</td>
@@ -80,10 +88,10 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
           </button>
           <button
             type="button"
-            onClick={async () => downloadBlob(await activityXlsx(activity, allAssets, commitments), `${safeFileName(fundName)}-capital-activity.xlsx`)}
+            onClick={async () => downloadBlob(await activityXlsx([...activity, ...autoActivity], allAssets, commitments), `${safeFileName(fundName)}-capital-activity.xlsx`)}
             className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 font-medium text-gray-700 hover:bg-gray-50"
           >
-            {activity.length ? "Export" : "Template"}
+            {activity.length || autoActivity.length ? "Export" : "Template"}
           </button>
         </div>
       </div>
@@ -93,7 +101,7 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
           <table className="w-full text-xs tabular-nums">
             <thead className="text-gray-500">
               <tr className="border-b border-gray-200">
-                {["Date", "Type", "Amount ($)", "Purpose", "Notes"].map((h) => (
+                {["Date", "Type", "Amount ($)", "Purpose", "Source"].map((h) => (
                   <th key={h} className="px-1.5 py-1 text-left font-medium">{h}</th>
                 ))}
                 <th className="border-l border-gray-200 px-1.5 py-1 text-right font-medium" title="Capital calls to date, after this entry">Called to date</th>
@@ -103,7 +111,24 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
               </tr>
             </thead>
             <tbody>
-              {sorted.map((a) => (
+              {sorted.map((a) =>
+                a.auto ? (
+                  <tr key={a.id} className="border-b border-gray-100 bg-sky-50/40 text-gray-700">
+                    <td className="px-1.5 py-1 whitespace-nowrap">{a.date}</td>
+                    <td className="px-1.5 py-1 whitespace-nowrap">{ACTIVITY_TYPES.find((t) => t.value === a.type)?.label ?? a.type}</td>
+                    <td className="px-1.5 py-1 text-right">{Math.round(a.amount).toLocaleString()}</td>
+                    <td className="px-1.5 py-1">{PURPOSES.find((p) => p.value === a.purpose)?.label ?? a.purpose}</td>
+                    <td className="px-1.5 py-1 whitespace-nowrap">
+                      <span className="cursor-help rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-semibold text-sky-800" title={a.notes}>Automatic</span>
+                    </td>
+                    <td className="border-l border-gray-100 px-1.5 py-1 text-right whitespace-nowrap text-gray-700">{fmtM(a.run.called)}</td>
+                    {runCell(a.run.line, a.run.line < 0)}
+                    {commitments > 0 && runCell(a.run.dryPowder, a.run.dryPowder < 0)}
+                    <td className="px-1.5 py-1 text-right">
+                      <button type="button" onClick={() => keepQuarter(quarterOf(a.date))} className="text-[10px] font-medium text-sky-700 hover:underline" title="Turn this quarter's automatic entries into manual entries you can edit">Keep</button>
+                    </td>
+                  </tr>
+                ) : (
                 <tr key={a.id} className={`border-b border-gray-100 ${a.date > today ? "opacity-60" : ""}`}>
                   <td className="px-1.5 py-1">
                     <input type="date" value={a.date} onChange={(e) => e.target.value && update(a.id, { date: e.target.value })} className={sel} aria-label="Date" />
@@ -152,7 +177,12 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
                     </select>
                   </td>
                   <td className="px-1.5 py-1">
-                    <input value={a.notes ?? ""} onChange={(e) => update(a.id, { notes: e.target.value })} className={`${sel} w-40`} aria-label="Notes" />
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-[10px] font-semibold whitespace-nowrap ${a.source === "kept" ? "bg-indigo-50 text-indigo-800" : a.source === "import" ? "bg-gray-100 text-gray-700" : "bg-emerald-50 text-emerald-800"}`}
+                      title={a.notes || undefined}
+                    >
+                      {a.source === "kept" ? "Automatic, kept" : a.source === "import" ? "User imported" : "User added"}
+                    </span>
                   </td>
                   <td className="border-l border-gray-100 px-1.5 py-1 text-right whitespace-nowrap text-gray-700">{fmtM(a.run.called)}</td>
                   {runCell(a.run.line, a.run.line < 0)}
@@ -161,7 +191,8 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
                     <button type="button" onClick={() => drop(a.id)} className="text-gray-400 hover:text-red-600" aria-label="Delete entry">✕</button>
                   </td>
                 </tr>
-              ))}
+                )
+              )}
             </tbody>
             {last && (
               <tfoot>
@@ -179,6 +210,12 @@ export default function CapitalActivity({ fundName, activity = [], deals, otherA
             )}
           </table>
           <p className="mt-1 text-[10px] text-gray-400">
+            The Source column shows how each entry was created: <span className="font-medium text-emerald-800">User added</span> (typed
+            in), <span className="font-medium">User imported</span> (from a file), <span className="font-medium text-sky-800">Automatic</span> or{" "}
+            <span className="font-medium text-indigo-800">Automatic, kept</span>; hover over it for details. Automatic rows are the fund&apos;s expenses to date: the quarterly management fee,
+            monthly sub line interest and unused fees, and the draws and quarterly calls that paid them (fund cash first, then the line,
+            then a call). They update with the model; <span className="font-medium">Keep</span> turns a quarter&apos;s automatic entries into
+            manual ones, after which that quarter is not generated. Fund expense paid rows don&apos;t change called capital or the line.
             Running totals are after each entry, in date order: capital called to date, sub line balance (draws − repayments)
             {commitments > 0 ? ", and dry powder (commitments − called − line balance)" : ""}. They include entries dated after today. Amounts are LP + GP. Tag an acquisition with its asset so the model doesn&apos;t count that purchase again. Entries dated after
             today are greyed out and count from their date.
