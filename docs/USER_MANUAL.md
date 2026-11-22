@@ -221,21 +221,27 @@ average SOFR.
 The left panel holds the deals (tabs across the top of the panel) and the
 full-model inputs for the active deal.
 
+Tabs, left to right: Quick Underwrite, Asset Summary, Valuations, Unit Roll,
+Leases, Debt, Cash Flow, Asset Return, Portfolio Return, Sensitivity,
+Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
+**Change log** button in the header, next to User manual.
+
 | Tab | What it does |
 |---|---|
 | **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), rate cap (market-priced or manual), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
+| **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
+| **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents; owners and editors can change them. Needs sign-in and an open database workspace. Abstracts, review and apply, critical dates and risk flags come in later phases. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
-| **Return Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
-| **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
 | **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
-| **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
-| **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
-| **Change Log** | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
+| **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
+| **Sell / Hold** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR of holding, spread to the fund's hurdle, NPV versus selling, total IRR and multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan; scenarios can be saved and reloaded. Excel export. |
+| **Return Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
+| **Change log** (header button, next to User manual) | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
 
 **Asset dropdown.** Quick Underwrite, Unit Roll, Debt, Cash Flow, Asset
 Return, Sensitivity and Sales Comps have an **Asset** dropdown at the top,
@@ -463,6 +469,7 @@ underwriting-calculator/
 │   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
 │   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
 │   ├── CashYield.jsx         Cash-on-cash yield charts and table
+│   ├── SellHold.jsx          Sell / Hold tab
 │   ├── Leases.jsx            Leases tab (lease documents: upload, open, reorder, delete)
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
@@ -481,6 +488,7 @@ underwriting-calculator/
 │   ├── fundFlows.js          Fund LP cash flows: model or actuals to date + model after
 │   ├── fundExpenses.js       Fund expenses: management fee, sub line costs, fund cash, expense calls
 │   ├── cashYield.js          Projected cash-on-cash yield (asset and fund)
+│   ├── sellHold.js           Sell / hold / refinance analysis and fund scenarios
 │   ├── samplePortfolio.js    Nine sample assets, deal snapshot for funds
 │   ├── cloud.js              Supabase: sign-in, workspaces, saving, members, audit log
 │   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
@@ -1312,6 +1320,57 @@ Profitability idx = PV of money returned ÷ PV of money invested
 Positive NPV (index above 1.0x) means the fund creates value above its cost
 of capital. (Asset Return's NPV still uses its own 8% rate.)
 
+
+### 7.23 Sell / hold analysis (`lib/sellHold.js`)
+
+On a **decision date** (default today; saved per fund), each fund asset is
+analysed three ways. Hold years are counted from the purchase date, up to the
+fund's final extended term.
+
+```
+Year-ahead NOI     = NOI over the 12 months after the date (pro rata of the
+                     hold years it spans, from the rent-roll cash flow)
+Value              = year-ahead NOI ÷ cap rate (the asset's exit cap, editable
+                     per asset on the tab)
+Net proceeds       = value − sale costs (the asset's sale cost %) − loan balance
+```
+
+- **Sell now:** net proceeds on the decision date.
+- **Hold to year n:** the cash flows after the decision date (the current
+  year pro rata), then a sale at the end of hold year n, valued the same way
+  (year n + 1 NOI ÷ cap rate), so selling now and later are comparable.
+- **Refinance and hold to year n:** on the decision date a new interest-only
+  loan of the lower of **LTV × value** and **year-ahead NOI ÷ (min DSCR ×
+  rate)** repays the old loan; rate = forward SOFR + spread; financing costs
+  are a % of the new loan; **cash-out** (new loan − old balance − costs) is
+  paid out (negative = a paydown is needed). Debt service after that date is
+  the new loan's, and the sale repays it. Defaults (editable per asset): 65%
+  LTV, 1.25x DSCR, SOFR + 2.00%, 1% costs, 5-year term.
+
+For each option:
+
+| Measure | Calculation |
+|---|---|
+| Forward IRR | IRR of −(net proceeds now) + the cash flows after the decision date (incl. any cash-out) + the later sale |
+| Spread to hurdle | Forward IRR − the fund's hurdle rate (§7.22) |
+| NPV vs selling | Those flows discounted at the hurdle to the decision date; positive = holding beats selling |
+| Total IRR, multiple | Since purchase, under that option |
+| Breakeven exit cap | Exit cap at which that option's NPV versus selling is zero |
+
+IRRs over less than a year show n/m. The **suggested** option is the one
+with the highest NPV versus selling among options that sell within the fund
+term (extension years only if nothing inside the term is better).
+
+**Fund scenario.** Each asset gets a decision (base plan, sell now, hold to
+year n, refinance and hold). The fund is re-run with those cash flows (asset
+income and reserves, sale proceeds, cash-out, the sub line, fund expenses and
+the waterfall) and compared with the base plan: gross, net fund and net LP
+IRR and multiple, net LP NPV at the hurdle, LP and GP distributions. Base
+plan sales use the underwriting (final-year NOI); scenario sales use the
+year-ahead NOI above. Decisions, cap rate overrides, refinance terms and
+saved scenarios are stored with the fund (`funds["Fund name"].sellHold`) and
+appear in the change log.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Quick Underwrite defaults:
@@ -1713,6 +1772,7 @@ column.
 | `mgmtFeePct` | `funds["Fund name"].mgmtFeePct` | Management fee (% / yr) | % / yr | 0 (Model Fund I: 1.5) | Fund-level fee, quarterly in advance, LPs only (§7.20) |
 | `mgmtFeeBasis` | `funds["Fund name"].mgmtFeeBasis` | Management fee basis | `commitments-then-invested` / `invested` | commitments-then-invested | LP commitments during the investment period, then LP invested capital |
 | `rentRollModel`, `testDataModel`, `noiModel` | `funds["Fund name"].…` | — | text | mtm-v1, v2, rentroll-v1 (Model Fund I) | Mark one-time updates already applied to a saved workspace (rent rolls, removed sample assets, rent-roll NOI); not edited |
+| `sellHold` | `funds["Fund name"].sellHold` | — | object | {} | Sell / hold: `decisionDate`, `capRates` {deal id: %}, `refi` {deal id: {ltvPct, minDscr, spreadPct, feePct, termYears}}, `decisions` {deal id: {decision, years}}, `scenarios` [{name, decisionDate, decisions, savedAt}] (§7.23) |
 | `cashReserveQuarters` | `funds["Fund name"].cashReserveQuarters` | Fund cash reserve (quarters of expenses) | quarters | 2 | Minimum fund cash: quarters of projected fees + sub line costs |
 | `feeModel` | `funds["Fund name"].feeModel` | — | text | fund-v1 (Model Fund I) | Marks a workspace already moved to the fund-level fee (set once; not edited) |
 | `distributionPolicy` | `funds["Fund name"].distributionPolicy` | Distribution policy | `reserve` / `payout` | reserve | How quarterly income is distributed (§7.9) |
