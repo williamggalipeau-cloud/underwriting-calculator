@@ -396,78 +396,16 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
         </Group>
 
         <Group title="Rate cap">
-          <NumField label="Initial strike (0 = none)" suffix="%" step={0.05} value={inputs.capStrikePct} onChange={set("capStrikePct")} />
-          <NumField label="Cap term" suffix="yrs" step={1} value={inputs.capTermYears} onChange={set("capTermYears")} />
-          <div className="flex flex-col gap-1 col-span-2">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Renewal strike</label>
-            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-              {[
-                ["reset", "Reset to market"],
-                ["same", "Same as initial"],
-              ].map(([k, l]) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => set("capRenewalStrike")(k)}
-                  className={`flex-1 py-1.5 font-medium ${(inputs.capRenewalStrike ?? "reset") === k ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
+          <div className="col-span-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600" data-testid="cap-moved">
+            {r.caps.initialStrike > 0
+              ? <>Strike {r.caps.initialStrike.toFixed(2)}% SOFR, {inputs.capTermYears}-yr caps, total cost {usd(r.totalCapCost)}. </>
+              : <>No cap. </>}
+            Set the cap and see the full schedule on the <span className="font-semibold">Debt</span> tab.
           </div>
-          <div className="flex flex-col gap-1 col-span-2">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Cap pricing</label>
-            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-              {[
-                ["market", "Market"],
-                ["manual", "Manual quotes"],
-              ].map(([k, l]) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => set("capPricing")(k)}
-                  className={`flex-1 py-1.5 font-medium ${(inputs.capPricing ?? "market") === k ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-          {(inputs.capPricing ?? "market") === "market" ? (
-            <>
-              <div className="col-span-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 space-y-0.5">
-                <div className="flex justify-between">
-                  <span>Initial, {fmtISO(inputs.acquisitionDate ?? r.caps.valuationDate)} @ {r.caps.initialStrike.toFixed(2)}%</span>
-                  <span className="font-semibold tabular-nums">{usd(r.caps.initial)}</span>
-                </div>
-                {r.caps.replacements.map((x) => (
-                  <div key={x.year} className="flex justify-between">
-                    <span>Renewal, {fmtISO(x.date)} @ {x.strike.toFixed(2)}%</span>
-                    <span className="font-semibold tabular-nums">{usd(x.cost)}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between border-t border-gray-200 pt-0.5 mt-0.5">
-                  <span>Total</span>
-                  <span className="font-semibold tabular-nums">{usd(r.totalCapCost)}</span>
-                </div>
-                <p className="text-[11px] text-gray-400 pt-0.5">
-                  {usd(r.caps.notional)} notional (loan), {inputs.capTermYears}-yr term, priced off the forward curve with vol
-                  implied from Pensford&apos;s cap pricer (as of {fmtISO(r.caps.valuationDate)}).
-                </p>
-              </div>
-              <NumField label="Vol shift" suffix="bp" step={5} value={inputs.capVolShiftBp ?? 0} onChange={set("capVolShiftBp")} />
-            </>
-          ) : (
-            <>
-              <NumField label="Initial cap cost" prefix="$" step={10000} value={inputs.initialCapCost} onChange={set("initialCapCost")} />
-              <NumField label="Replacement cap" prefix="$" step={10000} value={inputs.replacementCapCost} onChange={set("replacementCapCost")} />
-            </>
-          )}
         </Group>
       </div>
       <p className="text-xs text-gray-400 -mt-3">
-        Amortization 0 = interest-only. Caps are held every year of the hold, so SOFR above the strike is capped.
+        Amortization 0 = interest-only. Rate caps are set on the Debt tab and held every year of the hold, so SOFR above the strike is capped.
       </p>
 
       <ForwardCurve inputs={inputs} onChange={onChange} onCurveImport={onCurveImport} />

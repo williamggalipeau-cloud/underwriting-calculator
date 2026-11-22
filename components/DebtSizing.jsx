@@ -1,5 +1,7 @@
 "use client";
 
+import RateCapSchedule from "@/components/RateCapSchedule";
+
 function fmt(n, decimals = 0) {
   if (!isFinite(n)) return "—";
   return n.toLocaleString("en-US", {
@@ -285,7 +287,7 @@ function TIReserveSection({ debt, cashFlows }) {
   );
 }
 
-export default function DebtSizingPanel({ debt, cashFlows, inputs }) {
+export default function DebtSizingPanel({ debt, cashFlows, inputs, cap, onCapChange }) {
   const { dscr } = debt;
   const ds = dscrStatus(dscr);
   const ls = ltvStatus(debt.ltv);
@@ -455,6 +457,9 @@ export default function DebtSizingPanel({ debt, cashFlows, inputs }) {
         </div>
       )}
       </div>
+
+      {/* Rate cap: settings and the full schedule */}
+      {inputs?.hedgingType === "cap" && <RateCapSchedule cap={cap} inputs={inputs} loanAmount={debt.loanAmount} onChange={onCapChange} />}
 
       {/* Lender name */}
       {inputs?.lenderName && (

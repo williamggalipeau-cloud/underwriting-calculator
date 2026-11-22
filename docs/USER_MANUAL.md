@@ -229,12 +229,12 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 
 | Tab | What it does |
 |---|---|
-| **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), rate cap (market-priced or manual), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
+| **Quick Underwrite** | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. Needs sign-in and an open database workspace. Review and apply to the rent roll comes next. |
-| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), rate schedule, covenant tests by year, TI reserve. |
+| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
 | **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
@@ -460,6 +460,7 @@ underwriting-calculator/
 │   ├── QuickUnderwrite.jsx   Quick Underwrite tab, forward-curve and Pensford import panels
 │   ├── DealInputs.jsx        Left-panel full-model inputs (NOI source, costs, loan, fees…)
 │   ├── UnitRoll.jsx          Rent roll editor and CSV import
+│   ├── RateCapSchedule.jsx   Rate cap settings and schedule (Debt tab)
 │   ├── DebtSizing.jsx        Debt tab: sizing, rate schedule, covenants, TI reserve
 │   ├── CapitalAnalysis.jsx   Capital stack detail (not currently shown on any tab)
 │   ├── CashFlowAnalysis.jsx  Cash Flow tab: statement, levered/unlevered, chart
@@ -664,6 +665,26 @@ a parity script during development).
   (`anchorCurveToLive`).
 
 ### 7.5 Rate caps (`lib/capPricer.js`)
+
+**Where it's set.** The rate cap is set on the **Debt** tab (moved from
+Quick Underwrite on 11/22/2026; Quick Underwrite shows a one-line summary).
+The settings are initial strike (on SOFR), cap term, renewal strike (reset
+to market or same as initial), and pricing (market with an optional vol
+shift, or manual costs). A change reprices the caps and updates the cash
+flows and returns on every tab:
+- **Linked deals:** as before, through Quick Underwrite's mapping.
+- **Unlinked deals** (every Model Fund I asset): priced on the deal's own
+  loan amount, hold, spread and acquisition date (`capEngineFields`,
+  `capSettingsFor` in `lib/quickUnderwrite.js`).
+
+The schedule table shows, for each hold year, the cap in force (initial,
+renewal or held), its SOFR strike, the all-in strike (SOFR strike +
+spread, the rate each year's interest is capped at), the cost of each
+cap when bought, with the total, and the **provider**: the bank or
+institution that wrote each cap (typed per cap; years where a cap is only
+held show its provider in grey). Providers are saved with the deal
+(`quick.capProviders`, keyed by the hold year the cap was bought in) and
+changes appear in the change log.
 
 **Schedule.**
 - One cap is bought at closing, then a replacement every cap term (1 year)
@@ -2441,7 +2462,7 @@ each phase and the decisions behind it are in
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags | ⏰ Scheduled 11/22/2026, 5:30am PT |
 | D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | ⏰ Scheduled 11/22/2026, 10:30am PT |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
-| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
+| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
@@ -2482,7 +2503,9 @@ not used. Nothing changes your data until you click to apply it.
   review and apply one by one. Insurance certificates (the owner's policies
   and each tenant's) are checked against lease and loan requirements, with
   expiry dates tracked.
-- **F–H.** Loan agreements, appraisals, estoppels and CAM reconciliations
+- **F–H.** Loan agreements and executed rate cap confirmations (each cap's
+  counterparty, strike, dates and premium replace the modeled ones on the
+  Debt tab, checked against the loan's cap requirement), appraisals, estoppels and CAM reconciliations
   read the same way and checked against the model and the leases. Phase H
   also imports Yardi's monthly aged delinquency report: arrears by tenant
   in 30, 60, 90, 180 and over-180-day buckets, delinquency % by asset and fund,
