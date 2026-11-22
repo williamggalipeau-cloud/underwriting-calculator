@@ -24,6 +24,7 @@ import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundN
 import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
 import CloudPanel from "@/components/CloudPanel";
 import {
+  REQUIRE_SIGN_IN,
   claimInvites,
   createWorkspace as dbCreateWorkspace,
   deleteWorkspace as dbDeleteWorkspace,
@@ -310,17 +311,17 @@ function fmtDollarM(n) {
 }
 
 export default function Home() {
-  const [deals, setDeals] = useState(initialDeals);
+  const [deals, setDealsRaw] = useState(initialDeals);
   const [activeDealId, setActiveDealId] = useState("deal-1");
   const [activeTab, setActiveTab] = useState("quick");
-  const [savedDeals, setSavedDeals] = useState([]);
+  const [savedDeals, setSavedDealsRaw] = useState([]);
   // Fund terms by fund name (timeline, waterfall, fee).
-  const [funds, setFunds] = useState(initialFunds);
+  const [funds, setFundsRaw] = useState(initialFunds);
   const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
   const [savedAt, setSavedAt] = useState(null);
-  const [comps, setComps] = useState(DEFAULT_COMPS_STATE);
+  const [comps, setCompsRaw] = useState(DEFAULT_COMPS_STATE);
   // Fair value marks: { [dealId]: { [quarterEndISO]: { value, source, appraiser, capRate, capex, notes } } }
-  const [valuations, setValuations] = useState({});
+  const [valuations, setValuationsRaw] = useState({});
   // Change log (lib/audit): entries saved with the workspace; the editor's
   // name is kept in this browser only.
   const [auditLog, setAuditLog] = useState([]);
@@ -380,6 +381,7 @@ export default function Home() {
   // Quick Underwrite inputs live on each deal. When a deal is linked, every
   // change is mapped onto its full-model inputs so all tabs stay in sync.
   function setQuick(updater) {
+    if (!requireEdit()) return;
     setDeals((prev) =>
       prev.map((d) => {
         if (d.id !== activeDealId) return d;
@@ -394,8 +396,50 @@ export default function Home() {
   // baseCurve: the Pensford curve (built-in snapshot or latest import).
   // When anchoring is on and live rates are in, deals use the curve shifted
   // in parallel so it starts at today's NY Fed 30-day average SOFR.
-  const [baseCurve, setBaseCurve] = useState(DEFAULT_CURVE);
-  const [anchorToLive, setAnchorToLive] = useState(true);
+  const [baseCurve, setBaseCurveRaw] = useState(DEFAULT_CURVE);
+  const [anchorToLive, setAnchorToLiveRaw] = useState(true);
+  // Sign-in required to change data (lib/cloud REQUIRE_SIGN_IN): every data
+  // edit goes through these guarded setters, which do nothing while the app
+  // is view-only. System updates (restoring the saved workspace, anchoring
+  // the curve to live SOFR, opening a database workspace) use the raw ones.
+  const lockedRef = useRef(true);
+  const [lockHint, setLockHint] = useState(0);
+  const guarded = (raw) => (u) => {
+    if (lockedRef.current) {
+      setLockHint(Date.now());
+      return;
+    }
+    raw(u);
+  };
+  // Returns false (and flashes the view-only banner) when edits aren't allowed.
+  const requireEdit = () => {
+    if (!lockedRef.current) return true;
+    setLockHint(Date.now());
+    return false;
+  };
+  const setDeals = guarded(setDealsRaw);
+  const setSavedDeals = guarded(setSavedDealsRaw);
+  const setFunds = guarded(setFundsRaw);
+  const setComps = guarded(setCompsRaw);
+  const setValuations = guarded(setValuationsRaw);
+  const setBaseCurve = guarded(setBaseCurveRaw);
+  const setAnchorToLive = guarded(setAnchorToLiveRaw);
+  // View-only until signed in (and for viewers of a database workspace).
+  const viewerOnly = !!(session && dbLink?.id && dbLink.role === "viewer");
+  const locked = REQUIRE_SIGN_IN && (!session || viewerOnly);
+  useEffect(() => {
+    lockedRef.current = locked;
+  });
+  const [lockFlash, setLockFlash] = useState(false);
+  useEffect(() => {
+    if (!lockHint) return;
+    const t0 = setTimeout(() => setLockFlash(true), 0);
+    const t1 = setTimeout(() => setLockFlash(false), 1200);
+    return () => {
+      clearTimeout(t0);
+      clearTimeout(t1);
+    };
+  }, [lockHint]);
   const [live, setLive] = useState(null);
   const [liveStatus, setLiveStatus] = useState("loading"); // loading | ok | error
 
@@ -405,7 +449,7 @@ export default function Home() {
 
   // Puts a curve on every deal; linked deals re-map onto every tab.
   function applyCurveToDeals(curve, forcePensford = false) {
-    setDeals((prev) =>
+    setDealsRaw((prev) =>
       prev.map((d) => {
         const q = d.quick ?? QUICK_DEFAULTS;
         const quick = { ...q, forwardCurve: curve, sofrCurveSource: forcePensford ? "pensford" : q.sofrCurveSource };
@@ -416,11 +460,13 @@ export default function Home() {
 
   // An imported Pensford curve replaces the base curve on every deal.
   function handleCurveImport(curve) {
+    if (!requireEdit()) return;
     setBaseCurve(curve);
     applyCurveToDeals(effectiveCurve(curve, anchorToLive, live), true);
   }
 
   function handleAnchorToggle(on) {
+    if (!requireEdit()) return;
     setAnchorToLive(on);
     applyCurveToDeals(effectiveCurve(baseCurve, on, live));
   }
@@ -458,18 +504,18 @@ export default function Home() {
         // with their defaults, and re-map linked deals onto the full model.
         {
           const w = normalizeWorkspaceFunds(saved);
-          setDeals(w.deals);
-          setSavedDeals(w.savedDeals);
-          setFunds(w.funds);
+          setDealsRaw(w.deals);
+          setSavedDealsRaw(w.savedDeals);
+          setFundsRaw(w.funds);
         }
         if (saved.baseCurve?.points?.length) restoredBase = saved.baseCurve;
         if (typeof saved.anchorToLive === "boolean") restoredAnchor = saved.anchorToLive;
-        setBaseCurve(restoredBase);
-        setAnchorToLive(restoredAnchor);
+        setBaseCurveRaw(restoredBase);
+        setAnchorToLiveRaw(restoredAnchor);
         if (saved.deals.some((d) => d.id === saved.activeDealId)) setActiveDealId(saved.activeDealId);
         setSavedAt(saved.savedAt ?? null);
-        if (saved.comps) setComps({ ...DEFAULT_COMPS_STATE, ...saved.comps });
-        if (saved.valuations && typeof saved.valuations === "object") setValuations(saved.valuations);
+        if (saved.comps) setCompsRaw({ ...DEFAULT_COMPS_STATE, ...saved.comps });
+        if (saved.valuations && typeof saved.valuations === "object") setValuationsRaw(saved.valuations);
         if (Array.isArray(saved.auditLog)) setAuditLog(saved.auditLog);
       })
       .finally(() => {
@@ -649,6 +695,7 @@ export default function Home() {
   }
 
   async function handleImportWorkspace(file) {
+    if (!requireEdit()) return;
     let saved;
     try {
       saved = JSON.parse(await file.text());
@@ -671,17 +718,17 @@ export default function Home() {
     // and re-map linked deals onto the full model.
     {
       const w = normalizeWorkspaceFunds(saved);
-      setDeals(w.deals);
-      setSavedDeals(w.savedDeals);
-      setFunds(w.funds);
+      setDealsRaw(w.deals);
+      setSavedDealsRaw(w.savedDeals);
+      setFundsRaw(w.funds);
     }
     const base = saved.baseCurve?.points?.length ? saved.baseCurve : DEFAULT_CURVE;
     const anchor = typeof saved.anchorToLive === "boolean" ? saved.anchorToLive : true;
-    setBaseCurve(base);
-    setAnchorToLive(anchor);
+    setBaseCurveRaw(base);
+    setAnchorToLiveRaw(anchor);
     setActiveDealId(saved.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : saved.deals[0].id);
-    setComps({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
-    setValuations(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
+    setCompsRaw({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
+    setValuationsRaw(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
     // The loaded workspace brings its own change log; the load itself is logged.
     const loaded = Array.isArray(saved.auditLog) ? saved.auditLog : [];
     auditLogRef.current = loaded;
@@ -852,6 +899,7 @@ export default function Home() {
 
   // Existing file: load it (replacing this browser's workspace) and keep it linked.
   async function handleOpenFile() {
+    if (!requireEdit()) return;
     try {
       const h = await openWorkspaceFile();
       if ((await permission(h, true)) !== "granted") return;
@@ -894,6 +942,7 @@ export default function Home() {
   }
 
   function handleResetWorkspace() {
+    if (!requireEdit()) return;
     if (!window.confirm("Reset the workspace? This removes your saved deals, funds and imported curve from this browser.")) return;
     try {
       window.localStorage.removeItem(STORAGE_KEY);
@@ -918,10 +967,12 @@ export default function Home() {
 
   // ── Fund terms ──
   function handleFundTermsChange(name, patch) {
+    if (!requireEdit()) return;
     setFunds((prev) => ({ ...prev, [name]: { ...DEFAULT_FUND_TERMS, ...(prev[name] ?? {}), name, ...patch } }));
   }
 
   function handleFundSave(terms, { addCurrentDeal } = {}) {
+    if (!requireEdit()) return;
     // Keep data stored on the fund that the terms editor doesn't edit (capital activity).
     setFunds((prev) => ({ ...prev, [terms.name]: { ...(prev[terms.name] ?? {}), ...terms } }));
     if (addCurrentDeal) setInputs((prev) => ({ ...prev, fundName: terms.name }));
@@ -929,6 +980,7 @@ export default function Home() {
   }
 
   function handleDeleteFund(name) {
+    if (!requireEdit()) return;
     setFunds((prev) => {
       const next = { ...prev };
       delete next[name];
@@ -939,6 +991,7 @@ export default function Home() {
   const curveShiftBp = live?.avg30 ? anchorCurveToLive(baseCurve, live.avg30.rate).shiftBp : null;
 
   function setLinked(linked) {
+    if (!requireEdit()) return;
     setDeals((prev) =>
       prev.map((d) =>
         d.id === activeDealId
@@ -958,6 +1011,7 @@ export default function Home() {
   const inputs = activeDeal.inputs;
 
   function setInputs(updater) {
+    if (!requireEdit()) return;
     setDeals((prev) =>
       prev.map((d) =>
         d.id === activeDealId
@@ -975,6 +1029,7 @@ export default function Home() {
   }
 
   function handleAddDeal() {
+    if (!requireEdit()) return;
     const d = newDeal();
     setDeals((prev) => [...prev, d]);
     setActiveDealId(d.id);
@@ -982,6 +1037,7 @@ export default function Home() {
   }
 
   function handleCloseDeal(id) {
+    if (!requireEdit()) return;
     setDeals((prev) => {
       const next = prev.filter((d) => d.id !== id);
       if (next.length === 0) {
@@ -1019,12 +1075,14 @@ export default function Home() {
   // can be added back with one click).
   const unassignedDeals = deals.filter((d) => !d.inputs.fundName?.trim());
   function handleAssignFund(id, fundName) {
+    if (!requireEdit()) return;
     setDeals((prev) => prev.map((d) => (d.id === id ? { ...d, inputs: { ...d.inputs, fundName } } : d)));
   }
 
   const { debt, returns, annualCashFlows, waterfall, irrFlows } = results;
 
   function handleSaveDeal() {
+    if (!requireEdit()) return;
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     // A deal with a fund name is already in the fund live; label the copy.
     const isLive = !!inputs.fundName?.trim();
@@ -1051,6 +1109,7 @@ export default function Home() {
   }
 
   function handleRemoveDeal(id) {
+    if (!requireEdit()) return;
     // Live deals leave the fund (fund name cleared) but stay open.
     if (deals.some((d) => d.id === id)) {
       setDeals((prev) =>
@@ -1064,6 +1123,7 @@ export default function Home() {
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
 
   function handleLoadTest() {
+    if (!requireEdit()) return;
     noteAudit("Loaded the test scenario");
     const { activeDealInputs, savedDeals: testDeals } = generateTestScenario();
     const testDealId = "test-active";
@@ -1083,6 +1143,7 @@ export default function Home() {
   // Re-creates the nine sample deals (discarding edits to them), puts the
   // active deal in the sample fund, and opens the Portfolio Return tab.
   function handleLoadSamplePortfolio() {
+    if (!requireEdit()) return;
     noteAudit("Loaded Model Fund I (sample assets rebuilt)");
     setDeals((prev) => [
       ...prev
@@ -1101,6 +1162,7 @@ export default function Home() {
   }
 
   function handleClearTest() {
+    if (!requireEdit()) return;
     noteAudit("Cleared test and sample data");
     setDeals((prev) => {
       const next = prev.filter((d) => d.id !== "test-active" && !d.id.startsWith("sample-deal-"));
@@ -1331,6 +1393,12 @@ export default function Home() {
               <button type="button" onClick={() => saveToDbNow(true).catch(() => {})} className="ml-1 rounded border border-sky-300 bg-white px-1.5 py-0.5 font-medium text-sky-800 hover:bg-sky-100">Save now</button>
             )}
           </span>
+        ) : session && dbLink?.error ? (
+          <span className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-800">
+            <span aria-hidden="true">☁</span> Couldn&apos;t open your database workspace: {dbLink.error}
+            <button type="button" onClick={() => setCloudOpen(true)} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Database…</button>
+            <button type="button" onClick={unlinkDb} className="text-red-500 hover:text-red-700" aria-label="Dismiss">✕</button>
+          </span>
         ) : null}
         {cloudOpen && (
           <CloudPanel
@@ -1454,6 +1522,27 @@ export default function Home() {
 
         {/* Right: results */}
         <main className="flex-1 min-w-0 space-y-5">
+          {locked && (
+            <div
+              role="status"
+              className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-sm transition-colors ${
+                lockFlash ? "border-amber-400 bg-amber-100 ring-2 ring-amber-300" : "border-amber-200 bg-amber-50"
+              } text-amber-900`}
+            >
+              <span>
+                <span className="font-semibold">View only.</span>{" "}
+                {viewerOnly
+                  ? `You have viewer access to ${dbLink.name}. Ask an owner for editor access to make changes.`
+                  : "Sign in to enter or change data. You can still look around every tab."}
+              </span>
+              {!session && (
+                <button type="button" onClick={() => setCloudOpen(true)} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+                  ☁ Sign in
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Tab bar */}
           <div className="flex flex-wrap gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit max-w-full shadow-sm">
             {TABS.map((tab) => (
