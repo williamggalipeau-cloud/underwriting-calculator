@@ -135,3 +135,27 @@ current budget and actual results are then tracked against it.
   tab (NOI used in marks) and Sell / Hold (current vs. plan returns).
 - **Exports:** Excel and a printable asset-management report.
 - Every change logged; owners/editors edit, viewers read.
+
+### 2. Underwritten vs. actual performance (added 11/22)
+
+Builds on item 1. Item 1 tracks the operating budget line by line; this
+tracks the deal against what was underwritten to buy it.
+
+- **Underwritten baseline:** the acquisition underwriting (IC-approved
+  where there is an IC memo, else the model as of closing), frozen per asset:
+  price and total cost, loan terms, year-by-year NOI, occupancy and leasing,
+  capex, cash flow, exit cap and value, and returns (levered and unlevered
+  IRR, equity multiple, cash-on-cash by year, DSCR and debt yield).
+- **Actual and projected:** actual results to date (from item 1's actuals,
+  the rent roll and the Debt tab) joined to the current model for the
+  remaining hold, giving "actual + projected" returns, with the latest
+  valuation mark from the Valuations tab for value to date.
+- **Comparison:** underwritten vs. actual by year (NOI, occupancy, rent per
+  SF, capex, cash flow, cash-on-cash, DSCR) and for returns (IRR, multiple,
+  value, exit cap), with variances.
+- **Attribution:** splits the gap in returns into its causes: rent and
+  leasing, expenses, capex, financing (rate, proceeds), timing, and exit cap
+  or value.
+- **Views:** per asset (Asset Summary Details) and whole fund (Portfolio
+  Return), with a table of assets ranked by return shortfall or outperformance.
+  Excel export and the printable asset-management report.
