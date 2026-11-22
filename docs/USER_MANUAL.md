@@ -234,7 +234,7 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. Needs sign-in and an open database workspace. Review and apply to the rent roll comes next. |
-| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike and each cap's cost; §7.5), rate schedule, covenant tests by year, TI reserve. |
+| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
 | **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
@@ -679,8 +679,12 @@ flows and returns on every tab:
 
 The schedule table shows, for each hold year, the cap in force (initial,
 renewal or held), its SOFR strike, the all-in strike (SOFR strike +
-spread, the rate each year's interest is capped at) and the cost of each
-cap when bought, with the total.
+spread, the rate each year's interest is capped at), the cost of each
+cap when bought, with the total, and the **provider**: the bank or
+institution that wrote each cap (typed per cap; years where a cap is only
+held show its provider in grey). Providers are saved with the deal
+(`quick.capProviders`, keyed by the hold year the cap was bought in) and
+changes appear in the change log.
 
 **Schedule.**
 - One cap is bought at closing, then a replacement every cap term (1 year)

@@ -44,6 +44,27 @@ function Num({ label, value, onChange, step = 1, prefix, suffix, readOnly }) {
   );
 }
 
+// Free-text cell saved on blur (or Enter) so each keystroke isn't an edit.
+function TextCell({ value, onCommit, placeholder, readOnly }) {
+  const [draft, setDraft] = useState(null);
+  const commit = () => {
+    if (draft != null && draft.trim() !== (value ?? "")) onCommit(draft.trim());
+    setDraft(null);
+  };
+  return (
+    <input
+      type="text"
+      disabled={readOnly}
+      value={draft ?? value ?? ""}
+      placeholder={placeholder}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      className="w-full min-w-[9rem] rounded-md border border-gray-200 px-2 py-1 text-xs outline-none focus:border-blue-400 disabled:bg-gray-50"
+    />
+  );
+}
+
 function Toggle({ label, value, options, onChange, readOnly }) {
   return (
     <div className="flex flex-col gap-1">
@@ -97,6 +118,14 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
     };
   });
   const total = rows.reduce((s, r) => s + (r.cost || 0), 0);
+  // Who wrote each cap, by the hold year it was bought in ("1" = initial cap).
+  const providers = cap.capProviders ?? {};
+  const setProvider = (year, name) => {
+    const next = { ...providers };
+    if (name) next[year] = name;
+    else delete next[year];
+    onChange({ capProviders: next });
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white" data-testid="rate-cap">
@@ -130,7 +159,8 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
               <th className="py-1.5 pr-2 text-left font-medium">Cap bought</th>
               <th className="py-1.5 pr-2 text-right font-medium">Strike (SOFR)</th>
               <th className="py-1.5 pr-2 text-right font-medium">All-in strike</th>
-              <th className="py-1.5 text-right font-medium">Cost</th>
+              <th className="py-1.5 pr-2 text-right font-medium">Cost</th>
+              <th className="py-1.5 pl-2 text-left font-medium" title="The bank or institution that wrote (sold) the cap">Provider</th>
             </tr>
           </thead>
           <tbody>
@@ -141,12 +171,20 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
                 <td className="py-1.5 pr-2 text-gray-600">{!hasCap ? "—" : r.bought ? (r.year === 1 ? "Initial cap" : "Renewal") : "Held"}</td>
                 <td className="py-1.5 pr-2 text-right">{pct(r.sofrStrike)}</td>
                 <td className="py-1.5 pr-2 text-right">{pct(r.allInStrike)}</td>
-                <td className="py-1.5 text-right font-medium text-gray-800">{r.bought && hasCap ? usd(r.cost) : ""}</td>
+                <td className="py-1.5 pr-2 text-right font-medium text-gray-800">{r.bought && hasCap ? usd(r.cost) : ""}</td>
+                <td className="py-1.5 pl-2">
+                  {r.bought && hasCap ? (
+                    <TextCell value={providers[r.year]} onCommit={(v) => setProvider(r.year, v)} placeholder="e.g. bank name" readOnly={readOnly} />
+                  ) : r.year > 1 && hasCap ? (
+                    <span className="text-gray-400">{providers[[...rows].reverse().find((x) => x.bought && x.year < r.year)?.year] ?? ""}</span>
+                  ) : null}
+                </td>
               </tr>
             ))}
             <tr>
               <td colSpan={5} className="py-1.5 pr-2 font-semibold text-gray-700">Total cap cost</td>
-              <td className="py-1.5 text-right font-semibold text-gray-900">{usd(total)}</td>
+              <td className="py-1.5 pr-2 text-right font-semibold text-gray-900">{usd(total)}</td>
+              <td />
             </tr>
           </tbody>
         </table>
