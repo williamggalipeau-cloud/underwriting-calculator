@@ -2388,7 +2388,7 @@ each phase and the decisions behind it are in
 | A. Lease documents | Upload, store and open each lease's PDFs per asset (Leases tab) | ✅ Live |
 | B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags | ⏰ Scheduled 11/22/2026, 5:30am PT |
-| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary | ⏰ Scheduled 11/22/2026, 10:30am PT |
+| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease | ⏰ Scheduled 11/22/2026, 10:30am PT |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements | ⛓ After D |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
@@ -2417,7 +2417,10 @@ not used. Nothing changes your data until you click to apply it.
   Rent steps set the rent while the lease runs; renewal options decide
   renewals when the option rent is at or below market.
 - **D. Fund lease views.** Every deadline and risk flag across the fund,
-  with exports, and lease status on the Asset Summary.
+  with exports, and lease status on the Asset Summary. Each lease also gets
+  a Tenant credit section for credit reports and tenant or guarantor
+  financial statements (owners and editors only), with key figures and
+  flags for stale statements and falling credit.
 - **E. Acquisition documents.** Each document's key figures shown beside the
   model and applied by choice; the IC memo gives approved vs. current and a
   conditions checklist; closing statements set the actual cost basis and

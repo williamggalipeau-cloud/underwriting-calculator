@@ -14,7 +14,7 @@ changes the model without the user clicking to apply it.
 | A | Lease documents: upload, store, open | ✅ Done, live (PR #43) |
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
 | C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ⏰ Scheduled 11/22 5:30am PT |
-| D | Fund lease views: critical dates, risk flags, exports, Asset Summary | ⏰ Scheduled 11/22 10:30am PT |
+| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ⏰ Scheduled 11/22 10:30am PT |
 | E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements | ⛓ Starts when D is complete |
 | F | Loan agreement → Debt tab | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
@@ -91,6 +91,20 @@ with what was built and how it was tested; the user gets a progress note in the 
   asset's Details (WALT, next critical date, risk-flag count).
 - Reminders before notice dates: proposal only; nothing that sends messages
   without the user's go-ahead.
+- **Tenant credit documents** (added 11/22): on each lease, a *Tenant
+  credit* section for credit reports (e.g. D&B, Experian, a rating agency or
+  bank reference) and tenant (and guarantor) financial statements (balance
+  sheet, income statement, tax returns, audited or not), each with its
+  type, source, period or report date and who uploaded it. Stored in the
+  same private bucket as the lease, but **owners and editors only** (viewers
+  can't open them, since they're confidential). Key figures entered by hand
+  or read by Claude from the PDF and checked locally (credit score or
+  rating, revenue, net income, EBITDA, current ratio, debt to equity, rent
+  as % of revenue). The latest rating fills the unit's Credit rating on the
+  Unit Roll when applied. Flags: statements older than 12 months, a lease
+  clause requiring periodic statements (from the abstract) with its next
+  due date added to critical dates, and a falling score or rising leverage.
+  Feeds the tenant section of phase L's risk report.
 
 ## Phases E–H: deal documents
 
@@ -338,3 +352,7 @@ L, the work is pushed and resumes about 15 minutes later at the next phase.
     portal); L builds a quarterly performance report (shareable and internal
     versions) and an internal-only risk report. The app never sends
     anything.
+11. **Tenant credit documents** (added 11/22) in phase D: credit reports and
+    tenant/guarantor financial statements on each lease, owners and editors
+    only, with key figures, staleness and delivery-due flags, feeding the
+    Unit Roll credit rating and the phase L risk report.
