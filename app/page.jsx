@@ -21,6 +21,8 @@ import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
+import { appendChanges, auditSnapshot, diffWorkspace } from "@/lib/audit";
+import ChangeLog from "@/components/ChangeLog";
 import FundTermsEditor from "@/components/FundTermsEditor";
 import {
   createWorkspaceFile,
@@ -37,6 +39,7 @@ import {
 
 // Workspace saved in this browser (deals, funds, snapshots, curve).
 const STORAGE_KEY = "uw-workspace-v1";
+const AUDIT_USER_KEY = "uw-audit-user";
 // Minutes between automatic saves to the linked workspace file.
 const FILE_SAVE_MINUTES = 10;
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
@@ -275,6 +278,7 @@ const TABS = [
   { id: "assets",      label: "Asset Summary" },
   { id: "valuations",  label: "Valuations" },
   { id: "comps",       label: "Sales Comps" },
+  { id: "changes",     label: "Change Log" },
 ];
 
 function fmtPct(n) {
@@ -301,6 +305,38 @@ export default function Home() {
   const [comps, setComps] = useState(DEFAULT_COMPS_STATE);
   // Fair value marks: { [dealId]: { [quarterEndISO]: { value, source, appraiser, capRate, capex, notes } } }
   const [valuations, setValuations] = useState({});
+  // Change log (lib/audit): entries saved with the workspace; the editor's
+  // name is kept in this browser only.
+  const [auditLog, setAuditLog] = useState([]);
+  const [auditUser, setAuditUser] = useState("");
+  const auditBaseline = useRef(null); // last tracked snapshot (null = take a new baseline)
+  const auditNote = useRef(null); // bulk action to record instead of field-by-field changes
+  const auditLogRef = useRef(auditLog);
+  useEffect(() => {
+    auditLogRef.current = auditLog;
+  });
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      try {
+        setAuditUser(window.localStorage.getItem(AUDIT_USER_KEY) ?? "");
+      } catch {
+        // storage blocked
+      }
+    });
+  }, []);
+  function changeAuditUser(name) {
+    setAuditUser(name);
+    try {
+      window.localStorage.setItem(AUDIT_USER_KEY, name);
+    } catch {
+      // storage blocked
+    }
+  }
+  // Records a bulk action (import, reset, …) as one log entry: the next save
+  // logs this note and takes a new baseline.
+  function noteAudit(note) {
+    auditNote.current = note;
+  }
   const hydrated = useRef(false);
   const importRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null); // { ok, text }
@@ -405,6 +441,7 @@ export default function Home() {
         setSavedAt(saved.savedAt ?? null);
         if (saved.comps) setComps({ ...DEFAULT_COMPS_STATE, ...saved.comps });
         if (saved.valuations && typeof saved.valuations === "object") setValuations(saved.valuations);
+        if (Array.isArray(saved.auditLog)) setAuditLog(saved.auditLog);
       })
       .finally(() => {
         hydrated.current = true;
@@ -443,7 +480,7 @@ export default function Home() {
         }
         const saved = await readWorkspace(h);
         if (stop) return;
-        if (saved && isWorkspace(saved)) applyWorkspace(saved);
+        if (saved && isWorkspace(saved)) applyWorkspace(saved, `Loaded linked file ${h.name}`);
         linkFile(h);
       })
       .catch(() => !stop && fileHandle.current && setFileState({ status: "reconnect", name: fileHandle.current.name }));
@@ -476,31 +513,48 @@ export default function Home() {
   useEffect(() => {
     if (!hydrated.current) return;
     const t = setTimeout(() => {
+      // Change log: compare with the last snapshot and record what changed.
+      const snap = auditSnapshot({ deals, savedDeals, funds, comps, valuations, baseCurve });
+      let log = auditLogRef.current;
+      if (auditBaseline.current && !auditNote.current) {
+        const changes = diffWorkspace(auditBaseline.current, snap);
+        if (changes.length) log = appendChanges(log, changes, { user: auditUser });
+      } else if (auditNote.current) {
+        log = appendChanges(log, [], { user: auditUser, note: auditNote.current });
+        auditNote.current = null;
+      }
+      auditBaseline.current = snap;
+      if (log !== auditLogRef.current) {
+        auditLogRef.current = log;
+        setAuditLog(log);
+      }
       try {
         const at = new Date().toISOString();
         window.localStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations })
+          JSON.stringify({ v: 1, savedAt: at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog: log })
         );
         setSavedAt(at);
       } catch {
         // Storage full or blocked: the app keeps working, unsaved.
       }
       // The linked file is written on a timer (see saveToFileNow); mark it behind.
-      latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations };
+      latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog: log };
       if (fileLinked.current && !fileDirty.current) {
         fileDirty.current = true;
         setFileState((f) => (f.status === "linked" ? { ...f, dirty: true } : f));
       }
     }, 400);
     return () => clearTimeout(t);
+    // auditLog/auditUser are read through refs/closure; changes to them alone don't need a save.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations]);
 
   // ── Export / import the workspace as a JSON file (to move it between
   // browsers or computers). Same content as the browser save.
   function handleExportWorkspace() {
     const at = new Date().toISOString();
-    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations };
+    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog };
     downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `underwriting-workspace-${at.slice(0, 10)}.json`);
     setImportMsg({ ok: true, text: `Exported ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
@@ -518,12 +572,12 @@ export default function Home() {
       return;
     }
     if (!window.confirm(`Replace this browser's workspace with the file (${saved.deals.length} deals)? Your current deals, funds and comps here will be overwritten.`)) return;
-    applyWorkspace(saved);
+    applyWorkspace(saved, `Imported workspace file ${file.name}`);
     setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
   }
 
   // Loads a saved workspace (export or linked file) into the app.
-  function applyWorkspace(saved) {
+  function applyWorkspace(saved, note) {
     // Same migration as the browser restore: fill new settings with defaults
     // and re-map linked deals onto the full model.
     {
@@ -539,6 +593,11 @@ export default function Home() {
     setActiveDealId(saved.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : saved.deals[0].id);
     setComps({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
     setValuations(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
+    // The loaded workspace brings its own change log; the load itself is logged.
+    const loaded = Array.isArray(saved.auditLog) ? saved.auditLog : [];
+    auditLogRef.current = loaded;
+    setAuditLog(loaded);
+    noteAudit(note || "Loaded a workspace");
     // Re-anchor the imported curve to today's live rate, as on page load.
     if (anchor && live?.avg30) applyCurveToDeals(anchorCurveToLive(base, live.avg30.rate).curve);
   }
@@ -573,7 +632,7 @@ export default function Home() {
     rememberHandle(handle);
     setFileState({ status: "linked", name: handle.name, savedAt: null, dirty: false, error: null });
   }
-  const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations });
+  const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog });
   const cancelled = (e) => e?.name === "AbortError";
 
   // New file: write the current workspace to it and keep it linked.
@@ -600,7 +659,7 @@ export default function Home() {
       }
       if (saved) {
         if (!window.confirm(`Open ${h.name} (${saved.deals.length} deals)? It replaces the workspace in this browser, and changes will save to that file.`)) return;
-        applyWorkspace(saved);
+        applyWorkspace(saved, `Opened workspace file ${h.name}`);
       } else {
         await writeWorkspace(h, workspaceData()); // empty file: start it from the current workspace
       }
@@ -617,7 +676,7 @@ export default function Home() {
     try {
       if ((await permission(h, true)) !== "granted") return;
       const saved = await readWorkspace(h);
-      if (saved && isWorkspace(saved)) applyWorkspace(saved);
+      if (saved && isWorkspace(saved)) applyWorkspace(saved, `Reconnected workspace file ${h.name}`);
       linkFile(h);
     } catch (e) {
       setFileState({ status: "error", name: h.name, error: `Couldn't reopen ${h.name}: ${e.message || e}. It may have been moved or deleted.` });
@@ -639,6 +698,7 @@ export default function Home() {
       // ignore
     }
     const fresh = initialDeals();
+    noteAudit("Reset the workspace");
     setSavedDeals([]);
     setComps(DEFAULT_COMPS_STATE);
     setValuations({});
@@ -801,6 +861,7 @@ export default function Home() {
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
 
   function handleLoadTest() {
+    noteAudit("Loaded the test scenario");
     const { activeDealInputs, savedDeals: testDeals } = generateTestScenario();
     const testDealId = "test-active";
     setDeals((prev) => {
@@ -819,6 +880,7 @@ export default function Home() {
   // Re-creates the nine sample deals (discarding edits to them), puts the
   // active deal in the sample fund, and opens the Portfolio Return tab.
   function handleLoadSamplePortfolio() {
+    noteAudit("Loaded Model Fund I (sample assets rebuilt)");
     setDeals((prev) => [
       ...prev
         .filter((d) => !d.id.startsWith("sample-deal-"))
@@ -836,6 +898,7 @@ export default function Home() {
   }
 
   function handleClearTest() {
+    noteAudit("Cleared test and sample data");
     setDeals((prev) => {
       const next = prev.filter((d) => d.id !== "test-active" && !d.id.startsWith("sample-deal-"));
       return next.length > 0 ? next : [linkedDeal()];
@@ -1239,6 +1302,7 @@ export default function Home() {
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
             )}
+            {activeTab === "changes" && <ChangeLog log={auditLog} user={auditUser} onUserChange={changeAuditUser} />}
             {activeTab === "comps" && (
               <SalesComps
                 state={comps}
