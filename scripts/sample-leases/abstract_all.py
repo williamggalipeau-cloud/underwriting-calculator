@@ -256,7 +256,7 @@ def build(L, stems):
         q = f"{fr} {th} {rate} {mo}"
         row = {"period": f"Lease Year {i + 1}" if not note else f"{fr} – {th}", "start": iso(fr), "end": iso(th),
                "rate": float(rate.replace("$", "").replace(",", "")), "monthly_rent": float(mo.replace("$", "").replace(",", "")),
-               "status": "found", "clause": rp["n"], "evidence": [E(q)]}
+               "status": "found", "clause": rp["n"], "evidence": [E(q) if L.page_of(q) else L.ev(q, raw_page=(L.page_of(sentences(rp["text"])[0]) or [2])[0])]}
         if note:
             row["note"] = note
         rent_rows.append(row)
@@ -264,16 +264,16 @@ def build(L, stems):
     free = [r for r in rent_rows if r["monthly_rent"] == 0]
     if free:
         ab_s, ab_p = L.sent("Base Rent", r"abate|free")
-        add(F("rent_commencement_date", long_of(first_paying["start"]), "found", rp["n"], [E(f"{long_of(first_paying['start'])} {long_of(first_paying['end'])}")]))
-        add(F("rent_abatement", short(ab_s, 300) if ab_s else f"{len(free)} period(s) at $0", "found", (ab_p or rp)["n"], [E(short(ab_s, 500)) if ab_s else E(rent_rows[0]["evidence"][0]["quote"])]))
+        add(F("rent_commencement_date", long_of(first_paying["start"]), "found", rp["n"], first_paying["evidence"]))
+        add(F("rent_abatement", short(ab_s, 300) if ab_s else f"{len(free)} period(s) at $0", "found", (ab_p or rp)["n"], [E(short(ab_s, 500)) if ab_s else rent_rows[0]["evidence"][0]]))
     else:
-        add(F("rent_commencement_date", f"Same as the Commencement Date, {comm} (no free rent)", "found", rp["n"], [E(rent_rows[0]["evidence"][0]["quote"])]))
+        add(F("rent_commencement_date", f"Same as the Commencement Date, {comm} (no free rent)", "found", rp["n"], [rent_rows[0]["evidence"][0]]))
         add(F("rent_abatement", "Not addressed", "not_in_lease"))
     cur = next((r for r in rent_rows if r["start"] <= TODAY.isoformat() <= r["end"]), rent_rows[-1])
     br = info.get("Base Rent", "")
     br_rate = re.search(r"\$[\d.,]+", br).group(0)
     add(F("base_rent", f"{br_rate}/RSF/yr initially; {'currently' if cur['start'] <= TODAY.isoformat() else 'from ' + long_of(cur['start'])} ${cur['rate']:.2f}/RSF (${cur['monthly_rent']:,.2f}/month) through {long_of(cur['end'])}",
-          "found", f"1, {rp['n']}", [E(br), E(cur["evidence"][0]["quote"])]))
+          "found", f"1, {rp['n']}", [E(br), cur["evidence"][0]]))
     esc = [s for s in sentences(rp["text"]) if re.search(r"increase", s, re.I)]
     if esc:
         add(F("rent_escalations", short(esc[0].replace("Base Rent increases by ", "").rstrip("."), 300), "found", rp["n"], [E(esc[0])]))
