@@ -23,8 +23,8 @@ changes the model without the user clicking to apply it.
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 
-Each finished phase is marked here with what was built and how it was
-tested; the user gets a progress note in the Claude session after each one.
+Each finished phase is marked here (and in the user manual's §13 Roadmap)
+with what was built and how it was tested; the user gets a progress note in the Claude session after each one.
 
 ## Phase A: lease documents (done)
 
