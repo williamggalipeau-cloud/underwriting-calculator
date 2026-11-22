@@ -455,7 +455,7 @@ function DealRow({ deal, onRemove, fund }) {
   );
 }
 
-function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChange, onEditTerms, onRemove, onRemoveFund }) {
+function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_CURVE, onTermsChange, onEditTerms, onRemove, onRemoveFund }) {
   // Fund terms (timeline, GP commitment, pref, catch-up, tiers, fee) come
   // from the fund's saved terms; the inline inputs below edit them.
   const fund = terms;
@@ -825,7 +825,7 @@ function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChang
         {!(capital.commitments > 0) && (
           <p className="mt-2 text-[11px] text-gray-500">Enter the fund&apos;s total commitments to see dry powder.</p>
         )}
-        <CapitalActivity fundName={fundName} activity={activity} deals={deals} onChange={(next) => onTermsChange({ capitalActivity: next })} />
+        <CapitalActivity fundName={fundName} activity={activity} deals={deals} otherAssets={otherAssets} onChange={(next) => onTermsChange({ capitalActivity: next })} />
       </div>
 
       {/* Fund terms */}
@@ -968,7 +968,7 @@ function FundGroup({ fundName, deals, terms, curve = DEFAULT_CURVE, onTermsChang
   );
 }
 
-export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, funds = {}, onFundTermsChange, onNewFund, onEditFund, onDeleteFund, curve }) {
+export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, funds = {}, onFundTermsChange, onNewFund, onEditFund, onDeleteFund, curve, allAssets = [], unassigned = [], onAssignFund }) {
   const groups = groupByFund(savedDeals);
   // Funds with terms but no deals yet still show (as empty cards).
   const fundNames = [...new Set([...Object.keys(funds), ...Object.keys(groups)])];
@@ -1009,6 +1009,37 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
         </div>
       </div>
 
+      {unassigned.length > 0 && fundNames.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+          <p className="font-semibold">
+            {unassigned.length} open {unassigned.length === 1 ? "property isn't" : "properties aren't"} in any fund, so {unassigned.length === 1 ? "it's" : "they're"} left
+            out of fund returns, attribution, capital activity, valuations and the asset summary.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {unassigned.map((u) => (
+              <span key={u.id} className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-white px-2 py-1">
+                <span className="font-medium text-gray-800">{u.name}</span>
+                {fundNames.length === 1 ? (
+                  <button type="button" onClick={() => onAssignFund?.(u.id, fundNames[0])} className="rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 font-medium text-blue-700 hover:bg-blue-100">
+                    Add to {fundNames[0]}
+                  </button>
+                ) : (
+                  <select
+                    defaultValue=""
+                    onChange={(e) => e.target.value && onAssignFund?.(u.id, e.target.value)}
+                    className="rounded border border-blue-200 bg-white px-1 py-0.5 text-blue-700"
+                    aria-label={`Add ${u.name} to a fund`}
+                  >
+                    <option value="">Add to fund…</option>
+                    {fundNames.map((n) => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {fundNames.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 p-10 text-center">
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -1030,6 +1061,7 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
                   curve={curve}
                   fundName={name}
                   deals={groups[name]}
+                  otherAssets={allAssets.filter((a) => !groups[name].some((d) => d.id === a.id))}
                   terms={termsFor(name)}
                   onTermsChange={(patch) => onFundTermsChange?.(name, patch)}
                   onEditTerms={() => onEditFund?.(name)}
