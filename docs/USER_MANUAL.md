@@ -231,7 +231,7 @@ full-model inputs for the active deal.
 | **Return Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 | **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
-| **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (§7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
+| **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (terms, year-by-year cash flow, returns, valuation history, capital activity): status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, import and export of marks. |
 | **Change Log** | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
@@ -1179,10 +1179,11 @@ reserves and fund cash.
 
 ### 7.22 Cost of capital (hurdle rate)
 
-Each fund has one **hurdle rate** (`hurdleRatePct`, default 10%): the annual
-return investors require. Portfolio Return → **Cost of capital** measures the
-gross, net fund and net LP cash flows against it (edit the rate there or in
-the fund terms):
+Each fund's **hurdle rate** (cost of capital: the annual return investors
+require) defaults to its **preferred return** (`prefPct`, Model Fund I: 9%)
+and follows it. To override it, type a rate on the card or in the fund
+terms (`hurdleRatePct`); **Use pref** (or a blank field) returns to the pref. Portfolio Return → **Cost of
+capital** measures the gross, net fund and net LP cash flows against it:
 
 ```
 NPV               = Σ dated cash flows ÷ (1 + hurdle)^(days from final close ÷ 365)
@@ -1191,8 +1192,7 @@ Profitability idx = PV of money returned ÷ PV of money invested
 ```
 
 Positive NPV (index above 1.0x) means the fund creates value above its cost
-of capital. The hurdle is separate from the preferred return in the
-waterfall. (Asset Return's NPV still uses its own 8% rate.)
+of capital. (Asset Return's NPV still uses its own 8% rate.)
 
 ### 7.19 Units and leases (`lib/leases.js`)
 
@@ -1659,7 +1659,7 @@ column.
 | `targetEquity` | `funds["Fund name"].targetEquity` | Total commitments ($) | $ | 0 (Model Fund I: 100,000,000) | LP + GP commitments; drives dry powder and sub line size |
 | `gpCommitPct` | `funds["Fund name"].gpCommitPct` | GP commitment (% of equity) | % | 5 | GP share of every capital call |
 | `prefPct` | `funds["Fund name"].prefPct` | Preferred return (% / yr) | % | 9 | LP pref, compounding annually |
-| `hurdleRatePct` | `funds["Fund name"].hurdleRatePct` | Hurdle rate / cost of capital (% / yr) | % | 10 | Return investors require: NPV, spread and profitability index (§7.22) |
+| `hurdleRatePct` | `funds["Fund name"].hurdleRatePct` | Hurdle rate / cost of capital (% / yr) | % or blank | blank = pref | Override of the hurdle rate (§7.22) |
 | `catchUpGpPct` | `funds["Fund name"].catchUpGpPct` | GP catch-up (%) | % | 100 | Share of distributions to the GP during catch-up |
 | `tiers` | `funds["Fund name"].tiers` | Tier n IRR hurdle / LP split / GP split | %, %, % | 12% 80/20, 18% 70/30, above 60/40 | Promote tiers (up to 5; blank hurdle = top tier) |
 | `mgmtFeePct` | `funds["Fund name"].mgmtFeePct` | Management fee (% / yr) | % / yr | 0 (Model Fund I: 1.5) | Fund-level fee, quarterly in advance, LPs only (§7.20) |

@@ -133,7 +133,22 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 />
               </label>
               <Num label="Total commitments" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint="Fund size; drives dry powder" />
-              <Num label="Hurdle rate" suffix="%/yr" step={0.5} value={t.hurdleRatePct ?? 10} onChange={set("hurdleRatePct")} hint="Cost of capital: return investors require" />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Hurdle rate</span>
+                <div className="flex items-center rounded-lg border border-gray-200 bg-white">
+                  <input
+                    type="number"
+                    step={0.5}
+                    min={0}
+                    value={t.hurdleRatePct ?? ""}
+                    placeholder={`${t.prefPct ?? 9} (pref)`}
+                    onChange={(e) => set("hurdleRatePct")(e.target.value === "" ? null : Math.max(0, parseFloat(e.target.value) || 0))}
+                    className="w-full rounded-lg px-2.5 py-1.5 text-sm text-gray-900 outline-none"
+                  />
+                  <span className="pr-2 text-xs text-gray-400">%/yr</span>
+                </div>
+                <span className="text-[10px] text-gray-400">Cost of capital; blank = the preferred return</span>
+              </label>
               <Num label="Mgmt fee" suffix="%/yr" step={0.25} value={t.mgmtFeePct} onChange={set("mgmtFeePct")} hint="Quarterly in advance, LPs only" />
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fee basis</span>

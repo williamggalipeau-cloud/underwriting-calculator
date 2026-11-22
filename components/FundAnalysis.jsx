@@ -458,12 +458,12 @@ function DealRow({ deal, onRemove, fund }) {
 }
 
 // Returns against the fund's hurdle rate (cost of capital).
-function HurdleCard({ rate, asOf, rows, onRate }) {
+function HurdleCard({ rate, pref, overridden, asOf, rows, onRate }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h4 className="font-semibold text-gray-700">Cost of capital</h4>
-        <label className="flex items-center gap-1.5 text-gray-600">
+        <span className="flex items-center gap-1.5 text-gray-600">
           Hurdle rate
           <input
             type="number"
@@ -478,7 +478,12 @@ function HurdleCard({ rate, asOf, rows, onRate }) {
             aria-label="Hurdle rate (% per year)"
           />
           %/yr
-        </label>
+          {overridden ? (
+            <button type="button" onClick={() => onRate(null)} className="text-[11px] text-blue-700 hover:underline">Use pref ({fmt(pref, 2)}%)</button>
+          ) : (
+            <span className="text-[11px] text-gray-400">= preferred return (default)</span>
+          )}
+        </span>
       </div>
       <table className="w-full tabular-nums">
         <thead className="text-gray-500">
@@ -509,7 +514,7 @@ function HurdleCard({ rate, asOf, rows, onRate }) {
         </tbody>
       </table>
       <p className="mt-1 text-[10px] text-gray-400">
-        The hurdle rate is the fund&apos;s cost of capital: the annual return investors require. NPV discounts each dated cash flow to the final
+        The hurdle rate is the fund&apos;s cost of capital: the annual return investors require. It defaults to the fund&apos;s preferred return; type a rate to override it. NPV discounts each dated cash flow to the final
         close ({fmtDate(asOf)}) at that rate; positive NPV means the fund creates value above it. Spread = IRR − hurdle. Profitability index =
         present value of money returned ÷ present value of money invested.
       </p>
@@ -853,14 +858,16 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
       </div>
 
       <HurdleCard
-        rate={terms.hurdleRatePct ?? 10}
+        rate={terms.hurdleRatePct ?? prefPct}
+        pref={prefPct}
+        overridden={terms.hurdleRatePct != null}
+        onRate={(v) => onTermsChange({ hurdleRatePct: v })}
         asOf={terms.finalClose}
         rows={[
           ["Gross", "Assets, before fund expenses and promote", allFlows],
           ["Net fund", "All investors, after fund expenses", [...fundWf.lpFlows, ...fundWf.gpFlows]],
           ["Net LP", "LPs, after fees, pref and promote", fundWf.lpFlows],
         ]}
-        onRate={(v) => onTermsChange({ hurdleRatePct: v })}
       />
 
       <FundExpensesCard fx={flows.expenses} terms={terms} ipEnd={fd.investmentPeriodEnd} todayISO={todayISO} callsNeeded={flows.expenseCallsNeeded ?? []} />
