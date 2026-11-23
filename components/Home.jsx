@@ -12,6 +12,8 @@ const KIND = {
   rent: ["Rent", "bg-red-50 text-red-700"],
   lease: ["Lease", "bg-amber-50 text-amber-800"],
   leasing: ["Leasing", "bg-indigo-50 text-indigo-800"],
+  covenant: ["Covenant", "bg-red-50 text-red-700"],
+  extension: ["Extension", "bg-amber-50 text-amber-800"],
   loan: ["Loan", "bg-violet-50 text-violet-800"],
   cap: ["Rate cap", "bg-sky-50 text-sky-800"],
   appraisal: ["Appraisal", "bg-gray-100 text-gray-700"],

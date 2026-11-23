@@ -59,11 +59,32 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(300);
   const r1 = await p.getByTestId("refi-result").innerText();
   check(r0 !== r1 && /LTV binds/.test(r1), "refinance planner reacts (LTV binds at 50%)");
-  const [dl] = await Promise.all([p.waitForEvent("download"), fdv.getByRole("button", { name: "Excel" }).click()]);
+  const [dl] = await Promise.all([p.waitForEvent("download"), fdv.getByRole("button", { name: "Excel", exact: true }).click()]);
   check(/fund-debt-.*\.xlsx$/.test(dl.suggestedFilename()), "Excel export");
+  // ── Part 2: certificates and PDFs ──
+  const [dp] = await Promise.all([p.waitForEvent("download"), fdv.getByRole("button", { name: "PDF", exact: true }).click()]);
+  check(/fund-debt-.*\.pdf$/.test(dp.suggestedFilename()), "Fund Debt PDF");
+  const certs = p.getByTestId("debt-certs");
+  const lastQ = await certs.getByLabel("Certificate quarter").inputValue();
+  const nCert = await p.getByTestId("cert-row").count();
+  check(/-(03-31|06-30|09-30|12-31)$/.test(lastQ) && nCert >= 7 && nCert <= (await rows.count()), `a certificate row per loan in place at ${lastQ} (${nCert})`);
+  check(/Breach/.test(await p.getByTestId("cert-row").filter({ hasText: "Ridgeway Trade Center" }).innerText()) && /In compliance/.test(await p.getByTestId("cert-row").filter({ hasText: "Airport Flex Park" }).innerText()), "compliance per loan (a covenant breach shown)");
+  await certs.getByLabel("Certificate loan").selectOption({ label: "Airport Flex Park" });
+  await p.waitForTimeout(300);
+  check((await p.getByTestId("cert-row").count()) === 1, "one loan");
+  const [c1] = await Promise.all([p.waitForEvent("download"), certs.getByRole("button", { name: "Certificates PDF" }).click()]);
+  check(/^covenant-certificates-Airport-Flex-Park-\d{4}-\d{2}-\d{2}\.pdf$/.test(c1.suggestedFilename()), `certificate PDF: ${c1.suggestedFilename()}`);
+  const [c2] = await Promise.all([p.waitForEvent("download"), certs.getByRole("button", { name: "Certificates Excel" }).click()]);
+  check(/\.xlsx$/.test(c2.suggestedFilename()), "certificate Excel");
+  await certs.getByLabel("Certificate quarter").selectOption({ index: 2 });
+  await certs.getByLabel("Certificate loan").selectOption("");
+  await p.waitForTimeout(300);
+  check((await p.getByTestId("cert-row").count()) >= 1, "an earlier quarter");
+
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
   check((await p.getByTestId("lane").filter({ hasText: "Portfolio Management" }).getByRole("button", { name: "Open Fund Debt" }).count()) === 1, "Home's Portfolio Management lane links to Fund Debt");
+  check(/Covenant breach: DSCR [\d.]+x < 9\.00x \(Ridgeway Trade Center\)/.test(await p.getByTestId("attention").innerText()), "Home: the covenant breach is on the attention list");
   await p.waitForTimeout(500);
   check(saves === before, "read-only: nothing saved");
   await p.screenshot({ path: `${S}/fund-debt.png` });

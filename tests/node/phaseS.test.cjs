@@ -61,5 +61,24 @@ ok(rf2.binding === "Debt yield" && close(rf2.proceeds, a1.noi / 0.2), "a debt yi
 const xl = D.fundDebtXlsx("Model Fund I", loans, TODAY);
 ok(xl.some((r) => r[0] === "Maturity ladder") && xl.some((r) => r[0] === "Fixed rate") && xl.some((r) => r[0] === "Example Bank") && xl.some((r) => r[0] === "HHI"), "Excel: loans, ladder, rates, caps, lenders");
 
+// ── Part 2: certificates and alerts ──
+ok(D.quarterEnds("2026-11-23", 4).join() === "2026-09-30,2026-06-30,2026-03-31,2025-12-31" && D.quarterEnds("2026-12-31", 1)[0] === "2026-12-31", "completed quarter ends, newest first");
+const cert = D.covenantCertificate(ds.find((d) => d.id === "sample-deal-1"), marks, "2026-09-30");
+const atQ = D.loanAt(ds.find((d) => d.id === "sample-deal-1"), marks, "2026-09-30");
+ok(cert.quarterEnd === "2026-09-30" && cert.rows.length === 3 && close(cert.rows[0].actual, atQ.dscr) && cert.valueBasis === "mark 2026-09-30" && cert.compliant === cert.rows.every((r) => r.pass), "certificate: DSCR, debt yield, LTV at the quarter end against the covenants");
+ok(/NOI [\d,]+ ÷ debt service [\d,]+/.test(cert.rows[0].calc), "with each calculation");
+const bad = D.covenantCertificate({ ...ds[0], inputs: { ...ds[0].inputs, covenants: { minDscr: 9 } } }, {}, "2026-09-30");
+ok(bad && !bad.compliant && bad.breaches[0].startsWith("Debt service coverage"), "a breach is reported");
+ok(D.covenantCertificate(ds.find((d) => d.id === "sample-deal-9"), {}, "2026-03-31") === null || ds.find((d) => d.id === "sample-deal-9").inputs.acquisitionDate <= "2026-03-31", "no certificate before the loan exists");
+const all = D.certificates(ds, marks, "2026-09-30");
+ok(all.length === ds.filter((d) => d.inputs.acquisitionDate <= "2026-09-30").length, "one certificate per loan in place at the quarter end");
+const cx = D.certificatesXlsx([cert, bad]);
+ok(cx.filter((r) => String(r[0]).startsWith("Covenant compliance certificate")).length === 2 && cx.some((r) => r[0] === "Certified by") && cx.some((r) => r[4] === "NO"), "certificates Excel: one block per loan with a signature line");
+const alerts = D.debtAlerts([{ ...ds[0], inputs: { ...ds[0].inputs, covenants: { minDscr: 9 } } }], {}, TODAY);
+ok(alerts.some((a) => a.kind === "covenant" && /Covenant breach: DSCR/.test(a.text)), "alert: a covenant breach now");
+const soon = D.debtAlerts([{ ...ds[0], inputs: { ...ds[0].inputs, acquisitionDate: "2024-03-01", covenants: { minDscr: 9 } } }], {}, TODAY);
+ok(soon.some((a) => a.kind === "extension" && a.date <= "2028-05-23"), "alert: an extension test failing within 18 months");
+ok(D.debtAlerts(ds.filter((d) => d.id === "sample-deal-1"), marks, TODAY).length === 0, "no alerts when the loan passes");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

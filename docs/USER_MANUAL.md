@@ -2582,8 +2582,17 @@ changes nothing. The Debt tab stays for one asset's loan.
   proceeds each test allows, which test binds, the payoff, the cash out or
   pay-down, and the new DSCR.
 - **Excel** of all of the above.
-- Still to come: quarterly covenant compliance certificates for lenders
-  (Excel and PDF) and a PDF of the tab.
+- **Covenant compliance certificates:** choose a quarter end (the last eight)
+  and one loan or all. Each certificate tests that quarter's DSCR, debt yield
+  and LTV against the loan's covenants. It uses model NOI for that hold year
+  and the latest valuation mark at the quarter end, and shows each
+  calculation, overall compliance and a signature block. The table shows
+  compliance per loan; **Certificates PDF** gives one page per loan, and
+  **Certificates Excel** gives one block per loan. Review against the loan
+  agreement's definitions before signing.
+- **PDF** of the tab: loans, maturity ladder, rate exposure and lenders.
+- On **Home**, a covenant breach now, or an extension test that fails
+  within 18 months, is on the attention list and opens Fund Debt.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3691,7 +3700,7 @@ each phase and the decisions behind it are in
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
-| S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | 🔨 Part 1 built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, Excel (§7.45); covenant certificates and PDF next |
+| S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |

@@ -4,7 +4,7 @@
 // loan in the fund: maturity ladder, extension tests, refinance planner,
 // rate exposure and caps, lender concentration. Read-only.
 import { useMemo, useState } from "react";
-import { extensionTest, fundDebtXlsx, fundLoans, lenderConcentration, maturityLadder, rateExposure, refinance } from "@/lib/fundDebt";
+import { certificates, certificatesXlsx, extensionTest, fundDebtXlsx, fundLoans, lenderConcentration, maturityLadder, quarterEnds, rateExposure, refinance } from "@/lib/fundDebt";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 
@@ -21,6 +21,9 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
   const [fund, setFund] = useState(names[0] ?? "");
   const [refiId, setRefiId] = useState("");
   const [refiIn, setRefiIn] = useState({ ratePct: 6.5, maxLtvPct: 65, minDscr: 1.25, amortYears: 30, minDebtYieldPct: "" });
+  const qs = quarterEnds(todayISO, 8);
+  const [certQ, setCertQ] = useState(qs[0]);
+  const [certLoan, setCertLoan] = useState("");
   const fd = deals.filter((d) => d.inputs?.fundName === fund);
   const loans = useMemo(() => fundLoans(fd, marks, todayISO), [fd, marks, todayISO]);
   if (!names.length) return <p className="text-xs text-gray-500">No fund assets yet.</p>;
@@ -41,6 +44,7 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
         <div><h2 className="text-lg font-bold">Fund Debt</h2><p className="text-xs text-gray-500">Every loan in the fund from each asset&apos;s debt inputs and model (the Debt tab stays for one asset&apos;s loan). As of {usDate(todayISO)}.</p></div>
         <div className="flex items-center gap-2 text-xs">
           {names.length > 1 && <select aria-label="Fund" value={fund} onChange={(e) => setFund(e.target.value)} className={inp}>{names.map((n) => <option key={n}>{n}</option>)}</select>}
+          <button type="button" disabled={!loans.length} onClick={async () => { const { fundDebtPdf } = await import("@/lib/fundDebtPdf"); downloadBlob(await fundDebtPdf(fund, loans, todayISO), `${fund.replace(/[^\w-]+/g, "-")}-fund-debt-${todayISO}.pdf`); }} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">PDF</button>
           <button type="button" disabled={!loans.length} onClick={async () => downloadBlob(await writeXlsx(fundDebtXlsx(fund, loans, todayISO), { sheetName: "Fund debt" }), `${fund.replace(/[^\w-]+/g, "-")}-fund-debt-${todayISO}.xlsx`)} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">Excel</button>
         </div>
       </div>
@@ -114,6 +118,33 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
               )}
             </Card>
           </div>
+          <Card title="Covenant compliance certificates" testid="debt-certs">
+            {(() => {
+              const certs = certificates(fd.filter((d) => !certLoan || d.id === certLoan), marks, certQ);
+              const fname = `covenant-certificates-${certLoan ? (certs[0]?.asset ?? "loan").replace(/[^\w-]+/g, "-") : fund.replace(/[^\w-]+/g, "-")}-${certQ}`;
+              return (
+                <>
+                  <div className="flex flex-wrap items-end gap-2 text-xs">
+                    <label className="flex flex-col"><span className="text-[10px] text-gray-500">Quarter ended</span><select aria-label="Certificate quarter" value={certQ} onChange={(e) => setCertQ(e.target.value)} className={inp}>{qs.map((q) => <option key={q} value={q}>{usDate(q)}</option>)}</select></label>
+                    <label className="flex flex-col"><span className="text-[10px] text-gray-500">Loan</span><select aria-label="Certificate loan" value={certLoan} onChange={(e) => setCertLoan(e.target.value)} className={inp}><option value="">All loans</option>{loans.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
+                    <button type="button" disabled={!certs.length} onClick={async () => { const { certificatesPdf } = await import("@/lib/fundDebtPdf"); downloadBlob(await certificatesPdf(certs), `${fname}.pdf`); }} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">Certificates PDF</button>
+                    <button type="button" disabled={!certs.length} onClick={async () => downloadBlob(await writeXlsx(certificatesXlsx(certs), { sheetName: "Certificates" }), `${fname}.xlsx`)} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">Certificates Excel</button>
+                  </div>
+                  {certs.length === 0 ? <p className="mt-2 text-xs text-gray-500">No loans in place at {usDate(certQ)}.</p> : (
+                    <table className="mt-2 w-full text-xs tabular-nums"><thead className="text-gray-500"><tr><th className="text-left font-medium">Asset</th><th className="text-left font-medium">Lender</th>{certs[0].rows.map((r) => <th key={r.test} className="text-right font-medium">{r.test.replace(/ \(.*\)/, "")}</th>)}<th className="text-right font-medium">Status</th></tr></thead>
+                      <tbody>{certs.map((c) => (
+                        <tr key={c.dealId} className="border-t border-gray-100" data-testid="cert-row">
+                          <td className="py-0.5">{c.asset}</td><td className="py-0.5 text-gray-500">{c.lender || "—"}</td>
+                          {c.rows.map((r) => <td key={r.test} className={`py-0.5 text-right ${r.pass ? "" : "font-semibold text-red-700"}`}>{r.unit === "x" ? x2(r.actual) : pct(r.actual)} <span className="text-[10px] text-gray-400">{r.kind === "min" ? "≥" : "≤"} {r.unit === "x" ? x2(r.required) : pct(r.required)}</span></td>)}
+                          <td className={`py-0.5 text-right font-semibold ${c.compliant ? "text-emerald-700" : "text-red-700"}`}>{c.compliant ? "In compliance" : "Breach"}</td>
+                        </tr>
+                      ))}</tbody></table>
+                  )}
+                  <p className="mt-1 text-[11px] text-gray-400">Each certificate tests the quarter&apos;s DSCR, debt yield and LTV (model NOI for that hold year; the latest valuation mark at the quarter end) against the loan&apos;s covenants, with the calculation and a signature block. Review against the loan agreement&apos;s definitions before signing.</p>
+                </>
+              );
+            })()}
+          </Card>
           {children}
         </>
       )}
