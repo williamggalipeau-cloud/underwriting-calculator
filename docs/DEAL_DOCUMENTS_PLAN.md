@@ -36,6 +36,8 @@ changes the model without the user clicking to apply it.
 | X | Distribution Analysis tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
 | Revert | Revert button on change-log entries, restore a deal or fund as of a date, Recently deleted list (added 11/23; workspace buttons removed the same day) | ⛓ After Z |
 | Z | Home page: today's attention list, workflow lanes matching the tab headers, fund cards, quick actions (incl. New fund setup), recent activity (added 11/23) | ⛓ After O |
+| Picker | "Working on" fund picker in the header (All funds / each Fund, SMA, JV): filters every tab, remembered per person; also on the Home page (added 11/23) | ⛓ With Z (or earlier if wanted) |
+| Demo | Separate Demo firm for the sample fund and test deals, so the real firm holds only real assets (added 11/23) | ⛓ After Picker |
 | Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
@@ -1318,6 +1320,31 @@ A **Home** page the app opens on, organised by workflow (user, 11/23):
   Yardi actuals, Import marks, Record capital activity, New report.
 - **Recent activity:** the last 10 changes from the change log.
 - Later: lane order by role; "My approvals" once phase V exists.
+
+## Fund picker: "Working on" (added 11/23, with Z)
+
+User, 11/23: "in the homepage can we add a drop down to load whatever
+portfolio you want to work on?" The data is already all loaded (one firm,
+saved record by record), so this is a **filter**, not a load:
+- A **Working on** dropdown in the header: All funds, then each fund, SMA
+  and JV with its type badge.
+- Every tab follows it: the deal list, Fund Return, Valuation, Asset
+  Summary, critical dates, the firm strip (which then shows that fund's
+  figures, labelled), and the Home page's lanes and fund cards.
+- Remembered per person (on their sign-in, not the browser), so each person
+  reopens on the portfolio they last worked on.
+- Pipeline deals with no fund show under All funds and under the fund they
+  are being screened for (phase M).
+
+## Demo firm (added 11/23, after the fund picker)
+
+Keep sample data out of the real firm:
+- A separate **Demo** firm holding Model Fund I and the test deals, opened
+  from the firm switcher by anyone with access; the real firm then holds only
+  real assets.
+- The **Sample data** menu (owners only, built 11/23) moves into the Demo
+  firm; the real firm loses it.
+- Tests and demos run against Demo; nothing in Demo touches real records.
 
 ## Phase W: GP Economics (added 11/23, after L)
 

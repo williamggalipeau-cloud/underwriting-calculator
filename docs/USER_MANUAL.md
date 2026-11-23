@@ -196,8 +196,8 @@ automatically.
   for everyone, with a backup file. A backup of the current data downloads
   first; anything not in the file is removed from the app; every record it
   changes is saved and logged as usual. Only for recovering from a mistake.
-- There is no Reset button any more; **Load Model Fund I** still loads the
-  sample deals.
+- There is no Reset button any more; **Sample data → Load Model Fund I**
+  still loads the sample deals.
 
 **What the browser still keeps:** only your sign-in, so you don't have to
 sign in on every visit (`sb-nydqmigxorahfkfpkjnq-auth-token`). It holds no
@@ -340,9 +340,11 @@ field.
   every other property in the workspace.
 
 **Sample portfolio.** The app opens with "Model Fund I": nine
-illustrative light-industrial assets (§7.13). **Load Model Fund I**
-restores them and **Clear test data** removes them. **Load test scenario**
-adds three more saved deals to Model Fund I, all closed after the fund's
+illustrative light-industrial assets (§7.13). The **Sample data ▾** menu
+(left, under the header; owners only, 11/23) holds three actions, each with
+a warning and a confirm because they change the firm's data for everyone:
+**Load Model Fund I** restores them and **Clear test data** removes them.
+**Load test scenario** adds three more saved deals to Model Fund I, all closed after the fund's
 final close: Eastside Distribution Hub (5/29/26), Northgate Flex Center
 (8/31/26) and Riverside Commerce Park (10/30/26), for twelve assets.
 (The former opening deal "Light Industrial (30k SF)" and the test deal
@@ -3089,6 +3091,8 @@ each phase and the decisions behind it are in
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ⛓ Right after K, before L |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ⛓ After Z |
 | Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
+| Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ⛓ With Z |
+| Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
 

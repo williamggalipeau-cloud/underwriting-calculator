@@ -55,6 +55,16 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await p.getByRole("button", { name: /Reset workspace|Export workspace|Import workspace/ }).count()) === 0, "workspace buttons removed");
   check((await p.getByRole("button", { name: "Download backup" }).count()) === 1 && (await p.getByRole("button", { name: "Restore from backup" }).count()) === 1, "Download backup, and Restore from backup for an owner");
 
+  // Sample data menu (11/23): one owner-only menu with a warning, not three loose buttons
+  check((await p.getByRole("button", { name: /^(Load test scenario|Load Model Fund I|Clear test data)$/ }).count()) === 0, "sample-data buttons not loose in the header");
+  const sm = p.getByTestId("sample-data-menu");
+  await sm.getByRole("button", { name: /Sample data/ }).click();
+  await p.waitForTimeout(300);
+  const items = await sm.getByRole("menuitem").allInnerTexts();
+  check(items.length === 3 && /Load Model Fund I/.test(items[0]) && /Load test scenario/.test(items[1]) && /Clear test data/.test(items[2]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
+  check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
+  await sm.getByRole("button", { name: /Sample data/ }).click();
+
   // Firm-wide strip
   const figs = p.getByTestId("firm-figure");
   check((await figs.count()) === 5, `firm strip: ${await figs.count()} figures`);

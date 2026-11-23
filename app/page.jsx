@@ -1298,6 +1298,7 @@ export default function Home() {
     setSavedDeals((prev) => prev.filter((d) => d.id !== id));
   }
 
+  const [sampleOpen, setSampleOpen] = useState(false);
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
 
   function handleLoadTest() {
@@ -1476,29 +1477,48 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Test scenario buttons */}
+      {/* Sample data menu (11/23): owners only, since it changes everyone's data. */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={handleLoadTest}
-          className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
-        >
-          Load test scenario
-        </button>
-        <button
-          type="button"
-          onClick={handleLoadSamplePortfolio}
-          className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
-        >
-          Load Model Fund I
-        </button>
-        <button
-          type="button"
-          onClick={handleClearTest}
-          className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Clear test data
-        </button>
+        {(!session || dbLink?.role === "owner") && (
+          <div className="relative" data-testid="sample-data-menu">
+            <button
+              type="button"
+              aria-expanded={sampleOpen}
+              aria-haspopup="menu"
+              onClick={() => setSampleOpen((o) => !o)}
+              title="Owners only: load or remove the fictional sample fund and test deals"
+              className="text-xs text-gray-500 hover:text-amber-700 border border-gray-200 hover:border-amber-300 bg-white rounded-lg px-3 py-1.5 transition-colors"
+            >
+              Sample data ▾
+            </button>
+            {sampleOpen && (
+              <div role="menu" className="absolute left-0 z-30 mt-1 w-80 rounded-lg border border-amber-200 bg-white p-2 shadow-lg">
+                <p className="mb-2 rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-900">
+                  For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
+                </p>
+                {[
+                  { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
+                  { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
+                  { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
+                ].map((a) => (
+                  <button
+                    key={a.label}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setSampleOpen(false);
+                      if (window.confirm(a.ask)) a.run();
+                    }}
+                    className="block w-full rounded px-2 py-1.5 text-left hover:bg-gray-50"
+                  >
+                    <span className={`block text-xs font-medium ${a.label.startsWith("Clear") ? "text-red-600" : "text-gray-800"}`}>{a.label}</span>
+                    <span className="block text-[11px] text-gray-500">{a.sub}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <span className="ml-auto text-[11px] text-gray-400">
           {!session ? "Not saved. Sign in to save to the database" : !dbLink ? "Opening the firm's data…" : null}
         </span>
