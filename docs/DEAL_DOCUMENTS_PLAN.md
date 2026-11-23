@@ -22,7 +22,7 @@ changes the model without the user clicking to apply it.
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
 | J | Underwritten vs. actual performance | ✅ Built 11/23 (pulled forward into window 1): frozen baseline, actual + projected, IRR gap by cause, fund ranking, Excel and PDF; 29 Node + 16 Playwright checks |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
-| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency); mock sample-asset images (added 11/23) | ⛓ Starts when K is complete |
+| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency); mock sample-asset images; full Asset Business Plan PDF (added 11/23) | ⛓ Starts when K is complete |
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
@@ -616,6 +616,16 @@ against what the fund actually does, using phases I and J for each asset.
   quarterly fund report suitable for LP updates.
 
 ## Phase L: performance and risk reporting (added 11/22, revised 11/22)
+
+**Also in L (user, 11/23): the full Asset Business Plan PDF.** The
+business plan's PDF button prints the whole plan in one file: everything it
+has today (plan, KPIs, leasing / capital / operating / financing / exit,
+milestones, risks, budget, budget vs. actual, changes since the previous
+revision) plus the cover photo and a page of captioned photos, the floor
+plan with units coloured by lease status (or the schematic), the location
+(address, coordinates and a Google Maps link; no map image, since the
+keyless map can't be printed), actual NOI, and underwritten vs. actual
+(phase J: returns, IRR gap by cause, by-year table).
 
 **Also in L (user, 11/23): mock images for the sample assets** (drawn
 exterior / interior photos with captions, dates and a cover, and a drawn
