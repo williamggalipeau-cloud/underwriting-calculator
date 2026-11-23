@@ -34,6 +34,7 @@ changes the model without the user clicking to apply it.
 | U | Market group: Market Data tab, submarket statistics; stress tests in standard deviations with a simulation (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
 | X | Distribution Analysis tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
+| Z | Home page: today's attention list, workflow lanes matching the tab headers, fund cards, quick actions (incl. New fund setup), recent activity (added 11/23) | ⛓ After O |
 | Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
@@ -1273,6 +1274,34 @@ LP reports).
   value-add fund (about 60%), so part of any gap is leverage.
 - Views: since inception and trailing 1 / 3 / 5 years; charts; Excel and
   PDF; feeds phase L's reports (internal by default because of licensing).
+
+## Phase Z: Home page (added 11/23, after O)
+
+A **Home** page the app opens on, organised by workflow (user, 11/23):
+- **Today:** the firm-wide figures, and an attention list (lease
+  expirations and option deadlines in 90 days, overdue appraisals, loan
+  maturities and covenant tests coming due, rent 60+ days late, rate caps
+  expiring, budget lines in the red), each opening the tab that handles it.
+- **Workflow lanes, one per tab header**, in the tab bar's order, each with
+  a few live numbers and links to its tabs (a lane appears once its header
+  has tabs):
+  - **Acquisitions:** pipeline by stage, deals in screening, dry powder.
+  - **Dispositions:** assets for sale, offers received, sell / hold flags.
+  - **Asset Management:** occupancy, leases expiring this year, NOI vs.
+    budget, open capex / TI, appraisals due.
+  - **Property Management:** tax and insurance due dates, open condition
+    items, service contracts renewing.
+  - **Portfolio Management:** NAV and net IRR vs. target, loans maturing in
+    18 months and covenant headroom, sub line used, distributable cash and
+    last distribution yield, next report due.
+  - **Market:** latest submarket vacancy and rent for the firm's markets.
+  - **Library:** recently added documents and reports.
+- **Fund cards:** one per fund / Separate Account / JV with its type badge,
+  NAV, net IRR vs. target, % called, dry powder and next key date.
+- **Quick actions:** New deal, **New fund setup**, Upload rent roll, Upload
+  Yardi actuals, Import marks, Record capital activity, New report.
+- **Recent activity:** the last 10 changes from the change log.
+- Later: lane order by role; "My approvals" once phase V exists.
 
 ## Phase W: GP Economics (added 11/23, after L)
 
