@@ -270,7 +270,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Asset Business Plan** | The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Fund Return shows NOI vs budget by asset. |
+| **Asset Business Plan** | The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Fund Return shows NOI vs budget by asset. Below the plan: **photos** (caption, date, order, cover), a **location map** (OpenStreetMap, located once) and a **floor plan** (uploaded image with unit boxes colored by lease status, or a schematic), where vacant units can be **demised** or **combined** (§7.31). |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
@@ -525,6 +525,7 @@ underwriting-calculator/
 │   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
 │   ├── Valuations.jsx        Valuation tab (fair value marks, asset NAV, valuation PDF)
 │   ├── FundNav.jsx           Fund NAV and interim returns (top of Fund Return)
+│   ├── AssetMedia.jsx        Photos, location map, floor plan, demise / combine
 │   ├── FundTypeBadge.jsx     Fund type tag badge
 │   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
 │   ├── CashYield.jsx         Cash-on-cash yield charts and table
@@ -545,6 +546,8 @@ underwriting-calculator/
 │   ├── pensfordImport.js     Read a Pensford export (xlsx/csv/pasted)
 │   ├── nyfed.js              NY Fed live SOFR, curve anchoring
 │   ├── enterprise.js         Firm-wide header figures (AUM, SF, assets, tenants, occupancy)
+│   ├── assetMedia.js         Photos, map, floor plan, demise / combine, actual NOI (§7.31)
+│   ├── assetPhotos.js        asset-photos bucket: upload, signed links, delete
 │   ├── fundTypes.js          Fund type tag (Fund / Separate Account / Joint Venture)
 │   ├── sofr.js               CME SOFR futures fetch (optional)
 │   ├── capPricer.js          Bachelier cap pricer and vol surface
@@ -1984,6 +1987,49 @@ for every line. Flag: amber when unfavorable by more than the threshold
 **KPIs:** NOI (last 12 months of actuals, annualized), occupancy and average
 rent from the rent roll, WALT, capex spent vs budget.
 
+### 7.31 Asset photos, map, floor plan and actual NOI (`lib/assetMedia.js`)
+
+Shown under the business plan on the **Asset Business Plan** tab (phase I
+part 2). Owners and editors change them; viewers see them.
+
+**Photos.** **Add photos** uploads JPEG, PNG, WebP or GIF files (up to 25 MB
+each) to the private `asset-photos` bucket. Each photo has a caption, a date
+(today when added) and an order (← / → to move it). One photo is the
+**cover** (the first added, until **Make cover** picks another; deleting the
+cover makes the first photo the cover). Photos open through one-hour signed
+links.
+
+**Location map.** **Locate on map** looks the address up once with
+OpenStreetMap Nominatim: the full street address first, then city, state and
+ZIP (the sample assets' streets are fictional, so they land on the city).
+The point and the query it came from are saved, so the map loads straight
+from OpenStreetMap after that (attribution: © OpenStreetMap contributors).
+If the address changes, the map says so and **Locate again** updates it.
+**Enter coordinates** sets the point by hand. Nothing is looked up until you
+click.
+
+**Floor plan.** Without an uploaded plan, a **schematic** shows the rent roll
+units in order as boxes in rows, each as wide as its share of the row's SF.
+**Upload plan** (an image; save a PDF page as PNG or JPEG) shows the plan;
+choose a unit under **Place unit** and drag a box over it. Boxes are colored
+by status: leased (green), lease ending within 12 months (amber), vacant
+(red); hover for the unit, SF, tenant and lease end.
+
+**Demising and combining** (vacant units only). Click units on the plan to
+select them. **Demise** one unit into 2–10 units (sizes must add up to its
+SF): the new units are named 014-A, 014-B, …, take its place in the rent
+roll, are vacant at its market rent, and split its box left to right by SF.
+**Combine** two or more units into one named 012/013, at the SF-weighted
+market rent, in the first unit's place, with a box covering theirs. The rent
+roll, cash flow and every tab update, and each change is in the change log.
+
+**Actual NOI.** From the business plan's imported actuals: the trailing 12
+months on or before today, annualized when fewer months are in. The
+**Valuation** tab shows the cap rate on actual NOI (actual NOI ÷ the
+quarter's fair value) under each asset's implied cap; **Sell/Hold Analysis**
+shows an **Actual NOI** tile with its difference from the year-ahead NOI and
+the value at the same cap. Neither changes the underwritten model.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -2364,6 +2410,7 @@ reference data except lease end, which sets months remaining (§7.19).
 | `loanTerms` | `{ lender, maturityDate, floorPct, capMaxStrikePct, capMinRating, capReplacementDays, prepayment, reserves, reporting, docId }` |
 | `loanCovenants` | `{ dscr, debtYieldPct, ltvPct, testing, cure }` |
 | `businessPlan` | `{ revisions: [{ n, at, by, note, reason, changes, plan, budget, model }], actuals: { "YYYY-MM": lines }, actualsSource, comments: { "<period>|<line>": text }, thresholdPct }` (§7.30) |
+| `assetMedia` | `{ photos: [{ id, path, name, caption, date, order, cover }], floorPlan: { path, name, kind, boxes: { unitId: { x, y, w, h } } }, geo: { lat, lon, label, query, source, at } }` (§7.31). Files are in the private `asset-photos` bucket at `<workspace>/<deal id>/photos/…` and `…/floorplan/…`; box coordinates are fractions of the plan; `geo.source` is `geocoded` or `manual` |
 | `executedCaps` | `[{ holdYear, provider, rating, strikePct, effective, termination, notional, premium, index, tradeDate, docId }]` from cap confirmations |
 
 Fund terms (`funds[name]`) also get `limits`: `[{ key, label, limit, unit, basis, clause, quote, docId }]` from the LPA / PPM.
@@ -2976,7 +3023,7 @@ each phase and the decisions behind it are in
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Live (PR #71) |
 | G. Appraisal | Appraised value and cap rate to the Valuation tab | ✅ Live (PR #71) |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Live (PR #72) |
-| I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 next: photos, map, floor plan, demising |
+| I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 built 11/23: photos, map, floor plan, demising / combining, actual NOI in Valuation and Sell/Hold |
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
