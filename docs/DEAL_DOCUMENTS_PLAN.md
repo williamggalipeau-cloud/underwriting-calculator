@@ -754,7 +754,8 @@ A new **Fund Summary** tab: one page of key facts about the selected fund.
   (Leases → Critical dates); the page links to those tabs instead.
 - Kept (not shown elsewhere yet): end of term and outside date with
   extensions; % of commitments called; sub line drawn vs capacity.
-  Optional: a one-page PDF.
+- **Exports** (user confirmed 11/23): the summary as a one-page PDF and as
+  Excel.
 
 ## Order and review
 
