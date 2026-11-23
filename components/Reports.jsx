@@ -49,7 +49,7 @@ function Stat({ label, value }) {
   );
 }
 
-export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, onApplyDeal, pipeline = [] }) {
+export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, onApplyDeal, pipeline = [], workspaceId = null }) {
   const [view, setView] = useState("quarterly");
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
@@ -149,6 +149,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           canEdit={canEdit}
           onFundTermsChange={onFundTermsChange}
           onApplyDeal={onApplyDeal}
+          workspaceId={workspaceId}
         />
       ) : (
       <>

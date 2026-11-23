@@ -1,7 +1,9 @@
 "use client";
 
 // Phase L: the internal risk report (Reports tab, owners and editors only).
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { listDealDocs } from "@/lib/dealDocs";
+import { listLeases } from "@/lib/leaseDocs";
 import { DEFAULT_RISK_LIMITS, ENV_FIELDS, LEVELS, riskReport, riskXlsx } from "@/lib/riskReport";
 import { COLORS as TI_COLORS } from "@/lib/tiFunding";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
@@ -38,9 +40,19 @@ function T({ head, rows, right = [] }) {
 }
 const over = (v, lim) => (v > lim ? <span className="font-semibold text-red-700">{pct(v)}</span> : pct(v));
 
-export default function RiskReport({ fundName, terms, deals, values, asOf, curve, planGap, lineBalance = 0, email, canEdit, onFundTermsChange, onApplyDeal }) {
+export default function RiskReport({ fundName, terms, deals, values, asOf, curve, planGap, lineBalance = 0, email, canEdit, onFundTermsChange, onApplyDeal, workspaceId = null }) {
+  const [docs, setDocs] = useState(null);
+  const [docsErr, setDocsErr] = useState("");
+  useEffect(() => {
+    if (!workspaceId) return;
+    let live = true;
+    Promise.all([listLeases(workspaceId).catch(() => []), listDealDocs(workspaceId).catch(() => [])])
+      .then(([leases, dealDocs]) => live && setDocs({ leases, dealDocs }))
+      .catch((e) => live && setDocsErr(e.message));
+    return () => { live = false; };
+  }, [workspaceId]);
   const today = new Date().toISOString().slice(0, 10);
-  const r = useMemo(() => riskReport(deals, terms, { asOf, values, curve, planGap, lineBalance, tiAsOf: today }), [deals, terms, asOf, values, curve, planGap, lineBalance, today]);
+  const r = useMemo(() => riskReport(deals, terms, { asOf, values, curve, planGap, lineBalance, tiAsOf: today, docs }), [deals, terms, asOf, values, curve, planGap, lineBalance, today, docs]);
   const [busy, setBusy] = useState(false);
   const lim = r.limits;
   const store = terms.reports ?? {};
@@ -113,6 +125,12 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         </Sec>
       )}
 
+      <Sec title="Stress tests (levered IRR; red = DSCR below its test in some year)" testId="risk-stress">
+        <T head={["", "Base", ...r.stress.shocks.map((x) => x.label)]} right={[1, 2, 3, 4, 5, 6]}
+          rows={[["Fund (equity-weighted)", pct(r.stress.fund.baseIrr), ...r.stress.fund.byShock.map((x) => `${pct(x.irr)}${x.breaches ? ` · ${x.breaches} breach${x.breaches > 1 ? "es" : ""}` : ""}`)],
+            ...r.stress.assets.map((a) => [a.name, pct(a.baseIrr), ...a.results.map((x) => <span key={x.key} className={x.breach ? "font-semibold text-red-700" : ""} title={x.minDscr != null ? `Lowest DSCR ${x.minDscr.toFixed(2)}x (test ${a.test.toFixed(2)}x)` : undefined}>{pct(x.irr)}</span>)])]} />
+      </Sec>
+
       <div className="grid gap-3 lg:grid-cols-2">
         <Sec title="Leasing: expirations by year (% of rent)" testId="risk-leasing">
           <T head={["", ...r.leasing.years.map(String), "12-mo rollover", "Vacant (SF)"]} right={[1, 2, 3, 4, 5, 6, 7, 8]}
@@ -156,6 +174,23 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           {r.execution.budget.map((b) => <p key={b.id} className="mt-1 text-[11px] text-gray-600">{b.name}: over budget on {b.lines.join(", ")}</p>)}
           {r.execution.planGap && <p className="mt-1 text-[11px] text-gray-600">Fund plan: projected net LP IRR {pct(r.execution.planGap.current)} vs. plan {pct(r.execution.planGap.plan)}.</p>}
           {!r.execution.uw.length && !r.execution.budget.length && <p className="text-xs text-gray-400">No baselines or budget actuals yet.</p>}
+        </Sec>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Sec title="Insurance certificates" testId="risk-insurance">
+          {!r.insurance ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading documents…") : "Sign in to check the insurance certificates on file."}</p> : (
+            <T head={["Asset", "Certificates", "Gaps"]} right={[1]} rows={r.insurance.map((x) => [x.name, x.certificates, x.gaps.length ? <ul key="g" className="list-disc pl-4">{x.gaps.map((g, i) => <li key={i} className={g.severity === "high" ? "text-red-700" : g.severity === "medium" ? "text-amber-800" : ""}>{g.text}</li>)}</ul> : "—"])} />
+          )}
+          <p className="mt-1 text-[11px] text-gray-400">Expired or expiring (60 days) policies, missing tenant certificates, and tenant coverage below the lease&apos;s requirements (Documents tab). Coverage against loan requirements comes once loan agreements carry them.</p>
+        </Sec>
+        <Sec title="Lease risk flags" testId="risk-lease-flags">
+          {!r.leaseFlags ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading leases…") : "Sign in to see the lease risk flags."}</p> : r.leaseFlags.rows.length === 0 ? <p className="text-xs text-gray-400">No abstracted leases with risk flags.</p> : (
+            <>
+              <T head={["Type", "Flags", "High"]} right={[1, 2]} rows={r.leaseFlags.byType.map((x) => [x.type, x.n, x.high])} />
+              <T head={["Asset", "Tenant", "Flag", "Severity"]} rows={r.leaseFlags.rows.filter((x) => x.severity === "high").slice(0, 15).map((x) => [x.asset, x.tenant, x.title, x.severity])} />
+            </>
+          )}
         </Sec>
       </div>
 

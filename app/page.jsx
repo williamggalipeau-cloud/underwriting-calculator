@@ -1857,6 +1857,7 @@ export default function Home() {
             {activeTab === "reports" && (
               <Reports
                 pipeline={unassignedDeals}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
                 onApplyDeal={applyToDeal}
                 deals={fundDeals}
                 funds={funds}

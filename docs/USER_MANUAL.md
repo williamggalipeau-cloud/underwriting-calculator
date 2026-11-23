@@ -2207,6 +2207,17 @@ the shareable report) shows, as of the quarter end:
   TI due. Hover a cell for the need, each source, and how far NOI could fall
   before draws stop. A fund row shows the capital call needed each quarter.
   Draw-test failures and capital calls go on the watch list.
+- **Stress tests:** each asset's levered IRR under five standard shocks
+  (rent growth −3 pts, vacancy +10 pts, exit cap +75 bps, rates +200 bps,
+  all four together) and the fund's equity-weighted IRR; red where DSCR
+  falls below the asset's test in some year (combined-shock breaches go on
+  the watch list). The Stress Testing tab has the sliders.
+- **Insurance certificates** (from the Documents tab, signed in): expired or
+  expiring (60 days) policies, no owner's certificate, leases with no tenant
+  certificate, and tenant coverage below the lease's requirements; expired
+  policies go on the watch list.
+- **Lease risk flags** (abstracted leases): counts by type and the high ones,
+  which go on the watch list.
 - **Concentration limits used here** can be changed per fund.
 **PDF** (watermarked "Internal - not for distribution" on every page),
 **Excel**, and **Issue risk report** (frozen, v1, v2…).
@@ -2217,8 +2228,9 @@ sample assets made-up lenders (one over the 35% limit), cap counterparties
 open REC, flood zones, high heat, an old Phase I), TI facilities on the
 loans and one planned re-tenanting, set so the heat map shows every colour,
 only where empty. Still to
-come in phase L: stress tests, insurance and lease risk flags in the
-report, and TI actions (postpone, cut, plan a call) on the heat map.
+come in phase L: TI actions (postpone, cut, plan a call) on the heat map,
+change vs. last quarter for the concentrations, and insurance against loan
+requirements.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3319,7 +3331,7 @@ each phase and the decisions behind it are in
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). Next: TI funding heat map, stress tests, insurance and lease flags in the risk report |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). Next: TI actions, change vs. last quarter |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |

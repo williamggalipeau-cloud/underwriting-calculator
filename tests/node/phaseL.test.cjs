@@ -183,5 +183,33 @@ ok(TI.facilityOf({ tiReserve: { enabled: true, reservePSF: 8, minDrawDSCR: 1.1 }
 const rrt = RK.riskReport(qdeals.filter((d) => sh.portfolio.some((x) => x.id === d.id)), qterms, { asOf: "2026-09-30", values, tiAsOf: "2026-11-23" });
 ok(rrt.ti && rrt.watch.some((w) => w.reasons.some((x) => /TI draw test/.test(x))), "risk report: TI heat map and draw-test flags on the watch list");
 
+// ── Stress section ──
+ok(rrt.stress.assets.length === 7 && rrt.stress.shocks.length === 5, "stress: 7 assets × 5 shocks");
+ok(rrt.stress.assets.every((a) => a.results.every((x) => x.irr == null || x.irr <= a.baseIrr + 1e-6)), "every shock lowers (never raises) the IRR");
+const combI = rrt.stress.fund.byShock.find((x) => x.key === "combined").irr;
+ok(combI < Math.min(...rrt.stress.fund.byShock.filter((x) => x.key !== "combined").map((x) => x.irr)) + 1e-6, `all four together hurts most: fund IRR ${rrt.stress.fund.baseIrr.toFixed(1)}% → ${combI.toFixed(1)}%`);
+ok(RK.riskXlsx("F", rrt).some((r2) => r2[0] === "Stress (levered IRR %)"), "Excel: stress block");
+
+// ── Insurance and lease risk flags (documents from the database) ──
+const h7 = qdeals.filter((d) => sh.portfolio.some((x) => x.id === d.id));
+const docs = {
+  leases: [
+    { id: "L1", deal_id: h7[0].id, tenant: "Ironwood Electrical Contractors", abstract: { risks: [{ severity: "high", title: "Tenant termination right after year 3", clause: "4.2" }, { severity: "low", title: "Relocation clause", clause: "9.1" }], insurance: {} } },
+    { id: "L2", deal_id: h7[0].id, tenant: "Evergreen Food Distributors", abstract: { risks: [] } },
+  ],
+  dealDocs: [
+    { id: "D1", deal_id: h7[0].id, doc_type: "insurance_cert", lease_id: null, abstract: { policies: [{ coverage: "property", policy_no: "P-1", expiry: "2026-10-01" }] } },
+    { id: "D2", deal_id: h7[0].id, doc_type: "insurance_cert", lease_id: "L1", abstract: { policies: [{ coverage: "cgl", policy_no: "G-7", expiry: "2027-06-30", per_occurrence: 1000000, aggregate: 2000000 }] } },
+  ],
+};
+const rd = RK.riskReport(h7, qterms, { asOf: "2026-11-23", values, docs });
+const ins0 = rd.insurance.find((x) => x.id === h7[0].id);
+ok(ins0.certificates === 2 && ins0.gaps.some((g) => g.severity === "high" && /property policy P-1 expired 2026-10-01/.test(g.text)), "insurance: the owner's property policy has expired (high)");
+ok(ins0.gaps.some((g) => /No tenant certificate for Evergreen Food Distributors/.test(g.text)), "insurance: a lease with no tenant certificate");
+ok(rd.insurance.filter((x) => x.id !== h7[0].id).every((x) => x.gaps.some((g) => /No owner's insurance certificate/.test(g.text))), "insurance: assets with no owner's certificate");
+ok(rd.leaseFlags.rows.length === 2 && rd.leaseFlags.byType.some((t) => t.type === "Termination rights" && t.high === 1), "lease risk flags by type, with the high ones");
+ok(rd.watch.find((w) => w.id === h7[0].id).reasons.some((x) => /Insurance: property policy/.test(x)) && rd.watch.find((w) => w.id === h7[0].id).reasons.some((x) => /Lease risk: Ironwood/.test(x)), "the expired policy and the termination right go on the watch list");
+ok(RK.riskReport(h7, qterms, { asOf: "2026-11-23", values }).insurance === null, "signed out (no documents loaded): no insurance section");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;
