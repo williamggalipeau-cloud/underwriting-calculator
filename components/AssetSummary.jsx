@@ -1,5 +1,7 @@
 "use client";
 
+import FundTypeBadge from "@/components/FundTypeBadge";
+import { fundOptionLabel } from "@/lib/fundTypes";
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { assetSummary, assetSummaryXlsx } from "@/lib/assetSummary";
@@ -321,7 +323,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose }) {
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-gray-400">No completed quarter since acquisition yet. Marks are entered on the Valuations tab.</p>
+            <p className="text-xs text-gray-400">No completed quarter since acquisition yet. Marks are entered on the Valuation tab.</p>
           )}
         </div>
         {/* Capital activity */}
@@ -348,7 +350,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose }) {
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-gray-400">None. Tag the call or line draw that funded this asset under Portfolio Return → Capital activity.</p>
+            <p className="text-xs text-gray-400">None. Tag the call or line draw that funded this asset under Fund Return → Capital activity.</p>
           )}
         </div>
       </div>
@@ -430,7 +432,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
     <div className="space-y-4 text-gray-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Asset Summary</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">Asset Summary <FundTypeBadge type={funds[fundName]?.type} /></h2>
           <p className="text-xs text-gray-500">
             Every asset in {fundName}: status, capital, underwriting and latest valuation
             {summary.lastQ ? ` (${quarterLabel(summary.lastQ)})` : ""}. Click a column to sort, Details for an asset&apos;s full breakdown, or a name to open the deal.
@@ -439,7 +441,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {fundNames.length > 1 && (
             <select value={fundName} onChange={(e) => setFundPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">
-              {fundNames.map((nm) => <option key={nm} value={nm}>{nm}</option>)}
+              {fundNames.map((nm) => <option key={nm} value={nm}>{fundOptionLabel(nm, funds)}</option>)}
             </select>
           )}
           <button
@@ -564,8 +566,8 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
         <span className="font-medium text-gray-500">How totals work:</span>{" "}dollar figures and SF are summed. $/SF, loan / price (the loan includes lender-funded capex) and the going-in and
         exit caps are weighted (total ÷ total). IRR is pooled across every asset&apos;s dated equity cash flows; the multiple is total
         distributions ÷ total equity. Underwriting figures are each asset&apos;s current model (gross, before fund fees and promote). Fair
-        value, NAV and TVPI are from the Valuations tab as of the last completed quarter. Funding comes from the fund&apos;s capital activity
-        tags (Portfolio Return).
+        value, NAV and TVPI are from the Valuation tab as of the last completed quarter. Funding comes from the fund&apos;s capital activity
+        tags (Fund Return).
       </p>
     </div>
   );

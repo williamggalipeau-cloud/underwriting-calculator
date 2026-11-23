@@ -110,7 +110,7 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
     <div className="space-y-4 text-gray-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold">Sell / Hold</h2>
+          <h2 className="text-lg font-bold">Sell/Hold Analysis</h2>
           <p className="text-xs text-gray-500">
             Sell now, hold, or refinance and hold: forward return of holding against the fund&apos;s hurdle ({pct(hurdle, 2)}), and the effect on {fundName}.
           </p>

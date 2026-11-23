@@ -132,7 +132,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(cdt.includes("Due diligence expires; deposits go hard") && cdt.includes("IC condition: asset management plan due"), "PSA and IC deadlines on Critical dates");
 
   // Edit fund terms: LPA panel shows limits now applied
-  await p.getByRole("button", { name: /^Portfolio Return/ }).click();
+  await p.getByRole("button", { name: /^Fund Return/ }).click();
   await p.waitForTimeout(1500);
   await main.getByRole("button", { name: "Edit all terms" }).first().click();
   await p.waitForTimeout(800);

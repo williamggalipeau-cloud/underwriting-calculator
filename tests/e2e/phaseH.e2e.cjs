@@ -91,11 +91,11 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // Unit Roll badges on Airport Flex (Sep late caught up → no badge in Oct); estoppel flag on unit 104
   check((await main.getByTestId("unit-estoppel-flag").count()) >= 1, "Unit Roll: estoppel flag on Desert Aero's unit");
 
-  // Portfolio Return card
-  await p.getByRole("button", { name: "Portfolio Return", exact: true }).click().catch(() => {});
+  // Fund Return card
+  await p.getByRole("button", { name: "Fund Return", exact: true }).click().catch(() => {});
   await p.waitForTimeout(1200);
   const sum = main.getByTestId("delinquency-summary");
-  check((await sum.count()) > 0 && (await sum.first().innerText()).includes("42,685"), "Portfolio Return: delinquency card");
+  check((await sum.count()) > 0 && (await sum.first().innerText()).includes("42,685"), "Fund Return: delinquency card");
 
   // ── Leases: estoppel flag on the lease card ──
   await p.getByRole("button", { name: "Leases", exact: true }).click();

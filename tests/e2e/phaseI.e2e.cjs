@@ -127,11 +127,11 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // Model change banner
   await p.getByRole("button", { name: /^Unit Roll/ }).first().click();
   await p.waitForTimeout(600);
-  // Portfolio Return roll-up
-  await p.getByRole("button", { name: /^Portfolio Return/ }).first().click();
+  // Fund Return roll-up
+  await p.getByRole("button", { name: /^Fund Return/ }).first().click();
   await p.waitForTimeout(1000);
   const sum = await main.getByTestId("budget-summary").innerText().catch(() => "");
-  check(sum.includes("Airport Flex Park") && sum.includes("Route 9 Small Bay") && sum.includes("Fund"), "Portfolio Return: NOI vs budget by asset");
+  check(sum.includes("Airport Flex Park") && sum.includes("Route 9 Small Bay") && sum.includes("Fund"), "Fund Return: NOI vs budget by asset");
   // Critical dates: the milestone
   await p.getByRole("button", { name: "Leases", exact: true }).click();
   await p.waitForTimeout(1200);

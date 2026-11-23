@@ -1,7 +1,9 @@
 "use client";
 
+import { fundOptionLabel, fundType } from "@/lib/fundTypes";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
+import FundTypeBadge from "@/components/FundTypeBadge";
 import {
   DUE_DAYS,
   MIN_IRR_YEARS,
@@ -110,17 +112,6 @@ function BasisBadge({ row }) {
   return <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${b.cls}`}>{b.label}</span>;
 }
 
-function Stat({ label, value, sub, tone }) {
-  return (
-    <div>
-      <p className="text-[11px] text-gray-500">{label}</p>
-      <p className={`text-base font-bold tabular-nums ${tone === "bad" ? "text-red-600" : "text-gray-900"}`}>{value}</p>
-      {sub && <p className="text-[10px] text-gray-400">{sub}</p>}
-    </div>
-  );
-}
-
-// Editable quarter-by-quarter marks for one asset.
 function MarkEditor({ asset, marks, onChange, onOpenDoc }) {
   const set = (q, patch) => {
     const cur = marks[q] ?? {};
@@ -249,7 +240,7 @@ function ImportPanel({ deals, valuation, onImport, onClose }) {
   );
 }
 
-export default function Valuations({ deals, funds = {}, marks = {}, onMarksChange, curve, onOpenDoc }) {
+export default function Valuations({ deals, funds = {}, marks = {}, onMarksChange, curve, onOpenDoc, onOpenFundReturn }) {
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
   const fundName = fundNames.includes(fundPick) ? fundPick : fundNames[0];
@@ -296,16 +287,16 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Valuations</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">Valuation <FundTypeBadge type={funds[fundName]?.type} /></h2>
           <p className="text-xs text-gray-500">
-            Quarterly fair value by asset. Q2 and Q4 are independent appraisals; Q1 and Q3 roll the last mark forward (plus capex). NAV and
-            interim returns follow.
+            Quarterly fair value by asset. Q2 and Q4 are independent appraisals; Q1 and Q3 roll the last mark forward (plus capex). Fund NAV
+            and interim returns are on Fund Return.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {fundNames.length > 1 && (
             <select value={fundName} onChange={(e) => setFundPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">
-              {fundNames.map((n) => <option key={n} value={n}>{n}</option>)}
+              {fundNames.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}
             </select>
           )}
           {quarters.length > 0 && (
@@ -325,7 +316,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
               const { valueTrendPdf } = await import("@/lib/valuationPdf");
               const trend = valueTrend(val, asOf, 4);
               const impact = valuationImpact(fundDeals, marks, terms, { todayISO, curve }, val, trend.quarters);
-              const blob = await valueTrendPdf(val, trend, { fundName, todayISO, impact });
+              const blob = await valueTrendPdf(val, trend, { fundName, fundType: fundType(funds[fundName]?.type), todayISO, impact });
               downloadBlob(blob, `${safeFileName(fundName)}-valuation-changes-${asOf}.pdf`);
             }}
             className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40"
@@ -390,43 +381,10 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
         </div>
       ) : (
         <>
-          {/* Fund NAV & interim returns */}
-          <div className="grid gap-3 lg:grid-cols-3">
-            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
-              <h4 className="mb-2 text-xs font-semibold text-gray-700">Fund NAV · {quarterLabel(asOf)}</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <Stat label="Gross asset value" value={fmtM(fq.gav)} sub={`${fq.assets} asset${fq.assets === 1 ? "" : "s"}`} />
-                <Stat label="Debt" value={fmtM(fq.debt)} />
-                <Stat label="Asset cash reserves" value={fmtM(fq.reserves)} />
-                <Stat label="Fund NAV" value={fmtM(fq.nav)} sub="Value − debt + reserves" />
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
-              <h4 className="mb-2 text-xs font-semibold text-gray-700">Gross (asset level, before fund costs & promote)</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <Stat label="Interim IRR" value={irrText(fq.gross.irr, fq.yearsSinceFirstCall)} sub={fq.yearsSinceFirstCall < MIN_IRR_YEARS ? "Under 1 year since first investment" : "Since inception, NAV as ending value"} />
-                <Stat label="TVPI" value={fmtX(fq.gross.tvpi)} tone={fq.gross.tvpi < 1 ? "bad" : undefined} sub={`${fmtM(fq.gross.contrib)} invested`} />
-                <Stat label="DPI" value={fmtX(fq.gross.dpi)} sub={`${fmtM(fq.gross.dist)} distributed`} />
-                <Stat label="RVPI" value={fmtX(fq.gross.rvpi)} />
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
-              <h4 className="mb-2 text-xs font-semibold text-gray-700">
-                Net LP (hypothetical liquidation at NAV)
-                {val.flowsMode === "actual" && <span className="ml-1.5 rounded bg-blue-50 px-1 text-[9px] font-semibold text-blue-700">actual calls</span>}
-              </h4>
-              {fq.net.nm ? (
-                <p className="text-xs text-gray-500">n/m — {fq.net.nm}. Sub line balance {fmtM(fq.lineBalance)}.</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <Stat label="Interim IRR" value={irrText(fq.net.irr, fq.yearsSinceFirstCall)} />
-                  <Stat label="TVPI" value={fmtX(fq.net.tvpi)} tone={fq.net.tvpi < 1 ? "bad" : undefined} sub={`${fmtM(fq.net.contrib)} called`} />
-                  <Stat label="DPI" value={fmtX(fq.net.dpi)} sub={`${fmtM(fq.net.dist)} distributed`} />
-                  <Stat label="LP NAV" value={fmtM(fq.net.lpNav)} sub={`RVPI ${fmtX(fq.net.rvpi)} · after ${fmtM(fq.lineBalance)} sub line`} />
-                </div>
-              )}
-            </div>
-          </div>
+          <p className="rounded-xl border border-blue-100 bg-blue-50/50 px-4 py-2 text-xs text-gray-600" data-testid="fund-nav-moved">
+            Fund NAV, gross and net LP interim returns and the fund&apos;s quarter-by-quarter totals are on{" "}
+            {onOpenFundReturn ? <button type="button" onClick={onOpenFundReturn} className="font-semibold text-blue-600 hover:underline">Fund Return →</button> : <span className="font-semibold">Fund Return</span>}
+          </p>
 
           {/* Assets */}
           <div className="overflow-x-auto rounded-xl border border-gray-200">
@@ -486,45 +444,12 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
 
           <ValueTrend trend={valueTrend(val, asOf, 4)} />
 
-          {/* Fund by quarter */}
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
-            <table className="w-full text-xs tabular-nums">
-              <thead className="bg-gray-50 text-gray-500">
-                <tr>
-                  {["Quarter", "Assets", "Gross asset value", "Debt", "Reserves", "Fund NAV", "Sub line", "Gross IRR", "Gross TVPI", "Gross DPI", "LP NAV", "Net LP IRR", "Net LP TVPI", "Net LP DPI"].map((h, i) => (
-                    <th key={h} className={`px-2.5 py-2 font-medium whitespace-nowrap ${i === 0 ? "text-left" : "text-right"}`}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[...quarters].reverse().map((q) => (
-                  <tr key={q.quarterEnd} className={`border-t border-gray-100 ${q.quarterEnd === asOf ? "bg-blue-50/40" : ""}`}>
-                    <td className="px-2.5 py-1.5 text-left font-medium text-gray-700 whitespace-nowrap">{quarterLabel(q.quarterEnd)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{q.assets}</td>
-                    <td className="px-2.5 py-1.5 text-right">{fmtM(q.gav)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{fmtM(q.debt)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{fmtM(q.reserves)}</td>
-                    <td className="px-2.5 py-1.5 text-right font-semibold">{fmtM(q.nav)}</td>
-                    <td className="px-2.5 py-1.5 text-right text-gray-500">{fmtM(q.lineBalance)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{irrText(q.gross.irr, q.yearsSinceFirstCall)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{fmtX(q.gross.tvpi)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{fmtX(q.gross.dpi)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{q.net.nm ? "n/m" : fmtM(q.net.lpNav)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{q.net.nm ? "n/m" : irrText(q.net.irr, q.yearsSinceFirstCall)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{q.net.nm ? "n/m" : fmtX(q.net.tvpi)}</td>
-                    <td className="px-2.5 py-1.5 text-right">{q.net.nm ? "n/m" : fmtX(q.net.dpi)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
           <p className="text-[11px] text-gray-400 leading-relaxed">
             <span className="font-medium text-gray-500">Method:</span>{" "}assets are held at cost (price + capex budget) in the acquisition quarter.
             Each later quarter uses the entered mark if there is one, otherwise the last mark plus capex since. Equity NAV = fair value − loan
             balance + the asset&apos;s cash reserve. Interim returns use actual cash flows to date plus NAV as the ending value; IRRs under one year
             show n/m. Net LP assumes the fund sells everything at NAV on the quarter end, repays the sub line, and runs the proceeds through the
-            fund waterfall. LP calls and the sub line balance are your actual capital activity when it&apos;s entered (Portfolio Return),
+            fund waterfall. LP calls and the sub line balance are your actual capital activity when it&apos;s entered (Fund Return),
             otherwise the model. Closing costs and cap premiums are not in fair value, so TVPI starts below 1.0x.
           </p>
         </>

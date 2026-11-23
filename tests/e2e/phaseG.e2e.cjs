@@ -70,14 +70,14 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await r9.getByRole("button", { name: "Apply", exact: true }).click();
   check((await r9.getByTestId("cost-hold-warning").count()) === 1, "Route 9 Q2 2026: cost hold warning");
 
-  // Valuations tab: the mark with its PDF link
-  await p.getByRole("button", { name: "Valuations", exact: true }).click();
+  // Valuation tab: the mark with its PDF link
+  await p.getByRole("button", { name: "Valuation", exact: true }).click();
   await p.waitForTimeout(1500);
   await main.locator("tr", { hasText: "Airport Flex Park" }).getByRole("button", { name: "Marks", exact: true }).first().click();
   await p.waitForTimeout(800);
   const pdf = main.getByTestId("mark-pdf");
   console.log("  ED:", (await main.locator("tr.bg-blue-50\\/20").first().innerText().catch(() => "none")).slice(0, 500).replace(/\s+/g, " "));
-  check((await pdf.count()) >= 1 && (await pdf.first().innerText()).includes("p. 1"), "Valuations: the appraisal mark links to its PDF page");
+  check((await pdf.count()) >= 1 && (await pdf.first().innerText()).includes("p. 1"), "Valuation: the appraisal mark links to its PDF page");
   await p.screenshot({ path: S + "/g_val.png" });
 
   await p.waitForTimeout(22000);

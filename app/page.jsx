@@ -20,6 +20,8 @@ import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
+import FundNav from "@/components/FundNav";
+import { fundType } from "@/lib/fundTypes";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
@@ -51,6 +53,7 @@ import {
 import ChangeLog from "@/components/ChangeLog";
 import FundTermsEditor from "@/components/FundTermsEditor";
 import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
+import { FIGURE_DEFS, firmSummary, fmtAum } from "@/lib/enterprise";
 import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
 
 // The firm's data is saved record by record (phase Q) this many seconds after
@@ -397,38 +400,39 @@ function newDeal(overrides = {}) {
 }
 
 // Tab order. The Change Log opens from the header button (id "changes").
-const TABS = [
-  { id: "quick",       label: "Deal Screener" },
-  { id: "assets",      label: "Asset Summary" },
-  { id: "plan",        label: "Asset Business Plan" },
-  { id: "units",       label: "Unit Roll" },
-  { id: "leases",      label: "Leases" },
-  { id: "valuations",  label: "Valuations" },
-  { id: "debt",        label: "Debt" },
-  { id: "cashflow",    label: "Cash Flow" },
-  { id: "returns",     label: "Asset Return" },
-  { id: "fund",        label: "Portfolio Return" },
-  { id: "sensitivity", label: "Sensitivity" },
-  { id: "sellhold",    label: "Sell / Hold" },
-  { id: "stress",      label: "Return Stress Testing" },
-  { id: "comps",       label: "Sales Comps" },
-  { id: "documents",   label: "Documents" },
+// Tab groups (user, 11/22–23; docs/DEAL_DOCUMENTS_PLAN.md "App name and
+// layout"). A group shows only when it has tabs: Dispositions (phase P),
+// Property Management (T) and Market (U) join later.
+const TAB_GROUPS = [
+  { label: "Acquisitions", tabs: [
+    { id: "quick",       label: "Deal Screener" },
+  ] },
+  { label: "Asset Management", tabs: [
+    { id: "plan",        label: "Asset Business Plan" },
+    { id: "assets",      label: "Asset Summary" },
+    { id: "units",       label: "Unit Roll" },
+    { id: "leases",      label: "Leases" },
+    { id: "valuations",  label: "Valuation" },
+    { id: "comps",       label: "Sales Comps" },
+    { id: "debt",        label: "Debt" },
+    { id: "cashflow",    label: "Cash Flow" },
+    { id: "returns",     label: "Asset Return" },
+    { id: "sensitivity", label: "Return Sensitivity" },
+    { id: "sellhold",    label: "Sell/Hold Analysis" },
+  ] },
+  { label: "Portfolio Management", tabs: [
+    { id: "fund",        label: "Fund Return" },
+    { id: "stress",      label: "Stress Testing" },
+  ] },
+  { label: "Library", tabs: [
+    { id: "documents",   label: "Documents" },
+  ] },
 ];
+const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 
 // Tabs that show one deal: they get the Asset dropdown.
 const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
 
-function fmtPct(n) {
-  return isFinite(n) ? `${n.toFixed(1)}%` : "—";
-}
-function fmtX(n) {
-  return isFinite(n) ? `${n.toFixed(2)}x` : "—";
-}
-function fmtDollarM(n) {
-  if (!isFinite(n)) return "—";
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
-  return `$${n.toLocaleString()}`;
-}
 
 export default function Home() {
   const [deals, setDealsRaw] = useState(initialDeals);
@@ -817,7 +821,7 @@ export default function Home() {
   function handleExportWorkspace() {
     const at = new Date().toISOString();
     const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog };
-    downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `underwriting-workspace-${at.slice(0, 10)}.json`);
+    downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `baywise-data-${at.slice(0, 10)}.json`);
     setImportMsg({ ok: true, text: `Exported ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
 
@@ -1349,14 +1353,73 @@ export default function Home() {
     setSavedDeals((prev) => prev.filter((d) => !d.id.startsWith("test-") && !d.id.startsWith("sample-")));
   }
 
-  const summaryItems = [
-    { label: "IRR", value: fmtPct(returns.irr), good: returns.irr >= 14 },
-    { label: "Eq. Multiple", value: fmtX(returns.equityMultiple), good: returns.equityMultiple >= 2 },
-    { label: "CoC Y1", value: fmtPct(returns.yearOneCashOnCash), good: returns.yearOneCashOnCash >= 7 },
-    { label: "Cap Rate", value: fmtPct(returns.goingInCapRate), good: true },
-    { label: "DSCR", value: `${debt.dscr.toFixed(2)}x`, good: debt.dscr >= 1.25 },
-    { label: "Equity", value: fmtDollarM(debt.equityRequired), good: true },
+  // Firm-wide header strip (consolidated; owned assets only).
+  const firm = firmSummary(fundDeals, valuations, funds, { todayISO: new Date().toISOString().slice(0, 10) });
+  const firmItems = [
+    { key: "aum", label: "AUM", value: fmtAum(firm.aum) },
+    { key: "sf", label: "Square feet", value: Math.round(firm.sf).toLocaleString("en-US") },
+    { key: "assets", label: "Assets", value: `${firm.assets} across ${firm.funds} fund${firm.funds === 1 ? "" : "s"}` },
+    { key: "tenants", label: "Tenants", value: firm.tenants.toLocaleString("en-US") },
+    { key: "occupancy", label: "Occupancy", value: isFinite(firm.occupancy) ? `${firm.occupancy.toFixed(1)}%` : "—" },
   ];
+
+  // NY Fed live SOFR panel: shown at the top of the Debt tab (11/23); the
+  // rates still load app-wide for every deal's forward curve.
+  const liveRatesPanel = (
+  <div className="mb-4" data-testid="sofr-panel">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-600">
+      <span className="flex items-center gap-1.5 font-semibold text-gray-800">
+        <span className={`w-2 h-2 rounded-full ${liveStatus === "ok" ? "bg-emerald-500" : liveStatus === "loading" ? "bg-gray-300" : "bg-red-500"}`} />
+        NY Fed live
+      </span>
+      {liveStatus === "ok" && live ? (
+        <>
+          {live.sofr && (
+            <span>
+              SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.sofr.rate.toFixed(2)}%</span>{" "}
+              <span className="text-gray-400">({fmtISODate(live.sofr.date)})</span>
+            </span>
+          )}
+          {live.avg30 && (
+            <span>
+              30D avg SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.avg30.rate.toFixed(5)}%</span>{" "}
+              <span className="text-gray-400">({fmtISODate(live.avg30.date)})</span>
+            </span>
+          )}
+        </>
+      ) : liveStatus === "loading" ? (
+        <span className="text-gray-400">Loading…</span>
+      ) : (
+        <span className="text-red-600">Couldn&apos;t reach the NY Fed API; using the curve as published.</span>
+      )}
+      <span className="text-gray-300">|</span>
+      <span>
+        Forward curve: {baseCurve.source} as of <span className="font-medium text-gray-800">{fmtISODate(baseCurve.asOf)}</span>
+        {curveShiftBp != null && (
+          <span className="text-gray-400">
+            {" "}· live 30D avg {curveShiftBp >= 0 ? "+" : "−"}{Math.abs(curveShiftBp).toFixed(1)} bp vs. curve start
+          </span>
+        )}
+      </span>
+      <label className={`flex items-center gap-1.5 ${live?.avg30 ? "" : "opacity-40"}`}>
+        <input
+          type="checkbox"
+          checked={anchorToLive}
+          disabled={!live?.avg30}
+          onChange={(e) => handleAnchorToggle(e.target.checked)}
+        />
+        Shift curve to live rate
+      </label>
+      <button
+        type="button"
+        onClick={() => loadLiveRates().then((r) => r && applyCurveToDeals(effectiveCurve(baseCurve, anchorToLive, r)))}
+        className="ml-auto text-blue-600 hover:text-blue-700 font-medium"
+      >
+        Refresh
+      </button>
+    </div>
+  </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1370,25 +1433,17 @@ export default function Home() {
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-900 leading-tight">Industrial UW</h1>
-              <p className="text-xs text-gray-400 leading-tight">
-                {inputs.propertyName || "Unnamed Deal"}
-                {inputs.fundName && <span className="ml-1.5 text-gray-300">· {inputs.fundName}</span>}
-              </p>
+              <h1 className="text-sm font-bold text-gray-900 leading-tight">Baywise</h1>
+              <p className="text-xs text-gray-400 leading-tight">Industrial Fund &amp; Asset Management</p>
             </div>
           </div>
 
           {/* Summary bar */}
           <div className="flex flex-wrap items-center gap-1">
-            {summaryItems.map(({ label, value, good }) => (
-              <div
-                key={label}
-                className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5"
-              >
+            {firmItems.map(({ key, label, value }) => (
+              <div key={key} title={FIGURE_DEFS[key]} data-testid="firm-figure" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 cursor-help">
                 <span className="text-xs text-gray-500">{label}</span>
-                <span className={`text-xs font-bold tabular-nums ${good ? "text-gray-900" : "text-red-600"}`}>
-                  {value}
-                </span>
+                <span className="text-xs font-bold tabular-nums text-gray-900">{value}</span>
               </div>
             ))}
             <a
@@ -1429,61 +1484,6 @@ export default function Home() {
           </div>
         </div>
       </header>
-
-      {/* Live rates */}
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-600">
-          <span className="flex items-center gap-1.5 font-semibold text-gray-800">
-            <span className={`w-2 h-2 rounded-full ${liveStatus === "ok" ? "bg-emerald-500" : liveStatus === "loading" ? "bg-gray-300" : "bg-red-500"}`} />
-            NY Fed live
-          </span>
-          {liveStatus === "ok" && live ? (
-            <>
-              {live.sofr && (
-                <span>
-                  SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.sofr.rate.toFixed(2)}%</span>{" "}
-                  <span className="text-gray-400">({fmtISODate(live.sofr.date)})</span>
-                </span>
-              )}
-              {live.avg30 && (
-                <span>
-                  30D avg SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.avg30.rate.toFixed(5)}%</span>{" "}
-                  <span className="text-gray-400">({fmtISODate(live.avg30.date)})</span>
-                </span>
-              )}
-            </>
-          ) : liveStatus === "loading" ? (
-            <span className="text-gray-400">Loading…</span>
-          ) : (
-            <span className="text-red-600">Couldn&apos;t reach the NY Fed API; using the curve as published.</span>
-          )}
-          <span className="text-gray-300">|</span>
-          <span>
-            Forward curve: {baseCurve.source} as of <span className="font-medium text-gray-800">{fmtISODate(baseCurve.asOf)}</span>
-            {curveShiftBp != null && (
-              <span className="text-gray-400">
-                {" "}· live 30D avg {curveShiftBp >= 0 ? "+" : "−"}{Math.abs(curveShiftBp).toFixed(1)} bp vs. curve start
-              </span>
-            )}
-          </span>
-          <label className={`flex items-center gap-1.5 ${live?.avg30 ? "" : "opacity-40"}`}>
-            <input
-              type="checkbox"
-              checked={anchorToLive}
-              disabled={!live?.avg30}
-              onChange={(e) => handleAnchorToggle(e.target.checked)}
-            />
-            Shift curve to live rate
-          </label>
-          <button
-            type="button"
-            onClick={() => loadLiveRates().then((r) => r && applyCurveToDeals(effectiveCurve(baseCurve, anchorToLive, r)))}
-            className="ml-auto text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Refresh
-          </button>
-        </div>
-      </div>
 
       {/* Test scenario buttons */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center gap-2">
@@ -1695,33 +1695,40 @@ export default function Home() {
             </div>
           )}
 
-          {/* Tab bar */}
-          <div className="flex flex-wrap gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit max-w-full shadow-sm">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  activeTab === tab.id
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-              >
-                {tab.label}
-                {tab.id === "units" && inputs.units.length > 0 && (
-                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "units" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
-                    {inputs.units.length}
-                  </span>
-                )}
-                {tab.id === "fund" && fundDeals.length > 0 && (
-                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "fund" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
-                    {fundDeals.length}
-                  </span>
-                )}
-              </button>
+          {/* Tab bar: grouped, with a small header over each group */}
+          <nav className="flex flex-wrap items-end gap-x-2 gap-y-2 bg-white border border-gray-200 rounded-xl p-1.5 w-fit max-w-full shadow-sm" aria-label="Tabs">
+            {TAB_GROUPS.filter((g) => g.tabs.length).map((g, gi) => (
+              <div key={g.label} className={`flex flex-col gap-0.5 ${gi ? "border-l border-gray-200 pl-2" : ""}`} role="group" aria-label={g.label} data-testid="tab-group">
+                <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{g.label}</span>
+                <div className="flex flex-wrap gap-1">
+                  {g.tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                        activeTab === tab.id
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                      }`}
+                    >
+                      {tab.label}
+                      {tab.id === "units" && inputs.units.length > 0 && (
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "units" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
+                          {inputs.units.length}
+                        </span>
+                      )}
+                      {tab.id === "fund" && fundDeals.length > 0 && (
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "fund" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
+                          {fundDeals.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
-          </div>
+          </nav>
 
           {/* Panel */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
@@ -1773,6 +1780,7 @@ export default function Home() {
               />
             )}
             {activeTab === "cashflow" && <CashFlowAnalysis inputs={inputs} results={results} />}
+            {activeTab === "debt" && liveRatesPanel}
             {activeTab === "debt" && (
               <DebtSizingPanel
                 debt={debt}
@@ -1794,7 +1802,7 @@ export default function Home() {
               />
             )}
 {activeTab === "returns" && (
-              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={fundDeals.filter((d) => d.id !== activeDealId)} />
+              <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={fundDeals.filter((d) => d.id !== activeDealId)} dscr={debt.dscr} />
             )}
             {activeTab === "sensitivity" && (
               <SensitivityTables
@@ -1822,6 +1830,13 @@ export default function Home() {
                   />
                 </div>
               ))}
+              <FundNav
+                deals={fundDeals}
+                funds={funds}
+                marks={valuations}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                onOpenValuation={() => setActiveTab("valuations")}
+              />
               <div className="mb-4">
                 <BudgetVsActualSummary deals={fundDeals.map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))} onOpen={() => setActiveTab("plan")} />
               </div>
@@ -1881,6 +1896,7 @@ export default function Home() {
                 funds={funds}
                 marks={valuations}
                 onMarksChange={setValuations}
+                onOpenFundReturn={() => setActiveTab("fund")}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 onOpenDoc={session && dbLink?.id ? async (docId, page) => {
                   const d = (await listDealDocs(dbLink.id)).find((x) => x.id === docId);
@@ -1918,6 +1934,7 @@ export default function Home() {
                 dealId={activeDealId}
                 inputs={inputs}
                 fundName={resolveFund(inputs.fundName)}
+                fundType={inputs.fundName?.trim() ? fundType(funds[resolveFund(inputs.fundName)]?.type) : ""}
                 fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName)).map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))}
                 canEdit={!locked}
                 email={session?.user?.email ?? null}
