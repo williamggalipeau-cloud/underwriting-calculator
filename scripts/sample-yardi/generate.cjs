@@ -100,5 +100,59 @@ for (const p of props) {
   }
 }
 fs.writeFileSync(path.join(OUT, "income-statement-2026.csv"), csv([["Income Statement by Month, January – October 2026"], ["SAMPLE – FICTIONAL – FOR TESTING ONLY"], [], ...isRows]));
+
+// Construction manager (Yardi Construction Manager-style) as of Oct 31, 2026:
+// TI and capital jobs by unit (budget, committed, invoiced, paid) and their
+// invoices, for the later "TI spend by unit" enhancement of the business plan.
+// TI budgets = the unit's TI/SF assumption × SF. Generic columns, not Yardi's.
+// [asset, unit or "", job name, category, kind (new|renewal|capex), new tenant, budget override, committed %, invoiced %, paid share of invoiced, status, start, completion]
+const JOBS = [
+  ["Airport Flex Park", "001", "Unit 001 re-tenant TI", "Tenant Improvements", "new", "Silverline Auto Glass LLC", null, 1.078, 1.078, 1, "Complete", "2026-08-03", "2026-09-12"], // 7.8% over
+  ["Airport Flex Park", "002", "Unit 002 renewal TI", "Tenant Improvements", "renewal", "", null, 0.95, 0.95, 1, "Complete", "2026-09-08", "2026-09-30"],
+  ["Airport Flex Park", "012", "Unit 012 lease-up TI", "Tenant Improvements", "new", "Mojave Drone Works Inc.", null, 0.75, 0.40, 1, "In progress", "2026-10-01", ""],
+  ["Airport Flex Park", "", "Roof replacement, Building B", "Capital Improvements", "capex", "", 180000, 0.98, 0.55, 0.9, "In progress", "2026-09-15", ""],
+  ["Route 9 Small Bay", "017", "Unit 017 lease-up TI", "Tenant Improvements", "new", "Garden State Millwork LLC", null, 1, 1, 1, "Complete", "2026-05-04", "2026-06-26"],
+  ["Route 9 Small Bay", "018", "Unit 018 lease-up TI", "Tenant Improvements", "new", "", null, 0, 0, 0, "Not started", "", ""],
+  ["Route 9 Small Bay", "001", "Unit 001 renewal TI", "Tenant Improvements", "renewal", "", null, 1, 1, 1, "Complete", "2026-09-01", "2026-09-20"],
+  ["Harbor Light Industrial", "016", "Unit 016 lease-up TI", "Tenant Improvements", "new", "Tidewater Marine Electric LLC", null, 0.9, 0.6, 0.8, "In progress", "2026-09-14", ""],
+  ["Harbor Light Industrial", "", "Parking lot resurfacing", "Capital Improvements", "capex", "", 95000, 1, 1, 1, "Complete", "2026-07-06", "2026-08-21"],
+  ["Ridgeway Trade Center", "014", "Unit 014 lease-up TI", "Tenant Improvements", "new", "Lone Star Cabinetry LLC", null, 1.344, 1.344, 0.85, "Complete", "2026-07-20", "2026-10-09"], // 34% over
+  ["Mill Creek Business Park", "021", "Unit 021 lease-up TI", "Tenant Improvements", "new", "Cascade Climbing Supply Co.", null, 0.6, 0.25, 1, "In progress", "2026-10-05", ""],
+];
+const VENDORS = { "Tenant Improvements": ["Example Builders Inc.", "Sample Electric Co.", "Fictional HVAC Services"], "Capital Improvements": ["Test Roofing & Paving LLC", "Example Builders Inc."] };
+const jobRows = [["Job Code", "Property", "Property Name", "Unit", "Job Name", "Category", "Tenant", "Original Budget", "Revisions", "Revised Budget", "Committed", "Invoiced to Date", "Paid to Date", "Retainage Held", "Remaining Budget", "Status", "Start Date", "Completion Date"]];
+const invRows = [["Job Code", "Property", "Unit", "Vendor", "Invoice Number", "Invoice Date", "Cost Code", "Description", "Amount", "Status"]];
+const construction = { asOf: "2026-10-31", jobs: [], totals: { budget: 0, committed: 0, invoiced: 0, paid: 0 } };
+let invNo = 1000;
+JOBS.forEach(([asset, unitName, name, cat, kind, newTenant, bOverride, cPct, iPct, paidShare, status, start, done], k) => {
+  const p = props.find((x) => x.name === asset);
+  const u = unitName ? p.inputs.units.find((x) => x.name === unitName) : null;
+  const budget = bOverride ?? r2((kind === "renewal" ? u.tiRenewalPSF : u.tiNewPSF) * u.squareFeet);
+  const revisions = cPct > 1 ? r2(budget * (cPct - 1)) : 0; // overruns approved as budget revisions
+  const committed = r2(budget * cPct), invoiced = r2(budget * iPct);
+  // Split the invoiced amount into up to three invoices (the last takes the rounding).
+  const n = invoiced ? (invoiced > 20000 ? 3 : 2) : 0;
+  const parts = Array.from({ length: n }, (_, i) => (i < n - 1 ? r2(Math.round((invoiced / n) / 10) * 10) : 0));
+  if (n) parts[n - 1] = r2(invoiced - parts.slice(0, -1).reduce((s, x) => s + x, 0));
+  const paidTarget = r2(invoiced * paidShare);
+  let paid = 0;
+  const code = `${p.code}-J${String(k + 1).padStart(2, "0")}`;
+  parts.forEach((amt, i) => {
+    const isPaid = r2(paid + amt) <= paidTarget + 0.01;
+    if (isPaid) paid = r2(paid + amt);
+    const d = new Date(Date.parse(start) + (i + 1) * 14 * 86400000).toISOString().slice(0, 10);
+    const vendor = VENDORS[cat][i % VENDORS[cat].length];
+    invRows.push([code, p.code, unitName, vendor, `INV-${++invNo}`, d > "2026-10-31" ? "2026-10-31" : d, cat === "Capital Improvements" ? "CAP-100" : "TI-200", `${name}, draw ${i + 1}`, amt, isPaid ? "Paid" : "Approved"]);
+  });
+  const retainage = status === "Complete" ? 0 : r2(paid * 0.1);
+  const revised = r2(budget + revisions);
+  jobRows.push([code, p.code, asset, unitName, name, cat, newTenant || u?.tenantName || "", budget, revisions, revised, committed, invoiced, paid, retainage, r2(revised - invoiced), status, start, done]);
+  construction.jobs.push({ code, asset, unit: unitName, category: cat, budget, revised, committed, invoiced, paid, status, overrunPct: r2(((invoiced - budget) / budget) * 100) });
+  for (const [key, v] of [["budget", budget], ["committed", committed], ["invoiced", invoiced], ["paid", paid]]) construction.totals[key] = r2(construction.totals[key] + v);
+});
+const cmNote = ["SAMPLE – FICTIONAL – FOR TESTING ONLY (generic layout in the style of a construction manager export, not a Yardi template)"];
+fs.writeFileSync(path.join(OUT, "construction-jobs-2026-10.csv"), csv([["Construction Job Summary as of 10/31/2026"], cmNote, [], ...jobRows]));
+fs.writeFileSync(path.join(OUT, "construction-invoices-2026-10.csv"), csv([["Construction Invoice Detail through 10/31/2026"], cmNote, [], ...invRows]));
+expected.construction = construction;
 fs.writeFileSync(path.join(OUT, "expected.json"), JSON.stringify({ properties: props.map((p) => ({ code: p.code, name: p.name })), scenarios: SC.map(([a, u, ch, , note]) => ({ asset: a, unit: u, charge: ch, note })), ...expected }, null, 1));
 console.log("ok", expected);

@@ -399,7 +399,27 @@ NOI to Valuations and Sell / Hold.
 **Later enhancement (user, 11/23; not scheduled): TI spend by unit.** As the
 value-add plan is carried out, record TI dollars actually spent against the
 unit they were spent on. Each entry has a date, unit, amount, vendor or
-description, and an optional invoice PDF. The business plan would show:
+description, and an optional invoice PDF. Three ways in (user, 11/23):
+- **Manual:** add or edit a job (unit, category, budget, committed, status)
+  and its invoices or payments by hand on the business plan.
+- **Upload:** CSV or Excel job summaries and invoice detail, with columns
+  matched like the other imports (property and unit mapped once, then kept).
+  The format is the mock export below.
+- **Yardi Construction Manager, auto-import (future):** when a Yardi
+  connection is set up, jobs and invoices are pulled automatically on a
+  schedule and matched to assets and units. Manual entries and uploads stay
+  editable, and each row shows its source (manual, file, Yardi).
+
+Mock data for Model Fund I (fictional, generic columns, not Yardi templates):
+`docs/sample-yardi/construction-jobs-2026-10.csv` (11 jobs: TI by unit and
+two capital projects, with budget, revisions, committed, invoiced, paid,
+retainage and status) and `construction-invoices-2026-10.csv` (their
+invoices), from `scripts/sample-yardi/generate.cjs`; totals in
+`expected.json` → `construction`. Cases: Airport Flex unit 001 re-tenant
+7.8% over budget; Ridgeway unit 014 34% over (red); jobs complete, in
+progress and not started; a roof and a paving project not tied to a unit.
+
+The business plan would show:
 - for each unit in the leasing plan, TI spent vs. planned (TI/SF × SF), with
   the remaining balance and an overrun flag;
 - the asset total vs. the TI/LC budget and the TI reserve or lender-funded
