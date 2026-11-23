@@ -323,7 +323,7 @@ const COL_HEADERS = [
   { key: "tiConcR",   label: "TI Conc R", width: "w-20", tip: "TI concession $/SF — renewal (income-side deduction)" },
 ];
 
-export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId }) {
+export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId, delinquencyByUnit }) {
   const headerId  = useId();
   const fileInput = useRef(null);
   const [csvError, setCsvError] = useState(null);
@@ -564,6 +564,15 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId 
                     </td>
                     <td className="px-2 py-1.5">
                       <TextCell label="Unit name" value={u.name} onChange={(v) => update(u.id, "name", v)} />
+                      {(() => {
+                        const dq = delinquencyByUnit?.byUnit?.[u.id];
+                        if (!dq || !(dq.delinquent > 0)) return null;
+                        return (
+                          <span className="mt-0.5 block whitespace-nowrap rounded bg-red-100 px-1 text-[10px] font-medium text-red-800" title={`Past due ${delinquencyByUnit.month} (Yardi): $${Math.round(dq.delinquent).toLocaleString("en-US")}, ${dq.monthsOwed?.toFixed(1)} months of rent`} data-testid="unit-late-badge">
+                            ${Math.round(dq.delinquent).toLocaleString("en-US")} late
+                          </span>
+                        );
+                      })()}
                       {(() => {
                         const f = leaseFlag(u);
                         if (!f) return null;
