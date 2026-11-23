@@ -32,7 +32,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
 let saved = null;
 const allChanges = [];
 const uploads = [], removed = [];
-let geocodes = 0;
+const mapLoads = [];
 let fails = 0;
 const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
@@ -40,14 +40,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const ctx = await b.newContext({ viewport: { width: 1600, height: 1200 } });
   const errs = [];
   await ctx.addInitScript((v) => localStorage.setItem("sb-nydqmigxorahfkfpkjnq-auth-token", v), JSON.stringify(sess));
-  await ctx.route("**/nominatim.openstreetmap.org/**", (r) => {
-    geocodes++;
-    const q = decodeURIComponent(new URL(r.request().url()).searchParams.get("q") || "");
-    // The street is fictional: only the city query matches.
-    const body = /^\d/.test(q) ? "[]" : JSON.stringify([{ lat: "47.3809", lon: "-122.2348", display_name: "Kent, King County, Washington" }]);
-    r.fulfill({ status: 200, contentType: "application/json", body });
-  });
-  await ctx.route("**/www.openstreetmap.org/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<html><body>map</body></html>" }));
+  await ctx.route("**/maps.google.com/**", (r) => { mapLoads.push(r.request().url()); r.fulfill({ status: 200, contentType: "text/html", body: "<html><body>map</body></html>" }); });
   await ctx.route("**/nydqmigxorahfkfpkjnq.supabase.co/**", (r) => {
     const req = r.request(); const u = req.url(); const acc = req.headers()["accept"] || "";
     if (u.includes("/storage/v1/object/sign/") && req.method() === "GET") return r.fulfill({ status: 200, contentType: "image/png", body: u.includes("floorplan") ? PLAN : IMG });
@@ -97,13 +90,20 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const bad = await media.getByLabel("Upload photos").setInputFiles([{ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("x") }]).then(() => p.waitForTimeout(400)).then(() => main.getByTestId("media-msg").innerText());
   check(/isn't an image/.test(bad), "non-image files are refused");
 
-  // Map: geocoded once (street not found → city), stored, attributed
+  // Map: Google Maps from the address (no lookup); satellite; hand-entered point wins
   const map = media.getByTestId("asset-map");
-  await map.getByRole("button", { name: "Locate on map" }).click();
-  await p.waitForTimeout(1200);
   const src = await map.getByTestId("map-frame").getAttribute("src");
-  check(src?.includes("openstreetmap.org/export/embed.html") && src.includes("marker=47.380900,-122.234800"), "map placed at the city when the street isn't found");
-  check(geocodes === 2 && (await map.innerText()).includes("OpenStreetMap contributors"), `geocoded with ${geocodes} lookups; attribution shown`);
+  check(src === "https://maps.google.com/maps?q=21800%20Valley%20Freight%20Way%2C%20Kent%2C%20WA%2C%2098032&t=m&z=16&output=embed", `Google map from the address: ${src}`);
+  check((await map.getByTestId("google-maps-link").getAttribute("href")).startsWith("https://www.google.com/maps/search/?api=1&query=21800%20Valley%20Freight%20Way"), "Open in Google Maps link");
+  await map.getByRole("button", { name: "Satellite" }).click();
+  check((await map.getByTestId("map-frame").getAttribute("src")).includes("&t=k&"), "satellite view");
+  await map.getByRole("button", { name: "Enter coordinates" }).click();
+  await map.getByLabel("Latitude").fill("47.3809");
+  await map.getByLabel("Longitude").fill("-122.2348");
+  await map.getByRole("button", { name: "Save", exact: true }).click();
+  await p.waitForTimeout(500);
+  check((await map.getByTestId("map-frame").getAttribute("src")).includes("q=47.3809%2C-122.2348") && (await map.innerText()).includes("entered by hand"), "a point entered by hand moves the map");
+  check(mapLoads.length >= 1 && !mapLoads.some((u) => /key=/.test(u)), "the embed loads with no API key");
 
   // Floor plan: schematic first, coloured by status
   const fp = media.getByTestId("floor-plan");
@@ -167,7 +167,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const sd = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.id === DEAL)?.inputs;
   const am = sd?.assetMedia;
   check(am?.photos?.length === 2 && am.photos.some((x) => x.caption === "Dock doors, east side" && x.cover && x.order === 1), "saved: photos with caption, cover and order");
-  check(am?.geo?.lat === 47.3809 && am.geo.query === "Kent, WA, 98032", "saved: the map point and the query it came from");
+  check(am?.geo?.lat === 47.3809 && am.geo.lon === -122.2348 && am.geo.source === "manual", "saved: the hand-entered map point");
   check(am?.floorPlan?.path?.startsWith("w1/sample-deal-2/floorplan/") && Object.values(am.floorPlan.boxes ?? {}).some((b) => b.w > 0.15), "saved: the plan and the drawn box");
   check(sd?.units?.length === unitCount && sd.units.some((u) => u.name === comb && u.leaseStatus === "vacant"), "saved: the demised-then-combined unit in the rent roll");
   // Demise then combine within 60 s merge into one rent roll entry (the log's

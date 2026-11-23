@@ -38,6 +38,8 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   const ctx = await b.newContext({ viewport: { width: 1600, height: 1100 } });
   const errs = [];
   await ctx.addInitScript((v) => localStorage.setItem("sb-nydqmigxorahfkfpkjnq-auth-token", v), JSON.stringify(sess));
+  // The Asset Business Plan tab embeds a Google map; serve a stub offline.
+  await ctx.route("**/maps.google.com/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<html><body>map</body></html>" }));
   await ctx.route("**/nydqmigxorahfkfpkjnq.supabase.co/**", (r) => {
     const req = r.request(); const u = decodeURIComponent(req.url()); const acc = req.headers()["accept"] || "";
     let body = "[]";

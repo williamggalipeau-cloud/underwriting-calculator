@@ -83,18 +83,17 @@ if (fx) {
   ok(!dd.error && isFinite(after.returns.irr) && dd.units.length === fx.inputs.units.length + 1, `${fx.inputs.propertyName}: demised unit ${vac[0].name} runs through the model (IRR ${before.returns.irr.toFixed(2)}% → ${after.returns.irr.toFixed(2)}%)`);
 } else ok(false, "fixture deal with a vacant unit");
 
-// ── Map ──
+// ── Map (Google Maps, keyless embed) ──
 const inp = { address: "6230 Runway Vista Drive", city: "Las Vegas", state: "NV", zip: "89119" };
-ok(M.geocodeQueries(inp).join(" | ") === "6230 Runway Vista Drive, Las Vegas, NV, 89119 | Las Vegas, NV, 89119", "geocode: full address, then city");
-ok(M.geocodeQueries({}).length === 0, "no address, nothing to look up");
-ok(M.nominatimUrl("Las Vegas, NV").startsWith("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=us&q=Las%20Vegas%2C%20NV"), "Nominatim URL");
-const g = M.parseGeocode([{ lat: "36.0839991", lon: "-115.1537441", display_name: "Las Vegas, Clark County, Nevada" }], "Las Vegas, NV, 89119");
-ok(g && g.lat === 36.083999 && g.lon === -115.153744 && g.source === "geocoded", "parse a Nominatim result");
-ok(M.parseGeocode([], "x") === null && M.parseGeocode([{ lat: "999", lon: "0" }], "x") === null, "no or bad result → null");
-ok(M.geoIsCurrent(g, inp) && !M.geoIsCurrent(g, { ...inp, city: "Henderson" }) && M.geoIsCurrent({ lat: 1, lon: 2, source: "manual" }, { city: "Anywhere" }), "a stored point is stale when the address changes (unless entered by hand)");
-const url = M.osmEmbedUrl(36.084, -115.1537);
-ok(url.startsWith("https://www.openstreetmap.org/export/embed.html?bbox=") && url.includes("marker=36.084000,-115.153700"), "OpenStreetMap embed with a marker");
-ok(M.MAP_ATTRIBUTION === "© OpenStreetMap contributors", "attribution");
+ok(M.mapQuery(inp, null) === "6230 Runway Vista Drive, Las Vegas, NV, 89119", "map query: the full address");
+ok(M.mapQuery(inp, { lat: 36.084, lon: -115.1537, source: "manual" }) === "36.084,-115.1537", "a point entered by hand wins");
+ok(M.mapQuery({}, null) === "", "no address, no map");
+const g = M.googleEmbedUrl(M.mapQuery(inp, null));
+ok(g === "https://maps.google.com/maps?q=6230%20Runway%20Vista%20Drive%2C%20Las%20Vegas%2C%20NV%2C%2089119&t=m&z=16&output=embed", "Google embed URL (map)");
+ok(M.googleEmbedUrl("x", { view: "satellite" }).includes("&t=k&"), "satellite view");
+ok(M.googleEmbedUrl("Kent, WA", { key: "TESTKEY", view: "satellite" }) === "https://www.google.com/maps/embed/v1/place?key=TESTKEY&q=Kent%2C%20WA&zoom=16&maptype=satellite", "with a key: the Maps Embed API");
+ok(M.GOOGLE_EMBED_KEY === "" && !g.includes("key="), "no key set in tests: keyless embed");
+ok(M.googleMapsLink("Las Vegas, NV") === "https://www.google.com/maps/search/?api=1&query=Las%20Vegas%2C%20NV", "Open in Google Maps link");
 
 // ── Actual NOI ──
 const acts = {};

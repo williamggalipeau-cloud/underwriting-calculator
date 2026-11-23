@@ -4,7 +4,6 @@
 // and combining units), shown on the Asset Business Plan tab.
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  MAP_ATTRIBUTION,
   STATUS_COLORS,
   actualNoi,
   addPhotos,
@@ -13,15 +12,13 @@ import {
   combineUnits,
   coverPhoto,
   demiseUnit,
-  geoIsCurrent,
-  geocodeQueries,
+  GOOGLE_EMBED_KEY,
+  googleEmbedUrl,
+  googleMapsLink,
+  mapQuery,
   mediaOf,
   movePhoto,
-  nominatimUrl,
   orderedPhotos,
-  osmEmbedUrl,
-  osmLink,
-  parseGeocode,
   removePhoto,
   schematicLayout,
   setBox,
@@ -210,27 +207,9 @@ function ActualNoiNote({ inputs }) {
 function LocationMap({ inputs, geo, canEdit, onSave }) {
   const [state, setState] = useState(null);
   const [manual, setManual] = useState(null);
-  const current = geoIsCurrent(geo, inputs);
-  const queries = geocodeQueries(inputs);
-
-  async function locate() {
-    setState({ busy: true });
-    for (const q of queries) {
-      try {
-        const r = await fetch(nominatimUrl(q), { headers: { Accept: "application/json" } });
-        if (!r.ok) continue;
-        const g = parseGeocode(await r.json(), q);
-        if (g) {
-          onSave({ ...g, at: new Date().toISOString() }, [{ key: "assetMedia.geo", field: "Map location", from: geo ? `${geo.lat}, ${geo.lon}` : "", to: `${g.lat}, ${g.lon} (${q})` }]);
-          setState({ ok: q === queries[0] ? "Found the address." : `Street not found; placed at ${q}.` });
-          return;
-        }
-      } catch {
-        // try the next query
-      }
-    }
-    setState({ error: "Couldn't find this address. Enter the latitude and longitude instead." });
-  }
+  const [view, setView] = useState("map");
+  const q = mapQuery(inputs, geo);
+  const handPoint = geo?.source === "manual";
 
   return (
     <Section
@@ -238,17 +217,25 @@ function LocationMap({ inputs, geo, canEdit, onSave }) {
       testId="asset-map"
       right={
         <div className="flex flex-wrap items-center gap-2">
-          {geo && <a href={osmLink(geo.lat, geo.lon)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-blue-600 hover:underline">Open in OpenStreetMap</a>}
-          {canEdit && queries.length > 0 && (
-            <button type="button" disabled={state?.busy} onClick={locate} className={`${btn} border-gray-300 bg-white text-gray-700`} title="Looks the address up once with OpenStreetMap Nominatim and saves the point">
-              {state?.busy ? "Locating…" : geo ? "Locate again" : "Locate on map"}
-            </button>
+          {q && (
+            <div className="flex overflow-hidden rounded-lg border border-gray-300 text-xs" role="group" aria-label="Map view">
+              {[["map", "Map"], ["satellite", "Satellite"]].map(([k, l]) => (
+                <button key={k} type="button" onClick={() => setView(k)} aria-pressed={view === k} className={`px-2.5 py-1 font-medium ${view === k ? "bg-gray-800 text-white" : "bg-white text-gray-700"}`}>{l}</button>
+              ))}
+            </div>
           )}
-          {canEdit && <button type="button" onClick={() => setManual(manual ? null : { lat: geo?.lat ?? "", lon: geo?.lon ?? "" })} className={`${btn} border-gray-300 bg-white text-gray-700`}>Enter coordinates</button>}
+          {q && <a href={googleMapsLink(q)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-blue-600 hover:underline" data-testid="google-maps-link">Open in Google Maps</a>}
+          {canEdit && <button type="button" onClick={() => setManual(manual ? null : { lat: geo?.lat ?? "", lon: geo?.lon ?? "" })} className={`${btn} border-gray-300 bg-white text-gray-700`}>{handPoint ? "Edit coordinates" : "Enter coordinates"}</button>}
+          {canEdit && handPoint && (
+            <button type="button" onClick={() => onSave(null, [{ key: "assetMedia.geo", field: "Map location", from: `${geo.lat}, ${geo.lon}`, to: "the address" }])} className={`${btn} border-gray-300 bg-white text-gray-700`}>Use the address</button>
+          )}
         </div>
       }
     >
-      <p className="mb-2 text-xs text-gray-600">{[inputs.address, inputs.city, inputs.state, inputs.zip].filter(Boolean).join(", ") || "No address in the Property inputs yet."}</p>
+      <p className="mb-2 text-xs text-gray-600">
+        {[inputs.address, inputs.city, inputs.state, inputs.zip].filter(Boolean).join(", ") || "No address in the Property inputs yet."}
+        {handPoint && <span className="text-gray-400"> · map at {geo.lat}, {geo.lon} (entered by hand)</span>}
+      </p>
       {manual && (
         <div className="mb-2 flex flex-wrap items-end gap-2 text-xs">
           <label className="flex flex-col">Latitude<input type="number" step="0.000001" value={manual.lat} onChange={(e) => setManual({ ...manual, lat: e.target.value })} className="w-36 rounded border border-gray-300 px-2 py-1" /></label>
@@ -256,21 +243,19 @@ function LocationMap({ inputs, geo, canEdit, onSave }) {
           <button type="button" className={`${btn} border-blue-600 bg-blue-600 text-white`} onClick={() => {
             const lat = Number(manual.lat), lon = Number(manual.lon);
             if (!(Math.abs(lat) <= 90 && Math.abs(lon) <= 180) || manual.lat === "" || manual.lon === "") { setState({ error: "Latitude is −90 to 90 and longitude −180 to 180." }); return; }
-            onSave({ lat, lon, label: "Entered by hand", query: "", source: "manual", at: new Date().toISOString() }, [{ key: "assetMedia.geo", field: "Map location", from: geo ? `${geo.lat}, ${geo.lon}` : "", to: `${lat}, ${lon} (entered)` }]);
+            onSave({ lat, lon, label: "Entered by hand", query: "", source: "manual", at: new Date().toISOString() }, [{ key: "assetMedia.geo", field: "Map location", from: geo ? `${geo.lat}, ${geo.lon}` : "the address", to: `${lat}, ${lon} (entered)` }]);
             setManual(null); setState(null);
           }}>Save</button>
         </div>
       )}
       {state?.error && <p className="mb-2 text-xs text-red-600">{state.error}</p>}
-      {state?.ok && <p className="mb-2 text-xs text-emerald-700">{state.ok}</p>}
-      {geo ? (
+      {q ? (
         <>
-          {!current && <p className="mb-2 text-xs text-amber-700" data-testid="map-stale">The address changed since this point was found. Locate again to update it.</p>}
-          <iframe title={`Map of ${inputs.propertyName || "the asset"}`} src={osmEmbedUrl(geo.lat, geo.lon)} className="h-72 w-full rounded-lg border border-gray-200" loading="lazy" data-testid="map-frame" />
-          <p className="mt-1 text-[10px] text-gray-400">Map data {MAP_ATTRIBUTION} (openstreetmap.org/copyright). Point: {geo.lat}, {geo.lon}{geo.source === "manual" ? " (entered by hand)" : ""}.</p>
+          <iframe title={`Map of ${inputs.propertyName || "the asset"}`} src={googleEmbedUrl(q, { view })} className="h-72 w-full rounded-lg border border-gray-200" loading="lazy" referrerPolicy="no-referrer-when-downgrade" data-testid="map-frame" />
+          <p className="mt-1 text-[10px] text-gray-400">Map from Google Maps{GOOGLE_EMBED_KEY ? "" : " (keyless embed)"}, found from the {handPoint ? "coordinates entered" : "address"}. If the pin is off (for example a new street Google doesn&apos;t know), enter the coordinates.</p>
         </>
       ) : (
-        <p className="text-xs text-gray-500">Not located yet.{canEdit ? " Locate on map looks the address up once and saves the point; the map loads from OpenStreetMap after that." : ""}</p>
+        <p className="text-xs text-gray-500">Add the address in the Property inputs (or enter coordinates) to show the map.</p>
       )}
     </Section>
   );
