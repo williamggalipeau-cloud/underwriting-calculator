@@ -100,6 +100,9 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   if (process.env.DEBUG) console.log("DBG settled saves", JSON.stringify(saves.map((s) => s.items.map((i) => i.kind + "/" + i.key))), (await p.locator("header").innerText()).slice(0, 300), await nameInput0(p));
 
   // An edit saves within ~2 s, only that deal, with its version.
+  // The asset inputs open from Edit asset (phase O slide-over).
+  await p.getByLabel("Edit asset").selectOption("sample-deal-1");
+  await p.waitForTimeout(500);
   const nameInput = p.locator("aside div.flex.flex-col", { has: p.locator("label", { hasText: /^Property Name$/ }) }).locator("input");
   const t0 = Date.now();
   await nameInput.fill("Airport Flex Park (renamed)");

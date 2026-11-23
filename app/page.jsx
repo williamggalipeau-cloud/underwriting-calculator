@@ -1389,6 +1389,7 @@ export default function Home() {
   }
 
   const [sampleOpen, setSampleOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false); // asset inputs slide-over (phase O)
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
 
   function handleLoadTest() {
@@ -1589,6 +1590,21 @@ export default function Home() {
 
       {/* Sample data menu (11/23): owners only, since it changes everyone's data. */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center gap-2">
+        {/* Setup (phase O, 11/23): the asset inputs open only from here, as a slide-over. */}
+        <div className="flex flex-wrap items-center gap-1.5" data-testid="setup-buttons">
+          {!locked && (
+            <button type="button" onClick={() => { handleAddDeal(); setPanelOpen(true); }} className="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-3 py-1.5">New asset</button>
+          )}
+          <select aria-label="Edit asset" value="" onChange={(e) => { if (!e.target.value) return; setActiveDealId(e.target.value); setPanelOpen(true); }} className="text-xs rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-gray-700">
+            <option value="">Edit asset…</option>
+            {[...deals].sort((x, y) => (x.inputs.propertyName || "").localeCompare(y.inputs.propertyName || "")).map((d) => <option key={d.id} value={d.id}>{d.inputs.propertyName || "Unnamed deal"}{d.inputs.fundName ? ` · ${d.inputs.fundName}` : " · pipeline"}</option>)}
+          </select>
+          {!locked && <button type="button" onClick={() => setFundEditor({ mode: "new" })} className="text-xs font-medium text-blue-700 border border-blue-200 bg-white hover:bg-blue-50 rounded-lg px-3 py-1.5">New fund</button>}
+          <select aria-label="Edit fund" value="" onChange={(e) => { if (!e.target.value) return; setFundEditor({ mode: "edit", name: e.target.value }); }} className="text-xs rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-gray-700">
+            <option value="">Edit fund…</option>
+            {Object.keys(funds).sort().map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
         {(!session || dbLink?.role === "owner") && (
           <div className="relative" data-testid="sample-data-menu">
             <button
@@ -1730,56 +1746,33 @@ export default function Home() {
         )}
       </div>
 
+      {/* Asset inputs slide-over (phase O): opens only from New asset / Edit asset. */}
+      {panelOpen && (
+        <div className="fixed inset-0 z-40 flex" role="dialog" aria-modal="true" aria-label="Asset inputs" onKeyDown={(e) => e.key === "Escape" && setPanelOpen(false)}>
+          <div className="absolute inset-0 bg-gray-900/20" onClick={() => setPanelOpen(false)} />
+          <aside className="relative z-10 flex h-full w-[26rem] max-w-full flex-col bg-white shadow-2xl" data-testid="asset-panel">
+            <div className="flex items-center justify-between gap-2 border-b border-gray-200 px-5 py-3">
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-wide text-gray-400">Asset inputs</div>
+                <div className="truncate text-sm font-semibold text-gray-900">{inputs.propertyName || "Unnamed deal"}</div>
+              </div>
+              <button type="button" autoFocus onClick={() => setPanelOpen(false)} className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Done</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <DealInputsPanel
+                linked={!!activeDeal.linked}
+                key={activeDealId}
+                inputs={inputs}
+                onChange={setInputs}
+                fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
+              />
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Body */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex gap-6 items-start">
-        {/* Left: inputs */}
-        <aside className="w-80 shrink-0 sticky top-[73px] max-h-[calc(100vh-90px)] flex flex-col gap-0">
-          {/* Deal switcher */}
-          <div className="bg-white rounded-t-2xl border border-b-0 border-gray-200 shadow-sm px-3 pt-3 pb-0">
-            <div className="flex items-center gap-1 overflow-x-auto pb-0 scrollbar-hide">
-              {deals.map((deal) => {
-                const isActive = deal.id === activeDealId;
-                return (
-                  <div
-                    key={deal.id}
-                    className={`flex items-center gap-1 shrink-0 rounded-t-lg px-3 py-2 cursor-pointer border-b-2 transition-all ${
-                      isActive
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                    }`}
-                    onClick={() => setActiveDealId(deal.id)}
-                  >
-                    <span className="text-xs font-medium max-w-[100px] truncate">
-                      {deal.inputs.propertyName || "Unnamed"}
-                    </span>
-                  </div>
-                );
-              })}
-              {/* New deal button */}
-              <button
-                type="button"
-                onClick={handleAddDeal}
-                title="Add new deal"
-                className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors ml-0.5"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Inputs panel */}
-          <div className="bg-white rounded-b-2xl border border-gray-200 shadow-sm p-5 overflow-y-auto flex-1">
-            <DealInputsPanel
-              linked={!!activeDeal.linked}
-              key={activeDealId}
-              inputs={inputs}
-              onChange={setInputs}
-              fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
-            />
-          </div>
-        </aside>
 
         {/* Right: results */}
         <main className="flex-1 min-w-0 space-y-5">
