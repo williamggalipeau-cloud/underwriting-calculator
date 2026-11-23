@@ -3,11 +3,14 @@
 // Phase P: Dispositions group. view: "forsale" | "offers" | "trackrecord".
 // Sales live on each asset (inputs.dispositions); onUpdate(dealId, fn) edits
 // one asset's inputs (saved and logged like any edit).
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ACTIVE_SALE_STAGES, BUYER_TYPES, ROUNDS, SALE_REASONS, SALE_STAGES, activeSales, allSales, changeContractPrice, closeSale, makeBov, makeOffer, makeSale,
-  netProceeds, offersCompared, reasonLabel, saleSubject, salesXlsx, selectOffer, stageLabel, trackRecord, trackTotals, trackXlsx,
+  netProceeds, offersCompared, reasonLabel, saleDistribution, saleSubject, salesXlsx, selectOffer, stageLabel, trackRecord, trackTotals, trackXlsx,
 } from "@/lib/dispositions";
+import { CLOSED_DOC_TYPES, DISP_DOC_TYPES, OFFER_DOC_TYPES, SALE_DOC_TYPES, dispTypeLabel, dispositionDocs, uploadDispDoc } from "@/lib/dispositionDocs";
+import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+import { DEFAULT_FUND_TERMS } from "@/lib/fundTerms";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 
@@ -23,8 +26,32 @@ function Field({ label, children }) {
   return <label className="flex flex-col gap-0.5"><span className="text-[10px] text-gray-500">{label}</span>{children}</label>;
 }
 
+// Upload area for a sale, offer or closed sale (signed in, editors only).
+function DocBox({ docs = [], types, docCtx, label = "Documents", compact = false }) {
+  const ref = useRef(null);
+  const [type, setType] = useState(types[0]);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const open = async (d) => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); };
+  if (!docCtx) return compact ? null : <p className="text-[11px] text-gray-400">{label}: sign in to the firm to upload (BOVs, listing agreement, OM, PSA, closing statement…).</p>;
+  return (
+    <div className={compact ? "" : "rounded border border-gray-200 bg-white p-2"} data-testid="disp-docs">
+      {!compact && <p className="mb-1 font-semibold">{label}</p>}
+      {docs.length > 0 && <ul className="mb-1 space-y-0.5">{docs.map((d) => <li key={d.id}><button type="button" onClick={() => open(d)} className="text-left text-blue-700 hover:underline">{d.typeLabel}: {d.name}</button>{d.by ? <span className="text-gray-400"> · {d.by}</span> : null}</li>)}</ul>}
+      {docCtx.canEdit && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {types.length > 1 && <select aria-label="Document type" value={type} onChange={(e) => setType(e.target.value)} className={inp}>{types.map((k) => <option key={k} value={k}>{dispTypeLabel(k)}</option>)}</select>}
+          <button type="button" disabled={busy} onClick={() => ref.current?.click()} className="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40">{busy ? "Uploading…" : `Upload ${types.length === 1 ? dispTypeLabel(types[0]) : "PDF"}`}</button>
+          <input ref={ref} type="file" accept="application/pdf" className="hidden" data-testid="disp-file" onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (!f) return; setBusy(true); setMsg(null); try { await docCtx.upload({ ...docCtx.at, type: types.length === 1 ? types[0] : type, file: f }); setMsg(`Uploaded ${f.name}.`); } catch (err) { setMsg(err.message); } finally { setBusy(false); } }} />
+          {msg && <span className="text-[11px] text-gray-500">{msg}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── One sale, expanded ──
-function SaleCard({ x, sales, canEdit, onUpdateSale, onClose, todayISO }) {
+function SaleCard({ x, sales, canEdit, onUpdateSale, onClose, todayISO, docs = [], docCtx = null, split = null }) {
   const s = x.sale;
   const sub = saleSubject(x.inputs, s);
   const offers = offersCompared(x.inputs, s, { allSales: sales, todayISO });
@@ -110,7 +137,10 @@ function SaleCard({ x, sales, canEdit, onUpdateSale, onClose, todayISO }) {
 
       {/* Closing */}
       {s.closing ? (
-        <p className="rounded bg-emerald-50 px-2 py-1.5 text-emerald-900" data-testid="sale-closed">Closed {usDate(s.closing.date)}: price {money(s.closing.price)}, costs {money(s.closing.costs)}, loan payoff {money(s.closing.loanPayoff)}, net proceeds {money(s.closing.net)}.{s.scope !== "partial" ? " The asset's model now uses this sale (Fund Return, valuations, header figures)." : ""}</p>
+        <div className="space-y-1">
+          <p className="rounded bg-emerald-50 px-2 py-1.5 text-emerald-900" data-testid="sale-closed">Closed {usDate(s.closing.date)}: price {money(s.closing.price)}, costs {money(s.closing.costs)}, loan payoff {money(s.closing.loanPayoff)}, net proceeds {money(s.closing.net)}.{s.scope !== "partial" ? " The asset's model now uses this sale (Fund Return, valuations, header figures)." : ""}</p>
+          {split && <p className="rounded bg-white px-2 py-1.5 text-gray-700" data-testid="sale-split">Through {x.fund}&apos;s waterfall: LPs {money(split.lp)}, GP {money(split.gp)} ({split.gpPct.toFixed(1)}% to the GP){split.held > 1 ? `, ${money(split.held)} held back` : ""}.</p>}
+        </div>
       ) : canEdit && ACTIVE_SALE_STAGES.includes(s.stage) && (
         closing ? (
           <div className="flex flex-wrap items-end gap-2 rounded border border-emerald-200 bg-white p-2">
@@ -124,6 +154,7 @@ function SaleCard({ x, sales, canEdit, onUpdateSale, onClose, todayISO }) {
           </div>
         ) : <button type="button" onClick={() => setClosing({ date: s.contract?.closingDate || todayISO, price: s.contract?.price ?? sel?.price ?? "", costs: "", payoff: "" })} className={`${btn} border-emerald-300 bg-white text-emerald-800`}>Record closing statement…</button>
       )}
+      <DocBox docs={docs.filter((d) => !d.offerId)} types={s.closing ? [...SALE_DOC_TYPES, ...CLOSED_DOC_TYPES.filter((k) => !SALE_DOC_TYPES.includes(k))] : SALE_DOC_TYPES} docCtx={docCtx && { ...docCtx, at: { dealId: x.dealId, saleId: s.id } }} label="Sale documents (BOVs, listing agreement, OM, PSA, estoppels, closing statement)" />
     </div>
   );
 }
@@ -150,24 +181,66 @@ function NewSale({ deals, onStart }) {
   );
 }
 
-export default function Dispositions({ view = "forsale", deals = [], valuations = {}, canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "" }) {
-  const [open, setOpen] = useState(null);
+export default function Dispositions({ view = "forsale", deals = [], valuations = {}, canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null, funds = {}, fundDeals = [], initialOpen = null }) {
+  const [open, setOpen] = useState(initialOpen);
   const [showDone, setShowDone] = useState(false);
+  const [allDocs, setAllDocs] = useState([]);
+  const [docFilter, setDocFilter] = useState({ asset: "", type: "" });
+  const reload = () => (workspaceId ? listDealDocs(workspaceId).then(setAllDocs).catch(() => {}) : Promise.resolve());
+  useEffect(() => { reload(); }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const dDocs = useMemo(() => dispositionDocs(allDocs, deals), [allDocs, deals]);
+  const docCtx = workspaceId ? { canEdit, upload: async (a) => { await uploadDispDoc(workspaceId, a, email); await reload(); } } : null;
+  const docsFor = (saleId, offerId = undefined) => dDocs.filter((d) => d.saleId === saleId && (offerId === undefined || d.offerId === offerId));
+  const splitFor = (x) => {
+    if (!x.sale.closing || !x.fund || !funds[x.fund]) return null;
+    try { return saleDistribution(fundDeals.filter((d) => d.inputs?.fundName === x.fund), { ...DEFAULT_FUND_TERMS, ...funds[x.fund], name: x.fund }, x.dealId, x.sale.closing); } catch { return null; }
+  };
+  const pdf = async (kind, rows) => {
+    const { salesPdf, trackPdf } = await import("@/lib/dispositionsPdf");
+    const blob = kind === "track" ? await trackPdf(rows, { todayISO, scopeName }) : await salesPdf(rows, { todayISO, scopeName });
+    downloadBlob(blob, `${kind === "track" ? "track-record" : "assets-for-sale"}-${todayISO}.pdf`);
+  };
   const sales = useMemo(() => allSales(deals), [deals]);
   const owned = deals.filter((d) => d.inputs.fundName && d.inputs.acquisitionDate && d.inputs.acquisitionDate <= todayISO && !(d.inputs.realizedSaleDate && d.inputs.realizedSaleDate <= todayISO));
   const updateSale = (dealId, saleId) => (fn) => onUpdate(dealId, (inp) => ({ ...inp, dispositions: (inp.dispositions ?? []).map((s) => (s.id === saleId ? fn(s) : s)) }));
   const exportX = async (rows, name, kind) => downloadBlob(await writeXlsx(kind === "track" ? trackXlsx(rows) : salesXlsx(rows, { todayISO }), { sheetName: name }), `${name.toLowerCase().replace(/\s+/g, "-")}-${todayISO}.xlsx`);
+
+  if (view === "dispdocs") {
+    const saleName = new Map(sales.map((x) => [x.sale.id, `${x.asset}${x.sale.scope === "partial" ? " (part)" : ""} · ${stageLabel(x.sale.stage)}`]));
+    const rowsD = dDocs.filter((d) => (!docFilter.asset || d.dealId === docFilter.asset) && (!docFilter.type || d.type === docFilter.type));
+    const assets = [...new Map(dDocs.map((d) => [d.dealId, d.asset])).entries()];
+    return (
+      <div className="space-y-3 text-gray-900" data-testid="disp-documents">
+        <div><h2 className="text-lg font-bold">Disposition Documents</h2><p className="text-xs text-gray-500">Every document on a sale, offer or closed sale. The same store as Library → Documents (each file kept once); upload them on the sale, its offers or its Track Record row.</p></div>
+        {!workspaceId ? <p className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">Sign in to the firm to see and upload documents.</p> : (
+          <>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <Field label="Asset"><select aria-label="Filter asset" value={docFilter.asset} onChange={(e) => setDocFilter({ ...docFilter, asset: e.target.value })} className={inp}><option value="">All</option>{assets.map(([id, n]) => <option key={id} value={id}>{n}</option>)}</select></Field>
+              <Field label="Type"><select aria-label="Filter type" value={docFilter.type} onChange={(e) => setDocFilter({ ...docFilter, type: e.target.value })} className={inp}><option value="">All</option>{DISP_DOC_TYPES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
+            </div>
+            {rowsD.length === 0 ? <p className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">No disposition documents yet.</p> : (
+              <table className="w-full text-xs"><thead className="bg-gray-50 text-gray-500"><tr>{["Asset", "Sale", "Offer", "Type", "File", "Uploaded by"].map((h) => <th key={h} className="px-2 py-1.5 text-left font-medium">{h}</th>)}</tr></thead>
+                <tbody>{rowsD.map((d) => {
+                  const offer = d.offerId ? sales.flatMap((x) => x.sale.offers ?? []).find((o) => o.id === d.offerId) : null;
+                  return <tr key={d.id} className="border-t border-gray-100" data-testid="disp-doc-row"><td className="px-2 py-1">{d.asset}</td><td className="px-2 py-1 text-gray-600">{saleName.get(d.saleId) ?? "removed sale"}</td><td className="px-2 py-1 text-gray-600">{offer ? offer.buyer || "offer" : ""}</td><td className="px-2 py-1">{d.typeLabel}</td><td className="px-2 py-1"><button type="button" onClick={async () => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); }} className="text-blue-700 hover:underline">{d.name}</button></td><td className="px-2 py-1 text-gray-500">{d.by ?? ""}</td></tr>;
+                })}</tbody></table>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (view === "trackrecord") {
     const rows = trackRecord(deals, valuations);
     return (
       <div className="space-y-3 text-gray-900" data-testid="track-record">
         <div className="flex items-end justify-between"><div><h2 className="text-lg font-bold">Track Record</h2><p className="text-xs text-gray-500">{scopeName ? `${scopeName}: ` : ""}every closed sale: realized results against the acquisition underwriting and the last valuation mark.</p></div>
-          <button type="button" disabled={!rows.length} onClick={() => exportX(rows, "Track record", "track")} className={`${btn} border-gray-300 bg-white disabled:opacity-40`}>Excel</button></div>
+          <div className="flex gap-2"><button type="button" disabled={!rows.length} onClick={() => pdf("track", rows)} className={`${btn} border-gray-300 bg-white disabled:opacity-40`}>PDF</button><button type="button" disabled={!rows.length} onClick={() => exportX(rows, "Track record", "track")} className={`${btn} border-gray-300 bg-white disabled:opacity-40`}>Excel</button></div></div>
         {rows.length === 0 ? <p className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">No closed sales yet. Record a closing statement on Assets for Sale.</p> : (
           <>
             <div className="overflow-x-auto rounded-xl border border-gray-200"><table className="w-full text-xs tabular-nums">
-              <thead className="bg-gray-50 text-gray-500"><tr>{["Asset", "Bought", "Purchase", "Sold", "Sale price", "Net proceeds", "Hold", "IRR", "UW IRR", "Multiple", "UW multiple", "Profit", "vs. last mark"].map((h) => <th key={h} className="px-2 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
+              <thead className="bg-gray-50 text-gray-500"><tr>{["Asset", "Bought", "Purchase", "Sold", "Sale price", "Net proceeds", "Hold", "IRR", "UW IRR", "Multiple", "UW multiple", "Profit", "vs. last mark", ...(docCtx ? ["Documents"] : [])].map((h) => <th key={h} className="px-2 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>{rows.map((r) => (
                 <tr key={r.saleId} className="border-t border-gray-100">
                   <td className="px-2 py-1">{r.asset}{r.partial && <span className="ml-1 rounded bg-amber-50 px-1 text-[10px] text-amber-800">part · {Math.round(r.sf).toLocaleString("en-US")} SF</span>}<div className="text-[10px] text-gray-400">{r.fund}</div></td>
@@ -175,6 +248,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
                   <td className="px-2 py-1">{r.holdYears != null ? `${r.holdYears.toFixed(1)} yr` : "—"}</td><td className="px-2 py-1 font-semibold">{pct(r.irr)}</td><td className="px-2 py-1 text-gray-500">{pct(r.uw?.irr)}</td>
                   <td className="px-2 py-1">{r.multiple != null && Number.isFinite(r.multiple) ? `${r.multiple.toFixed(2)}x` : "—"}</td><td className="px-2 py-1 text-gray-500">{r.uw?.multiple != null && Number.isFinite(r.uw.multiple) ? `${r.uw.multiple.toFixed(2)}x` : "—"}</td>
                   <td className="px-2 py-1">{money(r.profit)}</td><td className="px-2 py-1">{r.vsMarkPct != null ? `${r.vsMarkPct >= 0 ? "+" : ""}${r.vsMarkPct.toFixed(1)}%` : "no mark"}</td>
+                  <td className="px-2 py-1"><DocBox compact docs={docsFor(r.saleId).filter((d) => CLOSED_DOC_TYPES.includes(d.type))} types={CLOSED_DOC_TYPES} docCtx={docCtx && { ...docCtx, at: { dealId: r.dealId, saleId: r.saleId } }} /></td>
                 </tr>
               ))}</tbody>
             </table></div>
@@ -212,7 +286,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
                   <td className="px-1"><input aria-label="DD days" type="number" value={o.ddDays ?? ""} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { ddDays: num(e.target.value) })} className={`${inp} w-14`} /></td>
                   <td className="px-1"><input aria-label="Closing days" type="number" value={o.closingDays ?? ""} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { closingDays: num(e.target.value) })} className={`${inp} w-14`} /></td>
                   <td className="px-1"><input aria-label="Financing contingency" type="checkbox" checked={!!o.financingContingency} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { financingContingency: e.target.checked })} /></td>
-                  <td className="px-1"><input aria-label="Offer notes" value={o.notes} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { notes: e.target.value })} className={`${inp} w-36`} /></td>
+                  <td className="px-1"><input aria-label="Offer notes" value={o.notes} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { notes: e.target.value })} className={`${inp} w-36`} /><DocBox compact docs={docsFor(x.sale.id, o.id)} types={OFFER_DOC_TYPES} docCtx={docCtx && { ...docCtx, at: { dealId: x.dealId, saleId: x.sale.id, offerId: o.id } }} /></td>
                   <td className="px-1 font-semibold" data-testid="offer-net">{o.price ? money(o.net) : "—"}{o.price && o.net === best && list.filter((z) => z.price).length > 1 && <span className="ml-1 rounded bg-emerald-50 px-1 text-[10px] text-emerald-700">best</span>}</td>
                   <td className="px-1">{canEdit && <button type="button" onClick={() => updateSale(x.dealId, x.sale.id)((cur) => selectOffer(cur, o.id))} className="text-[11px] text-blue-700 hover:underline">{o.selected ? "Selected ✓" : "Select"}</button>}</td>
                 </tr>
@@ -232,6 +306,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
         <div><h2 className="text-lg font-bold">Assets for Sale</h2><p className="text-xs text-gray-500">{scopeName ? `${scopeName}: ` : ""}every sale in progress: what&apos;s sold, why and the target, stage, broker, marketing, contract and closing.</p></div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-600"><input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} /> Include closed and withdrawn</label>
+          <button type="button" disabled={!activeSales(deals).length} onClick={() => pdf("sales", activeSales(deals))} className={`${btn} border-gray-300 bg-white disabled:opacity-40`}>PDF</button>
           <button type="button" disabled={!activeSales(deals).length} onClick={() => exportX(activeSales(deals), "Assets for sale")} className={`${btn} border-gray-300 bg-white disabled:opacity-40`}>Excel</button>
         </div>
       </div>
@@ -251,7 +326,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
                   <span className="text-gray-600">Target {money(x.sale.targetPrice)}{x.sale.targetClose ? ` by ${usDate(x.sale.targetClose)}` : ""}</span>
                   <span className="ml-auto text-gray-600">{(x.sale.offers ?? []).length} offer{(x.sale.offers ?? []).length === 1 ? "" : "s"}{best ? ` · best net ${money(best.net)}` : ""}</span>
                 </button>
-                {open === x.sale.id && <div className="border-t border-gray-100 p-2"><SaleCard x={x} sales={sales} canEdit={canEdit} todayISO={todayISO} onUpdateSale={updateSale(x.dealId, x.sale.id)} onClose={(c) => onUpdate(x.dealId, (inp) => closeSale(inp, x.sale.id, c))} /></div>}
+                {open === x.sale.id && <div className="border-t border-gray-100 p-2"><SaleCard x={x} sales={sales} canEdit={canEdit} todayISO={todayISO} docs={docsFor(x.sale.id)} docCtx={docCtx} split={splitFor(x)} onUpdateSale={updateSale(x.dealId, x.sale.id)} onClose={(c) => onUpdate(x.dealId, (inp) => closeSale(inp, x.sale.id, c))} /></div>}
               </div>
             );
           })}

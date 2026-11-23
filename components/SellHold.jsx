@@ -41,7 +41,7 @@ function Bars({ options }) {
   );
 }
 
-export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, onTermsChange, curve }) {
+export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, onTermsChange, curve, onStartSale = null, saleInProgress = false }) {
   const [scope, setScope] = useState("asset");
   const [scenarioName, setScenarioName] = useState("");
   const [allMode, setAllMode] = useState("shift");
@@ -122,6 +122,9 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
+          {deal && onStartSale && (saleInProgress
+            ? <button type="button" onClick={() => onStartSale(deal.id)} className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-800">Sale in progress → Assets for Sale</button>
+            : canEdit && <button type="button" onClick={() => onStartSale(deal.id)} className="rounded-lg border border-blue-600 bg-blue-600 px-3 py-1.5 font-medium text-white hover:bg-blue-700" title="Start a sale of this asset in Dispositions → Assets for Sale">Start sale</button>)}
           <label className="flex items-center gap-1.5 text-gray-600">
             Decision date
             <input type="date" value={decisionDate} disabled={!canEdit} onChange={(e) => e.target.value && save({ decisionDate: e.target.value })} className="rounded-md border border-gray-200 px-2 py-1 text-gray-900" />

@@ -2487,10 +2487,25 @@ they follow the **Working on** picker.
   interim cash flow isn't split).
 - Home has a **Dispositions** lane: assets for sale, offers received and
   sales closed this year.
-- Still to come: document uploads on sales, offers and closed sales (BOVs,
-  listing agreement, OM, PSA, closing statement, LOIs), the Dispositions
-  Documents tab, PDF exports, the distribution of proceeds through the fund
-  waterfall on the sale, and starting a sale from Sell/Hold Analysis.
+- **Start sale** on **Sell/Hold Analysis** starts a sale of that asset
+  (reason: hold period reached) and opens it on Assets for Sale; with a sale
+  already in progress the button opens it instead.
+- **Documents** (signed in): each sale has an upload area for BOVs, the
+  listing agreement, offering memo / marketing, PSA and amendments,
+  estoppels and the closing statement; each offer takes its offer letter or
+  LOI (Offers tab); each closed sale takes the final closing statement,
+  post-closing true-ups and the distribution notice (Track Record). The
+  **Sale Documents** tab lists them all, filterable by asset and type. They
+  are kept in the same store as Library → Documents (each file once). Until
+  `supabase/dispositions_doc_types.sql` is applied, the new types are filed
+  as "Other" with the type in the title; nothing is blocked.
+- **Distribution:** a closed sale shows how its net proceeds split between
+  LPs and the GP through the fund's waterfall (pref, catch-up and promote as
+  set in the fund terms), after every earlier fund flow.
+- **PDF** on Assets for Sale (each active sale, and each sale's offers side
+  by side with net proceeds) and on Track Record (with totals).
+- Still to come: reading a document's terms in with Claude (BOV, LOI, PSA,
+  closing statement) and applying them to the sale.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3595,7 +3610,7 @@ each phase and the decisions behind it are in
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Fund Impact PDF; Update pipeline row from the screener; Add to pipeline from an OM (11/23) |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ✅ Built 11/23: Fund Summary tab (§7.38) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
-| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | 🔨 Part 1 built 11/23: Assets for Sale, Offers, Track Record, Excel, Home lane (§7.43); documents and PDFs next |
+| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |

@@ -78,5 +78,39 @@ ok(x[0].includes("Best net proceeds") && x[1][0] === "Airport Flex Park" && x.so
 const tx = D.trackXlsx(tr);
 ok(tx[0].includes("Underwritten IRR (%)") && tx.some((r) => r[0] === "Firm"), "Excel: track record with totals");
 
-console.log(fail ? `${fail} FAILED` : "ALL PASS");
+// ── Part 2: documents ──
+const DD = j(R + "/lib/dispositionDocs.js");
+const title = DD.dispTitle({ saleId: "sale-1", offerId: "offer-2", type: "offer_letter", name: "LOI.pdf" });
+ok(title === "[sale:sale-1/offer:offer-2] Offer letter / LOI: LOI.pdf", "document title carries the sale, offer and type");
+const pt = DD.parseDispTitle(title);
+ok(pt.saleId === "sale-1" && pt.offerId === "offer-2" && pt.type === "offer_letter" && pt.name === "LOI.pdf", "and reads back");
+ok(DD.parseDispTitle("Org chart: x.pdf") === null && DD.parseDispTitle(DD.dispTitle({ saleId: "s", type: "bov", name: "a: b.pdf" })).name === "a: b.pdf", "other documents ignored; colons in file names kept");
+const listed = DD.dispositionDocs([{ id: "1", deal_id: "sample-deal-1", title: DD.dispTitle({ saleId: "s1", type: "bov", name: "BOV.pdf" }), files: [{ uploaded_by_email: "t@example.com" }] }, { id: "2", deal_id: "sample-deal-1", title: "OM: x.pdf" }], data.deals);
+ok(listed.length === 1 && listed[0].asset === "Airport Flex Park" && listed[0].typeLabel === "BOV" && listed[0].by === "t@example.com", "disposition documents among all documents, with asset and uploader");
+(async () => {
+  const calls = [];
+  const fake = (failNew) => async (ws, a) => { calls.push(a.docType); if (failNew && a.docType !== "other" && !["psa", "estoppel", "closing_disp"].includes(a.docType)) throw new Error('new row violates check constraint "deal_documents_doc_type_check"'); return { id: "x", ...a }; };
+  const r1 = await DD.uploadDispDoc("w1", { dealId: "d", saleId: "s", type: "bov", file: { name: "b.pdf" } }, "t@example.com", fake(true));
+  ok(r1.docType === "other" && calls.join() === "bov,other" && /^\[sale:s\] BOV: b\.pdf$/.test(r1.title), "before the SQL: a new type falls back to Other (type kept in the title)");
+  calls.length = 0;
+  const r2 = await DD.uploadDispDoc("w1", { dealId: "d", saleId: "s", type: "bov", file: { name: "b.pdf" } }, "t@example.com", fake(false));
+  ok(r2.docType === "bov" && calls.join() === "bov", "after the SQL: the real type");
+  let threw = false;
+  try { await DD.uploadDispDoc("w1", { dealId: "d", saleId: "s", type: "psa", file: { name: "p.pdf" } }, null, async () => { throw new Error("Storage quota exceeded"); }); } catch { threw = true; }
+  ok(threw, "other upload errors are not hidden");
+
+  // ── Part 2: waterfall split ──
+  const { snapshotDeal } = j(R + "/lib/samplePortfolio.js");
+  const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
+  const fd = data.deals.filter((d) => d.inputs.fundName === "Model Fund I").map((d) => snapshotDeal(d.inputs, d.id));
+  const terms = { ...DEFAULT_FUND_TERMS, ...data.funds["Model Fund I"], name: "Model Fund I" };
+  const early = D.saleDistribution(fd, terms, "sample-deal-1", { date: "2026-11-20", net: 4e6 });
+  ok(early && close(early.lp + early.gp + early.held, 4e6) && early.gp === 0, "an early sale's proceeds go to the LPs (return of capital first)");
+  const big = D.saleDistribution(fd, terms, "sample-deal-1", { date: "2029-11-20", net: 9e7 });
+  ok(big.gp > 0 && big.lp > big.gp && close(big.lp + big.gp + big.held, 9e7), "a large later sale reaches the promote: LP / GP split by the fund's waterfall");
+  ok(D.saleDistribution(fd, terms, "x", null) === null, "no closing, no split");
+  console.log(fail ? `${fail} FAILED` : "ALL PASS");
+  process.exitCode = fail ? 1 : 0;
+})();
+if (false) console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

@@ -41,7 +41,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const groups = await p.getByRole("group").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")).filter(Boolean));
   check(groups.indexOf("Dispositions") === groups.indexOf("Acquisitions") + 1, "a Dispositions group right after Acquisitions");
   const dg = p.getByRole("group", { name: "Dispositions" });
-  check((await dg.getByRole("button").allInnerTexts()).join() === "Assets for Sale,Offers,Track Record", "its tabs: Assets for Sale, Offers, Track Record");
+  check((await dg.getByRole("button").allInnerTexts()).join() === "Assets for Sale,Offers,Track Record,Sale Documents", "its tabs: Assets for Sale, Offers, Track Record, Sale Documents");
 
   // ── Start a sale ──
   await dg.getByRole("button", { name: "Assets for Sale" }).click();

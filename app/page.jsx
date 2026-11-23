@@ -10,6 +10,7 @@ import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import HomeView from "@/components/Home";
 import Dispositions from "@/components/Dispositions";
+import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
 import SellHold from "@/components/SellHold";
@@ -432,6 +433,7 @@ const TAB_GROUPS = [
     { id: "forsale",     label: "Assets for Sale" },
     { id: "offers",      label: "Offers" },
     { id: "trackrecord", label: "Track Record" },
+    { id: "dispdocs",    label: "Sale Documents" },
   ] },
   { label: "Asset Management", tabs: [
     { id: "plan",        label: "Asset Business Plan" },
@@ -1415,6 +1417,20 @@ export default function Home() {
     if (!requireEdit()) return;
     setDeals((prev) => prev.map((d) => (d.id === dealId ? { ...d, inputs: fn(d.inputs) } : d)));
   }
+  // Sell/Hold → Start sale: a new sale on the asset (or open the one in progress).
+  const [saleOpen, setSaleOpen] = useState(null);
+  function handleStartSale(dealId) {
+    const d = deals.find((x) => x.id === dealId);
+    if (!d) return;
+    const cur = (d.inputs.dispositions ?? []).find((s) => ACTIVE_SALE_STAGES.includes(s.stage));
+    if (cur) { setSaleOpen(cur.id); setActiveTab("forsale"); return; }
+    if (!requireEdit()) return;
+    const sale = makeSale({ reason: "hold_reached", startedFrom: "sellhold" });
+    noteAudit(`Started a sale of ${d.inputs.propertyName || "an asset"} from Sell/Hold Analysis`);
+    updateDealInputs(dealId, (inp) => ({ ...inp, dispositions: [...(inp.dispositions ?? []), sale] }));
+    setSaleOpen(sale.id);
+    setActiveTab("forsale");
+  }
   function setWorkingOn(v) {
     setWorkingOnRaw(v);
     try { localStorage.setItem("baywise.workingOn", v); } catch {}
@@ -1959,8 +1975,14 @@ export default function Home() {
                 ]}
               />
             )}
-            {["forsale", "offers", "trackrecord"].includes(activeTab) && (
+            {["forsale", "offers", "trackrecord", "dispdocs"].includes(activeTab) && (
               <Dispositions
+                key={`disp-${saleOpen ?? ""}`}
+                initialOpen={saleOpen}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                email={session?.user?.email ?? null}
+                funds={funds}
+                fundDeals={firmFundDeals}
                 view={activeTab}
                 deals={viewDeals}
                 valuations={valuations}
@@ -2227,6 +2249,8 @@ export default function Home() {
                 canEdit={!locked}
                 onTermsChange={(patch) => handleFundTermsChange(resolveFund(inputs.fundName), patch)}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                onStartSale={handleStartSale}
+                saleInProgress={(inputs.dispositions ?? []).some((s) => ACTIVE_SALE_STAGES.includes(s.stage))}
               />
             )}
             {activeTab === "valuations" && (
