@@ -33,7 +33,7 @@ changes the model without the user clicking to apply it.
 | T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager (added 11/23) | ⛓ After S |
 | U | Market group: Market Data tab, submarket statistics (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
-| UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip (decided 11/23; see "App name and layout") | ⛓ Built with phase I part 2 (11/23, 8:40 PM Pacific) |
+| UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip (decided 11/23; see "App name and layout"; manual §2 already describes it, so once built remove the "New layout (11/23 release)" note at the top of §2) | ⛓ Built with phase I part 2 (11/23, 8:40 PM Pacific) |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
 value change with exit cap and a PDF of valuation adjustments and their

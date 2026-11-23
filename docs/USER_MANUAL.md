@@ -213,50 +213,98 @@ One-time setup (full detail, table layout and admin queries in §12):
 
 ## 2. Using the app, tab by tab
 
-The header shows the active deal's headline metrics: IRR, equity multiple,
-year-1 cash-on-cash, going-in cap rate, DSCR and equity. The strip below it
-shows live NY Fed SOFR and the forward curve in use. **Shift curve to live
-rate** moves the whole curve up or down so it starts at today's 30-day
-average SOFR.
+> **New layout (11/23 release).** The header, tab groups and tab names
+> below arrive with the build of 11/23/2026 (phase I part 2). Until it is
+> live, the app shows the previous single row of tabs: Sensitivity, Sell /
+> Hold, Valuations, Portfolio Return and Return Stress Testing under those
+> old names, and the per-asset metrics in the header.
+
+**Header.** **Baywise**, *Industrial Fund & Asset Management*, then a
+firm-wide strip that is the same on every tab. It covers every fund in the
+workspace and owned assets only (no sold, pipeline, Deal Screener or
+unassigned deals). Hover over a figure for its definition:
+
+| Figure | Definition |
+|---|---|
+| **AUM** | Sum of each owned asset's latest fair value (Valuation mark on or before today); purchase price while in the 6-month cost hold or with no mark |
+| **Square feet** | Total SF of owned assets |
+| **Assets** | Owned assets, "across N funds" |
+| **Tenants** | Occupied units on the rent rolls, each tenant counted once per asset |
+| **Occupancy** | Leased SF ÷ total SF |
+
+Then **User manual**, **Change log** and **Database / Sign in**. The live NY
+Fed SOFR and forward-curve panel is at the top of the **Debt** tab; **Shift
+curve to live rate** there moves the whole curve so it starts at today's
+30-day average SOFR.
 
 The left panel holds the deals (tabs across the top of the panel) and the
 full-model inputs for the active deal: it is where you type an asset's
 assumptions by hand. Click a tab to switch assets; **+** sets up a new asset.
 The tabs have no ✕: an asset can't be deleted from here (to take one out of
-a fund, use Remove on the Portfolio Return tab, which keeps the deal).
+a fund, use Remove on the Fund Return tab, which keeps the deal). Phase O
+replaces this with New / Edit asset and New / Edit fund buttons.
 
-Tabs, left to right: Deal Screener, Asset Summary, Asset Business Plan,
-Unit Roll, Leases, Valuations, Debt, Cash Flow, Asset Return, Portfolio
-Return, Sensitivity, Sell / Hold, Return Stress Testing, Sales Comps,
-Documents. The Change Log opens from the
-**Change log** button in the header, next to User manual.
+**Tab bar.** Tabs are grouped, with a small header over each group:
+
+| Group | Tabs (left to right) | Coming later |
+|---|---|---|
+| **Acquisitions** | Deal Screener | Pipeline (phase M) first, Fund Impact (M) last |
+| **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
+| **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), after Leases |
+| **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
+| **Portfolio Management** | Fund Return · Stress Testing | Fund Summary (N) first, Fund Plan (K) second, Fund Debt (S) after Fund Return |
+| **Market** | (none yet) | Market Data (U) |
+| **Library** | Documents | Reports (L) |
+
+A group's header appears once it has tabs. Each fund carries a **type tag**
+(Fund, Separate Account or Joint Venture), shown as a badge next to its name.
+The tag is a label only. The Change Log opens from the **Change log** button
+in the header, next to User manual.
+
+**Acquisitions**
 
 | Tab | What it does |
 |---|---|
 | **Deal Screener** (named Quick Underwrite until 11/22/2026) | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
+
+**Asset Management**
+
+| Tab | What it does |
+|---|---|
+| **Asset Business Plan** | The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Fund Return shows NOI vs budget by asset. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
-| **Asset Business Plan** | The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Portfolio Return shows NOI vs budget by asset. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
-| **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
-| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
-| **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
-| **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
-| **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. |
-| **Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
-| **Sell / Hold** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR and forward multiple of holding, spread to the fund's hurdle, NPV versus selling, total IRR and equity multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan; scenarios can be saved and reloaded. Excel export. |
-| **Return Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
+| **Valuation** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, each asset's quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. (Fund NAV and the fund's gross / net LP interim returns and value change are on Fund Return.) |
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
+| **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. The live NY Fed SOFR and forward-curve panel is at the top of this tab. |
+| **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
+| **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. IRR, equity multiple, year-1 cash-on-cash and DSCR turn red below 14%, 2.0x, 7% and 1.25x (hover for the threshold). |
+| **Return Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
+| **Sell/Hold Analysis** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR and forward multiple of holding, spread to the fund's hurdle, NPV versus selling, total IRR and equity multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan; scenarios can be saved and reloaded. Excel export. |
+
+**Portfolio Management**
+
+| Tab | What it does |
+|---|---|
+| **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. Also fund NAV by quarter, gross and net LP interim returns and the fund's quarter-over-quarter value change (moved from Valuation). |
+| **Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
+
+**Library**
+
+| Tab | What it does |
+|---|---|
 | **Documents** | Deal and fund documents (§7.28), for this asset or the whole fund: offering memo, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant) and the fund's LPA and PPM. **Review with Claude** makes a prompt for a Claude session with the CREparser Deal Review connector (validators for OM, rent roll, T-12 and LOI; the others are read and checked locally); **Save abstract**; **View abstract** shows each value with its quote, page link and status; **Apply** compares the model with the document field by field (tick and apply; each change logged as from the document; a badge stays on fields not taken). Rent roll: merge or replace units. OM: **New deal from this OM**. IC memo: approved vs current and a conditions checklist. Insurance: **Check coverage** against the tenant's lease. LPA / PPM: fund terms and investment limits. Estoppel, CAM reconciliation and billing: **Check** against the leases and the rent roll (§7.29). The LPA and PPM upload has an **Assign to fund** picker, and each LPA/PPM card can be moved to another fund. Deadlines go to Leases → Critical dates. Owners and editors change; viewers read. |
 | **Change log** (header button, next to User manual) | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
 
+
 **Asset dropdown.** Deal Screener, Unit Roll, Debt, Cash Flow, Asset
-Return, Sensitivity and Sales Comps have an **Asset** dropdown at the top,
+Return, Return Sensitivity and Sales Comps have an **Asset** dropdown at the top,
 grouped by fund, listing every open deal; choosing one switches the active
 deal (the same as clicking its tab in the left panel). Saved fund snapshots
 (**Add to Fund** copies) are listed under "Saved snapshots"; choosing one
 opens it as an editable deal and takes it off the saved list, so the fund
-still counts it once. Return Stress Testing keeps its own asset dropdown.
+still counts it once. Stress Testing keeps its own asset dropdown.
 
 **Location.** The Property section of the inputs has **Location** (street
 address, city, state, ZIP). The Asset Summary shows city and state. Model
@@ -281,7 +329,7 @@ field.
   saved under any of these names are cleaned up when they load. (Because of
   this, a fund can't be named "Fund I"; use another name.)
 - **Open deals with no fund:** these (for example after **Remove** in a fund's
-  roster) are listed on Portfolio Return with an **Add to fund** button.
+  roster) are listed on Fund Return with an **Add to fund** button.
   Until then they are left out of fund returns, attribution, capital
   activity, valuations and the asset summary.
 - **Capital activity Purpose list:** shows this fund's assets first, then
@@ -399,7 +447,7 @@ These are optional and not wired into the app:
   Connectors, then start a new Claude session. It acts as your Supabase
   account, so prefer read-only access and ask for changes explicitly.
 - **Claude with your documents** — Claude can read an LPA, PPM or credit
-  facility term sheet and fill in the Fund Terms template (Portfolio Return →
+  facility term sheet and fill in the Fund Terms template (Fund Return →
   New fund → Download template), which you then upload.
 
 ---
@@ -470,16 +518,16 @@ underwriting-calculator/
 │   ├── DebtSizing.jsx        Debt tab: sizing, rate schedule, covenants, TI reserve
 │   ├── CapitalAnalysis.jsx   Capital stack detail (not currently shown on any tab)
 │   ├── CashFlowAnalysis.jsx  Cash Flow tab: statement, levered/unlevered, chart
-│   ├── StressTest.jsx        Return Stress Testing tab
-│   ├── SensitivityTables.jsx Sensitivity tab
+│   ├── StressTest.jsx        Stress Testing tab
+│   ├── SensitivityTables.jsx Return Sensitivity tab
 │   ├── ReturnsAnalysis.jsx   Asset Return tab
-│   ├── FundAnalysis.jsx      Portfolio Return tab (funds, waterfall, sub line, dry powder)
+│   ├── FundAnalysis.jsx      Fund Return tab (funds, waterfall, sub line, dry powder)
 │   ├── FundTermsEditor.jsx   New / edit fund dialog, template upload
 │   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
-│   ├── Valuations.jsx        Valuations tab (fair value marks, NAV, interim returns)
+│   ├── Valuations.jsx        Valuation tab (fair value marks, NAV, interim returns)
 │   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
 │   ├── CashYield.jsx         Cash-on-cash yield charts and table
-│   ├── SellHold.jsx          Sell / Hold tab
+│   ├── SellHold.jsx          Sell/Hold Analysis tab
 │   ├── Leases.jsx            Leases tab (lease documents, abstracts, apply to rent roll, mismatch flags)
 │   ├── LeaseViews.jsx        Leases tab: Critical dates and Risk flags views
 │   ├── BusinessPlan.jsx      Asset Business Plan tab (plan revisions, budget vs actual) and the fund NOI card
@@ -914,7 +962,7 @@ sub line and is repaid by a capital call after the max days (365):
 - **Dry powder at IP end** = commitments − calls through the
   investment-period end − line balance then.
 
-**With capital activity (actuals).** Open Portfolio Return → Capital & dry
+**With capital activity (actuals).** Open Fund Return → Capital & dry
 powder → **Capital activity (actuals)**, and enter each:
 
 | Type | Purpose |
@@ -968,7 +1016,7 @@ Dry powder at IP end  = dry powder today − future needs up to the IP end
   for called capital and the line balance, for comparison.
 **Net returns and valuations with actuals** (`lib/fundFlows.js`). The fund
 waterfall (§7.10), the header's Net fund / Net LP figures, the quarterly
-schedule and the Valuations tab's net LP interim returns (§7.15) all run on
+schedule and the Valuation tab's net LP interim returns (§7.15) all run on
 the same LP cash flows:
 
 - **Up to today:** the actual capital calls entered (including fee, line
@@ -1179,7 +1227,7 @@ One row per asset in the selected fund.
 | Sizing cushion | How much the loan could grow before the next-tightest test binds: next limit ÷ binding limit − 1; amber under 5%; — when only one test is on. The Details panel lists each test's target, the loan it allows and its room. |
 | Funding | From capital activity tags: Capital call, Sub line, Call + line, Not tagged, or — when the fund has no activity |
 | Yr-1 NOI, going-in cap, exit cap, exit value, IRR, multiple, yr-1 CoC, yr-1 DSCR | The full engine on the deal's current inputs (gross, before fund fees and promote) |
-| Fair value, NAV, unrealized, TVPI | The Valuations tab (§7.15), as of the last completed quarter |
+| Fair value, NAV, unrealized, TVPI | The Valuation tab (§7.15), as of the last completed quarter |
 
 **Fund total row:**
 - **Summed:** SF, units and all dollar figures.
@@ -1396,7 +1444,7 @@ are used before capital is called:
 3. Only if cash and the line are both exhausted is capital needed: the model
    assumes one call at quarter end (the fee part from LPs only, the rest
    from LPs and GP by commitment). Calls are never generated as activity:
-   you enter them, bundled no more than quarterly. Portfolio Return flags
+   you enter them, bundled no more than quarterly. Fund Return flags
    any past quarter that needed a call you haven't entered.
 4. At quarter end the assets' operating income (after their own reserves,
    §7.9) comes into fund cash. It first repays expense draws, then rebuilds
@@ -1405,7 +1453,7 @@ are used before capital is called:
 5. Sale proceeds repay any expense draws before they are distributed.
    After the last sale nothing is kept.
 
-Portfolio Return shows this in **Fund expenses & fund cash**: lifetime fees,
+Fund Return shows this in **Fund expenses & fund cash**: lifetime fees,
 sub line costs, capital needed, distributions, cash and expense draws now,
 this quarter's fee, and **Show by quarter** for the full schedule (fee
 basis, costs, paid from cash, drawn, income, draws repaid, capital needed,
@@ -1429,7 +1477,7 @@ called capital or the line balance.
 service, caps and asset-level fees) ÷ the equity invested at closing, with
 the average, low and high over the hold.
 
-**Fund** (Portfolio Return), by calendar year:
+**Fund** (Fund Return), by calendar year:
 
 ```
 Equity invested  = Σ each asset's purchase equity × days held in the year
@@ -1453,7 +1501,7 @@ reserves and fund cash.
 Each fund's **hurdle rate** (cost of capital: the annual return investors
 require) defaults to its **preferred return** (`prefPct`, Model Fund I: 9%)
 and follows it. To override it, type a rate on the card or in the fund
-terms (`hurdleRatePct`); **Use pref** (or a blank field) returns to the pref. Portfolio Return → **Cost of
+terms (`hurdleRatePct`); **Use pref** (or a blank field) returns to the pref. Fund Return → **Cost of
 capital** measures the gross, net fund and net LP cash flows against it:
 
 ```
@@ -1834,7 +1882,7 @@ critical dates.
 **Appraisal** (validated by the CREparser connector, `appraisal_validate`):
 appraiser, effective date of value, report date, interest appraised, market
 value, direct cap rate, NOI and the value by each approach. **Apply** sets
-the mark of the quarter the effective date falls in (Valuations tab):
+the mark of the quarter the effective date falls in (Valuation tab):
 fair value, source "appraisal", appraiser, cap rate, a note citing the
 document and page, and the document link (`docId`, `page`); the Valuations
 tab's marks show a **PDF p. n** link. It warns when that quarter is inside
@@ -2884,7 +2932,7 @@ each phase and the decisions behind it are in
 | D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease (§7.26–7.27) | ✅ Live (PR #70) |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ✅ Live (PR #71) |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Live (PR #71) |
-| G. Appraisal | Appraised value and cap rate to the Valuations tab | ✅ Live (PR #71) |
+| G. Appraisal | Appraised value and cap rate to the Valuation tab | ✅ Live (PR #71) |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Live (PR #72) |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 next: photos, map, floor plan, demising |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
