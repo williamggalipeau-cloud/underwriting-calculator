@@ -19,7 +19,7 @@ changes the model without the user clicking to apply it.
 | F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Live (PR #71); 27 Node + 12 Playwright checks |
 | G | Appraisal → Valuations tab | ✅ Live (PR #71); 14 Node + 8 Playwright checks |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Live (PR #72); 32 Node + 23 Playwright checks |
-| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); 30 Node + 18 Playwright checks. Part 2 (photos, map, floor plan, demising) next |
+| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
@@ -400,9 +400,15 @@ statement for the whole fund; budget vs plan vs actual by month, quarter,
 year to date and since closing, in $ and $/SF, amber / red flags with a
 comment per variance; PDF per revision (with changes since the previous
 one) and Excel; fund NOI vs budget card on Portfolio Return.
-**Part 2 (next):** asset photos, location map and floor plan (need a storage
-bucket and a map source), demising / combining units, and feeding actual
-NOI to Valuations and Sell / Hold.
+**Part 2 built 11/23:** asset photos (caption, date, order, cover) in the
+private `asset-photos` bucket; a location map from OpenStreetMap, geocoded
+once with Nominatim on click and stored (street, then city), with
+attribution; a floor plan (uploaded image with unit boxes drawn by hand,
+colored by lease status, or a schematic by SF); demising and combining
+vacant units, which update the rent roll and the plan's boxes; actual NOI
+(trailing 12 months of the imported actuals) shown as a cap rate on
+Valuation and as a tile on Sell/Hold Analysis (display only; the model is
+unchanged). Manual §7.31.
 
 **Later enhancement (user, 11/23; not scheduled): TI spend by unit.** As the
 value-add plan is carried out, record TI dollars actually spent against the

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { DECISIONS, DEFAULT_REFI, assetSellHold, fundScenario } from "@/lib/sellHold";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
+import { actualNoi, valueAtCap } from "@/lib/assetMedia";
 
 const pct = (v, d = 1) => (isFinite(v) ? `${v.toFixed(d)}%` : "n/m");
 const x = (v) => (isFinite(v) ? `${v.toFixed(2)}x` : "—");
@@ -137,7 +138,7 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
         ) : a?.status === "past-term" ? (
           <p className="text-xs text-gray-500">The decision date is past the fund&apos;s final extended term; the asset must be sold.</p>
         ) : a?.status === "ok" ? (
-          <AssetView a={a} hurdle={hurdle} canEdit={canEdit} capRate={sh.capRates?.[deal.id]} onCap={(v) => save({ capRates: { ...(sh.capRates ?? {}), [deal.id]: v } })} refiT={refiT} setRefi={setRefi} decision={decisions[deal.id]} onDecision={(v) => setDecision(deal.id, v)} decValue={decValue} />
+          <AssetView a={a} inputs={deal.inputs} hurdle={hurdle} canEdit={canEdit} capRate={sh.capRates?.[deal.id]} onCap={(v) => save({ capRates: { ...(sh.capRates ?? {}), [deal.id]: v } })} refiT={refiT} setRefi={setRefi} decision={decisions[deal.id]} onDecision={(v) => setDecision(deal.id, v)} decValue={decValue} />
         ) : null
       ) : (
         <div className="space-y-4">
@@ -261,13 +262,19 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
   );
 }
 
-function AssetView({ a, hurdle, canEdit, capRate, onCap, refiT, setRefi, decision, onDecision, decValue }) {
+function AssetView({ a, inputs, hurdle, canEdit, capRate, onCap, refiT, setRefi, decision, onDecision, decValue }) {
   const rows = [a.sell, ...a.holds, ...a.refis];
+  // Actual NOI from the business plan's imported actuals (phase I part 2).
+  const act = actualNoi(inputs, new Date().toISOString().slice(0, 10));
+  const actTile = act.months
+    ? [["Actual NOI", m(act.noi), `${act.months < 12 ? `${act.months} mo annualized` : "trailing 12 mo"} · ${pct(((act.noi - a.noiFwd) / Math.abs(a.noiFwd || 1)) * 100, 1)} vs year-ahead · value ${m(valueAtCap(act.noi, a.exitCap))} at the same cap`]]
+    : [];
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 lg:grid-cols-7">
+      <div className={`grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 ${actTile.length ? "lg:grid-cols-8" : "lg:grid-cols-7"}`}>
         {[
           ["Year-ahead NOI", m(a.noiFwd)],
+          ...actTile,
           ["Value now", m(a.valueNow), `at ${pct(a.exitCap, 2)} cap`],
           ["Loan balance", m(a.balNow)],
           ["Net proceeds now", m(a.proceedsNow), `after ${pct(a.salePct * 100, 1)} sale costs`],

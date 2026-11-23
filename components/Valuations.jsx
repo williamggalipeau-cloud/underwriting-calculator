@@ -4,6 +4,7 @@ import { fundOptionLabel, fundType } from "@/lib/fundTypes";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
 import FundTypeBadge from "@/components/FundTypeBadge";
+import { actualNoi, capOnActual } from "@/lib/assetMedia";
 import {
   DUE_DAYS,
   MIN_IRR_YEARS,
@@ -413,7 +414,18 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
                           {r.lastAppraisal ? `${fmtM(r.lastAppraisal.value)} · ${quarterLabel(r.lastAppraisal.quarterEnd)}` : "—"}
                         </td>
                         <td className="px-2.5 py-2 text-right">${fmt(r.psf)}</td>
-                        <td className="px-2.5 py-2 text-right">{fmtPct(r.impliedCap, 2)}</td>
+                        <td className="px-2.5 py-2 text-right">
+                          {fmtPct(r.impliedCap, 2)}
+                          {(() => {
+                            const act = actualNoi(fundDeals.find((d) => d.id === a.id)?.inputs, asOf);
+                            if (!act.months) return null;
+                            return (
+                              <div className="text-[10px] text-gray-500" data-testid="actual-noi-cap" title={`Actual NOI ${act.months < 12 ? `(${act.months} months, annualized)` : "(trailing 12 months)"} ${fmtM(act.noi)}, ${act.from} to ${act.to}, ÷ this quarter's value`}>
+                                {fmtPct(capOnActual(act.noi, r.value), 2)} on actual
+                              </div>
+                            );
+                          })()}
+                        </td>
                         <td className={`px-2.5 py-2 text-right ${r.unrealized < 0 ? "text-red-600" : r.unrealized > 0 ? "text-emerald-700" : ""}`}>
                           {fmtM(r.unrealized)} <span className="text-gray-400">({fmtPct((r.unrealized / r.cost) * 100)})</span>
                         </td>

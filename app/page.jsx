@@ -21,6 +21,7 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import FundNav from "@/components/FundNav";
+import AssetMedia from "@/components/AssetMedia";
 import { fundType } from "@/lib/fundTypes";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
@@ -1940,6 +1941,18 @@ export default function Home() {
                 email={session?.user?.email ?? null}
                 onApplyDeal={applyToDeal}
               />
+            )}
+            {activeTab === "plan" && (
+              <div className="mt-6">
+                <AssetMedia
+                  key={`media-${activeDealId}`}
+                  dealId={activeDealId}
+                  inputs={inputs}
+                  canEdit={!locked}
+                  workspaceId={session && dbLink?.id ? dbLink.id : null}
+                  onApplyDeal={applyToDeal}
+                />
+              </div>
             )}
             {activeTab === "documents" && (
               <Documents
