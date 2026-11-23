@@ -19,6 +19,7 @@ import { fundLpEvents, subLineTerms } from "@/lib/fundFlows";
 import { fundCashYield } from "@/lib/cashYield";
 import { FundCashYield } from "@/components/CashYield";
 import { actualCapital } from "@/lib/capitalActivity";
+import { gpEconomics } from "@/lib/assetFees";
 import CapitalActivity from "@/components/CapitalActivity";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 
@@ -131,7 +132,8 @@ function FundWaterfall({ wf, yearTotals, terms, lineBalanceAt }) {
     { label: "GP IRR",       value: fmtPct(wf.gpIRR),                      good: lpGood(wf.gpIRR, 18) },
     { label: "GP Multiple",  value: fmtX(wf.gpEquityMultiple),              good: lpGood(wf.gpEquityMultiple, 2.5) },
     { label: "GP Capital",   value: fmtM(wf.gpEquity),                      good: true },
-    { label: "GP Promote",   value: fmtM(wf.gpPromote),                     good: true },
+    { label: "GP profit",    value: fmtM(wf.gpPromote),                     good: true },
+    { label: "GP promote",   value: fmtM(gpEconomics(wf).gpPromote),        good: true },
   ];
 
   // Running LP / GP totals per calendar year (computed up front, not during render).
