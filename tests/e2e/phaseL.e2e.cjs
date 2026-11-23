@@ -174,6 +174,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/Fund leverage/.test(await rk.getByTestId("risk-fund-limits").innerText()), "fund limits in the risk report");
   check((await rk.getByTestId("risk-stress").locator("tbody tr").count()) >= 8 && /All four together/.test(await rk.getByTestId("risk-stress").innerText()), "stress tests: fund and each asset under five shocks");
   check(/No owner's insurance certificate/.test(await rk.getByTestId("risk-insurance").innerText()) && /No abstracted leases/.test(await rk.getByTestId("risk-lease-flags").innerText()), "insurance and lease flags load from the database (none on file here)");
+  check((await rk.getByTestId("risk-change").locator("tbody tr").count()) === 10 && /Largest lender/.test(await rk.getByTestId("risk-change").innerText()) && /6\/30\/2026/.test(await rk.getByTestId("risk-change").innerText()), "change vs. last quarter (6/30/2026)");
   const tiRows = rk.getByTestId("ti-row");
   const nTi = await tiRows.count();
   check(nTi >= 7 && (await rk.getByTestId("ti-cell").count()) === nTi * 8 && /Capital call needed/.test(await rk.getByTestId("risk-ti").innerText()), `TI heat map: ${nTi} assets × 8 quarters, capital call row`);
@@ -182,6 +183,17 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/\$336,000 facility, 1\.25x/.test(await r9ti.innerText()) && r9cols.includes("green"), `Route 9: $336k facility at 1.25x, covered (${r9cols.join(",")})`);
   const tip = await r9ti.getByTestId("ti-cell").filter({ hasText: /\d/ }).first().getAttribute("title");
   check(/need \$[\d,]+ · facility/.test(tip ?? "") && /capital call/.test(tip ?? ""), `hover explains the sources: ${tip}`);
+  // TI scenario action (modeling only)
+  const cell0 = r9ti.getByTestId("ti-cell").filter({ hasText: /\d/ }).first();
+  const need0 = await cell0.innerText();
+  await cell0.click();
+  await rk.getByTestId("ti-actions").getByLabel("TI action").selectOption("cut");
+  await rk.getByTestId("ti-actions").getByLabel("Cut percent").fill("50");
+  await rk.getByTestId("ti-actions").getByRole("button", { name: "Add to scenario" }).click();
+  await p.waitForTimeout(1500);
+  check((await rk.getByTestId("ti-action-list").locator("li").count()) === 1 && /cut 50%/.test(await rk.getByTestId("ti-action-list").innerText()) && (await rk.getByLabel("Show with scenario actions").isChecked()), "TI action added to the scenario and shown");
+  const need1 = await rk.getByTestId("ti-row").filter({ hasText: "Route 9 Small Bay" }).getByTestId("ti-cell").filter({ hasText: /\d/ }).first().innerText();
+  check(need1 !== need0, `cut 50% lowers that quarter's need (${need0} → ${need1})`);
   const envHl = rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" });
   check(/RECs without a no-further-action letter/.test(await envHl.innerText()), "environmental: Harbor Light's open REC");
   await envHl.getByLabel("No-further-action letter Harbor Light Industrial").check();
@@ -202,6 +214,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await (async () => { const f = (saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]; return f?.internalLimits?.[0]?.key === "hold_years" && f.internalLimits[0].limit === 4; })()), "saved: the internal limit on the fund");
   check(sfr?.issued?.length === 1 && sfr.issued[0].kind === "internal" && sfr.issued[0].report?.portfolio?.length >= 7 && sfr.issued[0].notes.includes("Route 9 taxes"), "saved: the issued report with its frozen figures");
   check(/test letter/.test(sfr?.drafts?.["2026-Q3"]?.letter ?? ""), "saved: the edited letter draft");
+  check((saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.tiScenario?.actions?.[0]?.kind === "cut", "saved: the TI scenario on the fund");
   check(sfr?.riskIssued?.length === 1 && sfr.riskIssued[0].report?.lenders?.rows?.length >= 3, "saved: the issued risk report");
   const hlSaved = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.inputs.propertyName === "Harbor Light Industrial")?.inputs;
   check(hlSaved?.envRisk?.nfa === true, "saved: Harbor Light's NFA letter on the deal");

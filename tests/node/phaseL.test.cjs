@@ -211,5 +211,26 @@ ok(rd.leaseFlags.rows.length === 2 && rd.leaseFlags.byType.some((t) => t.type ==
 ok(rd.watch.find((w) => w.id === h7[0].id).reasons.some((x) => /Insurance: property policy/.test(x)) && rd.watch.find((w) => w.id === h7[0].id).reasons.some((x) => /Lease risk: Ironwood/.test(x)), "the expired policy and the termination right go on the watch list");
 ok(RK.riskReport(h7, qterms, { asOf: "2026-11-23", values }).insurance === null, "signed out (no documents loaded): no insurance section");
 
+// ── TI scenario actions ──
+const lkId = lks.id, q281 = q28.quarter;
+const postponed = TI.tiCoverage(qdeals, qterms, { asOf: "2026-11-23", actions: [{ dealId: lkId, quarter: q281, kind: "postpone", to: "2028-09-30" }] });
+const lk2 = postponed.assets.find((a) => a.id === lkId);
+ok(lk2.cells.find((c) => c.quarter === q281).need === 0 && close(lk2.cells.at(-1).need, lks.cells.at(-1).need + q28.need), "postpone: the quarter's need moves to the later quarter");
+const cutS = TI.tiCoverage(qdeals, qterms, { asOf: "2026-11-23", actions: [{ dealId: lkId, quarter: q281, kind: "cut", pct: 50 }] });
+ok(close(cutS.assets.find((a) => a.id === lkId).cells.find((c) => c.quarter === q281).need, q28.need / 2), "cut 50%: half the need");
+const callS = TI.tiCoverage(qdeals, qterms, { asOf: "2026-11-23", actions: [{ dealId: lkId, quarter: q281, kind: "call", amount: 1_000_000 }] });
+const cc = callS.assets.find((a) => a.id === lkId).cells.find((c) => c.quarter === q281);
+ok(cc.color === "blue" && cc.call === 0 && cc.fromPlanned > 0 && callS.fundCall[5] < tic.fundCall[5], "planned call: the capital call is planned (blue), not a surprise");
+ok(TI.tiCoverage(qdeals, qterms, { asOf: "2026-11-23", actions: [{ dealId: lkId, quarter: q281, kind: "postpone", to: "2026-12-31" }] }).assets.find((a) => a.id === lkId).cells.find((c) => c.quarter === q281).need === q28.need, "can't postpone into an earlier quarter");
+
+// ── Change vs. last quarter ──
+const q2 = QR.buildQuarterlyReport(qdeals, qterms, {}, { qEnd: "2026-06-30", todayISO: "2026-11-23", kind: "shareable" });
+const prevDeals = qdeals.filter((d) => q2.portfolio.some((x) => x.id === d.id));
+const rPrev = RK.riskReport(prevDeals, qterms, { asOf: "2026-06-30", values: Object.fromEntries(q2.portfolio.map((x) => [x.id, x.value])) });
+const ch = RK.concentrationChange(rr, rPrev);
+ok(ch.length === 10 && ch.every((c) => c.now == null || c.prev == null || close(c.change, c.now - c.prev)), "change = now − last quarter for each concentration");
+ok(prevDeals.length < h7.length && ch.find((c) => c.key === "state").prev !== ch.find((c) => c.key === "state").now, `fewer assets last quarter (${prevDeals.length} vs ${h7.length}): the state concentration moved`);
+ok(RK.concentrationChange(rr, null).every((c) => c.prev == null && c.change == null), "no prior quarter: no change shown");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

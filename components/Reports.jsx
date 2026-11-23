@@ -63,6 +63,8 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const qEnd = qs.includes(qPick) ? qPick : lastQ;
   const [kind, setKind] = useState("shareable");
   const k = canEdit ? kind : "shareable"; // viewers see the shareable version only
+  const prevQEnd = prevQ(qEnd);
+  const prevReport = useMemo(() => (fundName && canEdit ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd: prevQEnd, todayISO: t0, curve, kind: "shareable" }) : null), [fundName, canEdit, fundDeals, terms, marks, prevQEnd, t0, curve]);
   const report = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd, todayISO: t0, curve, kind: k }) : null), [fundName, fundDeals, terms, marks, qEnd, t0, curve, k]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -150,6 +152,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           onFundTermsChange={onFundTermsChange}
           onApplyDeal={onApplyDeal}
           workspaceId={workspaceId}
+          prev={prevReport && prevReport.qEnd === prevQEnd ? { asOf: prevQEnd, deals: fundDeals.filter((d) => prevReport.portfolio.some((x) => x.id === d.id)), values: Object.fromEntries(prevReport.portfolio.map((x) => [x.id, x.value])), lineBalance: prevReport.nav.lineBalance } : null}
         />
       ) : (
       <>

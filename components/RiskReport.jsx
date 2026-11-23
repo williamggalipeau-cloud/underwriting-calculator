@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { listDealDocs } from "@/lib/dealDocs";
 import { listLeases } from "@/lib/leaseDocs";
-import { DEFAULT_RISK_LIMITS, ENV_FIELDS, LEVELS, riskReport, riskXlsx } from "@/lib/riskReport";
+import { DEFAULT_RISK_LIMITS, ENV_FIELDS, LEVELS, concentrationChange, riskReport, riskXlsx } from "@/lib/riskReport";
 import { COLORS as TI_COLORS } from "@/lib/tiFunding";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
@@ -40,9 +40,14 @@ function T({ head, rows, right = [] }) {
 }
 const over = (v, lim) => (v > lim ? <span className="font-semibold text-red-700">{pct(v)}</span> : pct(v));
 
-export default function RiskReport({ fundName, terms, deals, values, asOf, curve, planGap, lineBalance = 0, email, canEdit, onFundTermsChange, onApplyDeal, workspaceId = null }) {
+export default function RiskReport({ fundName, terms, deals, values, asOf, curve, planGap, lineBalance = 0, email, canEdit, onFundTermsChange, onApplyDeal, workspaceId = null, prev = null }) {
   const [docs, setDocs] = useState(null);
   const [docsErr, setDocsErr] = useState("");
+  const [withActions, setWithActions] = useState(false);
+  const [sel, setSel] = useState(null); // { dealId, name, quarter, label, need }
+  const [act, setAct] = useState({ kind: "postpone", to: "", pct: 25, amount: 0 });
+  const actions = terms.tiScenario?.actions ?? [];
+  const saveActions = (next) => canEdit && onFundTermsChange(fundName, { tiScenario: { ...(terms.tiScenario ?? {}), actions: next, updatedAt: new Date().toISOString(), by: email ?? "" } });
   useEffect(() => {
     if (!workspaceId) return;
     let live = true;
@@ -52,8 +57,11 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
     return () => { live = false; };
   }, [workspaceId]);
   const today = new Date().toISOString().slice(0, 10);
-  const r = useMemo(() => riskReport(deals, terms, { asOf, values, curve, planGap, lineBalance, tiAsOf: today, docs }), [deals, terms, asOf, values, curve, planGap, lineBalance, today, docs]);
+  const r = useMemo(() => riskReport(deals, terms, { asOf, values, curve, planGap, lineBalance, tiAsOf: today, docs, tiActions: withActions ? actions : [] }), [deals, terms, asOf, values, curve, planGap, lineBalance, today, docs, withActions, actions]);
   const [busy, setBusy] = useState(false);
+  const prevR = useMemo(() => (prev && prev.deals.length ? riskReport(prev.deals, terms, { asOf: prev.asOf, values: prev.values, curve, lineBalance: prev.lineBalance }) : null), [prev, terms, curve]);
+  const change = useMemo(() => concentrationChange(r, prevR), [r, prevR]);
+  r.change = change;
   const lim = r.limits;
   const store = terms.reports ?? {};
   const issued = (store.riskIssued ?? []).filter((x) => x.asOf === asOf);
@@ -99,7 +107,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
       )}
 
       {r.ti && (
-        <Sec title="TI funding coverage, next 8 quarters" testId="risk-ti" right={<span className="text-[11px] text-gray-500">Facility → asset cash flow → sub line (to {usDate(r.ti.lineExpires)}) → capital call</span>}>
+        <Sec title={`TI funding coverage, next 8 quarters${withActions ? " · with scenario actions" : ""}`} testId="risk-ti" right={<span className="flex items-center gap-3 text-[11px] text-gray-500"><span>Facility → asset cash flow → sub line (to {usDate(r.ti.lineExpires)}) → capital call</span><label className="flex items-center gap-1 text-gray-700"><input type="checkbox" aria-label="Show with scenario actions" checked={withActions} onChange={(e) => setWithActions(e.target.checked)} />With scenario actions ({actions.length})</label></span>}>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="text-gray-500"><tr><th className={`${th} text-left`}>Asset</th>{r.ti.quarters.map((q) => <th key={q.quarter} className={`${th} text-center`}>{q.label}</th>)}</tr></thead>
@@ -109,7 +117,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
                     <td className={`${td} whitespace-nowrap`}>{a.name}<span className="ml-1 text-[10px] text-gray-400">{a.facility ? `${fmtM(a.facility.total)} facility, ${a.facility.minDscr.toFixed(2)}x` : "no facility"}</span></td>
                     {a.cells.map((c) => (
                       <td key={c.quarter} className="p-0.5">
-                        <div data-testid="ti-cell" data-color={c.color} style={{ background: TI_COLORS[c.color].fill }} className="h-7 rounded text-center text-[10px] leading-7 text-white"
+                        <div data-testid="ti-cell" data-color={c.color} role={canEdit ? "button" : undefined} tabIndex={canEdit ? 0 : undefined} onClick={() => canEdit && (c.need > 0 || c.postponedOut) && setSel({ dealId: a.id, name: a.name, quarter: c.quarter, label: c.label, need: c.need })} style={{ background: TI_COLORS[c.color].fill, outline: sel?.dealId === a.id && sel?.quarter === c.quarter ? "2px solid #111" : undefined }} className={`h-7 rounded text-center text-[10px] leading-7 text-white ${canEdit && c.need > 0 ? "cursor-pointer" : ""}`}
                           title={c.need > 0 ? `${c.label}: need ${fmtM(c.need)} · facility ${fmtM(c.fromFacility)}${c.testFailed ? ` (draw test fails: DSCR ${c.dscr?.toFixed(2)}x < ${a.facility.minDscr.toFixed(2)}x)` : a.facility && c.headroomPct != null ? ` (NOI could fall ${c.headroomPct.toFixed(0)}% before draws stop)` : ""} · cash flow ${fmtM(c.fromCash)} · sub line ${fmtM(c.fromLine)} · capital call ${fmtM(c.call)}` : `${c.label}: no TI due`}>
                           {c.need > 0 ? fmtM(c.need).replace("$", "") : ""}
                         </div>
@@ -121,6 +129,39 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
               </tbody>
             </table>
           </div>
+          {canEdit && (
+            <div className="mt-2 space-y-2 rounded-lg border border-blue-100 bg-blue-50/50 p-2 text-xs" data-testid="ti-actions">
+              {sel ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{sel.name} · {sel.label} · need {fmtM(sel.need)}:</span>
+                  <select aria-label="TI action" value={act.kind} onChange={(e) => setAct({ ...act, kind: e.target.value })} className="rounded border border-gray-300 px-1.5 py-0.5">
+                    <option value="postpone">Postpone to</option>
+                    <option value="cut">Cut by</option>
+                    <option value="call">Plan a capital call of</option>
+                  </select>
+                  {act.kind === "postpone" && (
+                    <select aria-label="Postpone to quarter" value={act.to} onChange={(e) => setAct({ ...act, to: e.target.value })} className="rounded border border-gray-300 px-1.5 py-0.5">
+                      <option value="">quarter…</option>
+                      {r.ti.quarters.filter((q) => q.quarter > sel.quarter).map((q) => <option key={q.quarter} value={q.quarter}>{q.label}</option>)}
+                    </select>
+                  )}
+                  {act.kind === "cut" && <><input aria-label="Cut percent" type="number" value={act.pct} onChange={(e) => setAct({ ...act, pct: e.target.value })} className="w-16 rounded border border-gray-300 px-1 py-0.5 text-right" />%</>}
+                  {act.kind === "call" && <>$<input aria-label="Planned call amount" type="number" value={act.amount} onChange={(e) => setAct({ ...act, amount: e.target.value })} className="w-28 rounded border border-gray-300 px-1 py-0.5 text-right" /></>}
+                  <button type="button" disabled={act.kind === "postpone" && !act.to} onClick={() => { saveActions([...actions, { dealId: sel.dealId, asset: sel.name, quarter: sel.quarter, kind: act.kind, ...(act.kind === "postpone" ? { to: act.to } : act.kind === "cut" ? { pct: Number(act.pct) } : { amount: Number(act.amount) }) }]); setWithActions(true); }} className="rounded bg-blue-600 px-2 py-0.5 font-medium text-white disabled:opacity-40">Add to scenario</button>
+                </div>
+              ) : <p className="text-gray-500">Click a cell to postpone its TI, cut it, or plan a capital call. Modeling only: nothing changes on the asset; carry chosen actions into the business plan yourself (a new revision).</p>}
+              {actions.length > 0 && (
+                <ul className="flex flex-wrap gap-1.5" data-testid="ti-action-list">
+                  {actions.map((x, i) => (
+                    <li key={i} className="rounded bg-white px-1.5 py-0.5 ring-1 ring-blue-200">
+                      {x.asset} {x.quarter.slice(0, 4)} Q{Math.floor((Number(x.quarter.slice(5, 7)) - 1) / 3) + 1}: {x.kind === "postpone" ? `postpone to ${x.to.slice(0, 4)} Q${Math.floor((Number(x.to.slice(5, 7)) - 1) / 3) + 1}` : x.kind === "cut" ? `cut ${x.pct}%` : `plan a ${fmtM(x.amount)} call`}
+                      <button type="button" aria-label="Remove action" onClick={() => saveActions(actions.filter((_, k) => k !== i))} className="ml-1 text-gray-400 hover:text-red-600">×</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-gray-600">{Object.entries(TI_COLORS).map(([k, c]) => <span key={k} className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded" style={{ background: c.fill }} />{c.label}</span>)}</div>
         </Sec>
       )}
@@ -129,6 +170,16 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         <T head={["", "Base", ...r.stress.shocks.map((x) => x.label)]} right={[1, 2, 3, 4, 5, 6]}
           rows={[["Fund (equity-weighted)", pct(r.stress.fund.baseIrr), ...r.stress.fund.byShock.map((x) => `${pct(x.irr)}${x.breaches ? ` · ${x.breaches} breach${x.breaches > 1 ? "es" : ""}` : ""}`)],
             ...r.stress.assets.map((a) => [a.name, pct(a.baseIrr), ...a.results.map((x) => <span key={x.key} className={x.breach ? "font-semibold text-red-700" : ""} title={x.minDscr != null ? `Lowest DSCR ${x.minDscr.toFixed(2)}x (test ${a.test.toFixed(2)}x)` : undefined}>{pct(x.irr)}</span>)])]} />
+      </Sec>
+
+      <Sec title={`Change vs. last quarter${prev ? ` (${usDate(prev.asOf)})` : ""}`} testId="risk-change">
+        {!prevR ? <p className="text-xs text-gray-400">No prior quarter to compare with.</p> : (
+          <T head={["Concentration", "Now", "Last quarter", "Change"]} right={[1, 2, 3]} rows={change.map((c) => {
+            const hh = /HHI/.test(c.label);
+            const f = (v) => (v == null ? "—" : hh ? Math.round(v).toLocaleString("en-US") : pct(v));
+            return [`${c.label}${c.name ? ` · ${c.name}` : ""}`, f(c.now), `${f(c.prev)}${c.prevName && c.prevName !== c.name ? ` · ${c.prevName}` : ""}`, c.change == null ? "—" : <span className={Math.abs(c.change) < 1e-9 ? "text-gray-400" : c.change > 0 ? "text-red-700" : "text-emerald-700"}>{`${c.change > 0 ? "+" : ""}${hh ? Math.round(c.change) : `${c.change.toFixed(1)} pts`}`}</span>];
+          })} />
+        )}
       </Sec>
 
       <div className="grid gap-3 lg:grid-cols-2">
