@@ -33,7 +33,7 @@ changes the model without the user clicking to apply it.
 | T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager; TI spend by unit with mock TI actuals (added 11/23) | ⛓ After S |
 | U | Market group: Market Data tab, submarket statistics; stress tests in standard deviations with a simulation (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
-| X | Distributions tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset and fund cash, proposed distribution and yield, rolling 4-quarter history (added 11/23) | ⛓ After K |
+| X | Distributions tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
@@ -1188,25 +1188,36 @@ A **Market** header before Library, with a **Market Data** tab:
 Sales Comps stays in Asset Management, and the live SOFR panel is on the
 Debt tab.
 
-## Phase X: Distribution Planner (added 11/23, after K)
+## Phase X: Distribution Planner (added 11/23; built right after K, before L)
 
 A **Distributions** tab in Portfolio Management, after Fund Return: a model
-for each quarter's fund distribution.
-- **Distributable cash:** cash at each asset (operating account balance,
-  less lender-required reserves, TI / capex committed and a working-capital
-  minimum per asset) plus fund cash (less the fund's minimum cash reserve of
-  N quarters of expenses and any sub line paydown). Balances are entered by
-  hand or uploaded (e.g. a Yardi cash report), with the model's projected
-  cash shown when none is entered.
-- **Choose the distribution:** an amount or a % of distributable cash; the
-  tab shows the split to LPs and GP under the fund's waterfall, what is left
-  in reserve, and the **projected distribution yield** (annualized
-  distribution ÷ LP contributed capital; ÷ NAV shown too).
-- **History:** the last 4 quarters of actual distributions (from capital
-  activity) with each quarter's yield and the trailing-12-month yield, next
-  to the proposed quarter.
-- Save a proposal; once paid, record it as a distribution in capital
-  activity. PDF and Excel export.
+for each quarter's fund distribution. Decided with the user 11/23:
+- **Distributable cash** for a fund and quarter:
+  - cash at each asset (operating accounts), **uploaded from Yardi** (cash or
+    bank balance report, mapped once like the other Yardi imports) **or
+    entered by hand**; no model fallback (an asset with no balance shows
+    "not entered");
+  - less lender-required reserves (loan terms) and committed TI / capex not
+    yet paid (business plan);
+  - less an asset working-capital minimum of **3 months of projected
+    operating expenses** (from the asset's budget / model);
+  - plus fund cash, less a fund minimum of **6 months of projected fund
+    expenses** (management fee and sub line costs; matches the existing
+    2-quarter fund cash reserve);
+  - less any sub line repayment required by the **sub line term sheet**
+    (e.g. clean-down or repay-before-distribution terms; entered from the
+    term sheet or read from it like the LPA).
+- **Choose the distribution:** an amount or a % of distributable cash. The
+  LP / GP split follows the **LPA terms** (the fund's waterfall and income
+  treatment, already read from the LPA). Shows what stays in reserve.
+- **Projected distribution yield:** annualized distribution ÷ LP contributed
+  (called) capital, and the same on **NAV** (Fund Return's latest NAV).
+- **History:** the last 4 quarters of actual distributions (capital
+  activity) with each quarter's yield and the trailing-12-month yield,
+  next to the proposed quarter.
+- Save a proposal; when paid, record it as a distribution in capital
+  activity. No approval step now (that comes with phase V's workflow).
+  PDF and Excel export.
 
 ## Phase W: GP Economics (added 11/23, after L)
 
