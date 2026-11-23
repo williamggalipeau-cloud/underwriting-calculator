@@ -2901,11 +2901,24 @@ each phase and the decisions behind it are in
 | U. Market | Market Data tab: submarket statistics with sources | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 
-**How phases are delivered.** Each phase starts as soon as the previous one
-is complete. Each comes with this manual updated and Node and Playwright
-tests, and goes into a pull request that is merged only when you say so.
-CREparser connectors are used to validate only, so your free documents are
-not used. Nothing changes your data until you click to apply it.
+**How phases are delivered.**
+- **Scheduling:** phases I–O run in scheduled 5-hour windows (from 11/22, 8:40
+  PM Pacific). Phases Q–U run in bundles, one per usage window, each started
+  when you say "next bundle":
+  1. Q, with you present;
+  2. P;
+  3. R and S;
+  4. T;
+  5. U.
+  V (automated workflow) is scoped later.
+- **Testing:** each phase comes with this manual updated and Node and
+  Playwright tests. The tests are kept in the repository and run
+  automatically on every pull request.
+- **Merging:** each phase goes into a pull request that is merged only when
+  you say so.
+- **Your data:** CREparser connectors are used to validate only, so your free
+  documents are not used. Nothing changes your data until you click to apply
+  it.
 
 **What each phase adds**
 

@@ -1114,7 +1114,7 @@ next one, never in an extra window of its own.
 
 | Bundle | Phases | Notes |
 |---|---|---|
-| 1 (attended) | Q Workspace storage | The user present for the database changes and the live-data check; first, so later phases are built on it |
+| 1 (attended) | Q Workspace storage | The user present (confirmed 11/23) for the database changes and the live-data check; first, so later phases are built on it. The user picks the time |
 | 2 | P Dispositions | The largest: four tabs, uploads, exports. Its document-type SQL is prepared ahead and applied in bundle 1 |
 | 3 | R Leasing + S Fund Debt | Two single tabs |
 | 4 | T Property Management | Four tabs and the Yardi Construction Manager uploads |
