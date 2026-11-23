@@ -34,6 +34,8 @@ import { withSampleMedia } from "@/lib/sampleMedia";
 import { EMPTY_PIPELINE, makePipelineDeal, toQuickInputs } from "@/lib/pipeline";
 import Pipeline from "@/components/Pipeline";
 import FundImpact from "@/components/FundImpact";
+import FundSummary from "@/components/FundSummary";
+import { entityDates } from "@/lib/fundSummary";
 import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
 import { isPipeline } from "@/lib/fundImpact";
 import { withRiskTestData } from "@/lib/sampleRiskData";
@@ -435,6 +437,7 @@ const TAB_GROUPS = [
     { id: "sellhold",    label: "Sell/Hold Analysis" },
   ] },
   { label: "Portfolio Management", tabs: [
+    { id: "fundsummary", label: "Fund Summary" },
     { id: "fundplan",    label: "Fund Plan" },
     { id: "fund",        label: "Fund Return" },
     { id: "distributions", label: "Distribution Analysis" },
@@ -2000,6 +2003,17 @@ export default function Home() {
                 onFundTermsChange={handleFundTermsChange}
               />
             )}
+            {activeTab === "fundsummary" && (
+              <FundSummary
+                deals={deals}
+                funds={funds}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                onFundTermsChange={handleFundTermsChange}
+                onOpenTab={setActiveTab}
+              />
+            )}
             {activeTab === "fundplan" && (
               <FundPlan
                 deals={fundDeals}
@@ -2130,6 +2144,7 @@ export default function Home() {
                 fundName={resolveFund(inputs.fundName)}
                 dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
                 onApplyUnits={handleApplyLease}
+                extraDates={entityDates(funds[resolveFund(inputs.fundName)]?.entities ?? [], resolveFund(inputs.fundName))}
               />
             )}
             {activeTab === "plan" && (

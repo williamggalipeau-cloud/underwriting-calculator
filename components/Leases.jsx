@@ -671,7 +671,7 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
   );
 }
 
-export default function Leases({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, dealInputs, onApplyUnits }) {
+export default function Leases({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, dealInputs, onApplyUnits, extraDates = [] }) {
   const [scope, setScope] = useState("asset");
   const [leases, setLeases] = useState(null);
   const [error, setError] = useState(null);
@@ -764,7 +764,8 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
     const ids = new Set(scope === "asset" ? [deal?.id] : fundDeals.map((d) => d.id));
     return dealDocs.filter((d) => (d.deal_id ? ids.has(d.deal_id) : scope === "fund" && d.fund_name === fundName));
   }, [dealDocs, scope, deal?.id, fundDeals, fundName]);
-  const milestonesFor = useMemo(() => planDates(scope === "asset" ? (deal ? [deal] : []) : fundDeals), [scope, deal, fundDeals]);
+  // Business plan milestones, and (fund scope) entities' annual-report dates (phase N).
+  const milestonesFor = useMemo(() => [...planDates(scope === "asset" ? (deal ? [deal] : []) : fundDeals), ...(scope === "asset" ? [] : extraDates)], [scope, deal, fundDeals, extraDates]);
   async function report() {
     setReporting(true);
     try {

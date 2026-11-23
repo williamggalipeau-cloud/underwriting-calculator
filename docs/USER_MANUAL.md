@@ -252,7 +252,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
 | **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), after Leases |
 | **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
-| **Portfolio Management** | Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Summary (N) first, Fund Debt (S) |
+| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Debt (S) |
 | **Market** | (none yet) | Market Data (U) |
 | **Library** | Documents · Reports | |
 
@@ -291,6 +291,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
+| **Fund Summary** | One page of key facts about a fund: key dates, capital raised / called / deployed / available, every key term, legal entities with an ownership chart, org chart and formation document uploads, links to the tabs that hold the rest; fact sheet (PDF) and Excel (§7.38). |
 | **Fund Plan** | The fund's frozen plan (and re-forecasts) against actuals to date and today's forecast: capital called, deployment, distributions, DPI, NAV, projected returns vs. targets, GP promote, a cumulative chart, attribution by asset and cause; Excel and PDF report (§7.33). |
 | **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. Then **Underwritten vs. actual + projected**: each asset with a frozen baseline ranked by IRR gap (§7.32). |
 | **Distribution Analysis** | Each quarter's distributable cash: asset cash (Yardi upload or entered; projected where none is entered, labelled), less reserves, committed TI / capex and 3 months of asset expenses; fund cash less 6 months of fund expenses; less any sub line repayment. Choose the distribution (% or amount), LP / GP split per the waterfall, yield on LP contributed capital and NAV, last 4 quarters; save a proposal and record it as paid; Excel and PDF (§7.34). |
@@ -2331,6 +2332,34 @@ actual") models pipeline deals into a fund without changing it.
 - **PDF** and **Excel** for the live view or the version shown, stamped
   "Scenario - not actual" with the scenario name, version, date and author.
 
+### 7.38 Fund Summary (phase N)
+
+The **Fund Summary** tab (first under Portfolio Management) is one page of
+key facts about the chosen fund. It doesn't repeat performance, the
+portfolio or upcoming dates; **Elsewhere** links to Fund Return, Valuation,
+Asset Summary, Leases → Critical dates, Fund Plan and Reports.
+- **Key dates:** launch (entered here), final close, investment period end,
+  end of term, and the outside date with every extension, with months left.
+- **Capital:** raised (commitments), called (from capital activity when
+  entered, else the model's purchase equity to date) and % of commitments,
+  deployed in assets, available (dry powder) before and after the fund's
+  cash reserve, and the sub line drawn vs. capacity.
+- **Key terms:** fund type, commitments (LP / GP), pref, hurdle, catch-up,
+  promote tiers, income treatment, management fee and basis, investment
+  period, term and extensions, distribution policy, fund cash reserve, the
+  sub line, investment limits, and **key person** and **GP removal**
+  (entered here from the LPA).
+- **Legal entities:** the fund, GP, manager and each asset's property
+  company (**Add a company for each asset** creates "<Asset> LLC" owned by
+  the fund): state, formation date, **EIN (only the last 4 digits are
+  kept)**, registered agent, annual-report due date and who owns it. An
+  **ownership chart** is drawn from those links. Annual-report due dates
+  appear on Leases → Critical dates (whole fund).
+- **Org charts and formation documents** (signed in): upload PDFs by type
+  (org chart, formation documents, operating agreement, good standing,
+  other legal); open or delete them.
+- **Fact sheet (PDF)** on one page, and **Excel**.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3432,7 +3461,7 @@ each phase and the decisions behind it are in
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Remaining: insurance vs. loan requirements, an asset map sized by value |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Fund Impact PDF; Update pipeline row from the screener; Add to pipeline from an OM (11/23) |
-| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
+| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ✅ Built 11/23: Fund Summary tab (§7.38) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
