@@ -22,7 +22,7 @@ changes the model without the user clicking to apply it.
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
 | J | Underwritten vs. actual performance | ✅ Built 11/23 (pulled forward into window 1): frozen baseline, actual + projected, IRR gap by cause, fund ranking, Excel and PDF; 29 Node + 16 Playwright checks |
 | K | Fund plan vs. actual; Sell/Hold hold-period impact on the fund (added 11/23) | ⛓ Starts when J is complete |
-| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency); mock sample-asset images; full Asset Business Plan PDF; Asset Return GP ROE and projected fee revenue (added 11/23) | ⛓ Starts when K is complete |
+| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock sample-asset images; full Asset Business Plan PDF; Asset Return GP ROE and projected fee revenue (added 11/23) | ⛓ Starts when K is complete |
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23); Deal Screener fund picker with acquisition impact, pipeline assets only (added 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
@@ -34,6 +34,7 @@ changes the model without the user clicking to apply it.
 | U | Market group: Market Data tab, submarket statistics; stress tests in standard deviations with a simulation (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
 | X | Distribution Analysis tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
+| Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
@@ -691,6 +692,12 @@ I–K.
   report and summarised in the internal performance report.
 - **Risk report (internal only)**, watermarked "Internal — not for
   distribution", never included in the shareable report:
+  - *Environmental and climate* (added 11/23, user): per asset, Phase I /
+    Phase II reports and findings (recognized environmental conditions,
+    remediation, no-further-action letters), tenants' hazardous-material
+    use from leases and estoppels, FEMA flood zone, wildfire and extreme
+    heat exposure; documents uploaded per asset (as on the Leases tab);
+    fund roll-up and flags for open items.
   - *Leasing*: lease expirations by year (% of SF and rent) by asset and
     fund, near-term rollover, renewal and termination options, mark to
     market, vacancy and downtime vs. plan.
@@ -1220,6 +1227,30 @@ for each quarter's fund distribution. Decided with the user 11/23:
 - Save a proposal; when paid, record it as a distribution in capital
   activity. No approval step now (that comes with phase V's workflow).
   PDF and Excel export.
+
+## Phase Y: Benchmarking (added 11/23, after L)
+
+A **Benchmarking** tab in Portfolio Management: the fund's and each asset's
+returns against outside benchmarks. The benchmark data is licensed, so it is
+uploaded each quarter from the user's subscriptions (CSV / Excel exports,
+columns mapped once), never fetched by the app; each figure shows its source
+and "licensed data" (check each license before using benchmark figures in
+LP reports).
+- **NCREIF** (NPI, NPI Industrial, ODCE): property-level, unlevered,
+  quarterly time-weighted returns (income and appreciation). Compared with
+  each asset's and the fund's unlevered quarterly time-weighted return, which
+  the app adds (it uses IRR today) from NOI, capex and the quarterly marks.
+- **Preqin**: private real estate funds by vintage year and strategy
+  (closed-end, value-add / industrial): net IRR, TVPI and DPI quartiles. The
+  fund's net figures shown with its quartile.
+- **Cambridge Associates**: real estate fund benchmark statistics by vintage
+  year (IRR, multiples) and its quarterly index; same fund-level comparison
+  as Preqin, as a second source.
+- **Public market equivalent (PME)**: the fund's LP cash flows invested in a
+  listed industrial REIT index instead (free index data), as a Kaplan-Schoar
+  ratio and an index-equivalent IRR.
+- Views: since inception and trailing 1 / 3 / 5 years; charts; Excel and
+  PDF; feeds phase L's reports (internal by default because of licensing).
 
 ## Phase W: GP Economics (added 11/23, after L)
 
