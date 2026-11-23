@@ -7,7 +7,9 @@ const S = FX.outDir();
 const data = FX.workspaceData();
 const plus = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
 data.deals = data.deals.map((d) => (d.id === "sample-deal-2" ? { ...d, inputs: { ...d.inputs, propertyMgmt: { contracts: [{ id: "k1", vendor: "Example Landscaping", service: "Landscaping", start: "2026-01-01", end: plus(50), annualCost: 18000, autoRenew: true, noticeDays: 30, yardiContract: "" }] } } } : d));
+data.deals = data.deals.map((d) => (d.id === "sample-deal-1" ? { ...d, inputs: { ...d.inputs, businessPlan: { revisions: [{ n: 1, at: "2026-01-30T00:00:00Z", by: "", reason: "Closing", plan: { capital: [] }, budget: null }] } } } : d));
 data.activeDealId = "sample-deal-1";
+const docs = [];
 const now = Math.floor(Date.now() / 1000);
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com", role: "authenticated", exp: now + 3600, aud: "authenticated" })}.sig`;
@@ -27,6 +29,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
     if (u.includes("/rpc/claim_invites")) body = "0";
     else if (u.includes("/rpc/save_workspace")) { saved = JSON.parse(req.postData()); body = String(++ws.version); }
     else if (u.includes("/auth/v1/user")) body = JSON.stringify(sess.user);
+    else if (u.includes("/storage/v1/object/sign/")) body = JSON.stringify({ signedURL: "/object/sign/x?token=t" });
+    else if (u.includes("/storage/v1/object/")) body = JSON.stringify({ Key: "x" });
+    else if (u.includes("/deal_documents")) {
+      if (req.method() === "POST") { const row = { created_at: new Date().toISOString(), status: "uploaded", ...JSON.parse(req.postData()) }; docs.push(row); body = acc.includes("vnd.pgrst.object") ? JSON.stringify(row) : JSON.stringify([row]); }
+      else body = JSON.stringify(docs);
+    }
     else if (u.includes("/workspace_members")) body = JSON.stringify([{ workspace_id: "w1", role: "owner", email: "t@example.com" }]);
     else if (u.includes("/workspaces")) body = acc.includes("vnd.pgrst.object") ? JSON.stringify(ws) : JSON.stringify([ws]);
     r.fulfill({ status: 200, contentType: "application/json", body });
@@ -89,6 +97,15 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await ir.getByLabel("Cost ($)").fill("9500");
   await p.waitForTimeout(300);
   check(/1 open of 1 · open cost \$9,500 \(Immediate \$9,500\)/.test(await p.getByTestId("pm-summary").innerText()), "condition: open cost by urgency");
+  await ir.getByRole("button", { name: "Add to capital plan" }).click();
+  await p.waitForTimeout(400);
+  check(/Added to Airport Flex Park's capital plan as a new plan revision/.test(await p.getByTestId("pm-plan-msg").innerText()) && /In the plan ✓/.test(await ir.innerText()), "a finding added to the business plan's capital plan");
+  const sec = p.getByTestId("pm-section-items");
+  await sec.getByTestId("pm-file").setInputFiles({ name: "PCA 2026.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 fictional") });
+  await p.waitForTimeout(1500);
+  check(docs.length === 1 && docs[0].title === "[pm:items] PCA 2026.pdf" && docs[0].doc_type === "other" && docs[0].deal_id === "sample-deal-1" && /PCA 2026\.pdf/.test(await sec.getByTestId("pm-docs").innerText()), "a PCA uploaded to the findings section");
+  const [pdf] = await Promise.all([p.waitForEvent("download"), p.getByTestId("pm-condition").getByRole("button", { name: "PDF", exact: true }).click()]);
+  check(/^condition-.*\.pdf$/.test(pdf.suggestedFilename()), "the tab as a PDF");
 
   // ── Contracts: whole-fund view ──
   await pm.getByRole("button", { name: "Service Contracts" }).click();
@@ -115,6 +132,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(22000);
   const sd = saved?.new_data ?? saved?.data;
   const pmS = sd?.deals?.find((d) => d.id === "sample-deal-1")?.inputs?.propertyMgmt;
+  const bpS = sd?.deals?.find((d) => d.id === "sample-deal-1")?.inputs?.businessPlan;
+  check(bpS?.revisions?.length === 2 && bpS.revisions[1].plan.capital[0].budget === 9500 && pmS?.items?.[0]?.planProjectId, "saved: the new plan revision and the link");
   check(pmS?.bills?.[0]?.amount === 31000 && pmS?.appeals?.[0]?.savings === 4500 && pmS?.policies?.[0]?.carrier === "Example Mutual" && pmS?.claims?.length === 1 && pmS?.items?.[0]?.system === "Fire / life safety", "saved on the asset: every section");
   await p.screenshot({ path: `${S}/property-mgmt.png` });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);

@@ -50,5 +50,27 @@ ok(!P.pmDates([{ id: "a", inputs: inp }], TODAY, { within: 60 }).some((d) => /he
 const x = P.pmXlsx("taxes", [{ id: "a", inputs: inp }], { year: "2026" });
 ok(x[0][0] === "Property Taxes · 2026" && x.some((r) => r[0] === "Tax bills") && x.filter((r) => r[0] === "Fictional Dock").length === 5, "Excel: every section with rows by asset");
 
-console.log(fail ? `${fail} FAILED` : "ALL PASS");
+// ── Part 2: capital plan and documents ──
+const BP = j(R + "/lib/businessPlan.js");
+const withPlan = { ...inp, businessPlan: { revisions: [{ n: 1, at: "2026-01-01T00:00:00Z", plan: { capital: [{ id: "c1", project: "Existing", budget: 100000 }] }, budget: inp.businessPlan.revisions[0].budget }] } };
+const added = P.addToCapitalPlan(withPlan, "i1", { by: "t@example.com", at: "2026-11-23T12:00:00Z", addRevision: BP.addRevision });
+const rev2 = added.businessPlan.revisions.at(-1);
+ok(added.businessPlan.revisions.length === 2 && rev2.reason === "Capital project from Property Condition" && rev2.by === "t@example.com", "adding a finding makes a new plan revision (history kept)");
+const proj = rev2.plan.capital.at(-1);
+ok(rev2.plan.capital.length === 2 && proj.budget === 180000 && /Roof: Membrane/.test(proj.project) && proj.start === "2026-11-23" && proj.end === "2027-11-23", "the project: budget from the cost, timing from the urgency");
+ok(P.rowsOf(added, "items").find((i) => i.id === "i1").planProjectId === proj.id, "the finding remembers its project");
+ok(P.addToCapitalPlan(added, "i1", { addRevision: BP.addRevision }) === null, "never added twice");
+ok(P.addToCapitalPlan(inp, "i1", { addRevision: BP.addRevision }) === null || !inp.businessPlan.revisions[0].plan, "no plan revision with a plan: nothing added");
+const D = j(R + "/lib/pmDocs.js");
+ok(D.pmTitle({ section: "policies", name: "Policy: 2027.pdf" }) === "[pm:policies] Policy: 2027.pdf" && D.parsePmTitle("[pm:policies] Policy: 2027.pdf").name === "Policy: 2027.pdf", "document titles carry the section");
+const docs = D.pmDocs([{ id: "1", deal_id: "a", title: "[pm:bills] bill.pdf" }, { id: "2", deal_id: "b", title: "[pm:bills] other.pdf" }, { id: "3", deal_id: "a", title: "[leasing:comps] x.pdf" }], ["a"]);
+ok(docs.length === 1 && docs[0].section === "bills" && docs[0].name === "bill.pdf", "documents for one asset and section");
+(async () => {
+  let got = null;
+  await D.uploadPmDoc("w1", { dealId: "a", section: "items", file: { name: "PCA.pdf" } }, null, async (w, a) => { got = a; return a; });
+  ok(got.docType === "other" && got.title === "[pm:items] PCA.pdf", "uploads filed as Other (no SQL)");
+  console.log(fail ? `${fail} FAILED` : "ALL PASS");
+  process.exitCode = fail ? 1 : 0;
+})();
+if (false) console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

@@ -2015,6 +2015,8 @@ export default function Home() {
             {["taxes", "insurance", "condition", "contracts"].includes(activeTab) && (
               <PropertyMgmt
                 key={activeTab}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                email={session?.user?.email ?? null}
                 tab={activeTab}
                 deal={activeDeal}
                 deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
