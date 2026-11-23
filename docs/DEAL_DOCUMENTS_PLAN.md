@@ -21,7 +21,7 @@ changes the model without the user clicking to apply it.
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Live (PR #72); 32 Node + 23 Playwright checks |
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
 | J | Underwritten vs. actual performance | ✅ Built 11/23 (pulled forward into window 1): frozen baseline, actual + projected, IRR gap by cause, fund ranking, Excel and PDF; 29 Node + 16 Playwright checks |
-| K | Fund plan vs. actual; Sell/Hold hold-period impact on the fund (added 11/23) | ⛓ Starts when J is complete |
+| K | Fund plan vs. actual; Sell/Hold hold-period impact on the fund (added 11/23) | ✅ Built 11/23 (window 2): Fund Plan tab before Fund Return (lib/fundPlan.js, components/FundPlan.jsx, lib/fundPlanPdf.js): frozen plan v1 + re-forecasts on the fund record; since-inception plan vs. actual (called, deployed, assets, distributions, DPI; NAV and TVPI actual); projected plan vs. forecast vs. targets; cumulative chart; by quarter; NOI and cash yield by year; attribution by asset and cause; Excel and PDF. Sell/Hold: all-asset hold change, capped-hold note, past-term flags, TVPI, DPI by term end, GP promote. Tests: 39 Node + 22 browser checks; all earlier suites pass; regression identical. Not built: plan NAV (the plan has no marks), leverage plan vs. actual (with phase S) |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock sample-asset images; full Asset Business Plan PDF; Asset Return GP ROE and projected fee revenue (added 11/23) | ⛓ Starts when K is complete |
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23); Deal Screener fund picker with acquisition impact, pipeline assets only (added 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
@@ -598,6 +598,8 @@ tracks the deal against what was underwritten to buy it.
   Excel export and the printable asset-management report.
 
 ### Phase K: fund-level plan vs. actual (added 11/22)
+
+**Built 11/23 (window 2).** See the status table and manual §7.33. Deferred: a planned NAV path and leverage plan vs. actual (with phase S, Fund Debt).
 
 **Also in K (user, 11/23): Sell/Hold hold-period impact.** On Sell/Hold
 Analysis, a "change the hold to X years" control per asset and for all
