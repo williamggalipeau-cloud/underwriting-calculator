@@ -1,0 +1,65 @@
+name: Tests
+
+# Runs the Node checks, the regression check and the Playwright browser tests
+# on every pull request and every push to main. Supabase is mocked inside the
+# browser tests, so no secrets are needed.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # pdftotext checks sample document quotes against their PDFs.
+      - name: Install pdftotext
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Node checks
+        run: npm test
+
+      - name: Regression check (model numbers unchanged)
+        run: npm run test:regression
+
+      - name: Build
+        run: npm run build
+
+      # Same Playwright version as the development environment; not a project
+      # dependency, so installed here only.
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: npm run test:e2e:built
+        env:
+          TEST_OUT: ${{ runner.temp }}/e2e
+
+      - name: Keep screenshots and downloads
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-output
+          path: ${{ runner.temp }}/e2e
+          if-no-files-found: ignore
+          retention-days: 7
