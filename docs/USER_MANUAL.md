@@ -2042,13 +2042,10 @@ links.
 (Google finds the address itself), with **Map** / **Satellite** views and
 **Open in Google Maps**. If the pin is off (for example a street Google
 doesn't know), **Enter coordinates** sets the point by hand; **Use the
-address** goes back. With a Maps Embed API key the map uses Google's
-official Embed API; until one is added it uses Google's keyless embed. The
-key is the `GOOGLE_MAPS_EMBED_KEY` repository secret (GitHub → Settings →
-Secrets and variables → Actions), passed to the build by
-`.github/workflows/deploy.yml`; restrict it in Google Cloud to the site
-(`williamggalipeau-cloud.github.io/*`) and to the Maps Embed API. A browser
-key is visible in the page by design; the restrictions are what protect it.
+address** goes back. The map uses Google's keyless embed (user's choice,
+11/23, after trying the Maps Embed API key). The code still accepts a key
+through `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY` if one is wanted later; the
+deploy workflow doesn't pass one now.
 
 **Floor plan.** Without an uploaded plan, a **schematic** shows the rent roll
 units in order as boxes in rows, each as wide as its share of the row's SF.
