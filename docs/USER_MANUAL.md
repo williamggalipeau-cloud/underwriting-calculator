@@ -2399,6 +2399,27 @@ changes nothing and saves nothing.
 - **Edit asset…**, **Edit fund…** and the Documents tab still list every
   asset and fund, so nothing is out of reach.
 
+### 7.41 Revert, restore and recently deleted (`lib/revert.js`)
+
+On the **Change log** tab (working log or the database's verified log):
+- **Revert** on an entry puts that one field back to its earlier value. It is
+  offered only while the field still holds the value that change wrote, so a
+  later edit is never overwritten (revert the later change first). It works
+  for asset inputs (including a unit's fields), fund terms, capital activity
+  amounts and dates, valuation marks and pipeline deals. A whole record added
+  or removed, a note, and saved copies (fixed snapshots) have no Revert. The
+  revert is saved and logged as a **Revert** entry, by whom and when; it can
+  itself be reverted.
+- **Restore a deal or fund as of a date…**: choose an asset, fund or
+  pipeline deal and a date, **Preview** (each field: now → restored), then
+  **Apply restore**. It undoes that record's logged changes made after the
+  date, newest first; nothing else is touched. Changes that can't be undone
+  here (a record added or removed) are listed and stay as they are. It uses
+  the database's log when signed in, else the working log.
+- **Recently deleted** lists deals, saved copies and funds that were deleted
+  (they are kept in the database, marked deleted), with when and by whom.
+  **Restore** brings one back exactly as it was when deleted.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3510,7 +3531,7 @@ each phase and the decisions behind it are in
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
-| Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ⛓ After Z |
+| Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
 | Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |

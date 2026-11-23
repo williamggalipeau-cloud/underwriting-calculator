@@ -13,6 +13,8 @@ const Q = j(R + "/lib/records.js");
 const data = FX.workspaceData();
 data.activeDealId = "sample-deal-1";
 const rows = Q.recordsFromData(data).map((r) => ({ ...r, deleted: false, version: 2, updated_at: "2026-11-22T20:00:00Z", updated_by_email: "t@example.com" }));
+// A deal deleted earlier: kept in the database, marked deleted (Recently deleted).
+rows.push({ kind: "deal", key: "gone-1", sort: 99, data: { ...data.deals[1], id: "gone-1", inputs: { ...data.deals[1].inputs, propertyName: "Fictional Retired Dock" } }, deleted: true, version: 3, updated_at: "2026-11-21T18:00:00Z", updated_by_email: "colleague@example.com" });
 const firm = { id: "w1", name: "Baywise", version: 20, storage: "records", archived: false, records_from_version: 19, updated_at: "2026-11-22T20:00:00Z" };
 const legacy = { data: { ...data, deals: data.deals.map((d) => (d.id === "deal-1" ? { ...d, inputs: { ...d.inputs, propertyName: "Edited in the old app" } } : d)) }, version: 20 };
 
@@ -144,6 +146,21 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   await p.waitForTimeout(3000);
   const impSave = saves.find((s) => s.items.some((i) => i.key === "deal-1" && i.data?.inputs?.propertyName === "Edited in the old app"));
   check(!!impSave && impSave.items.some((i) => i.kind === "settings" && i.data.importedFromVersion === 20), "import saves the old app's change and records importedFromVersion");
+
+  // Recently deleted (Change log): listed, and Restore brings it back.
+  check(!(await p.locator("body").innerText()).includes("Fictional Retired Dock"), "a deleted deal isn't loaded");
+  await p.getByRole("button", { name: "Change log" }).click();
+  await p.waitForTimeout(1500);
+  const rd = p.getByTestId("recently-deleted");
+  await rd.locator("summary").click();
+  const rdText = await rd.innerText();
+  check(/Asset\s+Fictional Retired Dock/.test(rdText) && /colleague@example\.com/.test(rdText), "Recently deleted lists it, with who deleted it");
+  const before2 = saves.length;
+  await rd.locator("tr", { hasText: "Fictional Retired Dock" }).getByRole("button", { name: "Restore" }).click();
+  await p.waitForTimeout(2500);
+  const back = saves.slice(before2).flatMap((x) => x.items).find((i) => i.kind === "deal" && i.key === "gone-1");
+  check(back && back.deleted === false && back.expected_version === 3 && back.data.inputs.propertyName === "Fictional Retired Dock", "Restore saves it back as it was (undeleted, with its version)");
+  check(!(await p.getByTestId("recently-deleted").innerText().catch(() => "")).includes("Fictional Retired Dock"), "and it leaves the list");
 
   console.log("errors", errs);
   if (errs.length) fails++;

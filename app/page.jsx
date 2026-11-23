@@ -37,6 +37,7 @@ import FundImpact from "@/components/FundImpact";
 import FundSummary from "@/components/FundSummary";
 import { entityDates } from "@/lib/fundSummary";
 import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
+import { revertRoot, revertCheck, applyRevert, restoreAsOf, recentlyDeleted } from "@/lib/revert";
 import { ALL_FUNDS, workingOnOptions, validWorkingOn, scopeDeals, scopeFunds, scopeOpenDeals, scopeLabel } from "@/lib/workingOn";
 import { isPipeline } from "@/lib/fundImpact";
 import { withRiskTestData } from "@/lib/sampleRiskData";
@@ -503,6 +504,7 @@ export default function Home() {
   // True after a "Forgot password?" link is opened: the panel asks for a new password.
   const [pwRecovery, setPwRecovery] = useState(false);
   const [dbLog, setDbLog] = useState(null);
+  const [deletedRows, setDeletedRows] = useState([]); // firm_records marked deleted (Recently deleted)
   const [ready, setReady] = useState(false); // first load finished
   const dbBaseline = useRef(null); // snapshot at the last database save/open ("pending" = take on next save)
   const dbLinkRef = useRef(null);
@@ -749,6 +751,7 @@ export default function Home() {
     fetchAudit(dbLink.id)
       .then((r) => !stop && setDbLog(r))
       .catch(() => {});
+    if (dbLink.mode === "records") loadRecords(dbLink.id).then((rows) => !stop && setDeletedRows(rows.filter((r) => r.deleted))).catch(() => {});
     return () => {
       stop = true;
     };
@@ -1360,6 +1363,46 @@ export default function Home() {
     if (v == null) { try { v = localStorage.getItem("baywise.workingOn"); } catch {} }
     if (typeof v === "string") setWorkingOnRaw(v);
   }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Revert from the change log: put one field back (only if unchanged since).
+  function handleRevert(entry) {
+    if (!requireEdit()) return { ok: false, reason: "View only" };
+    const root = revertRoot({ deals, funds, valuations, pipeline });
+    const r = applyRevert(entry, root);
+    if (!r.ok) return r;
+    auditSource.current = { label: "Revert", entries: [r.log] };
+    const key = entry.path[0];
+    if (key === "deals") setDeals(r.root.deals);
+    else if (key === "funds") setFunds(r.root.funds);
+    else if (key === "valuations") setValuations(r.root.valuations);
+    else if (key === "pipeline") setPipeline((p) => ({ ...p, deals: r.root.pipeline }));
+    return r;
+  }
+  // Restore one deal / fund / pipeline deal as of a date (preview, then apply).
+  function restorePreview(recordPath, dateISO) {
+    // The database log when there is one (verified), else the working log.
+    const log = session && dbLink?.id && dbLog?.length ? dbLog : auditLog;
+    return restoreAsOf(revertRoot({ deals, funds, valuations, pipeline }), log, recordPath, dateISO);
+  }
+  function handleRestore(recordPath, dateISO, item) {
+    if (!requireEdit()) return { ok: false, reason: "View only" };
+    const r = restorePreview(recordPath, dateISO);
+    if (!r.changes.length) return { ok: false, reason: "Nothing to restore" };
+    auditSource.current = { label: `Restore as of ${dateISO}`, entries: r.changes.map((c) => ({ area: recordPath[0] === "funds" ? "Fund terms" : recordPath[0] === "pipeline" ? "Pipeline" : "Deal", item, field: c.field, path: c.path, from: c.now, to: c.restored, revertOf: "restore" })) };
+    if (recordPath[0] === "deals") setDeals(r.root.deals);
+    else if (recordPath[0] === "funds") setFunds(r.root.funds);
+    else if (recordPath[0] === "pipeline") setPipeline((p) => ({ ...p, deals: r.root.pipeline }));
+    return { ok: true, count: r.changes.length };
+  }
+  // Recently deleted: bring a deal, saved copy or fund back as it was.
+  function handleUndelete(item) {
+    if (!requireEdit()) return false;
+    if (item.kind === "deal") setDeals((prev) => (prev.some((d) => d.id === item.key) ? prev : [...prev, item.data]));
+    else if (item.kind === "saved_deal") setSavedDeals((prev) => (prev.some((d) => d.id === item.key) ? prev : [...prev, item.data]));
+    else if (item.kind === "fund") setFunds((prev) => (item.key in prev ? prev : { ...prev, [item.key]: item.data }));
+    else return false;
+    setDeletedRows((rows) => rows.filter((r) => !(r.kind === item.kind && r.key === item.key)));
+    return true;
+  }
   function setWorkingOn(v) {
     setWorkingOnRaw(v);
     try { localStorage.setItem("baywise.workingOn", v); } catch {}
@@ -2158,6 +2201,17 @@ export default function Home() {
                 signedInEmail={session?.user?.email ?? null}
                 dbLog={dbLink?.id && session ? dbLog : null}
                 dbName={dbLink?.name}
+                canRevert={locked ? null : (e) => revertCheck(e, revertRoot({ deals, funds, valuations, pipeline }))}
+                onRevert={locked ? null : handleRevert}
+                restoreRecords={[
+                  ...deals.map((d) => ({ path: ["deals", d.id], label: `Asset: ${d.inputs.propertyName || "Unnamed deal"}` })),
+                  ...Object.keys(funds).sort().map((n) => ({ path: ["funds", n], label: `Fund: ${n}` })),
+                  ...(pipeline?.deals ?? []).map((d) => ({ path: ["pipeline", d.id], label: `Pipeline: ${d.name || "Pipeline deal"}` })),
+                ]}
+                restorePreview={restorePreview}
+                onRestore={locked ? null : handleRestore}
+                deleted={recentlyDeleted(deletedRows, { deals, savedDeals, funds })}
+                onUndelete={locked ? null : handleUndelete}
               />
             )}
             {activeTab === "leases" && (
