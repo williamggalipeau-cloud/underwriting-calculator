@@ -67,8 +67,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── Lanes ──
   const lanes = p.getByTestId("lane");
   const labels = await lanes.evaluateAll((els) => els.map((e) => e.querySelector("p")?.textContent));
-  check(labels.join() === "Acquisitions,Asset Management,Portfolio Management,Library", `lanes in tab-bar order: ${labels.join(", ")}`);
-  check(/Occupancy/.test(await lanes.nth(1).innerText()) && /NAV/.test(await lanes.nth(2).innerText()), "lanes carry live numbers");
+  check(labels.join() === "Acquisitions,Dispositions,Asset Management,Portfolio Management,Library", `lanes in tab-bar order: ${labels.join(", ")}`);
+  check(/Occupancy/.test(await lanes.nth(2).innerText()) && /NAV/.test(await lanes.nth(3).innerText()), "lanes carry live numbers");
 
   // ── The lease opens its asset on Leases ──
   await att.locator("li", { hasText: "Example Tenant Co" }).getByRole("button").click();

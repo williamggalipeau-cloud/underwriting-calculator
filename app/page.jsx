@@ -9,6 +9,7 @@ import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import HomeView from "@/components/Home";
+import Dispositions from "@/components/Dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
 import SellHold from "@/components/SellHold";
@@ -426,6 +427,11 @@ const TAB_GROUPS = [
     { id: "pipeline",    label: "Pipeline" },
     { id: "quick",       label: "Deal Screener" },
     { id: "impact",      label: "Fund Impact" },
+  ] },
+  { label: "Dispositions", tabs: [
+    { id: "forsale",     label: "Assets for Sale" },
+    { id: "offers",      label: "Offers" },
+    { id: "trackrecord", label: "Track Record" },
   ] },
   { label: "Asset Management", tabs: [
     { id: "plan",        label: "Asset Business Plan" },
@@ -1404,6 +1410,11 @@ export default function Home() {
     setDeletedRows((rows) => rows.filter((r) => !(r.kind === item.kind && r.key === item.key)));
     return true;
   }
+  // Dispositions (phase P): edit one asset's inputs (its sales).
+  function updateDealInputs(dealId, fn) {
+    if (!requireEdit()) return;
+    setDeals((prev) => prev.map((d) => (d.id === dealId ? { ...d, inputs: fn(d.inputs) } : d)));
+  }
   function setWorkingOn(v) {
     setWorkingOnRaw(v);
     try { localStorage.setItem("baywise.workingOn", v); } catch {}
@@ -1946,6 +1957,16 @@ export default function Home() {
                   { label: "Record capital activity", title: "Fund Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },
                   { label: "New report", title: "Reports tab: quarterly and risk reports", run: () => setActiveTab("reports") },
                 ]}
+              />
+            )}
+            {["forsale", "offers", "trackrecord"].includes(activeTab) && (
+              <Dispositions
+                view={activeTab}
+                deals={viewDeals}
+                valuations={valuations}
+                canEdit={!locked}
+                onUpdate={updateDealInputs}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
             )}
             {DEAL_TABS.has(activeTab) && (

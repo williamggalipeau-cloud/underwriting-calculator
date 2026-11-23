@@ -2449,6 +2449,49 @@ loaded; nothing on it is saved.
   Yardi actuals, Import marks, Record capital activity and New report, each
   opening the screen that does it.
 
+### 7.43 Dispositions (`lib/dispositions.js`, phase P)
+
+A **Dispositions** group sits right after Acquisitions. Each asset's sales
+are kept on the asset itself, so they save and log like any other edit, and
+they follow the **Working on** picker.
+
+- **Assets for Sale:** **Start sale** for an owned asset: the whole asset or
+  selected units, and the reason (business plan complete, hold reached, fund
+  term, opportunistic). Each sale opens to:
+  - **Stage** (Preparing → Marketing → Offers → Under contract → Closed, or
+    Withdrawn with a reason), target price, cap and close date, with $/SF.
+  - **Broker opinions of value** side by side (price, cap, fee); **Choose**
+    one as the broker; the listing fee, term and exclusions; CAs signed,
+    tours and the call-for-offers date.
+  - **Offers** on the sale, best net proceeds first, with **Select**.
+  - **Under contract:** PSA date, deposit, hard date, due diligence and
+    closing dates, and the contract price. A price change asks for a reason
+    (a credit, a re-trade) and is logged on the sale.
+  - **Record closing statement:** date, price, and selling costs and loan
+    payoff (blank uses the model). It shows the net proceeds. A whole sale
+    then becomes the asset's realized sale, so Fund Return, valuations and
+    the header figures use it. A partial sale records the part sold.
+  - **Excel** of every active sale with its offers side by side.
+- **Offers:** every offer by sale: buyer, type, broker, date, round
+  (initial, best and final), price ($/SF and cap shown), deposit, due
+  diligence and closing days, financing contingency and notes. Each offer's
+  **net proceeds** after selling costs (the model's %) and loan payoff (the
+  model's balance at the closing or target date; a partial sale's share by
+  SF) are shown, with the best marked. A buyer's earlier offers on other
+  assets show under their name.
+- **Track Record:** every closed sale: purchase and sale price and date, net
+  proceeds, hold, realized IRR, multiple and profit, against the acquisition
+  underwriting (the frozen baseline when there is one) and the last
+  valuation mark before the sale, with fund and firm totals and Excel. A
+  partial sale's figures cover the part sold (its share of cost and equity;
+  interim cash flow isn't split).
+- Home has a **Dispositions** lane: assets for sale, offers received and
+  sales closed this year.
+- Still to come: document uploads on sales, offers and closed sales (BOVs,
+  listing agreement, OM, PSA, closing statement, LOIs), the Dispositions
+  Documents tab, PDF exports, the distribution of proceeds through the fund
+  waterfall on the sale, and starting a sale from Sell/Hold Analysis.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3552,7 +3595,7 @@ each phase and the decisions behind it are in
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Fund Impact PDF; Update pipeline row from the screener; Add to pipeline from an OM (11/23) |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ✅ Built 11/23: Fund Summary tab (§7.38) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
-| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
+| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | 🔨 Part 1 built 11/23: Assets for Sale, Offers, Track Record, Excel, Home lane (§7.43); documents and PDFs next |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |

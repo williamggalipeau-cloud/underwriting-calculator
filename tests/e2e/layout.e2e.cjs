@@ -44,7 +44,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // Tab groups, in order, with the renamed tabs
   const groups = await p.getByTestId("tab-group").allInnerTexts();
-  check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | ASSET MANAGEMENT | PORTFOLIO MANAGEMENT | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
+  check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PORTFOLIO MANAGEMENT | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
   const nav = await p.locator("nav").first().innerText();
   const order = ["Pipeline", "Deal Screener", "Fund Impact", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Fund Summary", "Fund Plan", "Fund Return", "Distribution Analysis", "Stress Testing", "Documents", "Reports"];
   const pos = order.map((t) => nav.indexOf(t));

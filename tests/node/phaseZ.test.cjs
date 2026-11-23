@@ -40,7 +40,7 @@ ok(jv.length === 2 && jv[0].name === "Example JV II" && jv[0].type === "Joint Ve
 
 const pl = { deals: [{ stage: "loi", askingPrice: 1e7 }, { stage: "screening" }, { stage: "screening" }, { stage: "passed" }] };
 const L = H.lanes({ deals, funds, pipeline: pl, attention: att, cards, firm: { occupancy: 95.5 }, todayISO: TODAY });
-ok(L.map((l) => l.label).join() === "Acquisitions,Asset Management,Portfolio Management,Library", "lanes in the tab bar's order (headers that have tabs)");
+ok(L.map((l) => l.label).join() === "Acquisitions,Dispositions,Asset Management,Portfolio Management,Library", "lanes in the tab bar's order (headers that have tabs)");
 const st = (lane, label) => L.find((l) => l.label === lane).stats.find((s) => s.label === label)?.value;
 ok(st("Acquisitions", "Active pipeline") === "3 deals" && /Screening 2 · LOI 1/.test(st("Acquisitions", "By stage")), "acquisitions: active pipeline by stage");
 ok(st("Asset Management", "Occupancy") === "95.5%" && st("Asset Management", "Leases expiring in 2026") === "1" && st("Asset Management", "Appraisals due") === String(ap.assets.length), "asset management: occupancy, leases expiring this year, appraisals due");
