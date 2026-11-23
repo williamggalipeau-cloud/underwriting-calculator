@@ -2268,6 +2268,25 @@ date added.
 - Every change is in the change log (area Pipeline). Fictional sample files
   for testing: `docs/sample-pipeline/`.
 
+### 7.36 Deal Screener: pipeline deals and Model in fund (phase M)
+
+**Deal Screener is for pipeline deals only** (11/23): deals with no fund, or
+bought after today. A row of **Pipeline deals** at the top switches between
+them. With an owned asset selected, the tab says so and points to the Asset
+Management tabs instead of showing the screener. The app now opens on
+**Asset Summary**, and opening an asset from it goes to its business plan.
+
+**Model in fund** (above the screener inputs, labelled "Scenario — not
+actual"): choose the fund the deal would be held in (default: its target
+fund on the Pipeline tab) and compare against **owned plus other pipeline
+assets** (default) or **owned assets only**. The deal is always left out of
+the "without" side. Shown: gross IRR and multiple, net LP IRR and multiple
+(through the fund's sub line, expenses and waterfall) and GP promote,
+without / with / change; the equity the deal needs and dry powder before and
+after (red if the fund would be over-committed); the largest tenant and
+state shares and fund LTV before and after; and any fund limit (§7.32c) the
+deal would newly breach. Nothing changes on the fund or the deal. Excel.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3368,7 +3387,7 @@ each phase and the decisions behind it are in
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Remaining: insurance vs. loan requirements, an asset map sized by value |
-| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35). Next: Deal Screener fund picker and pipeline-only list, Fund Impact tab |
+| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Next: Fund Impact tab (several candidates, saved versioned scenarios, Add to fund), pipeline report |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |

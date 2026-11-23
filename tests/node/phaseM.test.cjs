@@ -58,5 +58,29 @@ const b = auditSnapshot({ deals: [], savedDeals: [], funds: {}, comps: {}, valua
 const log = diffWorkspace(a, b).filter((e) => e.area === "Pipeline");
 ok(log.some((e) => e.item === "Harborview Business Park" && /Stage/i.test(e.field) && e.from === "screening" && e.to === "loi") && log.some((e) => e.item === "Prairie Works" && e.field === "Removed") && log.some((e) => e.item === "New One" && e.field === "Added"), "every pipeline change is logged (stage, removed, added)");
 
+// ── Fund impact (lib/fundImpact.js) ──
+const FI = j(R + "/lib/fundImpact.js");
+const sp = j(R + "/lib/samplePortfolio.js");
+const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
+const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
+const FX = require(R + "/tests/e2e/fixture.cjs");
+const terms = { ...DEFAULT_FUND_TERMS, ...FX.workspaceData().funds["Model Fund I"], name: "Model Fund I", capitalActivity: [], limits: [{ key: "single_asset_pct", label: "Single asset", limit: 8, unit: "%" }] };
+const fdeals = sp.buildSampleDeals(TEST_INPUTS);
+const cand = { id: "cand", inputs: { ...fdeals[2].inputs, propertyName: "Candidate", fundName: "", acquisitionDate: "2027-03-31" } };
+ok(FI.isPipeline(cand, TODAY) && !FI.isPipeline(fdeals[0], TODAY) && FI.isPipeline({ inputs: { fundName: "F", acquisitionDate: "2027-01-01" } }, TODAY), "pipeline = no fund, or bought after today");
+const im = FI.fundImpact(fdeals, terms, [cand], { todayISO: TODAY });
+ok(im.without.assets === 9 && im.with.assets === 10, "with vs. without: the candidate is added, nothing else changes");
+ok(["grossIrr", "netLpIrr", "netLpTvpi"].every((k) => close(im.change[k], im.with.returns[k] - im.without.returns[k])), "change = with − without");
+ok(im.change.equity > 0 && close(im.without.dryPowder - im.with.dryPowder, im.change.equity, 1) && im.dryPowderUsedPct > 0, `equity ${(im.change.equity / 1e6).toFixed(2)}M uses ${im.dryPowderUsedPct.toFixed(1)}% of dry powder`);
+ok(fdeals[0].inputs.fundName === "Model Fund I" && cand.inputs.fundName === "", "modeling only: inputs untouched");
+const big = { id: "big", inputs: { ...cand.inputs, propertyName: "Big", purchasePrice: 40_000_000 } };
+const ib = FI.fundImpact(fdeals, terms, [big], { todayISO: TODAY });
+ok(ib.newBreaches.some((l) => l.key === "single_asset_pct") && ib.limits[0].before.status !== "breached", "a $40M candidate would breach the 8% single-asset limit");
+const owned = FI.fundImpact(fdeals.map((d, i) => (i === 8 ? { ...d, inputs: { ...d.inputs, acquisitionDate: "2027-06-30" } } : d)), terms, [cand], { todayISO: TODAY, base: "owned" });
+ok(owned.without.assets === 8, "base 'owned': other pipeline assets left out");
+const two = FI.fundImpact(fdeals, terms, [cand, big], { todayISO: TODAY });
+ok(two.shares.length === 2 && close(two.shares.reduce((t, x) => t + x.share, 0), two.change.netLpIrr, 1e-6), "several candidates: each one's share adds to the combined change");
+ok(FI.impactXlsx("Model Fund I", two)[0][0].includes("Scenario - not actual") && FI.impactXlsx("Model Fund I", two).some((r) => r[0] === "Candidate"), "Excel: labelled a scenario, with each candidate's share");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

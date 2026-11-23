@@ -33,6 +33,8 @@ import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@
 import { withSampleMedia } from "@/lib/sampleMedia";
 import { EMPTY_PIPELINE, toQuickInputs } from "@/lib/pipeline";
 import Pipeline from "@/components/Pipeline";
+import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
+import { isPipeline } from "@/lib/fundImpact";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -450,7 +452,7 @@ const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "plan", "deb
 export default function Home() {
   const [deals, setDealsRaw] = useState(initialDeals);
   const [activeDealId, setActiveDealId] = useState("sample-deal-1");
-  const [activeTab, setActiveTab] = useState("quick");
+  const [activeTab, setActiveTab] = useState("assets"); // Deal Screener is for pipeline deals (phase M)
   const [savedDeals, setSavedDealsRaw] = useState([]);
   // Fund terms by fund name (timeline, waterfall, fee).
   const [funds, setFundsRaw] = useState(initialFunds);
@@ -1845,15 +1847,29 @@ export default function Home() {
                 />
               </div>
             )}
-            {activeTab === "quick" && (
-              <QuickUnderwrite
-                inputs={activeDeal.quick ?? QUICK_DEFAULTS}
-                onChange={setQuick}
-                linked={!!activeDeal.linked}
-                onLinkChange={setLinked}
-                onCurveImport={handleCurveImport}
-              />
-            )}
+            {activeTab === "quick" && (() => {
+              // Deal Screener: pipeline deals only (phase M, 11/23).
+              const today = new Date().toISOString().slice(0, 10);
+              const owned = !isPipeline(activeDeal, today);
+              const pl = (pipeline.deals ?? []).find((x) => x.dealId === activeDeal.id);
+              return (
+                <div className="space-y-4">
+                  <ScreenerPicker activeDeal={activeDeal} deals={deals} todayISO={today} owned={owned} onSelect={(id) => setActiveDealId(id)} />
+                  {!owned && (
+                    <>
+                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={funds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={pl?.targetFund || ""} />
+                      <QuickUnderwrite
+                        inputs={activeDeal.quick ?? QUICK_DEFAULTS}
+                        onChange={setQuick}
+                        linked={!!activeDeal.linked}
+                        onLinkChange={setLinked}
+                        onCurveImport={handleCurveImport}
+                      />
+                    </>
+                  )}
+                </div>
+              );
+            })()}
             {activeTab === "cashflow" && <CashFlowAnalysis inputs={inputs} results={results} />}
             {activeTab === "debt" && liveRatesPanel}
             {activeTab === "debt" && (
@@ -1999,7 +2015,7 @@ export default function Home() {
                 onOpenDeal={(id) => {
                   if (!deals.some((d) => d.id === id)) return;
                   setActiveDealId(id);
-                  setActiveTab("quick");
+                  setActiveTab("plan"); // owned assets open on their business plan (Deal Screener is for the pipeline)
                 }}
                 onOpenLeases={(id) => {
                   if (!deals.some((d) => d.id === id)) return;

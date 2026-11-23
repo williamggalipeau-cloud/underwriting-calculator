@@ -40,6 +40,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const R = require("path").resolve(__dirname, "..", "..");
   const nav = await p.locator("nav").first().innerText();
   check(nav.indexOf("Pipeline") >= 0 && nav.indexOf("Pipeline") < nav.indexOf("Deal Screener"), "Pipeline is first in Acquisitions");
+  check((await main.getByTestId("asset-summary").count()) + (await main.getByText(/Asset Summary/).count()) > 0, "the app opens on Asset Summary");
+  // Deal Screener with an owned asset: notice, no model
+  await p.getByRole("button", { name: /^Deal Screener/ }).first().click();
+  await p.waitForTimeout(800);
+  check((await main.getByTestId("screener-owned").count()) === 1 && (await main.getByTestId("screener-impact").count()) === 0, "Deal Screener: an owned asset gets a notice, not the screener");
   await p.getByRole("button", { name: /^Pipeline/ }).first().click();
   await p.waitForTimeout(1200);
   const pl = main.getByTestId("pipeline");
@@ -74,6 +79,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(1500);
   check(/Deal Screener/.test(await p.locator("nav button[aria-current], nav .bg-blue-600").first().innerText().catch(() => "Deal Screener")), "Screen opens Deal Screener");
   check((await main.innerText()).includes("10,400,000") || (await p.locator("input[value='10400000']").count()) > 0, "Deal Screener has the asking price");
+  const imp = main.getByTestId("screener-impact");
+  check((await imp.count()) === 1 && /Scenario — not actual/.test(await imp.innerText()) && (await main.getByTestId("screener-owned").count()) === 0, "pipeline deal: Model in fund panel, labelled a scenario");
+  check((await imp.getByLabel("Model in fund").inputValue()) === "Model Fund I" && /Net LP IRR/.test(await imp.getByTestId("impact-returns").innerText()) && /Dry powder before → after/.test(await imp.getByTestId("impact-capital").innerText()), "fund with vs. without: returns, dry powder, concentration");
+  check((await main.getByTestId("screener-deal").filter({ hasText: "Glendale Commerce Center" }).count()) === 1, "pipeline deals listed in the screener");
+  await imp.getByLabel("Compare against").selectOption("owned");
+  await p.waitForTimeout(800);
+  check(/owned assets only/.test(await imp.innerText()), "compare against owned assets only");
   await p.getByRole("button", { name: /^Pipeline/ }).first().click();
   await p.waitForTimeout(800);
   check((await pl.getByTestId("pipeline-row").filter({ hasText: "Glendale Commerce Center" }).getByRole("button", { name: "Open in Screener" }).count()) === 1 && (await pl.getByLabel("Stage Glendale Commerce Center").inputValue()) === "screening", "screened: linked to its deal, moved to Screening");
