@@ -442,6 +442,21 @@ The business plan would show:
 - each entry, logged and shown in the plan PDF and Excel export.
 Later this could feed phase L's TI funding coverage heat map.
 
+**Later enhancement (user, 11/23; not scheduled): a fuller sample plan.** So
+the Asset Business Plan can be seen fully filled in on the test data:
+- **Mock TI actuals:** load the mock construction jobs and invoices above into
+  Model Fund I when the sample portfolio or test scenario is loaded, so each
+  sample asset's leasing plan shows TI spent vs. planned by unit, overruns
+  flagged (Airport Flex unit 001 amber, Ridgeway unit 014 red), and the TI/LC
+  line in budget vs. actual. Built with (or after) the TI spend by unit
+  feature above.
+- **Mock images:** made-up pictures for the sample assets, never real photos
+  of real buildings: a few drawn exterior and interior images per asset
+  (captions, dates and a cover photo) and a drawn floor plan with the units
+  already boxed and coloured by lease status. Shipped with the app as sample
+  files (no database upload needed), marked as samples, and loaded with the
+  sample portfolio; real assets keep using uploads.
+
 At closing, each asset gets a business plan for its whole hold, with a
 budget (the financial side of the plan). The plan, the current budget and
 actual results are then tracked against each other.
