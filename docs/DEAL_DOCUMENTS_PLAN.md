@@ -904,8 +904,9 @@ the README. The repository name and site URL stay as they are.
 Group order (user, 11/23): Acquisitions · Dispositions · Asset Management ·
 Property Management · Portfolio Management · Market · Library. A header
 shows only once its group has tabs. Sales Comps stays in Asset Management;
-rent comps live on the Leasing tab; the live SOFR panel stays at the top of
-the page. Tab names keep "Fund" (Fund Return, Fund Summary, Fund Plan,
+rent comps live on the Leasing tab. The live SOFR panel moves from the top of
+the page to the top of the Debt tab (user, 11/23; built with phase I part 2).
+Tab names keep "Fund" (Fund Return, Fund Summary, Fund Plan,
 Fund Impact); only the group header says Portfolio Management.
 
 **Fund type tag** (user, 11/23; a label only, no change to any
@@ -1032,12 +1033,14 @@ several database changes, and it migrates the live workspace:
 
 One **Leasing** tab in Asset Management, right after Leases (one asset,
 with a whole-fund view):
-- **Pipeline:** prospects by unit, with source and broker. Stages: Inquiry →
+Two sections (user, 11/23): **Leasing Pipeline** (leasing prospects, not the
+deal Pipeline of phase M) and **Rent Comps**.
+- **Leasing Pipeline:** prospects by unit, with source and broker. Stages: Inquiry →
   Tour → Proposal → LOI → Lease out → Signed, plus Lost with a reason. It
   also covers renewal negotiations, lease approval memos and broker
   reports, and compares downtime and achieved rent with the business plan's
   leasing targets.
-- **Rent comps:** lease comps entered by hand or uploaded (CoStar or an
+- **Rent Comps:** lease comps entered by hand or uploaded (CoStar or an
   internal spreadsheet, columns matched like Sales Comps), with filters,
   asking and achieved rent vs. the comps, and a way to set a unit's market
   rent from them.
@@ -1093,8 +1096,8 @@ A **Market** header before Library, with a **Market Data** tab:
   the market's (e.g. rent growth vs. the asking-rent trend, exit cap vs.
   market cap rates).
 - **Exports:** Excel and PDF market summaries.
-Sales Comps stays in Asset Management, and the live SOFR panel stays at the
-top of the page.
+Sales Comps stays in Asset Management, and the live SOFR panel is on the
+Debt tab.
 
 ## Phase V: automated workflow (added 11/23; later, to be scoped)
 

@@ -2895,7 +2895,7 @@ each phase and the decisions behind it are in
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
 | Q. Workspace storage | Deals, funds, valuations and the change log in their own tables; safe saving when several people edit at once; no change to what you see | ⏸ After O, with you present |
-| R. Leasing | Leasing tab (Asset Management): leasing pipeline and rent comps, with uploads | ⛓ After P |
+| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources | ⛓ After T |
