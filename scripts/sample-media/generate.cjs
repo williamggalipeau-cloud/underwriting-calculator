@@ -14,7 +14,7 @@ const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
 const OUT = path.join(R, "public", "sample-media");
 fs.mkdirSync(OUT, { recursive: true });
 
-const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 const PALETTES = [
   ["#d9d4c7", "#8a7f6a", "#1f4e79"], ["#cfd8dc", "#607d8b", "#b23a48"], ["#e3dccb", "#9c8b6e", "#2e7d32"],
   ["#d7ccc8", "#795548", "#1565c0"], ["#dfe6e9", "#636e72", "#e17055"], ["#e8e2d0", "#a1887f", "#00695c"],
