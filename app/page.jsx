@@ -9,6 +9,7 @@ import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import Leases from "@/components/Leases";
+import Documents from "@/components/Documents";
 import SellHold from "@/components/SellHold";
 import { withLocation } from "@/lib/assetLocations";
 import { MTM_MODEL, mtmIndex, toRentRollNOI, withMarkToMarket } from "@/lib/sampleRentRolls";
@@ -28,6 +29,9 @@ import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
 import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
+import { applyExecutedCap } from "@/lib/dealDocApply";
+import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+import LoanAgreementPanel from "@/components/LoanAgreement";
 import CloudPanel from "@/components/CloudPanel";
 import {
   REQUIRE_SIGN_IN,
@@ -391,6 +395,7 @@ const TABS = [
   { id: "valuations",  label: "Valuations" },
   { id: "units",       label: "Unit Roll" },
   { id: "leases",      label: "Leases" },
+  { id: "documents",   label: "Documents" },
   { id: "debt",        label: "Debt" },
   { id: "cashflow",    label: "Cash Flow" },
   { id: "returns",     label: "Asset Return" },
@@ -402,7 +407,7 @@ const TABS = [
 ];
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
 
 function fmtPct(n) {
   return isFinite(n) ? `${n.toFixed(1)}%` : "—";
@@ -447,7 +452,7 @@ export default function Home() {
   }
   // Changes made by applying a lease abstract: logged field by field with
   // their source instead of as one rent roll change.
-  const auditSource = useRef(null); // { dealId, label, entries: [{ unitId, unitName, field, key, from, to }] }
+  const auditSource = useRef(null); // { label, entries: [{ area, item, field, path, from, to }] } (full workspace paths)
   const hydrated = useRef(false);
   const importRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null); // { ok, text }
@@ -494,7 +499,9 @@ export default function Home() {
         const quick = { ...(d.quick ?? QUICK_DEFAULTS), ...patch };
         if (d.linked) return { ...d, quick, inputs: toMainInputs(quick, d.inputs) };
         const loan = underwrite(d.inputs).debt.loanAmount;
-        return { ...d, quick, inputs: { ...d.inputs, ...capEngineFields(capSettingsFor(quick, d.inputs), loan) } };
+        // Executed caps (applied confirmations) keep their actual terms.
+        const modeled = { ...d.inputs, ...capEngineFields(capSettingsFor(quick, d.inputs), loan) };
+        return { ...d, quick, inputs: (d.inputs.executedCaps ?? []).reduce(applyExecutedCap, modeled) };
       })
     );
   }
@@ -729,19 +736,11 @@ export default function Home() {
         const src = auditSource.current;
         auditSource.current = null;
         if (src) {
-          const key = ["deals", "savedDeals"].find((k) => (snap[k] ?? []).some((d) => d.id === src.dealId)) ?? "deals";
-          const deal = (snap[key] ?? []).find((d) => d.id === src.dealId);
-          const unitsPath = JSON.stringify([key, src.dealId, "inputs", "units"]);
-          changes = changes.filter((c) => JSON.stringify(c.path?.slice(0, 4)) !== unitsPath);
-          changes.push(...src.entries.map((e) => ({
-            area: key === "deals" ? "Deal" : "Saved deal",
-            item: deal?.inputs?.propertyName || src.dealId,
-            field: `Unit ${e.unitName} › ${e.field}`,
-            path: [key, src.dealId, "inputs", "units", e.unitId, e.key],
-            from: e.from,
-            to: e.to,
-            source: src.label,
-          })));
+          // Replace the generic diff of what was applied with field-level entries.
+          const prefix = (path) => JSON.stringify(path.slice(0, path[0] === "funds" ? 3 : 4));
+          const prefixes = new Set(src.entries.map((e) => prefix(e.path)));
+          changes = changes.filter((c) => !(c.path && prefixes.has(prefix(c.path))));
+          changes.push(...src.entries.map((e) => ({ ...e, source: src.label })));
         }
         if (changes.length) log = appendChanges(log, changes, { user: editorName });
       } else if (auditNote.current) {
@@ -871,8 +870,9 @@ export default function Home() {
     // their source (the note) instead of as one rent roll change.
     const sourced = (data.auditLog ?? []).filter((e) => e.source && (!l.savedAt || e.at > l.savedAt));
     if (sourced.length) {
-      const prefixes = new Set(sourced.map((e) => JSON.stringify(e.path.slice(0, 4))));
-      changes = changes.filter((c) => !prefixes.has(JSON.stringify(c.path?.slice(0, 4))));
+      const prefix = (path) => JSON.stringify(path.slice(0, path[0] === "funds" ? 3 : 4));
+      const prefixes = new Set(sourced.map((e) => prefix(e.path)));
+      changes = changes.filter((c) => !(c.path && prefixes.has(prefix(c.path))));
     }
     if (changes.length > BULK_LIMIT) changes = [{ area: "Workspace", item: "Bulk change", field: `${changes.length} fields changed`, note: "Bulk change" }];
     changes.push(...sourced.map((e) => ({ area: e.area, item: e.item, field: e.field, path: e.path, from: e.from, to: e.to, note: e.source })));
@@ -990,17 +990,57 @@ export default function Home() {
 
   // Leases tab → Apply to rent roll: replaces the deal's units (open or
   // saved) and logs each field as from the lease abstract.
-  function handleApplyLease(dealId, units, entries, label) {
+  // Leases and Documents tabs: change a deal's inputs (open or saved) and log
+  // each field as from the document. entries: [{ field, from, to, key?,
+  // unitId?, unitName? }] (unit entries are logged under the unit).
+  function applyToDeal(dealId, nextInputs, entries, label) {
     if (!requireEdit()) return false;
-    auditSource.current = { dealId, label, entries };
-    const set = (list) => list.map((d) => (d.id === dealId ? { ...d, inputs: { ...d.inputs, units } } : d));
-    if (deals.some((d) => d.id === dealId)) setDeals(set);
-    else if (savedDeals.some((d) => d.id === dealId)) setSavedDeals(set);
-    else {
-      auditSource.current = null;
-      return false;
-    }
+    const key = deals.some((d) => d.id === dealId) ? "deals" : savedDeals.some((d) => d.id === dealId) ? "savedDeals" : null;
+    if (!key) return false;
+    const deal = (key === "deals" ? deals : savedDeals).find((d) => d.id === dealId);
+    const area = key === "deals" ? "Deal" : "Saved deal";
+    auditSource.current = {
+      label,
+      entries: entries.map((e) => ({
+        area,
+        item: deal.inputs.propertyName || dealId,
+        field: e.unitId ? `Unit ${e.unitName} › ${e.field}` : e.field,
+        path: e.unitId ? [key, dealId, "inputs", "units", e.unitId, e.key] : [key, dealId, "inputs", ...String(e.key).split(".")],
+        from: e.from,
+        to: e.to,
+      })),
+    };
+    const set = (list) => list.map((d) => (d.id === dealId ? { ...d, inputs: typeof nextInputs === "function" ? nextInputs(d.inputs) : nextInputs } : d));
+    if (key === "deals") setDeals(set);
+    else setSavedDeals(set);
     return true;
+  }
+  function handleApplyLease(dealId, units, entries, label) {
+    return applyToDeal(dealId, (inp) => ({ ...inp, units }), entries, label);
+  }
+  // Documents tab → a quarter's valuation mark from an appraisal.
+  function applyToMark(dealId, quarter, mark, entries, label) {
+    if (!requireEdit()) return false;
+    const deal = fundDeals.find((d) => d.id === dealId);
+    auditSource.current = { label, entries: entries.map((e) => ({ area: "Valuation", item: deal?.inputs?.propertyName || dealId, field: `${quarter} › ${e.field}`, path: ["valuations", dealId, quarter, e.key], from: e.from, to: e.to })) };
+    setValuations((prev) => ({ ...prev, [dealId]: { ...(prev[dealId] ?? {}), [quarter]: { ...((prev[dealId] ?? {})[quarter] ?? {}), ...mark } } }));
+    return true;
+  }
+  // Documents tab → fund terms and limits from the LPA / PPM.
+  function applyToFund(fundName, nextTerms, entries, label) {
+    if (!requireEdit()) return false;
+    auditSource.current = { label, entries: entries.map((e) => ({ area: "Fund terms", item: fundName, field: e.field, path: ["funds", fundName, ...String(e.key).split(".")], from: e.from, to: e.to })) };
+    setFunds((prev) => ({ ...prev, [fundName]: { ...DEFAULT_FUND_TERMS, ...(prev[fundName] ?? {}), name: fundName, ...nextTerms } }));
+    return true;
+  }
+  // Documents tab → New deal from an offering memo.
+  function handleNewDealFrom(overrides, note) {
+    if (!requireEdit()) return null;
+    const d = newDeal(overrides);
+    noteAudit(note);
+    setDeals((prev) => [...prev, d]);
+    setActiveDealId(d.id);
+    return d.id;
   }
 
   // Exit cap from the Sales Comps tab: linked deals change the Quick
@@ -1579,6 +1619,17 @@ export default function Home() {
                 onCapChange={setCap}
               />
             )}
+            {activeTab === "debt" && (
+              <LoanAgreementPanel
+                deal={activeDeal}
+                results={results}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                canEdit={!!(session && dbLink?.id && dbLink.role !== "viewer")}
+                email={session?.user?.email ?? null}
+                fundName={resolveFund(inputs.fundName)}
+                onOpenDocuments={() => setActiveTab("documents")}
+              />
+            )}
 {activeTab === "returns" && (
               <ReturnsAnalysis returns={returns} cashFlows={annualCashFlows} waterfall={waterfall} inputs={inputs} savedDeals={fundDeals.filter((d) => d.id !== activeDealId)} />
             )}
@@ -1653,6 +1704,10 @@ export default function Home() {
                 marks={valuations}
                 onMarksChange={setValuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                onOpenDoc={session && dbLink?.id ? async (docId, page) => {
+                  const d = (await listDealDocs(dbLink.id)).find((x) => x.id === docId);
+                  if (d?.files?.[0]) window.open(`${await dealFileLink(d.files[0].path)}${page ? `#page=${page}` : ""}`, "_blank", "noopener");
+                } : null}
               />
             )}
             {activeTab === "changes" && (
@@ -1677,6 +1732,25 @@ export default function Home() {
                 fundName={resolveFund(inputs.fundName)}
                 dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
                 onApplyUnits={handleApplyLease}
+              />
+            )}
+            {activeTab === "documents" && (
+              <Documents
+                workspace={session && dbLink?.id ? dbLink : null}
+                signedIn={!!session}
+                email={session?.user?.email ?? null}
+                userId={session?.user?.id ?? null}
+                canEdit={!!(session && dbLink?.id && dbLink.role !== "viewer")}
+                deal={activeDeal}
+                fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName))}
+                fundName={resolveFund(inputs.fundName)}
+                funds={funds}
+                dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
+                onApplyDeal={applyToDeal}
+                onApplyFund={applyToFund}
+                onNewDeal={handleNewDealFrom}
+                marks={valuations}
+                onApplyMark={applyToMark}
               />
             )}
             {activeTab === "comps" && (
@@ -1706,6 +1780,8 @@ export default function Home() {
                 currentDealName={inputs.propertyName}
                 onSave={handleFundSave}
                 onClose={() => setFundEditor(null)}
+                workspaceId={session && dbLink?.id && dbLink.role !== "viewer" ? dbLink.id : null}
+                email={session?.user?.email ?? null}
               />
             )}
           </div>

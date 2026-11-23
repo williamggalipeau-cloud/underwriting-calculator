@@ -1,0 +1,118 @@
+{
+ "doc_type": "loi",
+ "title": "Airport Flex Park LOI",
+ "summary": "Non-binding LOI at $7,350,000 with a $150,000 deposit, 45 days of due diligence and closing 30 days later, no financing contingency.",
+ "fields": [
+  {
+   "key": "loi_date",
+   "value": "October 20, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This letter of intent is dated October 20, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "buyer",
+   "value": "Model Fund I – Airport Flex LLC",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Buyer is Model Fund I – Airport Flex LLC and the Seller is Runway Vista Holdings LP.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "seller",
+   "value": "Runway Vista Holdings LP",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Buyer is Model Fund I – Airport Flex LLC and the Seller is Runway Vista Holdings LP.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "purchase_price",
+   "value": "$7,350,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The purchase price is $7,350,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "deposit",
+   "value": "$150,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer will deposit $150,000 in escrow within three business days of the PSA.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "dd_days",
+   "value": "45 days",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer will have a due diligence period of 45 days.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "closing_days",
+   "value": "30 days",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Closing will occur 30 days after the end of due diligence.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "financing_contingency",
+   "value": "None",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "There is no financing contingency.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [
+  {
+   "date": "2025-10-27",
+   "kind": "deadline",
+   "label": "LOI countersignature deadline",
+   "action": "Countersign or the LOI lapses",
+   "clause": "",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This letter expires if not countersigned by October 27, 2025.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-loi.pdf"
+  ]
+ }
+}

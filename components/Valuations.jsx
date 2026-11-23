@@ -121,7 +121,7 @@ function Stat({ label, value, sub, tone }) {
 }
 
 // Editable quarter-by-quarter marks for one asset.
-function MarkEditor({ asset, marks, onChange }) {
+function MarkEditor({ asset, marks, onChange, onOpenDoc }) {
   const set = (q, patch) => {
     const cur = marks[q] ?? {};
     const next = { ...cur, ...patch };
@@ -174,6 +174,9 @@ function MarkEditor({ asset, marks, onChange }) {
                 </td>
                 <td className="px-2 py-1">
                   <input value={m.appraiser ?? ""} onChange={(e) => set(r.quarterEnd, { appraiser: e.target.value })} className="w-32 rounded border border-gray-300 px-1.5 py-0.5" />
+                  {m.docId && onOpenDoc && (
+                    <button type="button" onClick={() => onOpenDoc(m.docId, m.page)} className="ml-1 text-[11px] text-blue-600 hover:underline" title={m.notes || "Open the appraisal"} data-testid="mark-pdf">PDF{m.page ? ` p. ${m.page}` : ""}</button>
+                  )}
                 </td>
                 <td className="px-2 py-1">
                   <input type="number" step="0.05" value={m.capRate ?? ""} onChange={(e) => set(r.quarterEnd, { capRate: numIn(e.target.value) })} className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-right" />
@@ -246,7 +249,7 @@ function ImportPanel({ deals, valuation, onImport, onClose }) {
   );
 }
 
-export default function Valuations({ deals, funds = {}, marks = {}, onMarksChange, curve }) {
+export default function Valuations({ deals, funds = {}, marks = {}, onMarksChange, curve, onOpenDoc }) {
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
   const fundName = fundNames.includes(fundPick) ? fundPick : fundNames[0];
@@ -470,7 +473,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
                       {isOpen && (
                         <tr className="bg-blue-50/20">
                           <td colSpan={13} className="px-3 py-3">
-                            <MarkEditor asset={a} marks={marks[a.id] ?? {}} onChange={(m) => setAssetMarks(a.id, m)} />
+                            <MarkEditor asset={a} marks={marks[a.id] ?? {}} onChange={(m) => setAssetMarks(a.id, m)} onOpenDoc={onOpenDoc} />
                           </td>
                         </tr>
                       )}

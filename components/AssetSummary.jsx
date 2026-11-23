@@ -6,6 +6,7 @@ import { assetSummary, assetSummaryXlsx } from "@/lib/assetSummary";
 import { quarterLabel } from "@/lib/valuations";
 import { listLeases } from "@/lib/leaseDocs";
 import { leaseSummaryByDeal } from "@/lib/leaseViews";
+import { IcVarianceTable } from "@/components/Documents";
 
 const fmt = (v, d = 0) => (v == null || !isFinite(v) ? "—" : v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const fmtM = (v) => {
@@ -195,6 +196,15 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose }) {
           <button type="button" onClick={() => onOpenLeases(row.id)} className="ml-auto rounded-lg border border-blue-200 bg-white px-2.5 py-1 font-medium text-blue-700 hover:bg-blue-50">Open Leases tab</button>
         )}
       </div>
+
+      {/* IC approval and actual basis / realized sale (Documents tab) */}
+      {inp.icApproved && <IcVarianceTable ic={inp.icApproved} inputs={inp} />}
+      {(inp.actualBasis || inp.realizedSalePrice > 0) && (
+        <p className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs" data-testid="actual-basis">
+          {inp.actualBasis && <>Actual basis (closing statement): price {fmtM(inp.purchasePrice)} on {fmtDate(inp.acquisitionDate)}{inp.actualBasis.equityFunded ? ` · equity funded ${fmtM(inp.actualBasis.equityFunded)}` : ""}{inp.actualBasis.loanProceeds ? ` · loan ${fmtM(inp.actualBasis.loanProceeds)}` : ""}. </>}
+          {inp.realizedSalePrice > 0 && <>Realized sale: {fmtM(inp.realizedSalePrice)}{inp.realizedSaleDate ? ` on ${fmtDate(inp.realizedSaleDate)}` : ""}{inp.realizedSellingCosts ? `, selling costs ${fmtM(inp.realizedSellingCosts)}` : ""}{inp.realizedNetProceeds ? `, net to equity ${fmtM(inp.realizedNetProceeds)}` : ""}.</>}
+        </p>
+      )}
 
       {/* Terms */}
       <div className="grid gap-x-6 gap-y-3 text-xs md:grid-cols-2 xl:grid-cols-4">

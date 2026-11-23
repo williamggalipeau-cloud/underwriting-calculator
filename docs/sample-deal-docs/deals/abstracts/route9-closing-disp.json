@@ -1,0 +1,81 @@
+{
+ "doc_type": "closing_disp",
+ "title": "Route 9 Small Bay sale (test)",
+ "summary": "Fictional test sale of Route 9 Small Bay on October 30, 2026 for $14,850,000.",
+ "fields": [
+  {
+   "key": "closing_date",
+   "value": "October 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Settlement date: October 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "sale_price",
+   "value": "$14,850,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Contract sales price: $14,850,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "credits",
+   "value": "$61,200",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Credits to Buyer for prorations and deposits: $61,200.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "selling_costs",
+   "value": "$386,100",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Seller's selling costs (commission, transfer tax, legal): $386,100.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "loan_payoff",
+   "value": "$9,212,500",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Payoff of existing loan including prepayment: $9,212,500.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "net_proceeds",
+   "value": "$5,190,200",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Net proceeds to Seller: $5,190,200.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "route9-closing-disp.pdf"
+  ]
+ }
+}

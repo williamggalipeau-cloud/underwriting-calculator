@@ -14,16 +14,17 @@ changes the model without the user clicking to apply it.
 | A | Lease documents: upload, store, open | ✅ Done, live (PR #43) |
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
 | C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ✅ Live (PR #69); 24 Node + 18 Playwright checks |
-| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ✅ Built 11/22 (PR); 34 Node + 25 Playwright checks |
-| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ⛓ Starts when D is complete |
-| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ⛓ Starts when E is complete |
-| G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
+| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ✅ Live (PR #70); 34 Node + 25 Playwright checks |
+| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ✅ Built 11/23 (PR); 45 Node + 22 Playwright checks |
+| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Built 11/23 (PR); 27 Node + 12 Playwright checks |
+| G | Appraisal → Valuations tab | ✅ Built 11/23 (PR); 14 Node + 8 Playwright checks |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ⛓ Starts when H is complete |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
 | M | Fund impact modeling (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener tab retired | ⛓ Starts when L is complete |
+| N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
 value change with exit cap and a PDF of valuation adjustments and their
@@ -168,7 +169,25 @@ reviews and applies it field by field.
 - **Critical dates:** every dated deadline from every document flows into
   phase D's fund-wide critical dates.
 
-### Phase E: acquisition documents (OM, rent roll, T-12, LOI, PSA, IC memo)
+### Phase E: acquisition documents (OM, rent roll, T-12, LOI, PSA, IC memo) — built 11/23
+
+**Built**: the shared foundation (`supabase/deal_documents.sql`:
+`deal_documents`, `save_deal_abstract`, the `deal-docs` bucket, audit log;
+fund documents without an asset), the Documents tab (upload, Review with
+Claude, Save abstract, viewer with quotes and local checks, Apply with
+field-by-field ticks and a mismatch badge), every type below, document
+deadlines in Critical dates, IC approved vs current (Documents and Asset
+Summary), the IC conditions checklist, an LPA / PPM panel in New fund /
+Edit all terms, the engine's realized sale, and fictional samples in
+`docs/sample-deal-docs/deals/`. Not yet: the Portfolio Return roll-up of
+approved vs current (the fund view of the Documents tab lists each asset's
+instead); premiums compared with insurance expense; showing what changed
+in an amended LPA beyond the field comparison. Tested: 45 Node checks
+(every sample abstract against its PDF text, each type's mapping, rent
+roll merge / replace, insurance gaps, IC variance, realized sale in the
+engine, limits, deadlines, prompts) and 22 Playwright checks.
+
+Scope as planned:
 
 | Document | Connector tools | Applies to |
 |---|---|---|
@@ -201,7 +220,23 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   in the change log, and open items shown on the Documents tab.
 - **Dates:** the approval date and any condition deadlines go to critical dates.
 
-### Phase F: loan agreement to the Debt tab
+### Phase F: loan agreement to the Debt tab — built 11/23
+
+**Built**: loan agreement and rate cap confirmation types on the Documents
+tab (no database change: the table already allowed them); loan terms and
+covenants applied to the Debt inputs, the actual loan amount in the engine,
+the Debt tab's loan panel with covenant tests by year; executed caps in the
+cash flows and the rate cap schedule ("executed", provider), checked
+against the loan's cap requirement (strike, notional, rating, term,
+maturity); upload of confirmations from the Debt tab; maturity, extension
+notice, cap expiry and replacement deadlines in critical dates; fictional
+loan agreements and cap confirmations for Airport Flex Park (clean) and
+Route 9 Small Bay (BBB+ provider and short notional, flagged). Not yet:
+loan insurance covenants in the insurance check; the index floor in the
+engine (stored for reference); amortizing cap notionals. Tested: 27 Node
+and 12 Playwright checks (all earlier suites still pass).
+
+Scope as planned:
 
 - Loan abstract (`loan_validate_abstract` / `loan_show_abstract`) compared with
   the Debt tab inputs: loan amount, index, spread and floor, term and extensions
@@ -234,7 +269,18 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   replacement deadline go to critical dates. Made-up sample confirmations
   for Fund I's caps are added to the test documents.
 
-### Phase G: appraisal to the Valuations tab
+### Phase G: appraisal to the Valuations tab — built 11/23
+
+**Built**: the appraisal type (`appraisal_validate`, never `appraisal_show`);
+Apply sets the quarter's mark (value, source appraisal, appraiser, cap
+rate, note and document link, with a PDF page link on the Valuations tab),
+warns inside the cost hold, shows which mark it replaces, and compares NOI
+and cap rate with the underwriting and the value with the price. Fictional
+appraisals: Airport Flex Park Q3 2026 ($7,650,000, 6.25%) and Route 9 Small
+Bay Q2 2026 (inside the cost hold). No database change. Tested: 14 Node and
+8 Playwright checks; earlier suites still pass.
+
+Scope as planned:
 
 - Appraisal abstract (`appraisal_validate` / `appraisal_show`): value, effective
   date, cap rate, NOI, approaches, appraiser.
@@ -689,6 +735,27 @@ changing the fund.
   with the same inputs (results unchanged, checked by a test), and the
   forward curve controls move to the Debt tab next to the rate cap. Nothing
   is retired until the candidate screen covers everything the tab does.
+
+## Phase N: Fund Summary (added 11/23, after M)
+
+A new **Fund Summary** tab: one page of key facts about the selected fund.
+
+- **Key dates** (user): launch date, final close date, investment period
+  end; suggested: end of term and the outside date with extensions, time
+  left in the investment period.
+- **Key terms** (user): commitments (LP / GP), management fee and basis,
+  preferred return, catch-up, promote tiers, term and extensions,
+  subscription line, distribution policy.
+- **Capital** (user): raised (commitments), deployed (capital called and
+  invested in assets) and available (dry powder); suggested: % called,
+  dry powder after reserves, sub line drawn vs capacity.
+- Not repeated here (user, 11/23): performance (Valuations, Portfolio
+  Return), the portfolio snapshot (Asset Summary) and upcoming dates
+  (Leases → Critical dates); the page links to those tabs instead.
+- Kept (not shown elsewhere yet): end of term and outside date with
+  extensions; % of commitments called; sub line drawn vs capacity.
+- **Exports** (user confirmed 11/23): the summary as a one-page PDF and as
+  Excel.
 
 ## Order and review
 
