@@ -3064,11 +3064,10 @@ each phase and the decisions behind it are in
 | G. Appraisal | Appraised value and cap rate to the Valuation tab | ✅ Live (PR #71) |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Live (PR #72) |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 built 11/23: photos, Google map, floor plan, demising / combining, actual NOI in Valuation and Sell/Hold |
-| Sample plan (later) | Mock TI actuals by unit and mock (drawn) photos and floor plans for the sample assets, so the Asset Business Plan shows fully filled in on the test data | 📝 Planned (user, 11/23; not scheduled) |
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency); mock (drawn) photos and floor plans for the sample assets | ⛓ After K |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
@@ -3076,7 +3075,7 @@ each phase and the decisions behind it are in
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
-| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager | ⛓ After S |
+| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 

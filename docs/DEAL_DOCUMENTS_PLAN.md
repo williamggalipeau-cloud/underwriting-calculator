@@ -22,7 +22,7 @@ changes the model without the user clicking to apply it.
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
 | J | Underwritten vs. actual performance | ✅ Built 11/23 (pulled forward into window 1): frozen baseline, actual + projected, IRR gap by cause, fund ranking, Excel and PDF; 29 Node + 16 Playwright checks |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
-| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
+| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency); mock sample-asset images (added 11/23) | ⛓ Starts when K is complete |
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
@@ -30,7 +30,7 @@ changes the model without the user clicking to apply it.
 | P | Dispositions group: Assets for Sale, Offers, Track Record, Documents; whole and partial sales; uploads in each tab; Excel and PDF exports (added 11/23) | ⛓ After Q |
 | R | Leasing tab (Asset Management): leasing pipeline and rent comps, with uploads (added 11/23) | ⛓ After P |
 | S | Fund Debt tab (Portfolio Management): every loan in the fund, maturities, rate exposure, covenant certificates (added 11/23) | ⛓ After R |
-| T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager (added 11/23) | ⛓ After S |
+| T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager; TI spend by unit with mock TI actuals (added 11/23) | ⛓ After S |
 | U | Market group: Market Data tab, submarket statistics (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
@@ -411,7 +411,7 @@ vacant units, which update the rent roll and the plan's boxes; actual NOI
 Valuation and as a tile on Sell/Hold Analysis (display only; the model is
 unchanged). Manual §7.31.
 
-**Later enhancement (user, 11/23; not scheduled): TI spend by unit.** As the
+**TI spend by unit (user, 11/23; scheduled in phase T).** As the
 value-add plan is carried out, record TI dollars actually spent against the
 unit they were spent on. Each entry has a date, unit, amount, vendor or
 description, and an optional invoice PDF. Three ways in (user, 11/23):
@@ -442,20 +442,20 @@ The business plan would show:
 - each entry, logged and shown in the plan PDF and Excel export.
 Later this could feed phase L's TI funding coverage heat map.
 
-**Later enhancement (user, 11/23; not scheduled): a fuller sample plan.** So
+**A fuller sample plan (user, 11/23; scheduled: images in phase L, TI in phase T).** So
 the Asset Business Plan can be seen fully filled in on the test data:
 - **Mock TI actuals:** load the mock construction jobs and invoices above into
   Model Fund I when the sample portfolio or test scenario is loaded, so each
   sample asset's leasing plan shows TI spent vs. planned by unit, overruns
   flagged (Airport Flex unit 001 amber, Ridgeway unit 014 red), and the TI/LC
-  line in budget vs. actual. Built with (or after) the TI spend by unit
-  feature above.
+  line in budget vs. actual. **Phase T**, with TI spend by unit.
 - **Mock images:** made-up pictures for the sample assets, never real photos
   of real buildings: a few drawn exterior and interior images per asset
   (captions, dates and a cover photo) and a drawn floor plan with the units
   already boxed and coloured by lease status. Shipped with the app as sample
   files (no database upload needed), marked as samples, and loaded with the
-  sample portfolio; real assets keep using uploads.
+  sample portfolio; real assets keep using uploads. **Phase L**, so the
+  report's page per asset shows a photo on the test data.
 
 At closing, each asset gets a business plan for its whole hold, with a
 budget (the financial side of the plan). The plan, the current budget and
@@ -616,6 +616,12 @@ against what the fund actually does, using phases I and J for each asset.
   quarterly fund report suitable for LP updates.
 
 ## Phase L: performance and risk reporting (added 11/22, revised 11/22)
+
+**Also in L (user, 11/23): mock images for the sample assets** (drawn
+exterior / interior photos with captions, dates and a cover, and a drawn
+floor plan with units boxed), shipped as sample files and loaded with the
+sample portfolio, so each asset's report page shows a photo; see phase I
+"A fuller sample plan".
 
 Investor administration (investor records, commitments, capital accounts,
 call and distribution notices, statements and the investor portal) stays in
@@ -1083,6 +1089,13 @@ in the fund:
   PDF).
 
 ## Phase T: Property Management group (added 11/23)
+
+**Also in T (user, 11/23): TI spend by unit and mock TI actuals**, built
+together with the Yardi Construction Manager link: TI jobs and invoices by
+unit (manual, CSV / Excel upload, Yardi later), spent vs. planned on the
+business plan's leasing plan with overrun flags, and the mock construction
+files loaded into Model Fund I; see phase I "TI spend by unit" and "A
+fuller sample plan".
 
 A **Property Management** header after Asset Management, with four tabs.
 Each tab shows one asset, with a whole-fund view, uploads in each section
