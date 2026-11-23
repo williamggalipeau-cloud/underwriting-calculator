@@ -396,6 +396,17 @@ one) and Excel; fund NOI vs budget card on Portfolio Return.
 bucket and a map source), demising / combining units, and feeding actual
 NOI to Valuations and Sell / Hold.
 
+**Later enhancement (user, 11/23; not scheduled): TI spend by unit.** As the
+value-add plan is carried out, record TI dollars actually spent against the
+unit they were spent on. Each entry has a date, unit, amount, vendor or
+description, and an optional invoice PDF. The business plan would show:
+- for each unit in the leasing plan, TI spent vs. planned (TI/SF × SF), with
+  the remaining balance and an overrun flag;
+- the asset total vs. the TI/LC budget and the TI reserve or lender-funded
+  TI draws, and spend vs. the budget's TI/LC line in budget vs. actual;
+- each entry, logged and shown in the plan PDF and Excel export.
+Later this could feed phase L's TI funding coverage heat map.
+
 At closing, each asset gets a business plan for its whole hold, with a
 budget (the financial side of the plan). The plan, the current budget and
 actual results are then tracked against each other.
