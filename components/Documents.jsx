@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DOC_TYPES, TYPE, BLOCKS, FIELDS, checkLocally, dealDocPrompt, parseDealAbstract } from "@/lib/dealDocTypes";
-import { applyDoc, applyRentRoll, capChecks, capFromDoc, compareDoc, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
+import { applyDoc, applyRentRoll, appraisalMark, capChecks, capFromDoc, compareDoc, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
 import { createDealDoc, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
 import { listLeases, PROJECT_REF, fmtBytes, MAX_FILE_MB } from "@/lib/leaseDocs";
 import { newUnit } from "@/components/UnitRoll";
@@ -113,7 +113,47 @@ function ReviewPanel({ doc, assetName, userId, email, onSaved, onError }) {
 }
 
 // Apply: app value vs document value per field; tick and apply.
-function ApplyPanel({ doc, inputs, terms, units, leaseAbs, onApplyDeal, onApplyFund, onNewDeal, onDone, onError, email }) {
+function AppraisalApply({ doc, inputs, marks, onApplyMark, onDone, onError, email }) {
+  const results = useMemo(() => { try { return underwrite(inputs); } catch { return null; } }, [inputs]);
+  const a = appraisalMark(doc, inputs ?? {}, marks ?? {}, results);
+  const [busy, setBusy] = useState(false);
+  if (!a) return <p className="mt-2 text-xs text-red-700">The appraisal has no effective date or value.</p>;
+  const differs = a.rows.filter((r) => r.differs);
+  const apply = async () => {
+    setBusy(true);
+    try {
+      if (!onApplyMark(doc.deal_id, a.quarter, a.mark, differs.map((r) => ({ key: r.key, field: r.label, from: r.appValue, to: r.docValue })), `From appraisal${doc.title ? ` (${doc.title})` : ""}`)) throw new Error("Couldn't change the valuation marks.");
+      const now = new Date().toISOString();
+      await updateDealDoc(doc.id, { status: "applied", applied_at: now, applied_by_email: email ?? null, applied_fields: { ...(doc.applied_fields ?? {}), [`mark:${a.quarter}`]: { at: now, by: email ?? null } } });
+      await onDone();
+    } catch (e) { onError(e.message || String(e)); } finally { setBusy(false); }
+  };
+  return (
+    <div className="mt-2 space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/40 p-3 text-xs" data-testid="doc-apply">
+      <p className="font-medium">Valuation mark for {a.quarterLabel} (quarter of the effective date)</p>
+      {a.heldAtCost && <p className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-amber-800" data-testid="cost-hold-warning">⚠ {a.quarterLabel} is inside the 6-month cost hold after acquisition: the asset is held at cost that quarter, so this value won&apos;t be used. You can still record it.</p>}
+      {a.existing && <p className="text-gray-600">Replaces the {a.existing.source ?? "entered"} mark of {show("money", a.existing.value)}.</p>}
+      <table className="w-full rounded-lg bg-white">
+        <thead className="text-gray-500"><tr><th className="px-2 py-1 text-left font-medium">Mark</th><th className="px-2 py-1 text-left font-medium">Now</th><th className="px-2 py-1 text-left font-medium">Appraisal</th></tr></thead>
+        <tbody>{a.rows.map((r) => <tr key={r.key} className={`border-t border-gray-100 ${r.differs ? "" : "text-gray-400"}`}><td className="px-2 py-1">{r.label}</td><td className="px-2 py-1">{show(r.kind, r.appValue)}</td><td className="px-2 py-1">{show(r.kind, r.docValue)}</td></tr>)}</tbody>
+      </table>
+      {a.vsUw.length > 0 && (
+        <table className="w-full rounded-lg bg-white" data-testid="appraisal-vs-uw">
+          <thead className="text-gray-500"><tr>{["Appraisal vs underwriting", "Appraisal", "Underwriting", "Difference"].map((h) => <th key={h} className="px-2 py-1 text-left font-medium">{h}</th>)}</tr></thead>
+          <tbody>{a.vsUw.map((r) => <tr key={r.label} className="border-t border-gray-100"><td className="px-2 py-1">{r.label}</td><td className="px-2 py-1">{show(r.kind, r.appraisal)}</td><td className="px-2 py-1">{show(r.kind, r.underwriting)}</td><td className={`px-2 py-1 ${Math.abs(r.diffPct ?? (r.diffBp ?? 0) / 10) > 5 ? "font-medium text-amber-800" : ""}`}>{r.diffPct != null ? `${r.diffPct >= 0 ? "+" : ""}${r.diffPct.toFixed(1)}%` : `${r.diffBp >= 0 ? "+" : ""}${Math.round(r.diffBp)} bp`}</td></tr>)}</tbody>
+        </table>
+      )}
+      <button type="button" disabled={busy || !differs.length} onClick={apply} className={`${btn} border-emerald-600 bg-emerald-600 text-white`}>{differs.length ? `Apply to the ${a.quarterLabel} mark` : "Already applied"}</button>
+    </div>
+  );
+}
+
+function ApplyPanel({ doc, inputs, terms, units, leaseAbs, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onDone, onError, email }) {
+  if (doc.doc_type === "appraisal") return <AppraisalApply doc={doc} inputs={inputs} marks={marks} onApplyMark={onApplyMark} onDone={onDone} onError={onError} email={email} />;
+  return <ApplyPanelInner doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} onDone={onDone} onError={onError} email={email} />;
+}
+
+function ApplyPanelInner({ doc, inputs, terms, units, leaseAbs, onApplyDeal, onApplyFund, onNewDeal, onDone, onError, email }) {
   const type = doc.doc_type;
   const fund = TYPE[type]?.scope === "fund";
   const rows = useMemo(() => compareDoc(doc, { inputs: inputs ?? {}, terms: terms ?? {} }), [doc, inputs, terms]);
@@ -248,14 +288,14 @@ export function IcVarianceTable({ ic, inputs }) {
   );
 }
 
-function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, canEdit, userId, email, onApplyDeal, onApplyFund, onNewDeal, onChanged, onError }) {
+function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, marks, canEdit, userId, email, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onChanged, onError }) {
   const [panel, setPanel] = useState(null);
   const [busy, setBusy] = useState(false);
   const t = TYPE[doc.doc_type] ?? TYPE.other;
   const open = async (path, page) => {
     try { const url = await dealFileLink(path); window.open(page ? `${url}#page=${page}` : url, "_blank", "noopener"); } catch (e) { onError(e.message || String(e)); }
   };
-  const pending = doc.abstract ? compareDoc(doc, { inputs: inputs ?? {}, terms: terms ?? {} }).filter((r) => r.differs) : [];
+  const pending = !doc.abstract ? [] : doc.doc_type === "appraisal" ? (appraisalMark(doc, inputs ?? {}, marks ?? {})?.rows ?? []).filter((r) => r.differs) : compareDoc(doc, { inputs: inputs ?? {}, terms: terms ?? {} }).filter((r) => r.differs);
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid="doc-card">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -279,7 +319,7 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, canEdit, user
       </ol>
       {panel === "view" && doc.abstract && <DocViewer doc={doc} onOpen={open} />}
       {panel === "review" && canEdit && <ReviewPanel doc={doc} assetName={assetName} userId={userId} email={email} onError={onError} onSaved={async () => { setPanel("view"); await onChanged(); }} />}
-      {panel === "apply" && canEdit && doc.abstract && <ApplyPanel doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} email={email} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />}
+      {panel === "apply" && canEdit && doc.abstract && <ApplyPanel doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} marks={marks} onApplyMark={onApplyMark} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} email={email} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />}
       <div className="mt-2 flex flex-wrap gap-2">
         {doc.abstract && <button type="button" onClick={() => setPanel(panel === "view" ? null : "view")} className={`${btn} border-emerald-200 bg-emerald-50 text-emerald-800`}>{panel === "view" ? "Hide abstract" : "View abstract"}</button>}
         {canEdit && doc.abstract && doc.doc_type !== "other" && <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className={`${btn} border-emerald-300 bg-white text-emerald-800`}>{panel === "apply" ? "Close" : doc.doc_type === "insurance_cert" ? "Check coverage" : "Apply"}</button>}
@@ -290,7 +330,7 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, canEdit, user
   );
 }
 
-export default function Documents({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, funds, dealInputs, onApplyDeal, onApplyFund, onNewDeal }) {
+export default function Documents({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, funds, dealInputs, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal }) {
   const [scope, setScope] = useState("asset");
   const [docs, setDocs] = useState(null);
   const [leases, setLeases] = useState([]);
@@ -346,6 +386,8 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
       terms={!d.deal_id ? funds?.[d.fund_name] ?? {} : null}
       units={d.deal_id ? inputsOf(d.deal_id)?.units ?? [] : []}
       leaseAbs={d.lease_id ? leases.find((l) => l.id === d.lease_id)?.abstract ?? null : null}
+      marks={d.deal_id ? marks?.[d.deal_id] ?? {} : {}}
+      onApplyMark={onApplyMark}
       canEdit={canEdit}
       userId={userId}
       email={email}

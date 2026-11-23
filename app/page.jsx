@@ -30,6 +30,7 @@ import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
 import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
 import { applyExecutedCap } from "@/lib/dealDocApply";
+import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
 import LoanAgreementPanel from "@/components/LoanAgreement";
 import CloudPanel from "@/components/CloudPanel";
 import {
@@ -1017,6 +1018,14 @@ export default function Home() {
   function handleApplyLease(dealId, units, entries, label) {
     return applyToDeal(dealId, (inp) => ({ ...inp, units }), entries, label);
   }
+  // Documents tab → a quarter's valuation mark from an appraisal.
+  function applyToMark(dealId, quarter, mark, entries, label) {
+    if (!requireEdit()) return false;
+    const deal = fundDeals.find((d) => d.id === dealId);
+    auditSource.current = { label, entries: entries.map((e) => ({ area: "Valuation", item: deal?.inputs?.propertyName || dealId, field: `${quarter} › ${e.field}`, path: ["valuations", dealId, quarter, e.key], from: e.from, to: e.to })) };
+    setValuations((prev) => ({ ...prev, [dealId]: { ...(prev[dealId] ?? {}), [quarter]: { ...((prev[dealId] ?? {})[quarter] ?? {}), ...mark } } }));
+    return true;
+  }
   // Documents tab → fund terms and limits from the LPA / PPM.
   function applyToFund(fundName, nextTerms, entries, label) {
     if (!requireEdit()) return false;
@@ -1695,6 +1704,10 @@ export default function Home() {
                 marks={valuations}
                 onMarksChange={setValuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                onOpenDoc={session && dbLink?.id ? async (docId, page) => {
+                  const d = (await listDealDocs(dbLink.id)).find((x) => x.id === docId);
+                  if (d?.files?.[0]) window.open(`${await dealFileLink(d.files[0].path)}${page ? `#page=${page}` : ""}`, "_blank", "noopener");
+                } : null}
               />
             )}
             {activeTab === "changes" && (
@@ -1736,6 +1749,8 @@ export default function Home() {
                 onApplyDeal={applyToDeal}
                 onApplyFund={applyToFund}
                 onNewDeal={handleNewDealFrom}
+                marks={valuations}
+                onApplyMark={applyToMark}
               />
             )}
             {activeTab === "comps" && (

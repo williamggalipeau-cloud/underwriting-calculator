@@ -1787,7 +1787,7 @@ reads "✓ Validated by the connector" or "Not connector-validated".
 | Final IC memo | The as-approved baseline (`icApproved`: approval date, approvers, price, total cost, loan, equity, year-1 NOI, going-in and exit caps, IRR, multiple, cash-on-cash, hold, capex), a reference that doesn't change the model, and the conditions of approval (`icConditions`). **IC approved vs current** compares the baseline with the current model (Documents tab and Asset Summary → Details); each condition is ticked off with who and when (logged). |
 | Closing statement (acquisition) | Purchase price and acquisition date (actual); closing costs replaced by one line for the statement's total; `actualBasis` (loan proceeds, equity funded, seller credits, prorations, deposits transferred), shown in Asset Summary → Details. |
 | Closing statement (disposition) | `realizedSalePrice` and `realizedSellingCosts` replace the modelled exit value and selling costs (§7.7); hold = whole years from acquisition to the sale; sale date, loan payoff and net proceeds recorded. |
-| Loan agreement / rate cap confirmation | See below. |
+| Loan agreement / rate cap confirmation / appraisal | See below. |
 | Insurance certificate | Owner or tenant (linked to the lease). **Check coverage**: policies lapsed or expiring within 60 days; for a tenant, the lease's requirements (general liability per occurrence and aggregate, umbrella, auto, pollution, workers' comp, additional insured, waiver of subrogation, read from the lease abstract) against the certificate. Expiry dates go to critical dates (amber 60 days before, red when lapsed). Loan insurance covenants come with phase F. |
 | LPA / PPM | Fund terms: commitments, GP commitment, management fee, preferred return, catch-up, investment period, term, extensions and their length, sub line size. Investment limits (single investment, tenant, state, metro, property types, non-core, fund and asset leverage, hold, other), each with its clause and quote, stored in the fund's `limits` (phase L checks actual vs limit). Also shown in **New fund / Edit all terms** (LPA / PPM panel: upload, then **Use** each term or limit). |
 
@@ -1822,6 +1822,18 @@ maximum, notional below the loan, counterparty rating below the minimum
 the loan matures (a replacement is needed). The cap's expiry and the
 replacement deadline (expiry minus the loan's days, 30 if none) go to
 critical dates.
+
+**Appraisal** (validated by the CREparser connector, `appraisal_validate`):
+appraiser, effective date of value, report date, interest appraised, market
+value, direct cap rate, NOI and the value by each approach. **Apply** sets
+the mark of the quarter the effective date falls in (Valuations tab):
+fair value, source "appraisal", appraiser, cap rate, a note citing the
+document and page, and the document link (`docId`, `page`); the Valuations
+tab's marks show a **PDF p. n** link. It warns when that quarter is inside
+the 6-month cost hold (the asset is held at cost, so the value isn't used),
+says which mark it replaces, and compares the appraisal with the
+underwriting: NOI vs the underwritten NOI of that hold year, the cap rate
+vs the going-in and exit caps (bp), and the value vs the purchase price.
 
 **Applying** marks the document "Applied" with the fields taken
 (`applied_fields`) and logs each change (field, from → to) with the source
@@ -2785,13 +2797,14 @@ each phase and the decisions behind it are in
 | D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease (§7.26–7.27) | ✅ Live (PR #70) |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ✅ Built 11/23 (pull request) |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Built 11/23 (pull request) |
-| G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
+| G. Appraisal | Appraised value and cap rate to the Valuations tab | ✅ Built 11/23 (pull request) |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
 | M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
+| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (suggested additions to confirm: performance, portfolio snapshot, limits check, next 90 days, exports) | ⛓ After M (added 11/23) |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright

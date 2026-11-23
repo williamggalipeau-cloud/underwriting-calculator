@@ -367,4 +367,28 @@ def cap_doc(name, prop, cp, rating, trade_long, eff_long, term_long, notional, s
 cap_doc("airport-flex-cap-2026", "Airport Flex Park", "Fictional Capital Markets LLC", "A+", "January 26, 2026", "January 30, 2026", "January 30, 2027", 4980000, 3.91, 27858, "FCM-26-0131")
 cap_doc("route9-cap-2026", "Route 9 Small Bay", "Example Derivatives Corp", "BBB+", "March 12, 2026", "March 16, 2026", "March 16, 2027", 9000000, 3.91, 51045, "EDC-26-0316")
 print("phase F docs ok")
+# ── Appraisals (phase G) ────────────────────────────────────────────────────
+def appraisal_doc(name, prop, firm, eff_long, rep_long, value, cap, noi, vi, vs, vc):
+    q = {
+        "firm": f"This appraisal of {prop} was prepared by {firm}.",
+        "int": "The interest appraised is the leased fee interest.",
+        "eff": f"The effective date of value is {eff_long}.", "rep": f"The date of the report is {rep_long}.",
+        "val": f"The market value of the leased fee interest, as is, is ${value:,}.",
+        "cap": f"A direct capitalization rate of {cap:.2f}% was applied to stabilized net operating income of ${noi:,}.",
+        "vi": f"Income capitalization approach: ${vi:,}.", "vs": f"Sales comparison approach: ${vs:,}.", "vc": f"Cost approach: ${vc:,}.",
+        "app": "The income capitalization and sales comparison approaches were developed; the cost approach was given little weight.",
+    }
+    build(name, f"Appraisal Report – {prop} (excerpt)", [("Assignment", [q["firm"], q["int"], q["eff"], q["rep"]]), ("Conclusion", [q["val"], q["cap"]]),
+                                                         ("Approaches", [q["vi"], q["vs"], q["vc"], q["app"]])], {
+        "doc_type": "appraisal", "title": f"{prop} appraisal {eff_long}", "summary": f"{firm}: as-is market value ${value:,} as of {eff_long} at a {cap:.2f}% cap on ${noi:,} NOI.",
+        "fields": [F("appraiser", firm, q["firm"]), F("effective_date", eff_long, q["eff"]), F("report_date", rep_long, q["rep"]), F("interest", "Leased fee", q["int"]),
+                   F("value", f"${value:,}", q["val"]), F("cap_rate", f"{cap:.2f}%", q["cap"]), F("noi", f"${noi:,}", q["cap"]),
+                   F("value_income", f"${vi:,}", q["vi"]), F("value_sales", f"${vs:,}", q["vs"]), F("value_cost", f"${vc:,}", q["vc"]),
+                   F("approaches", "Income capitalization and sales comparison; cost approach given little weight", q["app"])],
+        "critical_dates": [],
+    })
+
+
+appraisal_doc("airport-flex-appraisal-2026q3", "Airport Flex Park", "Fictional Valuation Advisors, MAI", "September 30, 2026", "October 20, 2026", 7650000, 6.25, 478000, 7650000, 7700000, 6900000)
+appraisal_doc("route9-appraisal-2026q2", "Route 9 Small Bay", "Example Appraisal Group, MAI", "June 30, 2026", "July 22, 2026", 12800000, 6.00, 768000, 12800000, 12900000, 11800000)
 print("ok", len(list((OUT / "abstracts").glob("*.json"))))
