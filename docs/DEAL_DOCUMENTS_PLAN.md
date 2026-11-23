@@ -38,6 +38,7 @@ changes the model without the user clicking to apply it.
 | Z | Home page: today's attention list, workflow lanes matching the tab headers, fund cards, quick actions (incl. New fund setup), recent activity (added 11/23) | ⛓ After O |
 | Picker | "Working on" fund picker in the header (All funds / each Fund, SMA, JV): filters every tab, remembered per person; also on the Home page (added 11/23) | ⛓ With Z (or earlier if wanted) |
 | Demo | Separate Demo firm for the sample fund and test deals, so the real firm holds only real assets (added 11/23) | ⛓ After Picker |
+| Comps | Mock comps for each Model Fund I asset: fictional sales comps on the Sales Comps tab and lease (rent) comps for phase R's Leasing tab, near each sample address (added 11/23) | ⛓ Future release (with the next sample-data update) |
 | Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
@@ -1339,6 +1340,20 @@ saved record by record), so this is a **filter**, not a load:
   reopens on the portfolio they last worked on.
 - Pipeline deals with no fund show under All funds and under the fund they
   are being screened for (phase M).
+
+## Mock comps for the sample assets (added 11/23, future release)
+
+User, 11/23: "add mock comps for each asset in Fund I in a future release."
+- **Sales comps:** 5–8 fictional sales per sample asset (same metro and
+  property type, sized near the asset, dated over the last 24 months) with
+  price, $/SF, cap rate, buyer / seller, so the Sales Comps tab, the
+  Valuation tab's comp support and the reports show what a full set looks
+  like.
+- **Lease (rent) comps:** fictional recent leases near each asset (size,
+  $/SF, term, TI, free rent) for the Leasing tab (phase R) and mark to
+  market.
+- Fictional names and addresses only; loaded with the sample portfolio and
+  from the Sample data menu (edits kept), like the drawn photos.
 
 ## Demo firm (added 11/23, after the fund picker)
 
