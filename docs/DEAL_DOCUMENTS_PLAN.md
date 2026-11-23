@@ -26,7 +26,7 @@ changes the model without the user clicking to apply it.
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
-| Q | Workspace storage: deals, funds, valuations and the change log in their own tables; safe concurrent saving (added 11/23) | ⏸ After O, **attended** (the user present; database changes and a live data migration) |
+| Q | One firm, saved record by record: no workspaces to choose; every change saved within about a second; screens update live from the database (added 11/23; moved ahead of J–O at the user's request) | 🟡 Database part done 11/22 evening with the user (supabase/firm_records.sql; 12 deals, 1 fund, 247 log entries migrated and verified identical; the 11/21 workspace renamed Baywise; the other two archived). App code built in window 1 (11/22, 8:40 PM Pacific) |
 | P | Dispositions group: Assets for Sale, Offers, Track Record, Documents; whole and partial sales; uploads in each tab; Excel and PDF exports (added 11/23) | ⛓ After Q |
 | R | Leasing tab (Asset Management): leasing pipeline and rent comps, with uploads (added 11/23) | ⛓ After P |
 | S | Fund Debt tab (Portfolio Management): every loan in the fund, maturities, rate exposure, covenant certificates (added 11/23) | ⛓ After R |
