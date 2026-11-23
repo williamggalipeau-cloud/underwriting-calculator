@@ -1104,6 +1104,23 @@ Debt tab.
 Approvals (sign-offs for leases, capex over a threshold, budgets and sales)
 and reminders before critical dates. On hold until the user scopes it.
 
+## Bundles for phases Q–U (user, 11/23: "no rush; bundle so I don't get crushed on cost")
+
+Each bundle fits one 5-hour usage window. Nothing runs on its own after the
+I → O windows. Bundle 1 starts when the user picks a time to be present.
+After that, each bundle starts only when the user says "next bundle", so
+they set the pace. A bundle that runs over is finished at the start of the
+next one, never in an extra window of its own.
+
+| Bundle | Phases | Notes |
+|---|---|---|
+| 1 (attended) | Q Workspace storage | The user present for the database changes and the live-data check; first, so later phases are built on it |
+| 2 | P Dispositions | The largest: four tabs, uploads, exports. Its document-type SQL is prepared ahead and applied in bundle 1 |
+| 3 | R Leasing + S Fund Debt | Two single tabs |
+| 4 | T Property Management | Four tabs and the Yardi Construction Manager uploads |
+| 5 | U Market Data | One tab, with room to catch up |
+| — | V Automated workflow | Not scheduled until scoped |
+
 ## Build rules: tests in the repository (user, 11/23)
 
 From tonight's build on, every phase commits its tests:
