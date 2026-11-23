@@ -30,6 +30,10 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          # Google Maps Embed API key (optional; restrict it to the site's
+          # address and the Maps Embed API). Without it the keyless map is used.
+          NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY: ${{ secrets.GOOGLE_MAPS_EMBED_KEY }}
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

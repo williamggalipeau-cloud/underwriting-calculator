@@ -401,9 +401,10 @@ year to date and since closing, in $ and $/SF, amber / red flags with a
 comment per variance; PDF per revision (with changes since the previous
 one) and Excel; fund NOI vs budget card on Portfolio Return.
 **Part 2 built 11/23:** asset photos (caption, date, order, cover) in the
-private `asset-photos` bucket; a location map from OpenStreetMap, geocoded
-once with Nominatim on click and stored (street, then city), with
-attribution; a floor plan (uploaded image with unit boxes drawn by hand,
+private `asset-photos` bucket; a Google Maps location map (keyless embed
+from the address, map or satellite, Open in Google Maps; coordinates can be
+entered by hand; user chose this 11/23, with the Maps Embed API and a
+site-restricted key as a later upgrade); a floor plan (uploaded image with unit boxes drawn by hand,
 colored by lease status, or a schematic by SF); demising and combining
 vacant units, which update the rent roll and the plan's boxes; actual NOI
 (trailing 12 months of the imported actuals) shown as a cap rate on
