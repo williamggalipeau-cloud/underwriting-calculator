@@ -239,7 +239,7 @@ export function IcVarianceTable({ ic, inputs }) {
               <td className="px-2.5 py-1">{r.label}</td>
               <td className="px-2.5 py-1 text-right">{show(r.kind, r.approved)}</td>
               <td className="px-2.5 py-1 text-right">{show(r.kind, r.current)}</td>
-              <td className={`px-2.5 py-1 text-right ${isFinite(r.diff) && r.diff !== 0 ? "font-medium" : "text-gray-400"}`}>{isFinite(r.diff) ? `${r.diff >= 0 ? "+" : "−"}${show(r.kind, Math.abs(r.diff)).replace(/^\$/, "$")}` : "—"}</td>
+              <td className={`px-2.5 py-1 text-right ${isFinite(r.diff) && r.diff !== 0 ? "font-medium" : "text-gray-400"}`}>{isFinite(r.diff) ? `${r.diff >= 0 ? "+" : "−"}${show(r.kind, Math.abs(r.diff))}` : "—"}</td>
             </tr>
           ))}
         </tbody>
