@@ -98,6 +98,43 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await pl.getByTestId("pipeline-row").filter({ hasText: "Riverbend Flex" }).getByRole("button", { name: "Convert to asset" }).click();
   await p.waitForTimeout(1500);
   check(/In Model Fund I/.test(await pl.getByTestId("pipeline-row").filter({ hasText: "Riverbend Flex" }).innerText()), "converted: Riverbend Flex is in Model Fund I");
+  // Send to Fund Impact
+  await pl.getByLabel("Filter stage").selectOption("active");
+  await p.waitForTimeout(300);
+  await pl.getByTestId("pipeline-row").filter({ hasText: "Cascade Trade Park" }).getByRole("button", { name: "Send to Fund Impact" }).click();
+  await p.waitForTimeout(2000);
+  const fi = main.getByTestId("fund-impact-tab");
+  check((await fi.count()) === 1 && (await fi.getByLabel("Candidate Cascade Trade Park").isChecked()), "Send to Fund Impact: the deal is a candidate");
+  check(/Net LP IRR/.test(await fi.getByTestId("impact-tab-returns").innerText()) && /Scenario — not actual/.test(await fi.innerText()), "fund with vs. without, labelled a scenario");
+  await fi.getByLabel("Candidate Glendale Commerce Center").check();
+  await p.waitForTimeout(2500);
+  check((await fi.getByTestId("impact-compare").locator("tr").count()) === 2, "two candidates: compared and ranked");
+  const cascade = fi.getByTestId("impact-candidate").filter({ hasText: "Cascade Trade Park" });
+  await cascade.getByRole("button", { name: "Break-even price" }).click();
+  await p.waitForTimeout(4000);
+  check(/keeps fund net LP IRR|isn't met|150%/.test(await cascade.getByTestId("impact-be").innerText()), `break-even: ${await cascade.getByTestId("impact-be").innerText()}`);
+  await cascade.getByRole("button", { name: "Sensitivity" }).click();
+  await p.waitForTimeout(3000);
+  check((await cascade.getByTestId("impact-sens").locator("tbody tr").count()) === 3, "sensitivity grid: 3 exit caps × 3 prices");
+  // Save v1, change, save v2, view v1
+  await fi.getByLabel("Scenario name").fill("Q1 2027: Tacoma + Sparks");
+  await fi.getByRole("button", { name: "Save as new scenario" }).click();
+  await p.waitForTimeout(1200);
+  check((await fi.getByTestId("impact-scenario").count()) === 1 && /v1/.test(await fi.getByTestId("impact-scenario").innerText()), "scenario saved as v1");
+  await fi.getByLabel("Candidate Glendale Commerce Center").uncheck();
+  await p.waitForTimeout(1500);
+  await fi.getByTestId("impact-scenario").getByRole("button", { name: /Save current as v2/ }).click();
+  await p.waitForTimeout(1200);
+  await fi.getByTestId("impact-scenario").getByRole("button", { name: "v1", exact: true }).click();
+  await p.waitForTimeout(800);
+  check(/Viewing saved version v1/.test(await fi.getByTestId("impact-viewing").innerText()) && /Glendale Commerce Center/.test(await fi.getByTestId("impact-viewing").innerText()), "v1 still shows both candidates (frozen)");
+  await fi.getByRole("button", { name: "Back to live" }).click();
+  // Add to fund
+  await fi.getByTestId("impact-candidate").filter({ hasText: "Cascade Trade Park" }).getByRole("button", { name: "Add to fund" }).click();
+  await p.waitForTimeout(1500);
+  await p.screenshot({ path: S + "/phaseM_impact.png", fullPage: true });
+  await p.getByRole("button", { name: /^Pipeline/ }).first().click();
+  await p.waitForTimeout(800);
   const [xl] = await Promise.all([p.waitForEvent("download"), pl.getByRole("button", { name: "Excel" }).click()]);
   check(/^pipeline-\d{4}-\d{2}-\d{2}\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
   const [tp] = await Promise.all([p.waitForEvent("download"), pl.getByRole("button", { name: "Template" }).click()]);
@@ -111,6 +148,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(rbDeal?.inputs?.fundName === "Model Fund I" && rbDeal.inputs.acquisitionDate === "2027-02-26", "saved: Riverbend Flex is a deal in Model Fund I, acquired on its expected close");
   const glDeal = sd?.deals?.find((d) => d.inputs?.propertyName === "Glendale Commerce Center");
   check(glDeal && !glDeal.inputs.fundName && glDeal.quick?.purchasePrice === 10400000, "saved: the screened deal has no fund (pipeline) and its asking price");
+  const casDeal = sd?.deals?.find((d) => d.inputs?.propertyName === "Cascade Trade Park");
+  check(casDeal?.inputs?.fundName === "Model Fund I", "saved: Add to fund put Cascade Trade Park in Model Fund I");
+  const scs = sd?.funds?.["Model Fund I"]?.impactScenarios;
+  check(scs?.length === 1 && scs[0].versions.length === 2 && scs[0].versions[0].candidates.length === 2 && scs[0].versions[1].candidates.length === 1, "saved: the scenario with v1 (2 candidates) and v2 (1)");
   check(allChanges.some((c) => c.area === "Pipeline" || /Pipeline/.test(c.field ?? "") || /pipeline/i.test(JSON.stringify(c))), "pipeline changes in the change log");
 
   console.log("errors", errs);

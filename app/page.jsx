@@ -33,6 +33,7 @@ import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@
 import { withSampleMedia } from "@/lib/sampleMedia";
 import { EMPTY_PIPELINE, toQuickInputs } from "@/lib/pipeline";
 import Pipeline from "@/components/Pipeline";
+import FundImpact from "@/components/FundImpact";
 import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
 import { isPipeline } from "@/lib/fundImpact";
 import { withRiskTestData } from "@/lib/sampleRiskData";
@@ -418,6 +419,7 @@ const TAB_GROUPS = [
   { label: "Acquisitions", tabs: [
     { id: "pipeline",    label: "Pipeline" },
     { id: "quick",       label: "Deal Screener" },
+    { id: "impact",      label: "Fund Impact" },
   ] },
   { label: "Asset Management", tabs: [
     { id: "plan",        label: "Asset Business Plan" },
@@ -1231,7 +1233,10 @@ export default function Home() {
   // Pipeline (phase M): Screen opens the deal in Deal Screener (a deal with
   // no fund, so it stays out of the fund until it's converted).
   function pipelineToDeal(pl) {
-    const quick = { ...QUICK_DEFAULTS, ...toQuickInputs(pl) };
+    // No expected close: the end of the quarter about three months out.
+    const d0 = new Date();
+    const close = pl.expectedClose || new Date(Date.UTC(d0.getUTCFullYear(), Math.floor((d0.getUTCMonth() + 3) / 3) * 3 + 3, 0)).toISOString().slice(0, 10);
+    const quick = { ...QUICK_DEFAULTS, ...toQuickInputs(pl), acquisitionDate: close };
     const base = { ...DEFAULT_INPUTS, propertyName: pl.name || "Pipeline deal", address: pl.address, city: pl.city, state: pl.state, ...(pl.sf ? { squareFootage: pl.sf } : {}), fundName: "", units: [] };
     return { id: `pl-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, linked: true, quick, inputs: toMainInputs(quick, base), pipelineId: pl.id };
   }
@@ -1246,6 +1251,30 @@ export default function Home() {
     setActiveDealId(d.id);
     setActiveTab("quick");
   }
+  // Fund Impact: the one deliberate step that puts a candidate in a fund.
+  function handleAddToFund(dealId, fund) {
+    if (!requireEdit()) return;
+    const d = deals.find((x) => x.id === dealId);
+    if (!d) return;
+    noteAudit(`Added ${d.inputs.propertyName} to ${fund} from Fund Impact`);
+    setDeals((prev) => prev.map((x) => (x.id === dealId ? { ...x, inputs: { ...x.inputs, fundName: fund } } : x)));
+    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.dealId === dealId ? { ...x, targetFund: fund } : x)) }));
+  }
+  const [impactPreselect, setImpactPreselect] = useState([]);
+  function handleSendToFundImpact(pl) {
+    if (!requireEdit()) return;
+    let id = pl.dealId && deals.find((d) => d.id === pl.dealId)?.id;
+    if (!id) {
+      const d = pipelineToDeal(pl);
+      id = d.id;
+      noteAudit(`Sent pipeline deal ${pl.name} to Fund Impact`);
+      setDeals((prev) => [...prev, d]);
+      setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: d.id } : x)) }));
+    }
+    setImpactPreselect([id]);
+    setActiveTab("impact");
+  }
+
   function handleConvertPipeline(pl) {
     if (!requireEdit()) return;
     const fund = pl.targetFund || "";
@@ -1918,6 +1947,20 @@ export default function Home() {
                 email={session?.user?.email ?? null}
                 onScreen={handleScreenPipeline}
                 onConvert={handleConvertPipeline}
+                onSendToFundImpact={handleSendToFundImpact}
+              />
+            )}
+            {activeTab === "impact" && (
+              <FundImpact
+                key={impactPreselect.join(",")}
+                deals={deals}
+                funds={funds}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                preselect={impactPreselect}
+                onFundTermsChange={handleFundTermsChange}
+                onAddToFund={handleAddToFund}
               />
             )}
             {activeTab === "reports" && (

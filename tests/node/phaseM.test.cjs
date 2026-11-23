@@ -82,5 +82,22 @@ const two = FI.fundImpact(fdeals, terms, [cand, big], { todayISO: TODAY });
 ok(two.shares.length === 2 && close(two.shares.reduce((t, x) => t + x.share, 0), two.change.netLpIrr, 1e-6), "several candidates: each one's share adds to the combined change");
 ok(FI.impactXlsx("Model Fund I", two)[0][0].includes("Scenario - not actual") && FI.impactXlsx("Model Fund I", two).some((r) => r[0] === "Candidate"), "Excel: labelled a scenario, with each candidate's share");
 
+// ── Compare, break-even, sensitivity, saved scenarios ──
+const opts = { todayISO: TODAY };
+const rk = FI.compareCandidates(fdeals, terms, [cand, big], opts);
+ok(rk.length === 2 && rk[0].name === "Candidate" && (rk[1].netLpIrr == null || rk[0].netLpIrr >= rk[1].netLpIrr) && rk.find((x) => x.name === "Big").breaches.length > 0, "compare: ranked by net LP IRR change (not meaningful last), with breaches");
+const be = FI.breakEvenPrice(fdeals, { ...terms, limits: [] }, cand, opts);
+const atBe = FI.fundImpact(fdeals, { ...terms, limits: [] }, [{ ...cand, inputs: { ...cand.inputs, purchasePrice: be.price } }], opts);
+const above = FI.fundImpact(fdeals, { ...terms, limits: [] }, [{ ...cand, inputs: { ...cand.inputs, purchasePrice: be.price * 1.03 } }], opts);
+ok(be.price > 0 && atBe.with.returns.netLpIrr >= be.target - 1e-6 && above.with.returns.netLpIrr < be.target, `break-even price ${(be.price / 1e6).toFixed(2)}M: at it the fund IRR holds, 3% above it doesn't`);
+const sn = FI.sensitivity(fdeals, terms, cand, opts);
+ok(sn.grid.length === 3 && sn.grid.every((row) => row[0] > row[2]) && sn.grid[0][1] > sn.grid[2][1], "sensitivity: a lower price or a lower exit cap means a higher fund IRR");
+let scs = FI.saveScenarioVersion([], { name: "Q1 2027: test", by: "vp@example.com", base: "all", candidates: [cand], result: im });
+ok(scs.length === 1 && scs[0].versions[0].v === 1 && scs[0].versions[0].candidates[0].inputs.purchasePrice === cand.inputs.purchasePrice, "scenario saved as v1 with its candidates' inputs and results");
+const v1copy = JSON.stringify(scs[0].versions[0]);
+scs = FI.saveScenarioVersion(scs, { id: scs[0].id, note: "price cut", base: "all", candidates: [{ ...cand, inputs: { ...cand.inputs, purchasePrice: 9e6 } }], result: im });
+ok(scs[0].versions.length === 2 && scs[0].versions[1].v === 2 && JSON.stringify(scs[0].versions[0]) === v1copy && scs[0].name === "Q1 2027: test", "a change saves v2; v1 stays frozen");
+im.change.netLpIrr = 999; ok(scs[0].versions[0].result.change.netLpIrr !== 999, "saved results are copies (they don't shift later)");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;
