@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DECISIONS, DEFAULT_REFI, assetSellHold, fundScenario } from "@/lib/sellHold";
+import { DECISIONS, DEFAULT_REFI, allHoldDecisions, assetSellHold, fundScenario, termFlags } from "@/lib/sellHold";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 import { actualNoi, valueAtCap } from "@/lib/assetMedia";
@@ -44,6 +44,9 @@ function Bars({ options }) {
 export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, onTermsChange, curve }) {
   const [scope, setScope] = useState("asset");
   const [scenarioName, setScenarioName] = useState("");
+  const [allMode, setAllMode] = useState("shift");
+  const [allYears, setAllYears] = useState(1);
+  const [capNote, setCapNote] = useState(null);
   const sh = terms?.sellHold ?? {};
   const decisionDate = sh.decisionDate || todayISO();
   const hurdle = terms?.hurdleRatePct ?? terms?.prefPct ?? 0;
@@ -79,6 +82,8 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
     () => (terms ? fundScenario(fundDeals, terms, decisions, { decisionDate, todayISO: todayISO(), curve, analyses }) : null),
     [fundDeals, terms, analyses, decisionDate, curve, decisions]
   );
+
+  const flags = terms ? termFlags(fundDeals, analyses, decisions) : [];
 
   if (!terms) {
     return <p className="text-sm text-gray-500">Put this asset in a fund (Fund field) to run a sell / hold analysis.</p>;
@@ -182,6 +187,39 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
             </table>
           </div>
           {canEdit && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs" data-testid="all-hold">
+              <span className="font-medium text-gray-700">All assets:</span>
+              <select aria-label="Change every hold" value={allMode} onChange={(e) => setAllMode(e.target.value)} className="rounded border border-gray-300 bg-white px-1.5 py-1">
+                <option value="shift">Change each hold by</option>
+                <option value="set">Hold every asset to year</option>
+              </select>
+              <input aria-label="Years" type="number" step="1" value={allYears} onChange={(e) => setAllYears(Number(e.target.value))} className="w-16 rounded border border-gray-300 bg-white px-1.5 py-1 text-right" />
+              <span className="text-gray-500">{allMode === "shift" ? "years (− shorter, + longer)" : ""}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const r = allHoldDecisions(fundDeals, analyses, { mode: allMode, years: allYears });
+                  save({ decisions: r.decisions });
+                  setCapNote(r.capped.length ? r.capped : null);
+                }}
+                className="rounded-lg bg-blue-600 px-3 py-1 font-medium text-white hover:bg-blue-700"
+              >
+                Apply to all
+              </button>
+            </div>
+          )}
+          {capNote && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="hold-capped">
+              Adjusted: {capNote.map((c) => `${c.name} to year ${c.used} (year ${c.wanted} is ${c.reason})`).join("; ")}.
+            </p>
+          )}
+          {flags.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="term-flags">
+              <span className="font-semibold">Past the fund&apos;s term ({fmtDate(scenRes?.fundEnd)}):</span>{" "}
+              {flags.map((f) => `${f.name} sells ${fmtDate(f.exitDate)}${f.lastAllowed ? " (the last year the extensions allow)" : ""}`).join("; ")}. Selling after the term needs the fund&apos;s extension{flags.length > 1 ? "s" : ""}; the final extended term ends {fmtDate(scenRes?.extendedEnd)}.
+            </div>
+          )}
+          {canEdit && (
             <div className="flex flex-wrap gap-2 text-xs">
               <button type="button" onClick={() => save({ decisions: suggested })} className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 font-medium text-blue-700 hover:bg-blue-100">Use suggested decisions</button>
               <button type="button" onClick={() => save({ decisions: {} })} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">Reset to base plan</button>
@@ -189,7 +227,7 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
           )}
 
           {baseRes && scenRes && (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <div className="overflow-x-auto rounded-xl border border-gray-200" data-testid="fund-impact">
               <table className="w-full text-xs tabular-nums">
                 <thead className="bg-gray-50 text-gray-500">
                   <tr>{["Fund returns", "Base plan", "Scenario", "Change"].map((h) => <th key={h} className={`px-2.5 py-2 font-medium ${h === "Fund returns" ? "text-left" : "text-right"}`}>{h}</th>)}</tr>
@@ -201,10 +239,12 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
                     ["Net fund IRR", "netFundIrr", "pct"],
                     ["Net fund multiple", "netFundMultiple", "x"],
                     ["Net LP IRR", "netLpIrr", "pct"],
-                    ["Net LP multiple", "netLpMultiple", "x"],
+                    ["Net LP multiple (TVPI)", "netLpTvpi", "x"],
+                    ["LP DPI by the end of the term", "lpDpiAtTerm", "x"],
                     [`Net LP NPV at ${pct(hurdle, 2)}`, "lpNpv", "m"],
                     ["LP distributions", "lpDistributions", "m"],
                     ["GP distributions (incl. promote)", "gpDistributions", "m"],
+                    ["GP promote (above its pro-rata share)", "gpPromote", "m"],
                   ].map(([label, k, f]) => {
                     const b = baseRes[k], s = scenRes[k];
                     const fmt = f === "pct" ? (v) => pct(v) : f === "x" ? x : m;
