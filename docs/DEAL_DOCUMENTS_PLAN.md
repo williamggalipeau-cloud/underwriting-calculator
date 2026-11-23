@@ -1246,9 +1246,16 @@ LP reports).
 - **Cambridge Associates**: real estate fund benchmark statistics by vintage
   year (IRR, multiples) and its quarterly index; same fund-level comparison
   as Preqin, as a second source.
-- **Public market equivalent (PME)**: the fund's LP cash flows invested in a
-  listed industrial REIT index instead (free index data), as a Kaplan-Schoar
-  ratio and an index-equivalent IRR.
+- **Public market equivalent (PME)** (user, 11/23): the fund's LP cash flows
+  invested in public industrial REITs instead, as a Kaplan-Schoar ratio and
+  an index-equivalent IRR, against:
+  - **main: FTSE Nareit Industrial index**, total return (monthly returns
+    Nareit publishes free);
+  - **second line: small-bay peer basket**, EastGroup, Rexford, Terreno and
+    STAG, equally weighted, total return (monthly returns uploaded);
+  - optional: FTSE Nareit All Equity REITs and the S&P 500.
+  Note on the tab: listed REITs carry less leverage (about 25–35%) than a
+  value-add fund (about 60%), so part of any gap is leverage.
 - Views: since inception and trailing 1 / 3 / 5 years; charts; Excel and
   PDF; feeds phase L's reports (internal by default because of licensing).
 
