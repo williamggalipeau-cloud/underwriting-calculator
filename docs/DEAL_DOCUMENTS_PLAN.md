@@ -19,7 +19,7 @@ changes the model without the user clicking to apply it.
 | F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Live (PR #71); 27 Node + 12 Playwright checks |
 | G | Appraisal → Valuations tab | ✅ Live (PR #71); 14 Node + 8 Playwright checks |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Live (PR #72); 32 Node + 23 Playwright checks |
-| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 built 11/23 (PR); 30 Node + 18 Playwright checks. Part 2 (photos, map, floor plan, demising) next |
+| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); 30 Node + 18 Playwright checks. Part 2 (photos, map, floor plan, demising) next |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
