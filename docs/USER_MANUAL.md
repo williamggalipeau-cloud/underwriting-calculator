@@ -2287,8 +2287,9 @@ date added.
 **Deal Screener is for pipeline deals only** (11/23): deals with no fund, or
 bought after today. A row of **Pipeline deals** at the top switches between
 them. With an owned asset selected, the tab says so and points to the Asset
-Management tabs instead of showing the screener. The app now opens on
-**Asset Summary**, and opening an asset from it goes to its business plan.
+Management tabs instead of showing the screener. The app opens on
+**Home** (§7.42); opening an asset from Asset Summary goes to its business
+plan.
 
 **Model in fund** (above the screener inputs, labelled "Scenario — not
 actual"): choose the fund the deal would be held in (default: its target
@@ -2419,6 +2420,34 @@ On the **Change log** tab (working log or the database's verified log):
 - **Recently deleted** lists deals, saved copies and funds that were deleted
   (they are kept in the database, marked deleted), with when and by whom.
   **Restore** brings one back exactly as it was when deleted.
+
+### 7.42 Home page (`lib/home.js`, phase Z)
+
+The app opens on **Home** (the first button in the tab bar). It shows the
+portfolio chosen in **Working on** (§7.40) and is computed from data already
+loaded; nothing on it is saved.
+- **Today · needs attention:** leases expiring in the next 90 days (unit
+  roll), loans maturing within 18 months, rate caps expiring within 12
+  months, assets with no valuation mark for the last quarter end, rent 60+
+  days late (each fund's latest delinquency report) and assets whose NOI is
+  in the red against budget year to date. Dated items come first, soonest
+  first; each opens the tab that handles it on that asset.
+- **Recent activity:** the last 10 changes from the change log (the
+  database's log when signed in).
+- **Funds:** a card per fund, separate account or joint venture with its
+  type badge: NAV, net IRR (against the target when one is set in Fund
+  Plan), % called, dry powder, assets and the next key date, with links to
+  Fund Summary and Fund Return.
+- **Workflows:** one lane per tab header in the tab bar's order
+  (Acquisitions, Asset Management, Portfolio Management, Library), each with
+  a few live numbers (active pipeline by stage and dry powder; occupancy,
+  leases expiring this year, NOI vs. budget and appraisals due; NAV, loans
+  maturing, sub line drawn and caps expiring) and links to its tabs. Lanes
+  for Dispositions, Property Management and Market appear once those tab
+  headers exist.
+- **Quick actions:** New asset, New fund setup, Upload rent roll, Upload
+  Yardi actuals, Import marks, Record capital activity and New report, each
+  opening the screen that does it.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3532,7 +3561,7 @@ each phase and the decisions behind it are in
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
-| Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
+| Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ✅ Built 11/23: attention list, recent activity, fund cards, lanes for the tab headers that exist, quick actions; follows Working on (§7.42) |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so the Sales Comps tab, valuations and reports show a full set | ⛓ Future release |

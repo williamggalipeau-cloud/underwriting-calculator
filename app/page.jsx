@@ -8,6 +8,7 @@ import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
+import HomeView from "@/components/Home";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
 import SellHold from "@/components/SellHold";
@@ -460,7 +461,7 @@ const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "plan", "deb
 export default function Home() {
   const [deals, setDealsRaw] = useState(initialDeals);
   const [activeDealId, setActiveDealId] = useState("sample-deal-1");
-  const [activeTab, setActiveTab] = useState("assets"); // Deal Screener is for pipeline deals (phase M)
+  const [activeTab, setActiveTab] = useState("home"); // the app opens on Home (phase Z)
   const [savedDeals, setSavedDealsRaw] = useState([]);
   // Fund terms by fund name (timeline, waterfall, fee).
   const [funds, setFundsRaw] = useState(initialFunds);
@@ -1884,8 +1885,12 @@ export default function Home() {
 
           {/* Tab bar: grouped, with a small header over each group */}
           <nav className="flex flex-wrap items-end gap-x-2 gap-y-2 bg-white border border-gray-200 rounded-xl p-1.5 w-fit max-w-full shadow-sm" aria-label="Tabs">
+            <div className="flex flex-col gap-0.5 pr-1" role="group" aria-label="Home">
+              <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">&nbsp;</span>
+              <button type="button" onClick={() => setActiveTab("home")} className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === "home" ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"}`}>Home</button>
+            </div>
             {TAB_GROUPS.filter((g) => g.tabs.length).map((g, gi) => (
-              <div key={g.label} className={`flex flex-col gap-0.5 ${gi ? "border-l border-gray-200 pl-2" : ""}`} role="group" aria-label={g.label} data-testid="tab-group">
+              <div key={g.label} className={`flex flex-col gap-0.5 border-l border-gray-200 pl-2`} role="group" aria-label={g.label} data-testid="tab-group">
                 <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{g.label}</span>
                 <div className="flex flex-wrap gap-1">
                   {g.tabs.map((tab) => (
@@ -1919,6 +1924,30 @@ export default function Home() {
 
           {/* Panel */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            {activeTab === "home" && (
+              <HomeView
+                deals={fundDeals}
+                funds={viewFunds}
+                valuations={valuations}
+                pipeline={scope ? { ...pipeline, deals: (pipeline?.deals ?? []).filter((d) => d.targetFund === scope) } : pipeline}
+                log={session && dbLink?.id && dbLog?.length ? dbLog : auditLog}
+                firm={firm}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
+                tabLabels={{ ...Object.fromEntries(TAB_GROUPS.flatMap((g) => g.tabs.map((t) => [t.id, t.label]))), changes: "Change log" }}
+                onOpenTab={setActiveTab}
+                onOpenDeal={(id, tab) => { if (deals.some((d) => d.id === id)) setActiveDealId(id); setActiveTab(tab); }}
+                actions={[
+                  { label: "New asset", primary: true, disabled: locked, run: () => { handleAddDeal(); setPanelOpen(true); } },
+                  { label: "New fund setup", disabled: locked, run: () => setFundEditor({ mode: "new" }) },
+                  { label: "Upload rent roll", title: "Unit Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
+                  { label: "Upload Yardi actuals", title: "Asset Business Plan tab: upload monthly actuals", run: () => setActiveTab("plan") },
+                  { label: "Import marks", title: "Valuation tab: import quarterly marks", run: () => setActiveTab("valuations") },
+                  { label: "Record capital activity", title: "Fund Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },
+                  { label: "New report", title: "Reports tab: quarterly and risk reports", run: () => setActiveTab("reports") },
+                ]}
+              />
+            )}
             {DEAL_TABS.has(activeTab) && (
               <AssetPicker
                 deals={viewDeals}
