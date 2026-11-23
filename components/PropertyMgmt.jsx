@@ -8,6 +8,7 @@ import { PM_TABS, addToCapitalPlan, blankRow, pmDates, pmXlsx, rowsOf, setSectio
 import { addRevision } from "@/lib/businessPlan";
 import { pmDocs, uploadPmDoc } from "@/lib/pmDocs";
 import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+import TiSpend from "@/components/TiSpend";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 
@@ -99,6 +100,7 @@ export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, o
         </div>
       )}
 
+      {tab === "condition" && scope === "asset" && <TiSpend deal={deal} deals={deals.some((d) => d.id === deal.id) ? deals : [deal, ...deals]} canEdit={canEdit} onUpdate={onUpdate} />}
       {planMsg && <p role="status" className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs text-blue-900" data-testid="pm-plan-msg">{planMsg}</p>}
       {T.sections.map((s) => {
         const rows = list.flatMap((d) => rowsOf(d.inputs, s.key).map((r) => ({ d, r })));

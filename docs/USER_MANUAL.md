@@ -2645,8 +2645,30 @@ Everything is kept on the asset, so edits save and log like any other.
   ✓**. The asset needs a business plan first.
 - **PDF** of each tab (summary and every section, for the asset or the whole
   portfolio).
-- Still to come: the Yardi Construction Manager upload and TI spend by unit,
-  with sample construction files.
+- **Construction (Yardi Construction Manager) and TI spend by unit** (on
+  Property Condition):
+  - **Upload jobs / invoices** takes the job summary and invoice detail
+    exports (CSV or Excel), with columns matched by name. Jobs are matched
+    to assets by property name or Yardi code, and to units by unit name.
+  - Uploading again updates jobs by job code, so nothing is duplicated, and
+    notes are kept.
+  - **TI by unit** compares, for each unit, the business plan's TI (TI/SF ×
+    SF, or the job budget when the unit isn't in the plan) with what has
+    been committed, spent (invoiced) and paid, and what remains. Overruns
+    over 5% are flagged amber, and over 20% red. A job not started isn't
+    flagged.
+  - **Capital jobs** that aren't tied to a unit are listed with budget,
+    committed, invoiced, paid and retainage. A job links to a condition
+    finding or service contract that carries its job code (Yardi job / Yardi
+    contract).
+  - The same TI-by-unit table appears under the leasing plan on **Asset
+    Business Plan**. **Excel** exports TI by unit and every job with its
+    invoices.
+  - The **Sample data** menu's **Add construction test data** loads the
+    fictional construction files (docs/sample-yardi/construction-*.csv) into
+    the sample assets. For example, Airport Flex unit 001 shows amber and
+    Ridgeway unit 014 shows red.
+  - A Yardi connection would pull these automatically later.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3755,7 +3777,7 @@ each phase and the decisions behind it are in
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
-| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | 🔨 Parts 1–2 built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Home items (§7.46); Yardi construction and TI spend next |
+| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ✅ Built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Yardi construction upload and TI spend by unit with overrun flags, construction test data, Home items (§7.46) |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |

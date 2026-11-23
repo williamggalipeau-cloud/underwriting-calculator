@@ -13,6 +13,8 @@ import Dispositions from "@/components/Dispositions";
 import Leasing from "@/components/Leasing";
 import FundDebt from "@/components/FundDebt";
 import PropertyMgmt from "@/components/PropertyMgmt";
+import { importConstruction, parseInvoices, parseJobs } from "@/lib/construction";
+import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
@@ -50,7 +52,7 @@ import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
-import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
+import { DEFAULT_FUND_TERMS, downloadBlob, parseCSV } from "@/lib/fundTerms";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
 import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
 import { applyExecutedCap } from "@/lib/dealDocApply";
@@ -1553,6 +1555,18 @@ export default function Home() {
     setDeals((prev) => prev.map(withRiskTestData));
   }
 
+  // Sample data menu: the fictional construction jobs and invoices (mock TI actuals) for Model Fund I.
+  function handleAddConstructionTestData() {
+    if (!requireEdit()) return;
+    const jobs = parseJobs(parseCSV(SAMPLE_CONSTRUCTION_JOBS_CSV));
+    const invoices = parseInvoices(parseCSV(SAMPLE_CONSTRUCTION_INVOICES_CSV));
+    const r = importConstruction(deals.filter((d) => d.id.startsWith("sample-deal-")), { jobs, invoices, asOf: SAMPLE_CONSTRUCTION_AS_OF, source: "sample" });
+    const ids = Object.keys(r.updates);
+    if (!ids.length) { window.alert("Load Model Fund I first: the construction test data matches its sample assets."); return; }
+    noteAudit(`Added construction test data (${jobs.length} jobs, ${invoices.length} invoices) to ${ids.length} sample asset${ids.length === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: r.updates[d.id] } } : d)));
+  }
+
   function handleClearTest() {
     if (!requireEdit()) return;
     noteAudit("Cleared test and sample data");
@@ -1741,6 +1755,7 @@ export default function Home() {
                   { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
                   { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                   { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
+                  { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
                   { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
                   { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
                 ].map((a) => (

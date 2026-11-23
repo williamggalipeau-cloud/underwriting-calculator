@@ -2,6 +2,7 @@
 // Business Plan tab (phase I): the asset's business plan by revision, its
 // budget locked at closing, actuals and budget vs. plan.
 import { useRef, useState } from "react";
+import { TiByUnitTable } from "@/components/TiSpend";
 import {
   LINES, PERIODS, addRevision, budgetFromModel, budgetRows, diffPlans, fundVariance, kpiActuals, matchProperties,
   milestoneStatus, modelChanges, modelFingerprint, parseIncomeStatement, periodKey, seedPlan, varianceReport, varianceRows,
@@ -218,6 +219,7 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundType = "", 
             </tr>
           );
         })} />
+        {(inputs?.construction?.jobs ?? []).length > 0 && <div className="mt-2"><p className="mb-1 text-xs font-semibold text-gray-600">TI spend by unit (construction jobs; upload on Property Condition)</p><TiByUnitTable inputs={inputs} compact /></div>}
       </Section>
 
       <Section title="Capital plan" right={editing && <button type="button" className={`${btn} border-gray-300`} onClick={() => addRow("capital", { id: `c${Date.now()}`, project: "", scope: "", budget: 0, start: "", end: "", spent: 0, expectedReturn: "" })}>Add project</button>}>
