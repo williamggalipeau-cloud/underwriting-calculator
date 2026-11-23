@@ -68,5 +68,39 @@ ok(xd.uw && xd.uw.c.returns.irr && xd.uw.attr.rows.length > 0, "underwritten vs.
 const plain = BX.planExtrasData({ ...b2, assetMedia: undefined }, { asOf: "2026-11-23" });
 ok(!plain.planOnImage && plain.photos.length === 0 && plain.unitBoxes.every((u) => u.box) && plain.uw === null, "no media: the schematic boxes, no photos, no baseline section");
 
+// ── Quarterly report (lib/quarterlyReport.js) ──
+const QR = j(R + "/lib/quarterlyReport.js");
+const FP = j(R + "/lib/fundPlan.js");
+const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
+const fdata = FX.workspaceData();
+const qterms = { ...DEFAULT_FUND_TERMS, ...fdata.funds["Model Fund I"], name: "Model Fund I", capitalActivity: [] };
+const qdeals = built.map((b) => sp.snapshotDeal(b.inputs, b.id));
+const Q3 = "2026-09-30";
+const sh = QR.buildQuarterlyReport(qdeals, qterms, {}, { qEnd: Q3, todayISO: "2026-11-23", kind: "shareable" });
+ok(sh.quarter === "2026-Q3" && sh.quarterLabel === "2026 Q3" && sh.portfolio.length === 7 && sh.fund.assets === 7, "Q3 2026: the seven assets held at quarter end");
+ok(sh.portfolio.every((x) => x.value > 0 && x.cost > 0 && x.loan > 0 && x.cover && x.occupancy > 0), "each asset: value, cost, loan, cover photo, occupancy");
+ok(close(sh.nav.end - sh.nav.start, sh.nav.contributions - sh.nav.distributions + sh.nav.valueChange, 1e-6), "NAV movement adds up: start + contributions − distributions + change = end");
+ok(sh.returns.note && sh.returns.netIrr === null && isFinite(sh.returns.grossIrr), `net returns n/m while LPs haven't funded (${sh.returns.note})`);
+ok(!sh.internal && sh.plan === null, "shareable: no internal section; no plan until one is frozen");
+ok(close(sh.debt.total, sh.portfolio.reduce((t2, x) => t2 + x.loan, 0)) && sh.debt.ltv > 0 && sh.debt.ltv < 100, `debt ${Math.round(sh.debt.total).toLocaleString()}, LTV ${sh.debt.ltv.toFixed(1)}%`);
+const later = QR.buildQuarterlyReport(qdeals, qterms, {}, { qEnd: "2027-12-31", todayISO: "2028-02-01", kind: "shareable" });
+ok(!later.returns.note && isFinite(later.returns.netIrr) && isFinite(later.returns.tvpi) && later.capital.called > 0, `2027 Q4: net LP IRR ${later.returns.netIrr.toFixed(1)}%, TVPI ${later.returns.tvpi.toFixed(2)}x`);
+const letter = QR.draftLetter(later);
+ok(/Dear Investors/.test(letter) && /2027 Q4/.test(letter) && /net LP IRR of -?\d/.test(letter) && /\[Add the quarter.s highlights/.test(letter), "letter drafted from the figures, with a placeholder for highlights");
+ok(/Gross asset value was \$/.test(QR.draftLetter(sh)), "before LPs fund: the letter describes gross asset value instead of NAV");
+const withPlan = { ...qterms, fundPlan: FP.addPlanVersion(undefined, FP.freezePlan(FP.fundProjection(qdeals, qterms, { todayISO: "2026-11-23" }))) };
+const wp = QR.buildQuarterlyReport(qdeals, withPlan, {}, { qEnd: Q3, todayISO: "2026-11-23", kind: "shareable" });
+ok(wp.plan && wp.plan.toDate.length >= 5 && wp.plan.projected.length >= 5, "plan vs. actual included once a plan is frozen (phase K)");
+const xin2 = qdeals.map((d, i) => (i === 1 ? { ...d, inputs: { ...d.inputs, uwBaseline: { at: "2026-03-16T00:00:00Z", inputs: { ...d.inputs, exitCapRatePct: d.inputs.exitCapRatePct - 0.5 } } } } : d));
+const it = QR.buildQuarterlyReport(xin2, qterms, {}, { qEnd: Q3, todayISO: "2026-11-23", kind: "internal" });
+ok(it.internal && it.internal.uw.length === 1 && Array.isArray(it.internal.budget), "internal: underwritten vs. actual (1 asset with a baseline) and budget variances");
+let reps = QR.issueReport(undefined, sh, { letter: "Hello", by: "cfo@example.com", at: "2026-10-20T10:00:00Z" });
+reps = QR.issueReport(reps, it, { letter: "Hi", notes: "watch Harbor", by: "cfo@example.com" });
+reps = QR.issueReport(reps, sh, { letter: "Hello again" });
+ok(reps.issued.length === 3 && reps.issued[0].v === 1 && reps.issued[2].v === 2 && reps.issued[1].notes === "watch Harbor" && reps.issued[0].notes === "", "issued versions numbered per quarter and version; notes only on internal");
+sh.nav.end = 1; ok(reps.issued[0].report.nav.end !== 1, "an issued report's figures are frozen copies");
+const xr = QR.reportXlsx(it, { letter: "L", notes: "N" });
+ok(xr[0][0].includes("internal") && xr.some((r2) => r2[0] === "Internal notes") && !QR.reportXlsx(wp, {}).some((r2) => r2[0] === "Internal notes"), "Excel: internal rows only in the internal version");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

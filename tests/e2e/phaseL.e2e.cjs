@@ -97,6 +97,47 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const imgs = execFileSync("pdfimages", ["-list", pdfPath]).toString().trim().split("\n").length - 2;
   check(imgs >= 6, `PDF: ${imgs} images (cover, 4 photos, floor plan)`);
 
+  // Reports tab (Library): quarterly report, internal version, issue, PDF
+  await p.getByRole("button", { name: /^Reports/ }).first().click();
+  await p.waitForTimeout(2000);
+  const rp = main.getByTestId("reports");
+  check((await rp.count()) === 1 && /Model Fund I/.test(await rp.locator("h2").innerText()), "Reports tab for Model Fund I");
+  check(/2026 Q3/.test(await rp.getByLabel("Quarter").locator("option:checked").innerText()), "defaults to the last completed quarter");
+  check((await rp.getByTestId("report-portfolio").locator("tbody tr").count()) >= 7, "portfolio table: assets held at quarter end");
+  const letterBox = rp.getByLabel("Letter");
+  check(/Dear Investors/.test(await letterBox.inputValue()) && /2026 Q3/.test(await letterBox.inputValue()), "letter drafted from the figures");
+  await letterBox.fill("Dear Investors,\n\nRoute 9 leased two units this quarter (test letter).");
+  await p.waitForTimeout(600);
+  const [sp1] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), rp.getByRole("button", { name: /PDF \(draft\)/ }).click()]);
+  const shPath = S + "/l_report_shareable.pdf"; await sp1.saveAs(shPath);
+  const shTxt = execFileSync("pdftotext", ["-layout", shPath, "-"]).toString();
+  check(/Route 9 leased two units this quarter/.test(shTxt) && /Fund summary · 2026 Q3/.test(shTxt) && /Route 9 Small Bay/.test(shTxt) && !/INTERNAL/.test(shTxt), "shareable PDF: the letter, summary and asset pages; not marked internal");
+  const shImgs = execFileSync("pdfimages", ["-list", shPath]).toString().trim().split("\n").length - 2;
+  check(shImgs >= 1, `shareable PDF: ${shImgs} asset cover photo(s)`);
+  // Internal version
+  await rp.getByLabel("Version").selectOption("internal");
+  await p.waitForTimeout(1200);
+  check((await rp.getByTestId("internal-banner").count()) === 1 && /1 asset with an underwriting baseline/.test(await rp.getByTestId("internal-summary").innerText()), "internal version: banner and Route 9's baseline counted");
+  await rp.getByLabel("Internal notes").fill("Watch Route 9 taxes (test note).");
+  await p.waitForTimeout(600);
+  await rp.getByRole("button", { name: "Issue report" }).click();
+  await p.waitForTimeout(1000);
+  check((await rp.getByTestId("issued-report").count()) === 1 && /v1 · internal/.test(await rp.getByTestId("issued-report").innerText()), "internal report issued as v1");
+  const [ip] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), rp.getByTestId("issued-report").getByRole("button", { name: "PDF" }).click()]);
+  const inPath = S + "/l_report_internal.pdf"; await ip.saveAs(inPath);
+  const inTxt = execFileSync("pdftotext", ["-layout", inPath, "-"]).toString();
+  check(/INTERNAL - not for distribution/.test(inTxt) && /Watch Route 9 taxes/.test(inTxt) && /underwritten vs\. actual/i.test(inTxt) && /issued \d+\/\d+\/\d{4} by t@example\.com \(v1\)/.test(inTxt), "issued internal PDF: watermark, notes, underwritten vs. actual, who and when");
+  await rp.getByLabel("Version").selectOption("shareable");
+  await p.waitForTimeout(800);
+  check((await rp.getByTestId("issued-report").count()) === 1, "issued list shows the quarter's issued reports");
+  const [xl] = await Promise.all([p.waitForEvent("download"), rp.getByRole("button", { name: "Excel" }).click()]);
+  check(/2026-Q3-shareable-report\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
+  await p.screenshot({ path: S + "/phaseL_reports.png", fullPage: true });
+  await p.waitForTimeout(22000);
+  const sfr = (saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.reports;
+  check(sfr?.issued?.length === 1 && sfr.issued[0].kind === "internal" && sfr.issued[0].report?.portfolio?.length >= 7 && sfr.issued[0].notes.includes("Route 9 taxes"), "saved: the issued report with its frozen figures");
+  check(/test letter/.test(sfr?.drafts?.["2026-Q3"]?.letter ?? ""), "saved: the edited letter draft");
+
   console.log("errors", errs);
   if (errs.length) fails++;
   console.log(fails ? `${fails} FAILED` : "ALL PASS");

@@ -254,7 +254,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
 | **Portfolio Management** | Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Summary (N) first, Fund Debt (S) |
 | **Market** | (none yet) | Market Data (U) |
-| **Library** | Documents | Reports (L) |
+| **Library** | Documents · Reports | |
 
 A group's header appears once it has tabs. Each fund carries a **type tag**
 (Fund, Separate Account or Joint Venture), chosen in **New fund** and
@@ -2106,6 +2106,34 @@ The business plan's **PDF** button prints the whole plan in one file:
 Stored photos are included when you're signed in; drawn sample photos
 always. A PDF upload as the floor plan prints as the schematic.
 
+### 7.32b Reports: the quarterly performance report (phase L)
+
+The **Reports** tab (Library) builds each quarter's performance report from
+the app's own figures. Choose the fund, the quarter (default: the last
+completed one) and the version:
+- **Shareable** (for investors and the investor portal): the letter; fund
+  summary (net LP IRR, TVPI, DPI, RVPI, gross IRR and TVPI since
+  inception); the quarter's LP NAV movement (start, contributions,
+  distributions, change in value, end) and gross asset value; capital
+  called and distributed against commitments; property debt and loan to
+  value; the portfolio table; plan vs. actual once a fund plan is frozen
+  (§7.33); and a half page per asset with its cover photo, value, occupancy,
+  NOI (actual and plan), business plan status and loan.
+- **Internal** (owners and editors only): the same plus underwritten vs.
+  actual by asset (§7.32), flagged budget variances with their comments
+  (§7.30) and **internal notes**; every page is marked "INTERNAL - not for
+  distribution".
+
+The **letter** starts as a draft written from the figures (with a
+placeholder for the quarter's highlights); edit it in place, or **Redraft
+from the figures**. Drafts are saved per quarter. **PDF (draft)** and
+**Excel** download the current version. **Issue report** freezes the
+figures, letter and notes as an issued version (v1, v2…) with who and when;
+later changes never alter it, and its PDF can be downloaded again from the
+issued list. Before LPs have funded capital, net returns show as not yet
+meaningful and the letter describes gross asset value. The app never sends
+anything: download the PDF and upload it to the investor portal.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3205,7 +3233,7 @@ each phase and the decisions behind it are in
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP profit / GP promote / GP ROE and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans. Next: Reports tab (quarterly report, fund limits, risk report) |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b). Next: fund limits and the risk report |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |

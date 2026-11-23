@@ -23,6 +23,7 @@ import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
 import DistributionAnalysis from "@/components/DistributionAnalysis";
+import Reports from "@/components/Reports";
 import AssetMedia from "@/components/AssetMedia";
 import { FundUwTable } from "@/components/UwVsActual";
 import { fundType } from "@/lib/fundTypes";
@@ -433,6 +434,7 @@ const TAB_GROUPS = [
   ] },
   { label: "Library", tabs: [
     { id: "documents",   label: "Documents" },
+    { id: "reports",     label: "Reports" },
   ] },
 ];
 const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
@@ -1838,6 +1840,17 @@ export default function Home() {
                 inputs={inputs}
                 results={results}
                 savedDeals={fundDeals}
+              />
+            )}
+            {activeTab === "reports" && (
+              <Reports
+                deals={fundDeals}
+                funds={funds}
+                marks={valuations}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                onFundTermsChange={handleFundTermsChange}
               />
             )}
             {activeTab === "distributions" && (
