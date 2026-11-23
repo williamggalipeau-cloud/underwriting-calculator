@@ -21,9 +21,9 @@ changes the model without the user clicking to apply it.
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Live (PR #72); 32 Node + 23 Playwright checks |
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
 | J | Underwritten vs. actual performance | ✅ Built 11/23 (pulled forward into window 1): frozen baseline, actual + projected, IRR gap by cause, fund ranking, Excel and PDF; 29 Node + 16 Playwright checks |
-| K | Fund plan vs. actual | ⛓ Starts when J is complete |
+| K | Fund plan vs. actual; Sell/Hold hold-period impact on the fund (added 11/23) | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency); mock sample-asset images; full Asset Business Plan PDF; Asset Return GP ROE and projected fee revenue (added 11/23) | ⛓ Starts when K is complete |
-| M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
+| M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23); Deal Screener fund picker with acquisition impact, pipeline assets only (added 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
 | Q | One firm, saved record by record: no workspaces to choose; every change saved within about a second; screens update live from the database (added 11/23; moved ahead of J–O at the user's request) | ✅ Built 11/22 night (PR #80). Database part done with the user (supabase/firm_records.sql; 12 deals, 1 fund, 247 log entries migrated and verified identical; the 11/21 workspace renamed Baywise; two others archived). App: lib/records.js; sign-in opens the firm (no workspace picker, no browser import); each change saved about 1 s later as its own record with a version check; conflicts reload that record with a notice; live updates; one-time import of old-app saves. Tests: 19 Node checks + 13 browser checks; all earlier suites pass, regression identical |
@@ -31,8 +31,9 @@ changes the model without the user clicking to apply it.
 | R | Leasing tab (Asset Management): leasing pipeline and rent comps, with uploads (added 11/23) | ⛓ After P |
 | S | Fund Debt tab (Portfolio Management): every loan in the fund, maturities, rate exposure, covenant certificates (added 11/23) | ⛓ After R |
 | T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager; TI spend by unit with mock TI actuals (added 11/23) | ⛓ After S |
-| U | Market group: Market Data tab, submarket statistics (added 11/23) | ⛓ After T |
+| U | Market group: Market Data tab, submarket statistics; stress tests in standard deviations with a simulation (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
+| X | Distributions tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset and fund cash, proposed distribution and yield, rolling 4-quarter history (added 11/23) | ⛓ After K |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
@@ -593,6 +594,12 @@ tracks the deal against what was underwritten to buy it.
 
 ### Phase K: fund-level plan vs. actual (added 11/22)
 
+**Also in K (user, 11/23): Sell/Hold hold-period impact.** On Sell/Hold
+Analysis, a "change the hold to X years" control per asset and for all
+assets at once, with a before / after table for the fund: net LP IRR,
+TVPI, DPI, GP promote, and a flag when a sale would fall past the fund's
+term or extensions.
+
 The fund's own plan (from the fund model at launch or final close) tracked
 against what the fund actually does, using phases I and J for each asset.
 
@@ -791,6 +798,14 @@ I–K.
     risk report), with PDF and Excel, saved as issued versions.
 
 ## Phase M: fund impact modeling (added 11/22)
+
+**Also in M (user, 11/23):**
+- **Deal Screener: choose the fund** the asset would be held in, and see the
+  impact of acquiring it on that fund: projected gross and net IRR and
+  multiple before / after, dry powder used, concentration (tenant,
+  industry, location), and any LPA limit it would breach.
+- **Deal Screener lists pipeline assets only**, never owned assets; owned
+  assets appear only in the Asset Management tabs.
 
 Model what adding a new asset would do to a fund before buying it, without
 changing the fund.
@@ -1149,6 +1164,15 @@ Each tab shows one asset, with a whole-fund view, uploads in each section
 
 ## Phase U: Market group (added 11/23)
 
+**Also with U (user, 11/23): stress tests in standard deviations.** On
+Stress Testing, each shock is labelled in standard deviations from the base
+case (e.g. "+150 bp exit cap = 1.8σ"), using each factor's historical
+volatility (SOFR from the NY Fed history the app already reads; cap rates,
+rent growth and vacancy from the Market Data history; editable defaults
+until then). A simulation (thousands of random paths, with factors moving
+together as they have historically) shows where the stressed case falls in
+the range of outcomes, e.g. "this outcome or worse ≈ 1 year in 20".
+
 A **Market** header before Library, with a **Market Data** tab:
 - **Submarket statistics** by quarter: inventory, vacancy and
   availability, net absorption, asking rent (small-bay and overall),
@@ -1163,6 +1187,26 @@ A **Market** header before Library, with a **Market Data** tab:
 - **Exports:** Excel and PDF market summaries.
 Sales Comps stays in Asset Management, and the live SOFR panel is on the
 Debt tab.
+
+## Phase X: Distribution Planner (added 11/23, after K)
+
+A **Distributions** tab in Portfolio Management, after Fund Return: a model
+for each quarter's fund distribution.
+- **Distributable cash:** cash at each asset (operating account balance,
+  less lender-required reserves, TI / capex committed and a working-capital
+  minimum per asset) plus fund cash (less the fund's minimum cash reserve of
+  N quarters of expenses and any sub line paydown). Balances are entered by
+  hand or uploaded (e.g. a Yardi cash report), with the model's projected
+  cash shown when none is entered.
+- **Choose the distribution:** an amount or a % of distributable cash; the
+  tab shows the split to LPs and GP under the fund's waterfall, what is left
+  in reserve, and the **projected distribution yield** (annualized
+  distribution ÷ LP contributed capital; ÷ NAV shown too).
+- **History:** the last 4 quarters of actual distributions (from capital
+  activity) with each quarter's yield and the trailing-12-month yield, next
+  to the proposed quarter.
+- Save a proposal; once paid, record it as a distribution in capital
+  activity. PDF and Excel export.
 
 ## Phase W: GP Economics (added 11/23, after L)
 
