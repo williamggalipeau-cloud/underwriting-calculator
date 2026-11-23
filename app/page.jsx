@@ -13,6 +13,7 @@ import Dispositions from "@/components/Dispositions";
 import Leasing from "@/components/Leasing";
 import FundDebt from "@/components/FundDebt";
 import PropertyMgmt from "@/components/PropertyMgmt";
+import MarketData from "@/components/MarketData";
 import { importConstruction, parseInvoices, parseJobs } from "@/lib/construction";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
@@ -467,6 +468,9 @@ const TAB_GROUPS = [
     { id: "funddebt",    label: "Fund Debt" },
     { id: "distributions", label: "Distribution Analysis" },
     { id: "stress",      label: "Stress Testing" },
+  ] },
+  { label: "Market", tabs: [
+    { id: "market",      label: "Market Data" },
   ] },
   { label: "Library", tabs: [
     { id: "documents",   label: "Documents" },
@@ -1979,6 +1983,7 @@ export default function Home() {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             {activeTab === "home" && (
               <HomeView
+                market={comps?.market ?? null}
                 deals={fundDeals}
                 funds={viewFunds}
                 valuations={valuations}
@@ -2039,6 +2044,9 @@ export default function Home() {
                 onUpdate={updateDealInputs}
                 scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
+            )}
+            {activeTab === "market" && (
+              <MarketData comps={comps} onChange={setComps} deals={viewDeals.filter((d) => d.inputs.fundName?.trim())} canEdit={!locked} onUpdateDeal={updateDealInputs} />
             )}
             {activeTab === "funddebt" && (
               <FundDebt deals={viewDeals.filter((d) => d.inputs.fundName?.trim()).map((d) => ({ ...d, inputs: { ...d.inputs, fundName: resolveFund(d.inputs.fundName) } }))} funds={viewFunds} marks={valuations} />

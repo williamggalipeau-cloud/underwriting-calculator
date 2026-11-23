@@ -25,11 +25,11 @@ const KIND = {
 };
 const TYPE_CLS = { Fund: "bg-blue-50 text-blue-700", "Separate Account": "bg-emerald-50 text-emerald-700", "Joint Venture": "bg-amber-50 text-amber-800" };
 
-export default function Home({ deals = [], funds = {}, valuations = {}, pipeline, log = [], firm, curve, scopeName = "", tabLabels = {}, onOpenTab, onOpenDeal, actions = [] }) {
+export default function Home({ deals = [], funds = {}, valuations = {}, pipeline, log = [], firm, curve, scopeName = "", tabLabels = {}, onOpenTab, onOpenDeal, actions = [], market = null }) {
   const todayISO = new Date().toISOString().slice(0, 10);
   const attention = useMemo(() => attentionList(deals, funds, valuations, { todayISO }), [deals, funds, valuations, todayISO]);
   const cards = useMemo(() => fundCards(deals, funds, valuations, { todayISO, curve }), [deals, funds, valuations, todayISO, curve]);
-  const laneList = useMemo(() => lanes({ deals, funds, pipeline, attention, cards, firm, todayISO }), [deals, funds, pipeline, attention, cards, firm, todayISO]);
+  const laneList = useMemo(() => lanes({ deals, funds, pipeline, attention, cards, firm, todayISO, market }), [deals, funds, pipeline, attention, cards, firm, todayISO, market]);
   const recent = useMemo(() => recentActivity(log, 10), [log]);
   const open = (a) => (a.dealId && onOpenDeal ? onOpenDeal(a.dealId, a.tab) : onOpenTab?.(a.tab));
   const [allAtt, setAllAtt] = useState(false);

@@ -2670,6 +2670,42 @@ Everything is kept on the asset, so edits save and log like any other.
     Ridgeway unit 014 shows red.
   - A Yardi connection would pull these automatically later.
 
+### 7.47 Market Data (`lib/market.js`, phase U)
+
+A **Market** group sits before Library, with the **Market Data** tab. It's
+kept with the firm's sales-comps settings, so it saves and logs with the
+firm.
+
+- **Submarkets:** **+ Submarket** adds one (name, metro, property type), or
+  an upload creates them by name.
+- **Quarterly statistics** for the chosen submarket:
+  - inventory, vacancy, availability and net absorption
+  - asking rent, overall and small-bay
+  - deliveries and under construction
+  - sales volume and market cap rate
+
+  Each figure keeps its source and date; a figure edited by hand is marked
+  "(edited)". **+ Quarter** adds a quarter by hand.
+- **Upload CoStar / broker report** (CSV or Excel): columns are matched by
+  name, shown before importing, and remembered. Quarters can be written as
+  "2026 Q3", "Q3 2026", "3Q26" or a date. The same submarket and quarter
+  updates in place. A file without a submarket column goes to the chosen
+  submarket. A fictional example is in `docs/sample-market`.
+- **Summary tiles** with trend lines: latest vacancy and its change over
+  four quarters, asking rent and small-bay rent with growth per year, the
+  cap rate and its change in basis points, and net absorption over the last
+  four quarters.
+- **Assets and their market:** tag each asset to its submarket. Its model
+  market rent, rent growth, vacancy and exit cap then show next to the
+  market's: small-bay (else overall) asking rent and its trend, vacancy,
+  and the market cap rate.
+- **Excel** of every quarter and a summary per submarket.
+- On **Home**, the Market lane shows the submarkets tracked, the assets
+  tagged and the average submarket vacancy.
+- Still to come: a PDF market summary; showing the market next to the
+  asset on Valuation and the business plan; and stress tests labelled in
+  standard deviations, with a simulation.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3778,7 +3814,7 @@ each phase and the decisions behind it are in
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ✅ Built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Yardi construction upload and TI spend by unit with overrun flags, construction test data, Home items (§7.46) |
-| U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
+| U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | 🔨 Part 1 built 11/23: Market group, Market Data tab (submarket statistics by quarter with sources, uploads with remembered columns, trends, asset vs. market, Excel), Home lane (§7.47); stress tests in σ with a simulation and a PDF next |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |

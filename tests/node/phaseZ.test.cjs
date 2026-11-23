@@ -41,12 +41,12 @@ ok(jv.length === 2 && jv[0].name === "Example JV II" && jv[0].type === "Joint Ve
 
 const pl = { deals: [{ stage: "loi", askingPrice: 1e7 }, { stage: "screening" }, { stage: "screening" }, { stage: "passed" }] };
 const L = H.lanes({ deals, funds, pipeline: pl, attention: att, cards, firm: { occupancy: 95.5 }, todayISO: TODAY });
-ok(L.map((l) => l.label).join() === "Acquisitions,Dispositions,Asset Management,Property Management,Portfolio Management,Library", "lanes in the tab bar's order (headers that have tabs)");
+ok(L.map((l) => l.label).join() === "Acquisitions,Dispositions,Asset Management,Property Management,Portfolio Management,Market,Library", "lanes in the tab bar's order (headers that have tabs)");
 const st = (lane, label) => L.find((l) => l.label === lane).stats.find((s) => s.label === label)?.value;
 ok(st("Acquisitions", "Active pipeline") === "3 deals" && /Screening 2 · LOI 1/.test(st("Acquisitions", "By stage")), "acquisitions: active pipeline by stage");
 ok(st("Asset Management", "Occupancy") === "95.5%" && st("Asset Management", "Leases expiring in 2026") === "1" && st("Asset Management", "Appraisals due") === String(ap.assets.length), "asset management: occupancy, leases expiring this year, appraisals due");
 ok(st("Portfolio Management", "Loans maturing in 18 months") === "1" && /^\$/.test(st("Portfolio Management", "NAV")), "portfolio management: NAV and loans maturing");
-ok(L.every((l) => l.tabs.length >= 2), "each lane links to its tabs");
+ok(L.every((l) => l.tabs.length >= 1), "each lane links to its tabs");
 
 ok(H.money(56241799) === "$56.2M" && H.money(1.5e9) === "$1.50B" && H.money(null) === "—", "money format");
 const log = Array.from({ length: 15 }, (_, i) => ({ id: `e${i}`, at: `2026-11-${String(i + 1).padStart(2, "0")}T10:00:00Z` }));

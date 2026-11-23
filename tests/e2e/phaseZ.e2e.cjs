@@ -67,7 +67,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── Lanes ──
   const lanes = p.getByTestId("lane");
   const labels = await lanes.evaluateAll((els) => els.map((e) => e.querySelector("p")?.textContent));
-  check(labels.join() === "Acquisitions,Dispositions,Asset Management,Property Management,Portfolio Management,Library", `lanes in tab-bar order: ${labels.join(", ")}`);
+  check(labels.join() === "Acquisitions,Dispositions,Asset Management,Property Management,Portfolio Management,Market,Library", `lanes in tab-bar order: ${labels.join(", ")}`);
   check(/Occupancy/.test(await lanes.filter({ hasText: "Asset Management" }).innerText()) && /NAV/.test(await lanes.filter({ hasText: "Portfolio Management" }).innerText()), "lanes carry live numbers");
 
   // ── The lease opens its asset on Leases ──
