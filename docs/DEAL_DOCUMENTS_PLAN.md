@@ -26,6 +26,7 @@ changes the model without the user clicking to apply it.
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
+| P | Dispositions group: Assets for Sale, Offers, Track Record, Documents; whole and partial sales; uploads in each tab; Excel and PDF exports (added 11/23) | ⛓ Starts when O is complete |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip (decided 11/23; see "App name and layout") | ⛓ Built with phase I part 2 (11/23, 8:40 PM Pacific) |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
@@ -887,9 +888,23 @@ the README. The repository name and site URL stay as they are.
 | Group | Tabs (left to right) | Later additions |
 |---|---|---|
 | **Acquisitions** | Deal Screener | Pipeline (M) first, Fund Impact (M) last |
-| **Asset** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
-| **Fund** | Fund Return · Stress Testing | Fund Summary (N) first, Fund Plan (K, its own tab) second |
+| **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
+| **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
+| **Portfolio Management** | Fund Return · Stress Testing | Fund Summary (N) first, Fund Plan (K, its own tab) second |
 | **Library** | Documents | Reports (L) |
+
+Group order (user, 11/23): Acquisitions · Dispositions · Asset Management ·
+Portfolio Management · Library. The Dispositions header shows once phase P
+adds its tabs. Tab names keep "Fund" (Fund Return, Fund Summary, Fund Plan,
+Fund Impact); only the group header says Portfolio Management.
+
+**Fund type tag** (user, 11/23; a label only, no change to any
+calculation): each fund is tagged **Fund**, **Separate Account** or **Joint
+Venture**. The tag is chosen in New fund and editable in the fund's terms
+(`funds[name].type`), and existing funds default to Fund. It shows as a
+small badge next to the fund's name in the fund pickers, Asset Summary, Fund
+Return, Valuation and report covers. Fund lists can be filtered by it, and
+the header strip's "across N funds" shows the split by type on hover.
 
 **Renames:** Sensitivity → Return Sensitivity; Sell / Hold → Sell/Hold
 Analysis; Valuations → Valuation; Portfolio Return → Fund Return; Return
@@ -921,6 +936,64 @@ its definition on hover:
 Scope: every fund in the workspace, owned assets only (acquired by today;
 not sold; no pipeline, Deal Screener or unassigned deals). No committed
 capital figure.
+
+## Phase P: Dispositions (added 11/23, after O)
+
+A **Dispositions** group, right after Acquisitions, with four tabs. It covers
+whole and partial sales (selected units or buildings), and uses the work
+already built: Sell/Hold Analysis (the decision to sell), Sales Comps,
+valuation marks, the disposition closing statement (realized price and
+proceeds in the model) and the fund waterfall.
+
+- **Assets for Sale:** every sale in progress, one row each.
+  - *What's sold:* the whole asset, or chosen units or buildings with
+    their SF and rent roll. For a partial sale, the rest of the asset is
+    re-modeled without them.
+  - *Why and target:* reason (business plan complete, hold reached, fund
+    term, opportunistic), target price, cap and $/SF, and target close date.
+    A sale can be started from Sell/Hold Analysis.
+  - *Stage:* Preparing → Marketing → Offers → Under contract → Closed, plus
+    Withdrawn with a reason.
+  - *Broker:* BOVs side by side (price, cap, fee), the broker chosen, and
+    the listing agreement (fee, term, exclusions).
+  - *Marketing:* CAs signed, tours, and the call-for-offers date.
+  - *Under contract:* PSA date, deposits and hard dates, and due diligence
+    and closing deadlines (also on Critical dates). Price changes and
+    credits are logged.
+  - *Closing:* the closing statement's price, costs, loan payoff and net
+    proceeds, with the distribution to LPs and GP through the fund
+    waterfall.
+  - *Documents:* an upload area on each sale, as on the Leases tab: BOVs,
+    listing agreement, offering memo, marketing materials, PSA and
+    amendments, estoppels and the closing statement. Each can be reviewed
+    with Claude, checked and applied.
+  - *Exports:* Excel and PDF of every active sale (stage, target, broker,
+    key dates, and each sale's offers side by side with net proceeds), for
+    one sale or all.
+- **Offers:** every offer received, across all sales.
+  - Buyer, buyer type and broker; date and round (initial, best and final);
+    price, $/SF and cap; deposit; due diligence and closing days; financing
+    contingency; notes.
+  - Net proceeds after costs and loan payoff for each offer, compared side
+    by side per sale; one offer can be marked selected.
+  - A buyer's earlier offers on other assets show with them.
+  - Documents: an upload area on each offer for its LOI or offer letter.
+    Its terms can be read in to fill the offer.
+- **Track Record:** every closed sale, with fund and firm totals.
+  - Purchase vs. sale price and date, hold period, realized IRR, multiple
+    and profit, each against the acquisition underwriting and the last
+    valuation mark. For partial sales, the figures cover the part sold.
+  - Documents: an upload area on each closed sale for its final closing
+    statement, post-closing true-ups and distribution notice.
+  - Exports: Excel and PDF, by fund and firm-wide.
+- **Documents:** every disposition document across all sales, filterable by
+  asset, sale and type. It is the same store as Library → Documents (each
+  file kept once).
+
+Needs new document types (BOV, listing agreement, offer letter, post-closing
+true-up, distribution notice) added to the `deal_documents` check
+constraint. Prepare that SQL and have the user apply it before the phase P
+build starts, so the overnight run needs no approvals.
 
 ## Order and review
 

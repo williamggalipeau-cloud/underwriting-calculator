@@ -2871,7 +2871,7 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
-*Lease, documents, performance and reporting: phases A–O.* What has been built and
+*Lease, documents, performance and reporting: phases A–P.* What has been built and
 what is coming, kept up to date as each phase finishes. The full scope of
 each phase and the decisions behind it are in
 [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
@@ -2893,6 +2893,7 @@ each phase and the decisions behind it are in
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
+| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After O |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
