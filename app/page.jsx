@@ -824,7 +824,7 @@ export default function Home() {
     const at = new Date().toISOString();
     const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog };
     downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `baywise-data-${at.slice(0, 10)}.json`);
-    setImportMsg({ ok: true, text: `Exported ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
+    setImportMsg({ ok: true, text: `Backup downloaded: ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
 
   async function handleImportWorkspace(file) {
@@ -840,9 +840,14 @@ export default function Home() {
       setImportMsg({ ok: false, text: "That file isn't a workspace export (no deals found)." });
       return;
     }
-    if (!window.confirm(`Replace the open workspace${dbLink?.name ? ` (${dbLink.name})` : ""} with the file (${saved.deals.length} deals)? It saves to the database as a new version; the current one stays in the version history.`)) return;
-    applyWorkspace(saved, `Imported workspace file ${file.name}`);
-    setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
+    if (session && dbLink?.role !== "owner") {
+      setImportMsg({ ok: false, text: "Only an owner can restore from a backup." });
+      return;
+    }
+    if (!window.confirm(`Restore from ${file.name}? This replaces ALL of the firm's data, for everyone, with the backup (${plural(saved.deals.length, "deal")}). Anything not in the backup is removed from the app. A backup of the current data downloads first.`)) return;
+    handleExportWorkspace(); // safety copy of what's there now
+    applyWorkspace(saved, `Restored from backup ${file.name}`);
+    setImportMsg({ ok: true, text: `Restored ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")} from ${file.name}. The data from before is in the backup that just downloaded.` });
   }
 
   // Loads a saved workspace (database row or export) into the app.
@@ -1076,23 +1081,7 @@ export default function Home() {
 
   const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog });
 
-  function handleResetWorkspace() {
-    if (!requireEdit()) return;
-    if (!window.confirm(`Reset ${dbLink?.name ? `"${dbLink.name}"` : "the workspace"} to the starting deals? Your deals, funds and imported curve are replaced; the current version stays in the database's version history.`)) return;
-    const fresh = initialDeals();
-    noteAudit("Reset the workspace");
-    setSavedDeals([]);
-    setComps(DEFAULT_COMPS_STATE);
-    setValuations({});
-    setFunds(initialFunds());
-    setBaseCurve(DEFAULT_CURVE);
-    setAnchorToLive(true);
-    setActiveDealId(fresh[0].id);
-    setDeals(live?.avg30 ? fresh.map((d) => {
-      const quick = { ...d.quick, forwardCurve: anchorCurveToLive(DEFAULT_CURVE, live.avg30.rate).curve };
-      return { ...d, quick, inputs: toMainInputs(quick, d.inputs) };
-    }) : fresh);
-  }
+
 
   // ── Fund terms ──
   function handleFundTermsChange(name, patch) {
@@ -1586,26 +1575,21 @@ export default function Home() {
         <button
           type="button"
           onClick={handleExportWorkspace}
-          title="Download your deals, funds, comps and curve as a file"
+          title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep"
           className="text-xs text-gray-600 hover:text-blue-700 border border-gray-200 hover:border-blue-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
         >
-          Export workspace
+          Download backup
         </button>
-        <button
-          type="button"
-          onClick={() => importRef.current?.click()}
-          title="Load a workspace file exported from another browser or computer"
-          className="text-xs text-gray-600 hover:text-blue-700 border border-gray-200 hover:border-blue-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Import workspace
-        </button>
-        <button
-          type="button"
-          onClick={handleResetWorkspace}
-          className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Reset workspace
-        </button>
+        {(!session || dbLink?.role === "owner") && (
+          <button
+            type="button"
+            onClick={() => importRef.current?.click()}
+            title="Owners only: replace all of the firm's data with a backup file (a backup of the current data downloads first)"
+            className="text-xs text-gray-400 hover:text-red-600 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
+          >
+            Restore from backup
+          </button>
+        )}
         {importMsg && (
           <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
             {importMsg.text}

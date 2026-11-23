@@ -188,11 +188,16 @@ automatically.
   the signed-in email and the server's time, and no one can edit or delete
   those entries.
 
-**Backups and copies (optional, by hand):**
-- **Export workspace** downloads a `.json` copy of the firm's data you keep.
-- **Import workspace** loads a `.json` copy, replacing what's on screen;
-  every record it changes is saved (and logged) as usual.
-- **Reset workspace** puts the firm's data back to the starting deals.
+**Backups (optional, by hand; 11/23: the "workspace" buttons are gone):**
+- **Download backup** saves a `.json` copy of all the firm's data (deals,
+  funds, capital activity, valuations, comps, curve and change log) for you
+  to keep. You never need it to save: every change is saved automatically.
+- **Restore from backup** (owners only) replaces **all** of the firm's data,
+  for everyone, with a backup file. A backup of the current data downloads
+  first; anything not in the file is removed from the app; every record it
+  changes is saved and logged as usual. Only for recovering from a mistake.
+- There is no Reset button any more; **Load Model Fund I** still loads the
+  sample deals.
 
 **What the browser still keeps:** only your sign-in, so you don't have to
 sign in on every visit (`sb-nydqmigxorahfkfpkjnq-auth-token`). It holds no
@@ -2206,7 +2211,7 @@ stored in the database; the only other copies are exports you download:
 | Location | What it holds | When it's written |
 |---|---|---|
 | **Supabase database** (project `nydqmigxorahfkfpkjnq`) | `workspaces.data`: the current workspace JSON. `workspace_versions.data`: every earlier version. `audit_log`: the verified change log. Members and invites (§11.13). | About 20 seconds after the last change, on **Save now**, and on leaving the page |
-| **Export workspace** file | A copy of the workspace JSON | When you click Export |
+| **Download backup** file | A copy of all the firm's data (JSON) | When you click Download backup (and automatically before a restore) |
 | **Browser storage** | Only the sign-in session (`sb-nydqmigxorahfkfpkjnq-auth-token`). No workspace data. Data saved there by earlier versions of the app is moved to the database on sign-in and then deleted. | On sign-in; removed on sign-out |
 | **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once; contents copied into the workspace | — |
 | **Not stored anywhere** | Live NY Fed rates, calculated results (§11.12), snapshots of open deals | Recalculated on every load or change |
@@ -2993,9 +2998,9 @@ order by version desc;
 
 **Restoring an earlier version.** The usual way:
 1. Open the workspace in the app.
-2. Export it (a safety copy).
+2. Download a backup (a safety copy; the restore also makes one).
 3. In the SQL Editor, copy the old `data` from `workspace_versions`.
-4. Paste it into a `.json` file and **Import workspace**, then **Save now**.
+4. Paste it into a `.json` file and **Restore from backup** (owners only).
 
 Doing it this way records the restore in the audit log. Editing
 `workspaces.data` directly in the SQL Editor works too, but it isn't logged
@@ -3004,7 +3009,7 @@ and doesn't bump the version.
 ### 12.7 Backups, limits and costs
 
 - **Backups:** the free plan has no automatic backups you can restore
-  yourself. Paid plans keep daily backups. Use **Export workspace** now and
+  yourself. Paid plans keep daily backups. Use **Download backup** now and
   then as your own copy.
 - **Free plan pause:** free projects pause after about a week without
   activity. Open the dashboard and click **Restore** to wake one up.
@@ -3082,6 +3087,7 @@ each phase and the decisions behind it are in
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ⛓ Right after K, before L |
+| Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ⛓ After Z |
 | Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |

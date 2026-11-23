@@ -51,6 +51,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(pos.every((x) => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "tabs in the agreed order with the new names");
   check(!/Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
 
+  // Backup buttons (11/23): no Reset; Download backup; owner-only Restore
+  check((await p.getByRole("button", { name: /Reset workspace|Export workspace|Import workspace/ }).count()) === 0, "workspace buttons removed");
+  check((await p.getByRole("button", { name: "Download backup" }).count()) === 1 && (await p.getByRole("button", { name: "Restore from backup" }).count()) === 1, "Download backup, and Restore from backup for an owner");
+
   // Firm-wide strip
   const figs = p.getByTestId("firm-figure");
   check((await figs.count()) === 5, `firm strip: ${await figs.count()} figures`);

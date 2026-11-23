@@ -34,6 +34,7 @@ changes the model without the user clicking to apply it.
 | U | Market group: Market Data tab, submarket statistics; stress tests in standard deviations with a simulation (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
 | X | Distribution Analysis tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
+| Revert | Revert button on change-log entries, restore a deal or fund as of a date, Recently deleted list (added 11/23; workspace buttons removed the same day) | ⛓ After Z |
 | Z | Home page: today's attention list, workflow lanes matching the tab headers, fund cards, quick actions (incl. New fund setup), recent activity (added 11/23) | ⛓ After O |
 | Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
@@ -1274,6 +1275,21 @@ LP reports).
   value-add fund (about 60%), so part of any gap is leverage.
 - Views: since inception and trailing 1 / 3 / 5 years; charts; Excel and
   PDF; feeds phase L's reports (internal by default because of licensing).
+
+## Revert from the change log (added 11/23; with the backups item, after Z)
+
+Revision control the user can use (user, 11/23: "everything saves to the
+database with revision control and auditing; what more do I need?"):
+- A **Revert** button on each change-log entry puts that field back to its
+  earlier value (saved and logged as a revert, by whom and when).
+- **Restore a deal or fund as of a date:** rebuild one record from the change
+  log (and the database's earlier record versions), preview the differences,
+  then apply; nothing else is touched.
+- Deleted deals and funds (kept in the database, marked deleted) can be
+  brought back from a "Recently deleted" list.
+Done 11/23 ahead of this: the workspace buttons were removed: Reset is gone,
+Export is **Download backup**, Import is owner-only **Restore from backup**
+with an automatic backup first.
 
 ## Phase Z: Home page (added 11/23, after O)
 
