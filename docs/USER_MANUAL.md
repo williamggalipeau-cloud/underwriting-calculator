@@ -2821,7 +2821,7 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
-*Lease, documents, performance and reporting: phases A–M.* What has been built and
+*Lease, documents, performance and reporting: phases A–O.* What has been built and
 what is coming, kept up to date as each phase finishes. The full scope of
 each phase and the decisions behind it are in
 [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
@@ -2835,13 +2835,14 @@ each phase and the decisions behind it are in
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ✅ Live (PR #71) |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Live (PR #71) |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ✅ Live (PR #71) |
-| H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Built 11/23 (pull request) |
+| H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Live (PR #72) |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
 | M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
+| O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
