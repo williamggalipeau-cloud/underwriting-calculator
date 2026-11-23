@@ -252,7 +252,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
 | **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), after Leases |
 | **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
-| **Portfolio Management** | Fund Return · Stress Testing | Fund Summary (N) first, Fund Plan (K) second, Fund Debt (S) after Fund Return |
+| **Portfolio Management** | Fund Plan · Fund Return · Stress Testing | Fund Summary (N) first, Distribution Analysis (X) after Fund Return, Fund Debt (S) |
 | **Market** | (none yet) | Market Data (U) |
 | **Library** | Documents | Reports (L) |
 
@@ -285,12 +285,13 @@ in the header, next to User manual.
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. IRR, equity multiple, year-1 cash-on-cash and DSCR turn red below 14%, 2.0x, 7% and 1.25x (hover for the threshold). |
 | **Return Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
-| **Sell/Hold Analysis** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR and forward multiple of holding, spread to the fund's hurdle, NPV versus selling, total IRR and equity multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan; scenarios can be saved and reloaded. Excel export. |
+| **Sell/Hold Analysis** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR and forward multiple of holding, spread to the fund's hurdle, NPV versus selling, total IRR and equity multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan, including net LP TVPI, LP DPI by the end of the fund's term and GP promote. **All assets** changes every hold at once (each hold ± years, or every asset to one year); holds past the fund's final extended term are capped with a note, and sales past the term are flagged as needing an extension (§7.33). Scenarios can be saved and reloaded. Excel export. |
 
 **Portfolio Management**
 
 | Tab | What it does |
 |---|---|
+| **Fund Plan** | The fund's frozen plan (and re-forecasts) against actuals to date and today's forecast: capital called, deployment, distributions, DPI, NAV, projected returns vs. targets, GP promote, a cumulative chart, attribution by asset and cause; Excel and PDF report (§7.33). |
 | **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. Then **Underwritten vs. actual + projected**: each asset with a frozen baseline ranked by IRR gap (§7.32). |
 | **Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 
@@ -2079,6 +2080,52 @@ quarter's fair value) under each asset's implied cap; **Sell/Hold Analysis**
 shows an **Actual NOI** tile with its difference from the year-ahead NOI and
 the value at the same cap. Neither changes the underwritten model.
 
+### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
+
+The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
+fund against its own plan.
+
+- **Freeze the original plan** saves the fund model as it stands (usually
+  the final close model) with who froze it, when and an optional note. It is
+  a copy of the numbers, so later edits to deals never change it. **Save a
+  re-forecast** adds v2, v3…; the original stays, and the version picker
+  compares against any of them. Plans are saved on the fund's record.
+- **What a plan holds** (the fund model, ignoring capital activity, so plans
+  and re-forecasts compare like for like): LP capital called and
+  distributed by quarter, equity deployed and assets bought by quarter, fund
+  NOI by year (each hold year's NOI in the year it starts), LP cash yield by
+  year (operating distributions ÷ LP capital called by year end; sale
+  proceeds excluded), gross IRR and multiple, net LP IRR and multiple, LP
+  and GP distributions, GP promote (GP distributions above its pro-rata
+  share) and a summary per asset.
+- **Since inception** (through the last completed quarter): plan vs. actual
+  LP capital called, equity deployed, assets acquired, LP distributions and
+  DPI; LP NAV and interim TVPI (actual only: the plan has no NAV). Actuals
+  are the Valuation tab's LP figures, which use capital activity when it
+  has been entered and the model to date otherwise.
+- **Projected (life of fund):** plan vs. today's forecast (the fund model
+  now) vs. **targets** you enter (net LP IRR, net LP multiple, gross IRR);
+  a forecast below its target turns red.
+- **Chart:** cumulative LP capital called and distributed: plan (dashed),
+  actual and forecast. **By quarter** opens the quarter-by-quarter table.
+- **Attribution:** the change in projected net profit (forecast − plan) by
+  asset (assets not in the plan or dropped are marked) and by cause:
+  deployment (assets added or dropped), pricing (purchase price vs. plan),
+  operations, financing and exits (the rest of the plan assets' change), and
+  fees, fund expenses and the sub line (the change in net profit the assets'
+  gross profit doesn't explain). The causes add up to the total; the split
+  is an estimate.
+- **Excel** and a **PDF report** (landscape, two pages) for LP updates.
+
+On **Sell/Hold Analysis → Whole fund**, the fund table adds net LP TVPI, LP
+DPI by the end of the fund's term (before extensions: how much cash LPs get
+back within the term) and GP promote. **All assets** applies one hold change
+to every held asset: "Change each hold by" ± years, or "Hold every asset to
+year" n; +0 puts every asset back on its base plan. Holds that would run past
+the final extended term (or end before the decision date) are adjusted to
+the nearest allowed year, with a note naming them; a sale after the fund's
+term is flagged as needing the extensions.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -3076,7 +3123,7 @@ each phase and the decisions behind it are in
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 built 11/23: photos, Google map, floor plan, demising / combining, actual NOI in Valuation and Sell/Hold |
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
-| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ⛓ After J |
+| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | ⛓ After K |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |

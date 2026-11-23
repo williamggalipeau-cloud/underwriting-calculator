@@ -21,6 +21,7 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import FundNav from "@/components/FundNav";
+import FundPlan from "@/components/FundPlan";
 import AssetMedia from "@/components/AssetMedia";
 import { FundUwTable } from "@/components/UwVsActual";
 import { fundType } from "@/lib/fundTypes";
@@ -423,6 +424,7 @@ const TAB_GROUPS = [
     { id: "sellhold",    label: "Sell/Hold Analysis" },
   ] },
   { label: "Portfolio Management", tabs: [
+    { id: "fundplan",    label: "Fund Plan" },
     { id: "fund",        label: "Fund Return" },
     { id: "stress",      label: "Stress Testing" },
   ] },
@@ -1822,6 +1824,17 @@ export default function Home() {
                 inputs={inputs}
                 results={results}
                 savedDeals={fundDeals}
+              />
+            )}
+            {activeTab === "fundplan" && (
+              <FundPlan
+                deals={fundDeals}
+                funds={funds}
+                marks={valuations}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                onFundTermsChange={handleFundTermsChange}
               />
             )}
             {activeTab === "fund" && (
