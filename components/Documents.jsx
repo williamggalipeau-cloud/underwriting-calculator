@@ -185,13 +185,13 @@ function CheckPanel({ doc, leases, units }) {
   );
 }
 
-function ApplyPanel({ doc, inputs, terms, units, leaseAbs, leases, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onDone, onError, email }) {
+function ApplyPanel({ doc, inputs, terms, units, leaseAbs, leases, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onAddPipeline, onDone, onError, email }) {
   if (["estoppel", "cam", "billing"].includes(doc.doc_type)) return <CheckPanel doc={doc} leases={leases ?? []} units={units} />;
   if (doc.doc_type === "appraisal") return <AppraisalApply doc={doc} inputs={inputs} marks={marks} onApplyMark={onApplyMark} onDone={onDone} onError={onError} email={email} />;
-  return <ApplyPanelInner doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} onDone={onDone} onError={onError} email={email} />;
+  return <ApplyPanelInner doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} onAddPipeline={onAddPipeline} onDone={onDone} onError={onError} email={email} />;
 }
 
-function ApplyPanelInner({ doc, inputs, terms, units, leaseAbs, onApplyDeal, onApplyFund, onNewDeal, onDone, onError, email }) {
+function ApplyPanelInner({ doc, inputs, terms, units, leaseAbs, onApplyDeal, onApplyFund, onNewDeal, onAddPipeline, onDone, onError, email }) {
   const type = doc.doc_type;
   const fund = TYPE[type]?.scope === "fund";
   const rows = useMemo(() => compareDoc(doc, { inputs: inputs ?? {}, terms: terms ?? {} }), [doc, inputs, terms]);
@@ -272,6 +272,12 @@ function ApplyPanelInner({ doc, inputs, terms, units, leaseAbs, onApplyDeal, onA
                 await updateDealDoc(doc.id, { deal_id: id, status: "applied", applied_at: new Date().toISOString(), applied_by_email: email ?? null });
               })} className={`${btn} border-blue-300 bg-white text-blue-700`}>New deal from this OM</button>
             )}
+            {type === "om" && onAddPipeline && (
+              <button type="button" disabled={busy} onClick={() => run(async () => {
+                const res = applyDoc(doc, rows.map((r) => r.key), { inputs: {}, terms: {} });
+                if (!onAddPipeline(res.inputs, doc)) throw new Error("Couldn't add it to the pipeline.");
+              })} className={`${btn} border-indigo-300 bg-white text-indigo-700`}>Add to pipeline</button>
+            )}
           </div>
           <p className="text-[11px] text-gray-500">Fields you don&apos;t tick keep a mismatch badge on this document. {type === "ic_memo" ? "The as-approved baseline is a reference: it doesn't change the model." : ""}</p>
         </>
@@ -326,7 +332,7 @@ export function IcVarianceTable({ ic, inputs }) {
   );
 }
 
-function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks, canEdit, userId, email, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onChanged, onError, fundList }) {
+function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks, canEdit, userId, email, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onAddPipeline, onChanged, onError, fundList }) {
   const [panel, setPanel] = useState(null);
   const [busy, setBusy] = useState(false);
   const t = TYPE[doc.doc_type] ?? TYPE.other;
@@ -371,7 +377,7 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks
       </ol>
       {panel === "view" && doc.abstract && <DocViewer doc={doc} onOpen={open} />}
       {panel === "review" && canEdit && <ReviewPanel doc={doc} assetName={assetName} userId={userId} email={email} onError={onError} onSaved={async () => { setPanel("view"); await onChanged(); }} />}
-      {panel === "apply" && canEdit && doc.abstract && <ApplyPanel doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} leases={leases} marks={marks} onApplyMark={onApplyMark} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} email={email} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />}
+      {panel === "apply" && canEdit && doc.abstract && <ApplyPanel doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} leases={leases} marks={marks} onApplyMark={onApplyMark} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} onAddPipeline={onAddPipeline} email={email} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />}
       <div className="mt-2 flex flex-wrap gap-2">
         {doc.abstract && <button type="button" onClick={() => setPanel(panel === "view" ? null : "view")} className={`${btn} border-emerald-200 bg-emerald-50 text-emerald-800`}>{panel === "view" ? "Hide abstract" : "View abstract"}</button>}
         {canEdit && doc.abstract && doc.doc_type !== "other" && <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className={`${btn} border-emerald-300 bg-white text-emerald-800`}>{panel === "apply" ? "Close" : doc.doc_type === "insurance_cert" ? "Check coverage" : ["estoppel", "cam", "billing"].includes(doc.doc_type) ? "Check" : "Apply"}</button>}
@@ -382,7 +388,7 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks
   );
 }
 
-export default function Documents({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, funds, dealInputs, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal }) {
+export default function Documents({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, funds, dealInputs, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onAddPipeline }) {
   const [scope, setScope] = useState("asset");
   const [docs, setDocs] = useState(null);
   const [leases, setLeases] = useState([]);
@@ -451,6 +457,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
       onApplyDeal={onApplyDeal}
       onApplyFund={onApplyFund}
       onNewDeal={onNewDeal}
+      onAddPipeline={onAddPipeline}
       onChanged={refresh}
       onError={setError}
       fundList={fundList}

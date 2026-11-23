@@ -252,7 +252,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
 | **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), after Leases |
 | **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
-| **Portfolio Management** | Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Summary (N) first, Fund Debt (S) |
+| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Debt (S) |
 | **Market** | (none yet) | Market Data (U) |
 | **Library** | Documents · Reports | |
 
@@ -291,6 +291,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
+| **Fund Summary** | One page of key facts about a fund: key dates, capital raised / called / deployed / available, every key term, legal entities with an ownership chart, org chart and formation document uploads, links to the tabs that hold the rest; fact sheet (PDF) and Excel (§7.38). |
 | **Fund Plan** | The fund's frozen plan (and re-forecasts) against actuals to date and today's forecast: capital called, deployment, distributions, DPI, NAV, projected returns vs. targets, GP promote, a cumulative chart, attribution by asset and cause; Excel and PDF report (§7.33). |
 | **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. Then **Underwritten vs. actual + projected**: each asset with a frozen baseline ranked by IRR gap (§7.32). |
 | **Distribution Analysis** | Each quarter's distributable cash: asset cash (Yardi upload or entered; projected where none is entered, labelled), less reserves, committed TI / capex and 3 months of asset expenses; fund cash less 6 months of fund expenses; less any sub line repayment. Choose the distribution (% or amount), LP / GP split per the waterfall, yield on LP contributed capital and NAV, last 4 quarters; save a proposal and record it as paid; Excel and PDF (§7.34). |
@@ -2174,8 +2175,9 @@ the shareable report) shows, as of the quarter end:
 - **Largest tenants** by rent (flag above 10% of fund rent).
 - **Industry (SIC 2-digit):** share of fund rent and each asset's largest
   industry (limits 20% of the fund, 40% of an asset).
-- **Geography:** states and metros (cities) by share of value and NOI
-  (limits 30% / 25%).
+- **Geography:** a drawn map of the states (no map image), each state's
+  circle sized by its share of fund value and red above the limit, and
+  states and metros (cities) by share of value and NOI (limits 30% / 25%).
 - **Debt:** each loan's balance, LTV, lender, spread, maturity, DSCR vs. its
   test, cap strike, expiry, provider and the cap's market value (flags:
   maturing within 18 months, DSCR below or near the test, no cap, cap
@@ -2238,7 +2240,7 @@ open REC, flood zones, high heat, an old Phase I), TI facilities on the
 loans and one planned re-tenanting, set so the heat map shows every colour,
 only where empty. Still to
 come: insurance against loan requirements (once loan agreements carry
-them) and a map of the assets sized by value.
+them).
 
 ### 7.35 Pipeline (phase M)
 
@@ -2274,6 +2276,9 @@ date added.
   breach, and a one-paragraph summary of each top-10 deal with its key risks
   (unscreened deals use 65% leverage for equity). **Preview**, **PDF**,
   **Excel**, and **Save dated version** (re-download its PDF later).
+- An offering memo read on the Documents tab can start a row: **Add to
+  pipeline** (next to New deal from this OM) adds it at Screening, linked
+  to the OM.
 - Every change is in the change log (area Pipeline). Fictional sample files
   for testing: `docs/sample-pipeline/`.
 
@@ -2282,8 +2287,9 @@ date added.
 **Deal Screener is for pipeline deals only** (11/23): deals with no fund, or
 bought after today. A row of **Pipeline deals** at the top switches between
 them. With an owned asset selected, the tab says so and points to the Asset
-Management tabs instead of showing the screener. The app now opens on
-**Asset Summary**, and opening an asset from it goes to its business plan.
+Management tabs instead of showing the screener. The app opens on
+**Home** (§7.42); opening an asset from Asset Summary goes to its business
+plan.
 
 **Model in fund** (above the screener inputs, labelled "Scenario — not
 actual"): choose the fund the deal would be held in (default: its target
@@ -2295,6 +2301,8 @@ without / with / change; the equity the deal needs and dry powder before and
 after (red if the fund would be over-committed); the largest tenant and
 state shares and fund LTV before and after; and any fund limit (§7.32c) the
 deal would newly breach. Nothing changes on the fund or the deal. Excel.
+When the screener's price, NOI or close date differ from the deal's
+Pipeline row, **Update pipeline row** copies them back (logged).
 
 ### 7.37 Fund Impact (phase M)
 
@@ -2322,7 +2330,219 @@ actual") models pipeline deals into a fund without changing it.
   record.
 - **Add to fund** is the only step that changes anything: the candidate
   becomes a deal of the fund (asks first; logged).
-- **Excel** for the live view or the version shown.
+- **PDF** and **Excel** for the live view or the version shown, stamped
+  "Scenario - not actual" with the scenario name, version, date and author.
+
+### 7.38 Fund Summary (phase N)
+
+The **Fund Summary** tab (first under Portfolio Management) is one page of
+key facts about the chosen fund. It doesn't repeat performance, the
+portfolio or upcoming dates; **Elsewhere** links to Fund Return, Valuation,
+Asset Summary, Leases → Critical dates, Fund Plan and Reports.
+- **Key dates:** launch (entered here), final close, investment period end,
+  end of term, and the outside date with every extension, with months left.
+- **Capital:** raised (commitments), called (from capital activity when
+  entered, else the model's purchase equity to date) and % of commitments,
+  deployed in assets, available (dry powder) before and after the fund's
+  cash reserve, and the sub line drawn vs. capacity.
+- **Key terms:** fund type, commitments (LP / GP), pref, hurdle, catch-up,
+  promote tiers, income treatment, management fee and basis, investment
+  period, term and extensions, distribution policy, fund cash reserve, the
+  sub line, investment limits, and **key person** and **GP removal**
+  (entered here from the LPA).
+- **Legal entities:** the fund, GP, manager and each asset's property
+  company (**Add a company for each asset** creates "<Asset> LLC" owned by
+  the fund): state, formation date, **EIN (only the last 4 digits are
+  kept)**, registered agent, annual-report due date and who owns it. An
+  **ownership chart** is drawn from those links. Annual-report due dates
+  appear on Leases → Critical dates (whole fund).
+- **Org charts and formation documents** (signed in): upload PDFs by type
+  (org chart, formation documents, operating agreement, good standing,
+  other legal); open or delete them.
+- **Fact sheet (PDF)** on one page, and **Excel**.
+
+### 7.39 Setting up assets and funds (phase O)
+
+The asset inputs are no longer always open on the left; the tabs use the
+full page width. Under the header:
+- **New asset** adds a deal and opens its inputs; **Edit asset…** picks any
+  asset (listed with its fund, or "pipeline") and opens its inputs.
+- The inputs open as a **slide-over** on the right with **Done** (or press
+  Escape, or click outside) to close it. Nothing else opens it. Assets are
+  never deleted from it; taking an asset out of a fund stays on Fund Return.
+- **New fund** and **Edit fund…** open the fund terms editor (with the LPA /
+  PPM upload), as from Fund Return.
+- The **Asset** picker above the single-asset tabs still chooses which asset
+  those tabs show.
+
+### 7.40 "Working on" fund picker (`lib/workingOn.js`)
+
+The **Working on** dropdown at the left of the header's figure strip chooses
+the portfolio you are working on: **All funds** (the whole firm), or one
+fund, separate account or joint venture (shown with its type). It is a
+filter only: all the firm's data is already loaded, and choosing a fund
+changes nothing and saves nothing.
+
+- The header figures (AUM, square feet, assets, tenants, occupancy) become
+  that fund's, labelled with its name.
+- Every tab follows it: Asset Summary, Fund Return, Valuation, Fund Plan,
+  Fund Summary, Distribution Analysis, Fund Impact, Reports, the critical
+  dates and the stress test show only that fund. The Pipeline tab starts
+  filtered to deals screened for it (clear the fund filter there to see all).
+- The **Asset** list above the single-asset tabs shows the fund's assets,
+  pipeline deals being screened for it, and drafts not yet on the pipeline. A
+  pipeline deal aimed at another fund, or at no fund, shows under All funds.
+  If the open asset isn't in the chosen fund, the fund's first asset opens.
+- Your choice is remembered on your sign-in (not the firm's data), so you
+  reopen on the portfolio you last worked on, on any computer. Signed out,
+  this browser remembers it. A fund that no longer exists falls back to All
+  funds.
+- **Edit asset…**, **Edit fund…** and the Documents tab still list every
+  asset and fund, so nothing is out of reach.
+
+### 7.41 Revert, restore and recently deleted (`lib/revert.js`)
+
+On the **Change log** tab (working log or the database's verified log):
+- **Revert** on an entry puts that one field back to its earlier value. It is
+  offered only while the field still holds the value that change wrote, so a
+  later edit is never overwritten (revert the later change first). It works
+  for asset inputs (including a unit's fields), fund terms, capital activity
+  amounts and dates, valuation marks and pipeline deals. A whole record added
+  or removed, a note, and saved copies (fixed snapshots) have no Revert. The
+  revert is saved and logged as a **Revert** entry, by whom and when; it can
+  itself be reverted.
+- **Restore a deal or fund as of a date…**: choose an asset, fund or
+  pipeline deal and a date, **Preview** (each field: now → restored), then
+  **Apply restore**. It undoes that record's logged changes made after the
+  date, newest first; nothing else is touched. Changes that can't be undone
+  here (a record added or removed) are listed and stay as they are. It uses
+  the database's log when signed in, else the working log.
+- **Recently deleted** lists deals, saved copies and funds that were deleted
+  (they are kept in the database, marked deleted), with when and by whom.
+  **Restore** brings one back exactly as it was when deleted.
+
+### 7.42 Home page (`lib/home.js`, phase Z)
+
+The app opens on **Home** (the first button in the tab bar). It shows the
+portfolio chosen in **Working on** (§7.40) and is computed from data already
+loaded; nothing on it is saved.
+- **Today · needs attention:** leases expiring in the next 90 days (unit
+  roll), loans maturing within 18 months, rate caps expiring within 12
+  months, assets with no valuation mark for the last quarter end, rent 60+
+  days late (each fund's latest delinquency report) and assets whose NOI is
+  in the red against budget year to date. Dated items come first, soonest
+  first; each opens the tab that handles it on that asset.
+- **Recent activity:** the last 10 changes from the change log (the
+  database's log when signed in).
+- **Funds:** a card per fund, separate account or joint venture with its
+  type badge: NAV, net IRR (against the target when one is set in Fund
+  Plan), % called, dry powder, assets and the next key date, with links to
+  Fund Summary and Fund Return.
+- **Workflows:** one lane per tab header in the tab bar's order
+  (Acquisitions, Asset Management, Portfolio Management, Library), each with
+  a few live numbers (active pipeline by stage and dry powder; occupancy,
+  leases expiring this year, NOI vs. budget and appraisals due; NAV, loans
+  maturing, sub line drawn and caps expiring) and links to its tabs. Lanes
+  for Dispositions, Property Management and Market appear once those tab
+  headers exist.
+- **Quick actions:** New asset, New fund setup, Upload rent roll, Upload
+  Yardi actuals, Import marks, Record capital activity and New report, each
+  opening the screen that does it.
+
+### 7.43 Dispositions (`lib/dispositions.js`, phase P)
+
+A **Dispositions** group sits right after Acquisitions. Each asset's sales
+are kept on the asset itself, so they save and log like any other edit, and
+they follow the **Working on** picker.
+
+- **Assets for Sale:** **Start sale** for an owned asset: the whole asset or
+  selected units, and the reason (business plan complete, hold reached, fund
+  term, opportunistic). Each sale opens to:
+  - **Stage** (Preparing → Marketing → Offers → Under contract → Closed, or
+    Withdrawn with a reason), target price, cap and close date, with $/SF.
+  - **Broker opinions of value** side by side (price, cap, fee); **Choose**
+    one as the broker; the listing fee, term and exclusions; CAs signed,
+    tours and the call-for-offers date.
+  - **Offers** on the sale, best net proceeds first, with **Select**.
+  - **Under contract:** PSA date, deposit, hard date, due diligence and
+    closing dates, and the contract price. A price change asks for a reason
+    (a credit, a re-trade) and is logged on the sale.
+  - **Record closing statement:** date, price, and selling costs and loan
+    payoff (blank uses the model). It shows the net proceeds. A whole sale
+    then becomes the asset's realized sale, so Fund Return, valuations and
+    the header figures use it. A partial sale records the part sold.
+  - **Excel** of every active sale with its offers side by side.
+- **Offers:** every offer by sale: buyer, type, broker, date, round
+  (initial, best and final), price ($/SF and cap shown), deposit, due
+  diligence and closing days, financing contingency and notes. Each offer's
+  **net proceeds** after selling costs (the model's %) and loan payoff (the
+  model's balance at the closing or target date; a partial sale's share by
+  SF) are shown, with the best marked. A buyer's earlier offers on other
+  assets show under their name.
+- **Track Record:** every closed sale: purchase and sale price and date, net
+  proceeds, hold, realized IRR, multiple and profit, against the acquisition
+  underwriting (the frozen baseline when there is one) and the last
+  valuation mark before the sale, with fund and firm totals and Excel. A
+  partial sale's figures cover the part sold (its share of cost and equity;
+  interim cash flow isn't split).
+- Home has a **Dispositions** lane: assets for sale, offers received and
+  sales closed this year.
+- **Start sale** on **Sell/Hold Analysis** starts a sale of that asset
+  (reason: hold period reached) and opens it on Assets for Sale; with a sale
+  already in progress the button opens it instead.
+- **Documents** (signed in): each sale has an upload area for BOVs, the
+  listing agreement, offering memo / marketing, PSA and amendments,
+  estoppels and the closing statement; each offer takes its offer letter or
+  LOI (Offers tab); each closed sale takes the final closing statement,
+  post-closing true-ups and the distribution notice (Track Record). The
+  **Sale Documents** tab lists them all, filterable by asset and type. They
+  are kept in the same store as Library → Documents (each file once). Until
+  `supabase/dispositions_doc_types.sql` is applied, the new types are filed
+  as "Other" with the type in the title; nothing is blocked.
+- **Distribution:** a closed sale shows how its net proceeds split between
+  LPs and the GP through the fund's waterfall (pref, catch-up and promote as
+  set in the fund terms), after every earlier fund flow.
+- **PDF** on Assets for Sale (each active sale, and each sale's offers side
+  by side with net proceeds) and on Track Record (with totals).
+- Still to come: reading a document's terms in with Claude (BOV, LOI, PSA,
+  closing statement) and applying them to the sale.
+
+### 7.44 Leasing (`lib/leasing.js`, phase R)
+
+The **Leasing** tab (Asset Management, right after Leases) is kept on each
+asset, so its edits save and log like any other.
+
+- **Leasing Pipeline:** **+ Prospect** adds one (it starts on a vacant
+  unit); **+ Renewal** adds a renewal negotiation for the next lease to
+  expire, with its tenant. For each one:
+  - the unit, prospect or tenant, source and broker;
+  - the stage (Inquiry → Tour → Proposal → LOI → Lease out → Signed, or
+    Lost with a reason);
+  - SF, asking and proposed rent, term, free months, TI per SF and the
+    expected start;
+  - the next step and its date.
+
+  It shows the **net effective rent** (rent over the term with escalations,
+  less free rent and TI, per year). It also compares the deal with the
+  business plan's leasing target for that unit (the latest revision): rent
+  against the target, and downtime (from the lease end, or today for a
+  vacant unit, to the expected start) against the plan's. Counts by stage
+  are at the top. Signed and lost prospects are hidden unless **Show signed
+  and lost** is on. The **All assets** view lists every asset's prospects
+  in the chosen portfolio.
+- **Rent Comps:** add comps by hand, or **Upload** a CoStar export or an
+  internal spreadsheet (.xlsx or .csv). The columns are matched like Sales
+  Comps, shown before importing and remembered for the asset's next upload.
+  A comp with the same address, tenant and sign date updates instead of
+  duplicating. You can filter by sign date, size, submarket and lease type,
+  and untick a comp to leave it out. The summary shows the SF-weighted
+  average, median, range and net effective rent, and the asset's in-place
+  rent and the model's market rent against the comps. **Set market rent
+  from comps** sets the model's market rent to the comps' average (asked
+  first); the returns update.
+- **Excel** exports the pipeline and the comps.
+- Still to come: uploads on each prospect (proposals, LOIs, lease drafts,
+  approval memos, broker reports) and on the comps section, and a PDF.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3424,20 +3644,20 @@ each phase and the decisions behind it are in
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Remaining: insurance vs. loan requirements, an asset map sized by value |
-| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Remaining: PDF for scenario versions, pipeline deals from an OM on the Documents tab |
-| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
-| O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
-| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
+| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Fund Impact PDF; Update pipeline row from the screener; Add to pipeline from an OM (11/23) |
+| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ✅ Built 11/23: Fund Summary tab (§7.38) |
+| O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
+| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
-| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
+| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | 🔨 Part 1 built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, Excel (§7.44); uploads and PDF next |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
-| Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ⛓ After Z |
-| Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
-| Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ⛓ With Z |
+| Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
+| Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ✅ Built 11/23: attention list, recent activity, fund cards, lanes for the tab headers that exist, quick actions; follows Working on (§7.42) |
+| Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so the Sales Comps tab, valuations and reports show a full set | ⛓ Future release |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |

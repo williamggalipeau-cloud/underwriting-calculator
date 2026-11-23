@@ -79,6 +79,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(1500);
   check(/Deal Screener/.test(await p.locator("nav button[aria-current], nav .bg-blue-600").first().innerText().catch(() => "Deal Screener")), "Screen opens Deal Screener");
   check((await main.innerText()).includes("10,400,000") || (await p.locator("input[value='10400000']").count()) > 0, "Deal Screener has the asking price");
+  const sync = main.getByTestId("screener-sync");
+  check((await sync.count()) === 1 && /close date/.test(await sync.innerText()), "screener vs. pipeline row: the close date differs (offered to update)");
+  await sync.getByRole("button", { name: "Update pipeline row" }).click();
+  await p.waitForTimeout(800);
+  check((await main.getByTestId("screener-sync").count()) === 0, "Update pipeline row: they match again");
   const imp = main.getByTestId("screener-impact");
   check((await imp.count()) === 1 && /Scenario — not actual/.test(await imp.innerText()) && (await main.getByTestId("screener-owned").count()) === 0, "pipeline deal: Model in fund panel, labelled a scenario");
   check((await imp.getByLabel("Model in fund").inputValue()) === "Model Fund I" && /Net LP IRR/.test(await imp.getByTestId("impact-returns").innerText()) && /Dry powder before → after/.test(await imp.getByTestId("impact-capital").innerText()), "fund with vs. without: returns, dry powder, concentration");
@@ -116,6 +121,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await cascade.getByRole("button", { name: "Sensitivity" }).click();
   await p.waitForTimeout(3000);
   check((await cascade.getByTestId("impact-sens").locator("tbody tr").count()) === 3, "sensitivity grid: 3 exit caps × 3 prices");
+  const [ipdf] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), fi.getByRole("button", { name: "PDF" }).click()]);
+  const ipPath = S + "/m_impact.pdf"; await ipdf.saveAs(ipPath);
+  check(/SCENARIO - NOT ACTUAL/.test(require("child_process").execFileSync("pdftotext", ["-layout", ipPath, "-"]).toString()), "Fund Impact PDF stamped Scenario - not actual");
   // Save v1, change, save v2, view v1
   await fi.getByLabel("Scenario name").fill("Q1 2027: Tacoma + Sparks");
   await fi.getByRole("button", { name: "Save as new scenario" }).click();

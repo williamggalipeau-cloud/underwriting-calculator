@@ -64,7 +64,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   const main = p.locator("main");
-  await p.locator("div.cursor-pointer", { hasText: "Route 9 Small Bay" }).first().click();
+  await p.getByLabel("Edit asset").selectOption("sample-deal-2");
+  await p.waitForTimeout(400);
+  await p.getByRole("button", { name: "Done", exact: true }).click();
   await p.waitForTimeout(800);
   await p.getByRole("button", { name: /^Asset Business Plan/ }).first().click();
   await p.waitForTimeout(1200);

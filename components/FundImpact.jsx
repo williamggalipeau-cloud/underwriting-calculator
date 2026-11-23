@@ -66,6 +66,7 @@ export default function FundImpact({ deals, funds, curve, canEdit, email, presel
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <select aria-label="Fund" value={fund} onChange={(e) => { setPick(e.target.value); setView(null); }} className="rounded-lg border border-gray-300 px-2 py-1.5">{names.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}</select>
           <select aria-label="Compare against" value={base} onChange={(e) => setBase(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5"><option value="all">vs. owned + other pipeline assets</option><option value="owned">vs. owned assets only</option></select>
+          {res && <button type="button" onClick={async () => { const { fundImpactPdf } = await import("@/lib/fundImpactPdf"); const sc = shown ? scenarios.find((x) => x.id === view.sid) : null; downloadBlob(await fundImpactPdf(fund, res, { scenario: sc?.name ?? "", version: shown ?? null }), `${safeFileName(fund)}-fund-impact${shown ? `-v${shown.v}` : ""}.pdf`); }} className={`${btn} border-gray-300 bg-white text-gray-700`}>PDF</button>}
           {res && <button type="button" onClick={() => downloadBlob(writeXlsx(impactXlsx(fund, res, { scenario: shown ? `${scenarios.find((s) => s.id === view.sid)?.name} v${shown.v}` : "" }), { sheetName: "Fund impact", title: `Baywise · ${fund} fund impact (scenario)` }), `${safeFileName(fund)}-fund-impact.xlsx`)} className={`${btn} border-gray-300 bg-white text-gray-700`}>Excel</button>}
         </div>
       </div>

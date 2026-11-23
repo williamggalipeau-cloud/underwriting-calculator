@@ -8,6 +8,10 @@ import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
+import HomeView from "@/components/Home";
+import Dispositions from "@/components/Dispositions";
+import Leasing from "@/components/Leasing";
+import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
 import SellHold from "@/components/SellHold";
@@ -31,10 +35,14 @@ import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
 import { withSampleMedia } from "@/lib/sampleMedia";
-import { EMPTY_PIPELINE, toQuickInputs } from "@/lib/pipeline";
+import { EMPTY_PIPELINE, makePipelineDeal, toQuickInputs } from "@/lib/pipeline";
 import Pipeline from "@/components/Pipeline";
 import FundImpact from "@/components/FundImpact";
+import FundSummary from "@/components/FundSummary";
+import { entityDates } from "@/lib/fundSummary";
 import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
+import { revertRoot, revertCheck, applyRevert, restoreAsOf, recentlyDeleted } from "@/lib/revert";
+import { ALL_FUNDS, workingOnOptions, validWorkingOn, scopeDeals, scopeFunds, scopeOpenDeals, scopeLabel } from "@/lib/workingOn";
 import { isPipeline } from "@/lib/fundImpact";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
@@ -59,6 +67,7 @@ import {
   loadWorkspace as dbLoadWorkspace,
   onAuthChange,
   saveWorkspace as dbSaveWorkspace,
+  saveWorkingOn,
   signOut,
   supabase,
 } from "@/lib/cloud";
@@ -421,11 +430,18 @@ const TAB_GROUPS = [
     { id: "quick",       label: "Deal Screener" },
     { id: "impact",      label: "Fund Impact" },
   ] },
+  { label: "Dispositions", tabs: [
+    { id: "forsale",     label: "Assets for Sale" },
+    { id: "offers",      label: "Offers" },
+    { id: "trackrecord", label: "Track Record" },
+    { id: "dispdocs",    label: "Sale Documents" },
+  ] },
   { label: "Asset Management", tabs: [
     { id: "plan",        label: "Asset Business Plan" },
     { id: "assets",      label: "Asset Summary" },
     { id: "units",       label: "Unit Roll" },
     { id: "leases",      label: "Leases" },
+    { id: "leasing",     label: "Leasing" },
     { id: "valuations",  label: "Valuation" },
     { id: "comps",       label: "Sales Comps" },
     { id: "debt",        label: "Debt" },
@@ -435,6 +451,7 @@ const TAB_GROUPS = [
     { id: "sellhold",    label: "Sell/Hold Analysis" },
   ] },
   { label: "Portfolio Management", tabs: [
+    { id: "fundsummary", label: "Fund Summary" },
     { id: "fundplan",    label: "Fund Plan" },
     { id: "fund",        label: "Fund Return" },
     { id: "distributions", label: "Distribution Analysis" },
@@ -448,19 +465,22 @@ const TAB_GROUPS = [
 const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
 
 
 export default function Home() {
   const [deals, setDealsRaw] = useState(initialDeals);
   const [activeDealId, setActiveDealId] = useState("sample-deal-1");
-  const [activeTab, setActiveTab] = useState("assets"); // Deal Screener is for pipeline deals (phase M)
+  const [activeTab, setActiveTab] = useState("home"); // the app opens on Home (phase Z)
   const [savedDeals, setSavedDealsRaw] = useState([]);
   // Fund terms by fund name (timeline, waterfall, fee).
   const [funds, setFundsRaw] = useState(initialFunds);
   const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
   const [comps, setCompsRaw] = useState(DEFAULT_COMPS_STATE);
   const [pipeline, setPipelineRaw] = useState(EMPTY_PIPELINE);
+  // "Working on" fund picker (11/23): a filter; "" = All funds. Remembered on
+  // the person's sign-in (or this browser when signed out).
+  const [workingOn, setWorkingOnRaw] = useState(ALL_FUNDS);
   // Fair value marks: { [dealId]: { [quarterEndISO]: { value, source, appraiser, capRate, capex, notes } } }
   const [valuations, setValuationsRaw] = useState({});
   // Change log (lib/audit): entries saved with the workspace. Signed-in users
@@ -495,6 +515,7 @@ export default function Home() {
   // True after a "Forgot password?" link is opened: the panel asks for a new password.
   const [pwRecovery, setPwRecovery] = useState(false);
   const [dbLog, setDbLog] = useState(null);
+  const [deletedRows, setDeletedRows] = useState([]); // firm_records marked deleted (Recently deleted)
   const [ready, setReady] = useState(false); // first load finished
   const dbBaseline = useRef(null); // snapshot at the last database save/open ("pending" = take on next save)
   const dbLinkRef = useRef(null);
@@ -741,6 +762,7 @@ export default function Home() {
     fetchAudit(dbLink.id)
       .then((r) => !stop && setDbLog(r))
       .catch(() => {});
+    if (dbLink.mode === "records") loadRecords(dbLink.id).then((rows) => !stop && setDeletedRows(rows.filter((r) => r.deleted))).catch(() => {});
     return () => {
       stop = true;
     };
@@ -1191,7 +1213,7 @@ export default function Home() {
   // Documents tab → a quarter's valuation mark from an appraisal.
   function applyToMark(dealId, quarter, mark, entries, label) {
     if (!requireEdit()) return false;
-    const deal = fundDeals.find((d) => d.id === dealId);
+    const deal = firmFundDeals.find((d) => d.id === dealId);
     auditSource.current = { label, entries: entries.map((e) => ({ area: "Valuation", item: deal?.inputs?.propertyName || dealId, field: `${quarter} › ${e.field}`, path: ["valuations", dealId, quarter, e.key], from: e.from, to: e.to })) };
     setValuations((prev) => ({ ...prev, [dealId]: { ...(prev[dealId] ?? {}), [quarter]: { ...((prev[dealId] ?? {})[quarter] ?? {}), ...mark } } }));
     return true;
@@ -1251,6 +1273,15 @@ export default function Home() {
     setActiveDealId(d.id);
     setActiveTab("quick");
   }
+  // Documents tab: an offering memo starts a pipeline row (phase M).
+  function handleAddPipelineFromOM(inp, doc) {
+    if (!requireEdit()) return false;
+    const row = makePipelineDeal({ name: inp.propertyName || doc.title || "Deal from OM", address: inp.address, city: inp.city, state: inp.state, sf: inp.squareFootage, askingPrice: inp.purchasePrice, noi: inp.noiYear1, source: `OM${doc.title ? `: ${doc.title}` : ""}`, omDocId: doc.id, stage: "screening" }, { by: session?.user?.email ?? "" });
+    noteAudit(`Added ${row.name} to the pipeline from an offering memo`);
+    setPipeline((p) => ({ ...p, deals: [...(p.deals ?? []), row] }));
+    return true;
+  }
+
   // Fund Impact: the one deliberate step that puts a candidate in a fund.
   function handleAddToFund(dealId, fund) {
     if (!requireEdit()) return;
@@ -1323,10 +1354,90 @@ export default function Home() {
         .map((d) => ({ ...snapshotDeal({ ...d.inputs, fundName: resolveFund(d.inputs.fundName) }, d.id), live: true })),
     [deals, resolveFund]
   );
-  const fundDeals = useMemo(
+  const firmFundDeals = useMemo(
     () => [...liveFundDeals, ...savedDeals.map((d) => withCanonicalFund(d, resolveFund))],
     [liveFundDeals, savedDeals, resolveFund]
   );
+  // "Working on": every tab below sees only the chosen fund (All funds = the firm).
+  const workingOptions = useMemo(() => workingOnOptions(funds, firmFundDeals.map((d) => d.inputs.fundName)), [funds, firmFundDeals]);
+  const scope = validWorkingOn(workingOn, workingOptions);
+  const fundDeals = useMemo(() => scopeDeals(firmFundDeals, scope, resolveFund), [firmFundDeals, scope, resolveFund]);
+  const viewFunds = useMemo(() => scopeFunds(funds, scope), [funds, scope]);
+  const viewDeals = useMemo(() => scopeOpenDeals(deals, scope, resolveFund, pipeline), [deals, scope, resolveFund, pipeline]);
+  // A deal outside the chosen fund isn't left open: switch to the fund's first asset.
+  useEffect(() => {
+    if (scope && viewDeals.length && !viewDeals.some((d) => d.id === activeDealId)) setActiveDealId(viewDeals[0].id);
+  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Remembered choice: the sign-in's saved value, else this browser's.
+  useEffect(() => {
+    let v = session?.user?.user_metadata?.working_on;
+    if (v == null) { try { v = localStorage.getItem("baywise.workingOn"); } catch {} }
+    if (typeof v === "string") setWorkingOnRaw(v);
+  }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Revert from the change log: put one field back (only if unchanged since).
+  function handleRevert(entry) {
+    if (!requireEdit()) return { ok: false, reason: "View only" };
+    const root = revertRoot({ deals, funds, valuations, pipeline });
+    const r = applyRevert(entry, root);
+    if (!r.ok) return r;
+    auditSource.current = { label: "Revert", entries: [r.log] };
+    const key = entry.path[0];
+    if (key === "deals") setDeals(r.root.deals);
+    else if (key === "funds") setFunds(r.root.funds);
+    else if (key === "valuations") setValuations(r.root.valuations);
+    else if (key === "pipeline") setPipeline((p) => ({ ...p, deals: r.root.pipeline }));
+    return r;
+  }
+  // Restore one deal / fund / pipeline deal as of a date (preview, then apply).
+  function restorePreview(recordPath, dateISO) {
+    // The database log when there is one (verified), else the working log.
+    const log = session && dbLink?.id && dbLog?.length ? dbLog : auditLog;
+    return restoreAsOf(revertRoot({ deals, funds, valuations, pipeline }), log, recordPath, dateISO);
+  }
+  function handleRestore(recordPath, dateISO, item) {
+    if (!requireEdit()) return { ok: false, reason: "View only" };
+    const r = restorePreview(recordPath, dateISO);
+    if (!r.changes.length) return { ok: false, reason: "Nothing to restore" };
+    auditSource.current = { label: `Restore as of ${dateISO}`, entries: r.changes.map((c) => ({ area: recordPath[0] === "funds" ? "Fund terms" : recordPath[0] === "pipeline" ? "Pipeline" : "Deal", item, field: c.field, path: c.path, from: c.now, to: c.restored, revertOf: "restore" })) };
+    if (recordPath[0] === "deals") setDeals(r.root.deals);
+    else if (recordPath[0] === "funds") setFunds(r.root.funds);
+    else if (recordPath[0] === "pipeline") setPipeline((p) => ({ ...p, deals: r.root.pipeline }));
+    return { ok: true, count: r.changes.length };
+  }
+  // Recently deleted: bring a deal, saved copy or fund back as it was.
+  function handleUndelete(item) {
+    if (!requireEdit()) return false;
+    if (item.kind === "deal") setDeals((prev) => (prev.some((d) => d.id === item.key) ? prev : [...prev, item.data]));
+    else if (item.kind === "saved_deal") setSavedDeals((prev) => (prev.some((d) => d.id === item.key) ? prev : [...prev, item.data]));
+    else if (item.kind === "fund") setFunds((prev) => (item.key in prev ? prev : { ...prev, [item.key]: item.data }));
+    else return false;
+    setDeletedRows((rows) => rows.filter((r) => !(r.kind === item.kind && r.key === item.key)));
+    return true;
+  }
+  // Dispositions (phase P): edit one asset's inputs (its sales).
+  function updateDealInputs(dealId, fn) {
+    if (!requireEdit()) return;
+    setDeals((prev) => prev.map((d) => (d.id === dealId ? { ...d, inputs: fn(d.inputs) } : d)));
+  }
+  // Sell/Hold → Start sale: a new sale on the asset (or open the one in progress).
+  const [saleOpen, setSaleOpen] = useState(null);
+  function handleStartSale(dealId) {
+    const d = deals.find((x) => x.id === dealId);
+    if (!d) return;
+    const cur = (d.inputs.dispositions ?? []).find((s) => ACTIVE_SALE_STAGES.includes(s.stage));
+    if (cur) { setSaleOpen(cur.id); setActiveTab("forsale"); return; }
+    if (!requireEdit()) return;
+    const sale = makeSale({ reason: "hold_reached", startedFrom: "sellhold" });
+    noteAudit(`Started a sale of ${d.inputs.propertyName || "an asset"} from Sell/Hold Analysis`);
+    updateDealInputs(dealId, (inp) => ({ ...inp, dispositions: [...(inp.dispositions ?? []), sale] }));
+    setSaleOpen(sale.id);
+    setActiveTab("forsale");
+  }
+  function setWorkingOn(v) {
+    setWorkingOnRaw(v);
+    try { localStorage.setItem("baywise.workingOn", v); } catch {}
+    if (session) saveWorkingOn(v).catch(() => {});
+  }
   // Open deals that aren't in any fund (shown on Portfolio Return so they
   // can be added back with one click).
   const unassignedDeals = deals.filter((d) => !d.inputs.fundName?.trim());
@@ -1377,6 +1488,7 @@ export default function Home() {
   }
 
   const [sampleOpen, setSampleOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false); // asset inputs slide-over (phase O)
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
 
   function handleLoadTest() {
@@ -1444,7 +1556,7 @@ export default function Home() {
   }
 
   // Firm-wide header strip (consolidated; owned assets only).
-  const firm = firmSummary(fundDeals, valuations, funds, { todayISO: new Date().toISOString().slice(0, 10) });
+  const firm = firmSummary(fundDeals, valuations, viewFunds, { todayISO: new Date().toISOString().slice(0, 10) });
   const firmItems = [
     { key: "aum", label: "AUM", value: fmtAum(firm.aum) },
     { key: "sf", label: "Square feet", value: Math.round(firm.sf).toLocaleString("en-US") },
@@ -1530,6 +1642,13 @@ export default function Home() {
 
           {/* Summary bar */}
           <div className="flex flex-wrap items-center gap-1">
+            <label className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-800" title="Choose the portfolio to work on. Every tab shows only that fund; All funds shows the whole firm.">
+              <span className="font-semibold">Working on</span>
+              <select aria-label="Working on" data-testid="working-on" value={scope} onChange={(e) => setWorkingOn(e.target.value)} className="rounded border border-blue-200 bg-white px-1.5 py-0.5 text-xs text-gray-800">
+                {workingOptions.map((o) => <option key={o.value || "all"} value={o.value}>{o.label}</option>)}
+              </select>
+            </label>
+            {scope && <span className="text-[11px] font-semibold text-blue-800" data-testid="firm-scope">{scopeLabel(scope, funds)}:</span>}
             {firmItems.map(({ key, label, value }) => (
               <div key={key} title={FIGURE_DEFS[key]} data-testid="firm-figure" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 cursor-help">
                 <span className="text-xs text-gray-500">{label}</span>
@@ -1577,6 +1696,21 @@ export default function Home() {
 
       {/* Sample data menu (11/23): owners only, since it changes everyone's data. */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center gap-2">
+        {/* Setup (phase O, 11/23): the asset inputs open only from here, as a slide-over. */}
+        <div className="flex flex-wrap items-center gap-1.5" data-testid="setup-buttons">
+          {!locked && (
+            <button type="button" onClick={() => { handleAddDeal(); setPanelOpen(true); }} className="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-3 py-1.5">New asset</button>
+          )}
+          <select aria-label="Edit asset" value="" onChange={(e) => { if (!e.target.value) return; setActiveDealId(e.target.value); setPanelOpen(true); }} className="text-xs rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-gray-700">
+            <option value="">Edit asset…</option>
+            {[...deals].sort((x, y) => (x.inputs.propertyName || "").localeCompare(y.inputs.propertyName || "")).map((d) => <option key={d.id} value={d.id}>{d.inputs.propertyName || "Unnamed deal"}{d.inputs.fundName ? ` · ${d.inputs.fundName}` : " · pipeline"}</option>)}
+          </select>
+          {!locked && <button type="button" onClick={() => setFundEditor({ mode: "new" })} className="text-xs font-medium text-blue-700 border border-blue-200 bg-white hover:bg-blue-50 rounded-lg px-3 py-1.5">New fund</button>}
+          <select aria-label="Edit fund" value="" onChange={(e) => { if (!e.target.value) return; setFundEditor({ mode: "edit", name: e.target.value }); }} className="text-xs rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-gray-700">
+            <option value="">Edit fund…</option>
+            {Object.keys(funds).sort().map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
         {(!session || dbLink?.role === "owner") && (
           <div className="relative" data-testid="sample-data-menu">
             <button
@@ -1718,56 +1852,33 @@ export default function Home() {
         )}
       </div>
 
+      {/* Asset inputs slide-over (phase O): opens only from New asset / Edit asset. */}
+      {panelOpen && (
+        <div className="fixed inset-0 z-40 flex" role="dialog" aria-modal="true" aria-label="Asset inputs" onKeyDown={(e) => e.key === "Escape" && setPanelOpen(false)}>
+          <div className="absolute inset-0 bg-gray-900/20" onClick={() => setPanelOpen(false)} />
+          <aside className="relative z-10 flex h-full w-[26rem] max-w-full flex-col bg-white shadow-2xl" data-testid="asset-panel">
+            <div className="flex items-center justify-between gap-2 border-b border-gray-200 px-5 py-3">
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-wide text-gray-400">Asset inputs</div>
+                <div className="truncate text-sm font-semibold text-gray-900">{inputs.propertyName || "Unnamed deal"}</div>
+              </div>
+              <button type="button" autoFocus onClick={() => setPanelOpen(false)} className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Done</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <DealInputsPanel
+                linked={!!activeDeal.linked}
+                key={activeDealId}
+                inputs={inputs}
+                onChange={setInputs}
+                fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
+              />
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Body */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex gap-6 items-start">
-        {/* Left: inputs */}
-        <aside className="w-80 shrink-0 sticky top-[73px] max-h-[calc(100vh-90px)] flex flex-col gap-0">
-          {/* Deal switcher */}
-          <div className="bg-white rounded-t-2xl border border-b-0 border-gray-200 shadow-sm px-3 pt-3 pb-0">
-            <div className="flex items-center gap-1 overflow-x-auto pb-0 scrollbar-hide">
-              {deals.map((deal) => {
-                const isActive = deal.id === activeDealId;
-                return (
-                  <div
-                    key={deal.id}
-                    className={`flex items-center gap-1 shrink-0 rounded-t-lg px-3 py-2 cursor-pointer border-b-2 transition-all ${
-                      isActive
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-                    }`}
-                    onClick={() => setActiveDealId(deal.id)}
-                  >
-                    <span className="text-xs font-medium max-w-[100px] truncate">
-                      {deal.inputs.propertyName || "Unnamed"}
-                    </span>
-                  </div>
-                );
-              })}
-              {/* New deal button */}
-              <button
-                type="button"
-                onClick={handleAddDeal}
-                title="Add new deal"
-                className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors ml-0.5"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Inputs panel */}
-          <div className="bg-white rounded-b-2xl border border-gray-200 shadow-sm p-5 overflow-y-auto flex-1">
-            <DealInputsPanel
-              linked={!!activeDeal.linked}
-              key={activeDealId}
-              inputs={inputs}
-              onChange={setInputs}
-              fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
-            />
-          </div>
-        </aside>
 
         {/* Right: results */}
         <main className="flex-1 min-w-0 space-y-5">
@@ -1803,8 +1914,12 @@ export default function Home() {
 
           {/* Tab bar: grouped, with a small header over each group */}
           <nav className="flex flex-wrap items-end gap-x-2 gap-y-2 bg-white border border-gray-200 rounded-xl p-1.5 w-fit max-w-full shadow-sm" aria-label="Tabs">
+            <div className="flex flex-col gap-0.5 pr-1" role="group" aria-label="Home">
+              <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">&nbsp;</span>
+              <button type="button" onClick={() => setActiveTab("home")} className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === "home" ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"}`}>Home</button>
+            </div>
             {TAB_GROUPS.filter((g) => g.tabs.length).map((g, gi) => (
-              <div key={g.label} className={`flex flex-col gap-0.5 ${gi ? "border-l border-gray-200 pl-2" : ""}`} role="group" aria-label={g.label} data-testid="tab-group">
+              <div key={g.label} className={`flex flex-col gap-0.5 border-l border-gray-200 pl-2`} role="group" aria-label={g.label} data-testid="tab-group">
                 <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{g.label}</span>
                 <div className="flex flex-wrap gap-1">
                   {g.tabs.map((tab) => (
@@ -1838,14 +1953,63 @@ export default function Home() {
 
           {/* Panel */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            {activeTab === "home" && (
+              <HomeView
+                deals={fundDeals}
+                funds={viewFunds}
+                valuations={valuations}
+                pipeline={scope ? { ...pipeline, deals: (pipeline?.deals ?? []).filter((d) => d.targetFund === scope) } : pipeline}
+                log={session && dbLink?.id && dbLog?.length ? dbLog : auditLog}
+                firm={firm}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
+                tabLabels={{ ...Object.fromEntries(TAB_GROUPS.flatMap((g) => g.tabs.map((t) => [t.id, t.label]))), changes: "Change log" }}
+                onOpenTab={setActiveTab}
+                onOpenDeal={(id, tab) => { if (deals.some((d) => d.id === id)) setActiveDealId(id); setActiveTab(tab); }}
+                actions={[
+                  { label: "New asset", primary: true, disabled: locked, run: () => { handleAddDeal(); setPanelOpen(true); } },
+                  { label: "New fund setup", disabled: locked, run: () => setFundEditor({ mode: "new" }) },
+                  { label: "Upload rent roll", title: "Unit Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
+                  { label: "Upload Yardi actuals", title: "Asset Business Plan tab: upload monthly actuals", run: () => setActiveTab("plan") },
+                  { label: "Import marks", title: "Valuation tab: import quarterly marks", run: () => setActiveTab("valuations") },
+                  { label: "Record capital activity", title: "Fund Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },
+                  { label: "New report", title: "Reports tab: quarterly and risk reports", run: () => setActiveTab("reports") },
+                ]}
+              />
+            )}
+            {["forsale", "offers", "trackrecord", "dispdocs"].includes(activeTab) && (
+              <Dispositions
+                key={`disp-${saleOpen ?? ""}`}
+                initialOpen={saleOpen}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                email={session?.user?.email ?? null}
+                funds={funds}
+                fundDeals={firmFundDeals}
+                view={activeTab}
+                deals={viewDeals}
+                valuations={valuations}
+                canEdit={!locked}
+                onUpdate={updateDealInputs}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
+              />
+            )}
             {DEAL_TABS.has(activeTab) && (
               <AssetPicker
-                deals={deals}
+                deals={viewDeals}
                 snapshots={savedDeals.filter((s) => !deals.some((d) => d.id === s.id))}
                 activeId={activeDealId}
                 onPick={setActiveDealId}
                 onOpenSnapshot={handleOpenSnapshot}
-                label={`${deals.length} open${savedDeals.length ? ` · ${savedDeals.length} saved` : ""}`}
+                label={`${viewDeals.length} open${scope ? ` in ${scope}` : ""}${savedDeals.length ? ` · ${savedDeals.length} saved` : ""}`}
+              />
+            )}
+            {activeTab === "leasing" && (
+              <Leasing
+                deal={activeDeal}
+                deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
+                canEdit={!locked}
+                onUpdate={updateDealInputs}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
             )}
             {activeTab === "units" && (
@@ -1883,10 +2047,10 @@ export default function Home() {
               const pl = (pipeline.deals ?? []).find((x) => x.dealId === activeDeal.id);
               return (
                 <div className="space-y-4">
-                  <ScreenerPicker activeDeal={activeDeal} deals={deals} todayISO={today} owned={owned} onSelect={(id) => setActiveDealId(id)} />
+                  <ScreenerPicker activeDeal={activeDeal} deals={deals} todayISO={today} owned={owned} onSelect={(id) => setActiveDealId(id)} pipelineRow={pl ?? null} onSyncRow={locked ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${pl.name} from Deal Screener`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, ...patch } : x)) })); }} />
                   {!owned && (
                     <>
-                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={funds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={pl?.targetFund || ""} />
+                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={viewFunds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={pl?.targetFund || ""} />
                       <QuickUnderwrite
                         inputs={activeDeal.quick ?? QUICK_DEFAULTS}
                         onChange={setQuick}
@@ -1940,6 +2104,8 @@ export default function Home() {
             )}
             {activeTab === "pipeline" && (
               <Pipeline
+                key={`pipeline-${scope}`}
+                workingOn={scope}
                 pipeline={pipeline}
                 onChange={setPipeline}
                 fundNames={Object.keys(funds)}
@@ -1949,7 +2115,7 @@ export default function Home() {
                 onConvert={handleConvertPipeline}
                 onSendToFundImpact={handleSendToFundImpact}
                 deals={deals}
-                funds={funds}
+                funds={viewFunds}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
             )}
@@ -1957,7 +2123,7 @@ export default function Home() {
               <FundImpact
                 key={impactPreselect.join(",")}
                 deals={deals}
-                funds={funds}
+                funds={viewFunds}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 canEdit={!locked}
                 email={session?.user?.email ?? null}
@@ -1972,7 +2138,7 @@ export default function Home() {
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
                 onApplyDeal={applyToDeal}
                 deals={fundDeals}
-                funds={funds}
+                funds={viewFunds}
                 marks={valuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 canEdit={!locked}
@@ -1983,7 +2149,7 @@ export default function Home() {
             {activeTab === "distributions" && (
               <DistributionAnalysis
                 deals={fundDeals}
-                funds={funds}
+                funds={viewFunds}
                 marks={valuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 canEdit={!locked}
@@ -1991,10 +2157,21 @@ export default function Home() {
                 onFundTermsChange={handleFundTermsChange}
               />
             )}
+            {activeTab === "fundsummary" && (
+              <FundSummary
+                deals={deals}
+                funds={viewFunds}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                onFundTermsChange={handleFundTermsChange}
+                onOpenTab={setActiveTab}
+              />
+            )}
             {activeTab === "fundplan" && (
               <FundPlan
                 deals={fundDeals}
-                funds={funds}
+                funds={viewFunds}
                 marks={valuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 canEdit={!locked}
@@ -2004,7 +2181,7 @@ export default function Home() {
             )}
             {activeTab === "fund" && (
               <>
-              {Object.entries(funds).filter(([, f]) => Object.keys(f?.delinquency?.months ?? {}).length).map(([name, f]) => (
+              {Object.entries(viewFunds).filter(([, f]) => Object.keys(f?.delinquency?.months ?? {}).length).map(([name, f]) => (
                 <div key={name} className="mb-4">
                   <DelinquencySummary
                     delinq={f.delinquency}
@@ -2016,7 +2193,7 @@ export default function Home() {
               ))}
               <FundNav
                 deals={fundDeals}
-                funds={funds}
+                funds={viewFunds}
                 marks={valuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 onOpenValuation={() => setActiveTab("valuations")}
@@ -2043,7 +2220,7 @@ export default function Home() {
                 currentDeal={{ inputs, irrFlows: irrFlows ?? [], metrics: { irr: returns.irr, equityMultiple: returns.equityMultiple, yearOneCashOnCash: returns.yearOneCashOnCash, equityRequired: debt.equityRequired, loanAmount: debt.loanAmount } }}
                 onSave={handleSaveDeal}
                 onRemove={handleRemoveDeal}
-                funds={funds}
+                funds={viewFunds}
                 onFundTermsChange={handleFundTermsChange}
                 onNewFund={() => setFundEditor({ mode: "new" })}
                 onEditFund={(name) => setFundEditor({ mode: "edit", name })}
@@ -2055,7 +2232,7 @@ export default function Home() {
             {activeTab === "assets" && (
               <AssetSummary
                 deals={fundDeals}
-                funds={funds}
+                funds={viewFunds}
                 marks={valuations}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 onOpenDeal={(id) => {
@@ -2083,12 +2260,14 @@ export default function Home() {
                 canEdit={!locked}
                 onTermsChange={(patch) => handleFundTermsChange(resolveFund(inputs.fundName), patch)}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                onStartSale={handleStartSale}
+                saleInProgress={(inputs.dispositions ?? []).some((s) => ACTIVE_SALE_STAGES.includes(s.stage))}
               />
             )}
             {activeTab === "valuations" && (
               <Valuations
                 deals={fundDeals}
-                funds={funds}
+                funds={viewFunds}
                 marks={valuations}
                 onMarksChange={setValuations}
                 onOpenFundReturn={() => setActiveTab("fund")}
@@ -2107,6 +2286,17 @@ export default function Home() {
                 signedInEmail={session?.user?.email ?? null}
                 dbLog={dbLink?.id && session ? dbLog : null}
                 dbName={dbLink?.name}
+                canRevert={locked ? null : (e) => revertCheck(e, revertRoot({ deals, funds, valuations, pipeline }))}
+                onRevert={locked ? null : handleRevert}
+                restoreRecords={[
+                  ...deals.map((d) => ({ path: ["deals", d.id], label: `Asset: ${d.inputs.propertyName || "Unnamed deal"}` })),
+                  ...Object.keys(funds).sort().map((n) => ({ path: ["funds", n], label: `Fund: ${n}` })),
+                  ...(pipeline?.deals ?? []).map((d) => ({ path: ["pipeline", d.id], label: `Pipeline: ${d.name || "Pipeline deal"}` })),
+                ]}
+                restorePreview={restorePreview}
+                onRestore={locked ? null : handleRestore}
+                deleted={recentlyDeleted(deletedRows, { deals, savedDeals, funds })}
+                onUndelete={locked ? null : handleUndelete}
               />
             )}
             {activeTab === "leases" && (
@@ -2121,6 +2311,7 @@ export default function Home() {
                 fundName={resolveFund(inputs.fundName)}
                 dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
                 onApplyUnits={handleApplyLease}
+                extraDates={entityDates(funds[resolveFund(inputs.fundName)]?.entities ?? [], resolveFund(inputs.fundName))}
               />
             )}
             {activeTab === "plan" && (
@@ -2163,6 +2354,7 @@ export default function Home() {
                 onApplyDeal={applyToDeal}
                 onApplyFund={applyToFund}
                 onNewDeal={handleNewDealFrom}
+                onAddPipeline={handleAddPipelineFromOM}
                 marks={valuations}
                 onApplyMark={applyToMark}
               />
