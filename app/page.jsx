@@ -31,6 +31,11 @@ import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
 import { withSampleMedia } from "@/lib/sampleMedia";
+import { EMPTY_PIPELINE, toQuickInputs } from "@/lib/pipeline";
+import Pipeline from "@/components/Pipeline";
+import FundImpact from "@/components/FundImpact";
+import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
+import { isPipeline } from "@/lib/fundImpact";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -412,7 +417,9 @@ function newDeal(overrides = {}) {
 // Property Management (T) and Market (U) join later.
 const TAB_GROUPS = [
   { label: "Acquisitions", tabs: [
+    { id: "pipeline",    label: "Pipeline" },
     { id: "quick",       label: "Deal Screener" },
+    { id: "impact",      label: "Fund Impact" },
   ] },
   { label: "Asset Management", tabs: [
     { id: "plan",        label: "Asset Business Plan" },
@@ -447,12 +454,13 @@ const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "plan", "deb
 export default function Home() {
   const [deals, setDealsRaw] = useState(initialDeals);
   const [activeDealId, setActiveDealId] = useState("sample-deal-1");
-  const [activeTab, setActiveTab] = useState("quick");
+  const [activeTab, setActiveTab] = useState("assets"); // Deal Screener is for pipeline deals (phase M)
   const [savedDeals, setSavedDealsRaw] = useState([]);
   // Fund terms by fund name (timeline, waterfall, fee).
   const [funds, setFundsRaw] = useState(initialFunds);
   const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
   const [comps, setCompsRaw] = useState(DEFAULT_COMPS_STATE);
+  const [pipeline, setPipelineRaw] = useState(EMPTY_PIPELINE);
   // Fair value marks: { [dealId]: { [quarterEndISO]: { value, source, appraiser, capRate, capex, notes } } }
   const [valuations, setValuationsRaw] = useState({});
   // Change log (lib/audit): entries saved with the workspace. Signed-in users
@@ -566,6 +574,7 @@ export default function Home() {
   const setSavedDeals = guarded(setSavedDealsRaw);
   const setFunds = guarded(setFundsRaw);
   const setComps = guarded(setCompsRaw);
+  const setPipeline = guarded(setPipelineRaw);
   const setValuations = guarded(setValuationsRaw);
   const setBaseCurve = guarded(setBaseCurveRaw);
   const setAnchorToLive = guarded(setAnchorToLiveRaw);
@@ -771,7 +780,7 @@ export default function Home() {
     if (!hydrated.current) return;
     const t = setTimeout(() => {
       // Change log: compare with the last snapshot and record what changed.
-      const snap = auditSnapshot({ deals, savedDeals, funds, comps, valuations, baseCurve });
+      const snap = auditSnapshot({ deals, savedDeals, funds, comps, valuations, baseCurve, pipeline });
       let log = auditLogRef.current;
       if (auditBaseline.current && !auditNote.current) {
         let changes = diffWorkspace(auditBaseline.current, snap);
@@ -794,7 +803,7 @@ export default function Home() {
       let schedule = false;
       if (dbLinkRef.current?.mode === "records") {
         // Phase Q: unsaved = any record that differs from its saved version.
-        const pending = recordItems(recBase.current, savableRecords({ deals, savedDeals, funds, baseCurve, anchorToLive, comps, valuations, v: 1, app: "industrial-uw" })).length > 0;
+        const pending = recordItems(recBase.current, savableRecords({ deals, savedDeals, funds, baseCurve, anchorToLive, comps, pipeline, valuations, v: 1, app: "industrial-uw" })).length > 0;
         if (pending) {
           if (!dbLinkRef.current.dirty) {
             dbLinkRef.current = { ...dbLinkRef.current, dirty: true };
@@ -815,7 +824,7 @@ export default function Home() {
         auditLogRef.current = log;
         setAuditLog(log);
       }
-      latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog: log };
+      latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations, auditLog: log };
       if (schedule) {
         clearTimeout(dbTimer.current);
         dbTimer.current = setTimeout(() => saveRef.current?.(), (dbLinkRef.current?.mode === "records" ? RECORD_SAVE_SECONDS : DB_SAVE_SECONDS) * 1000);
@@ -824,13 +833,13 @@ export default function Home() {
     return () => clearTimeout(t);
     // auditLog/auditUser are read through refs/closure; changes to them alone don't need a save.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations]);
+  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations]);
 
   // ── Export / import the workspace as a JSON file (a backup copy you keep,
   // or to load one into the open database workspace).
   function handleExportWorkspace() {
     const at = new Date().toISOString();
-    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog };
+    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations, auditLog };
     downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `baywise-data-${at.slice(0, 10)}.json`);
     setImportMsg({ ok: true, text: `Backup downloaded: ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
@@ -872,6 +881,7 @@ export default function Home() {
     setAnchorToLiveRaw(anchor);
     setActiveDealId(w.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : w.deals[0].id);
     setCompsRaw({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
+    setPipelineRaw({ ...EMPTY_PIPELINE, ...(saved.pipeline ?? {}) });
     setValuationsRaw(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
     // The loaded workspace brings its own change log; the load itself is logged.
     const loaded = Array.isArray(saved.auditLog) ? saved.auditLog : [];
@@ -939,6 +949,7 @@ export default function Home() {
     else if (row.kind === "valuation") setValuationsRaw(next.valuations);
     else if (row.kind === "settings") {
       setCompsRaw({ ...DEFAULT_COMPS_STATE, ...(next.comps ?? {}) });
+      setPipelineRaw({ ...EMPTY_PIPELINE, ...(next.pipeline ?? {}) });
       if (next.baseCurve?.points?.length) setBaseCurveRaw(next.baseCurve);
       if (typeof next.anchorToLive === "boolean") setAnchorToLiveRaw(next.anchorToLive);
     }
@@ -1087,7 +1098,7 @@ export default function Home() {
 
 
 
-  const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog });
+  const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations, auditLog });
 
 
 
@@ -1217,6 +1228,65 @@ export default function Home() {
   function handleSetExitCap(pct) {
     if (activeDeal.linked) setQuick((q) => ({ ...q, exitCapPct: pct }));
     else setInputs((prev) => ({ ...prev, exitCapRatePct: pct }));
+  }
+
+  // Pipeline (phase M): Screen opens the deal in Deal Screener (a deal with
+  // no fund, so it stays out of the fund until it's converted).
+  function pipelineToDeal(pl) {
+    // No expected close: the end of the quarter about three months out.
+    const d0 = new Date();
+    const close = pl.expectedClose || new Date(Date.UTC(d0.getUTCFullYear(), Math.floor((d0.getUTCMonth() + 3) / 3) * 3 + 3, 0)).toISOString().slice(0, 10);
+    const quick = { ...QUICK_DEFAULTS, ...toQuickInputs(pl), acquisitionDate: close };
+    const base = { ...DEFAULT_INPUTS, propertyName: pl.name || "Pipeline deal", address: pl.address, city: pl.city, state: pl.state, ...(pl.sf ? { squareFootage: pl.sf } : {}), fundName: "", units: [] };
+    return { id: `pl-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, linked: true, quick, inputs: toMainInputs(quick, base), pipelineId: pl.id };
+  }
+  function handleScreenPipeline(pl) {
+    if (!requireEdit()) return;
+    const have = pl.dealId && deals.find((d) => d.id === pl.dealId);
+    if (have) { setActiveDealId(have.id); setActiveTab("quick"); return; }
+    const d = pipelineToDeal(pl);
+    noteAudit(`Screened pipeline deal ${pl.name}`);
+    setDeals((prev) => [...prev, d]);
+    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: d.id, stage: x.stage === "watching" ? "screening" : x.stage } : x)) }));
+    setActiveDealId(d.id);
+    setActiveTab("quick");
+  }
+  // Fund Impact: the one deliberate step that puts a candidate in a fund.
+  function handleAddToFund(dealId, fund) {
+    if (!requireEdit()) return;
+    const d = deals.find((x) => x.id === dealId);
+    if (!d) return;
+    noteAudit(`Added ${d.inputs.propertyName} to ${fund} from Fund Impact`);
+    setDeals((prev) => prev.map((x) => (x.id === dealId ? { ...x, inputs: { ...x.inputs, fundName: fund } } : x)));
+    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.dealId === dealId ? { ...x, targetFund: fund } : x)) }));
+  }
+  const [impactPreselect, setImpactPreselect] = useState([]);
+  function handleSendToFundImpact(pl) {
+    if (!requireEdit()) return;
+    let id = pl.dealId && deals.find((d) => d.id === pl.dealId)?.id;
+    if (!id) {
+      const d = pipelineToDeal(pl);
+      id = d.id;
+      noteAudit(`Sent pipeline deal ${pl.name} to Fund Impact`);
+      setDeals((prev) => [...prev, d]);
+      setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: d.id } : x)) }));
+    }
+    setImpactPreselect([id]);
+    setActiveTab("impact");
+  }
+
+  function handleConvertPipeline(pl) {
+    if (!requireEdit()) return;
+    const fund = pl.targetFund || "";
+    if (!fund) { window.alert(`Choose a target fund for ${pl.name} first.`); return; }
+    const close = pl.expectedClose || new Date().toISOString().slice(0, 10);
+    if (!window.confirm(`Convert ${pl.name} to an asset of ${fund}, acquired ${close}? It becomes a normal deal in the fund (logged).`)) return;
+    const existing = pl.dealId && deals.find((d) => d.id === pl.dealId);
+    const d = existing ?? pipelineToDeal(pl);
+    const next = { ...d, inputs: { ...d.inputs, fundName: fund, acquisitionDate: close }, ...(d.quick ? { quick: { ...d.quick, acquisitionDate: close } } : {}) };
+    noteAudit(`Converted pipeline deal ${pl.name} to an asset of ${fund}`);
+    setDeals((prev) => (existing ? prev.map((x) => (x.id === d.id ? next : x)) : [...prev, next]));
+    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: next.id, converted: true, stage: "closed" } : x)) }));
   }
 
   function handleAddDeal() {
@@ -1806,15 +1876,29 @@ export default function Home() {
                 />
               </div>
             )}
-            {activeTab === "quick" && (
-              <QuickUnderwrite
-                inputs={activeDeal.quick ?? QUICK_DEFAULTS}
-                onChange={setQuick}
-                linked={!!activeDeal.linked}
-                onLinkChange={setLinked}
-                onCurveImport={handleCurveImport}
-              />
-            )}
+            {activeTab === "quick" && (() => {
+              // Deal Screener: pipeline deals only (phase M, 11/23).
+              const today = new Date().toISOString().slice(0, 10);
+              const owned = !isPipeline(activeDeal, today);
+              const pl = (pipeline.deals ?? []).find((x) => x.dealId === activeDeal.id);
+              return (
+                <div className="space-y-4">
+                  <ScreenerPicker activeDeal={activeDeal} deals={deals} todayISO={today} owned={owned} onSelect={(id) => setActiveDealId(id)} />
+                  {!owned && (
+                    <>
+                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={funds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={pl?.targetFund || ""} />
+                      <QuickUnderwrite
+                        inputs={activeDeal.quick ?? QUICK_DEFAULTS}
+                        onChange={setQuick}
+                        linked={!!activeDeal.linked}
+                        onLinkChange={setLinked}
+                        onCurveImport={handleCurveImport}
+                      />
+                    </>
+                  )}
+                </div>
+              );
+            })()}
             {activeTab === "cashflow" && <CashFlowAnalysis inputs={inputs} results={results} />}
             {activeTab === "debt" && liveRatesPanel}
             {activeTab === "debt" && (
@@ -1852,6 +1936,34 @@ export default function Home() {
                 inputs={inputs}
                 results={results}
                 savedDeals={fundDeals}
+              />
+            )}
+            {activeTab === "pipeline" && (
+              <Pipeline
+                pipeline={pipeline}
+                onChange={setPipeline}
+                fundNames={Object.keys(funds)}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                onScreen={handleScreenPipeline}
+                onConvert={handleConvertPipeline}
+                onSendToFundImpact={handleSendToFundImpact}
+                deals={deals}
+                funds={funds}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+              />
+            )}
+            {activeTab === "impact" && (
+              <FundImpact
+                key={impactPreselect.join(",")}
+                deals={deals}
+                funds={funds}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                preselect={impactPreselect}
+                onFundTermsChange={handleFundTermsChange}
+                onAddToFund={handleAddToFund}
               />
             )}
             {activeTab === "reports" && (
@@ -1949,7 +2061,7 @@ export default function Home() {
                 onOpenDeal={(id) => {
                   if (!deals.some((d) => d.id === id)) return;
                   setActiveDealId(id);
-                  setActiveTab("quick");
+                  setActiveTab("plan"); // owned assets open on their business plan (Deal Screener is for the pipeline)
                 }}
                 onOpenLeases={(id) => {
                   if (!deals.some((d) => d.id === id)) return;

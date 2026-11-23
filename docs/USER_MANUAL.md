@@ -248,7 +248,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
-| **Acquisitions** | Deal Screener | Pipeline (phase M) first, Fund Impact (M) last |
+| **Acquisitions** | Pipeline · Deal Screener · Fund Impact | |
 | **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
 | **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), after Leases |
 | **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
@@ -2240,6 +2240,90 @@ only where empty. Still to
 come: insurance against loan requirements (once loan agreements carry
 them) and a map of the assets sized by value.
 
+### 7.35 Pipeline (phase M)
+
+The **Pipeline** tab (first under Acquisitions) lists every deal being
+watched, one row each: name, address, market, SF, asking price, $/SF, cap
+rate (or NOI), broker or source, seller, **stage**, probability of closing,
+deal lead, target fund, next step and date, expected close, notes, and the
+date added.
+- **Stages:** Watching → Screening → LOI → Under contract (PSA) → Closed,
+  plus Passed / lost (with a reason). Changing the stage sets its default
+  probability (10 / 20 / 40 / 75 / 100 / 0%), which you can change.
+- **Adding deals:** **Add deal** by hand, or **Upload** a CoStar export or an
+  internal spreadsheet (CSV or Excel). Columns are matched by name like the
+  Sales Comps import, and the match is remembered for each source; **Template**
+  downloads the columns. A re-upload **updates** the deal with the same name
+  and address instead of adding a copy (the stage, lead and next steps set in
+  the app are kept unless the file has them).
+- **Totals by stage** (count, value, SF, probability-weighted value); click
+  one to filter. Filter by stage (default: active, Watching to PSA), fund,
+  market or lead. **Excel** exports what's shown.
+- **Screen** creates a deal from the row (no fund yet, so it stays out of the
+  fund's figures) with the asking price, NOI and expected close in Deal
+  Screener, opens it there, and moves the row to Screening; afterwards the
+  button is **Open in Screener**.
+- **Convert to asset** (once Closed, with a target fund): the deal joins the
+  fund, acquired on its expected close date (asks first; logged).
+- **Pipeline report** (bottom of the tab): choose the fund and how to rank
+  the top 10 (price, deal IRR, equity, expected close or fund net IRR
+  impact). It shows the active deals for that fund by stage (price, SF,
+  equity and debt needed, probability-weighted), expected closings by
+  quarter against the fund's dry powder, the whole pipeline's effect on the
+  fund (screened deals, owned assets as the base) and any limits it would
+  breach, and a one-paragraph summary of each top-10 deal with its key risks
+  (unscreened deals use 65% leverage for equity). **Preview**, **PDF**,
+  **Excel**, and **Save dated version** (re-download its PDF later).
+- Every change is in the change log (area Pipeline). Fictional sample files
+  for testing: `docs/sample-pipeline/`.
+
+### 7.36 Deal Screener: pipeline deals and Model in fund (phase M)
+
+**Deal Screener is for pipeline deals only** (11/23): deals with no fund, or
+bought after today. A row of **Pipeline deals** at the top switches between
+them. With an owned asset selected, the tab says so and points to the Asset
+Management tabs instead of showing the screener. The app now opens on
+**Asset Summary**, and opening an asset from it goes to its business plan.
+
+**Model in fund** (above the screener inputs, labelled "Scenario — not
+actual"): choose the fund the deal would be held in (default: its target
+fund on the Pipeline tab) and compare against **owned plus other pipeline
+assets** (default) or **owned assets only**. The deal is always left out of
+the "without" side. Shown: gross IRR and multiple, net LP IRR and multiple
+(through the fund's sub line, expenses and waterfall) and GP promote,
+without / with / change; the equity the deal needs and dry powder before and
+after (red if the fund would be over-committed); the largest tenant and
+state shares and fund LTV before and after; and any fund limit (§7.32c) the
+deal would newly breach. Nothing changes on the fund or the deal. Excel.
+
+### 7.37 Fund Impact (phase M)
+
+The **Fund Impact** tab (last under Acquisitions; labelled "Scenario — not
+actual") models pipeline deals into a fund without changing it.
+- Choose the **fund** and the base (owned plus the fund's other pipeline
+  assets, or owned only), and tick the **candidates**: pipeline deals with no
+  fund or bought after today. **Send to Fund Impact** on the Pipeline tab
+  opens this tab with that deal ticked (creating its deal if needed).
+- **Fund with vs. without** all the ticked candidates: gross IRR and
+  multiple, net LP IRR and multiple, GP promote, equity, dry powder (and %
+  used), the largest tenant and state shares, fund LTV, and every fund limit
+  before → after, with **new breaches** in red.
+- **Compare candidates:** each alone on the base, ranked by its effect on
+  fund net LP IRR, with each one's share of the combined change and its
+  breaches.
+- Per candidate: **Break-even price** (the highest price at which fund net
+  LP IRR stays at or above the fund plan's target, or the fund without it,
+  with no new breach) and **Sensitivity** (fund net LP IRR across price ±10%
+  and exit cap ±50 bps).
+- **Saved scenarios:** name the scenario and **Save as new scenario** (v1);
+  later changes **Save current as v2**, v3… Each saved version is frozen
+  (inputs and results, who and when, a note) and can be viewed again; **Load
+  candidates** picks the latest version's candidates. Saved on the fund's
+  record.
+- **Add to fund** is the only step that changes anything: the candidate
+  becomes a deal of the fund (asks first; logged).
+- **Excel** for the live view or the version shown.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3340,7 +3424,7 @@ each phase and the decisions behind it are in
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Remaining: insurance vs. loan requirements, an asset map sized by value |
-| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
+| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Remaining: PDF for scenario versions, pipeline deals from an OM on the Documents tab |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
