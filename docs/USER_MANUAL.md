@@ -271,7 +271,7 @@ in the header, next to User manual.
 | Tab | What it does |
 |---|---|
 | **Asset Business Plan** | The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Fund Return shows NOI vs budget by asset. Below the plan: **photos** (caption, date, order, cover), a **location map** (OpenStreetMap, located once) and a **floor plan** (uploaded image with unit boxes colored by lease status, or a schematic), where vacant units can be **demised** or **combined** (§7.31). |
-| **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
+| **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. Details also has **Underwritten vs. actual** (freeze a baseline; by-year and returns comparison, the IRR gap by cause, Excel and a PDF report; §7.32). |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
 | **Valuation** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, each asset's quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. (Fund NAV and the fund's gross / net LP interim returns and value change are on Fund Return.) |
@@ -286,7 +286,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. |
+| **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. Then **Underwritten vs. actual + projected**: each asset with a frozen baseline ranked by IRR gap (§7.32). |
 | **Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 
 **Library**
@@ -526,6 +526,7 @@ underwriting-calculator/
 │   ├── Valuations.jsx        Valuation tab (fair value marks, asset NAV, valuation PDF)
 │   ├── FundNav.jsx           Fund NAV and interim returns (top of Fund Return)
 │   ├── AssetMedia.jsx        Photos, location map, floor plan, demise / combine
+│   ├── UwVsActual.jsx        Underwritten vs. actual (asset Details, Fund Return ranking)
 │   ├── FundTypeBadge.jsx     Fund type tag badge
 │   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
 │   ├── CashYield.jsx         Cash-on-cash yield charts and table
@@ -548,6 +549,8 @@ underwriting-calculator/
 │   ├── enterprise.js         Firm-wide header figures (AUM, SF, assets, tenants, occupancy)
 │   ├── assetMedia.js         Photos, map, floor plan, demise / combine, actual NOI (§7.31)
 │   ├── assetPhotos.js        asset-photos bucket: upload, signed links, delete
+│   ├── uwActual.js           Underwritten vs. actual + projected, IRR gap by cause (§7.32)
+│   ├── uwActualPdf.js        Asset-management report PDF
 │   ├── fundTypes.js          Fund type tag (Fund / Separate Account / Joint Venture)
 │   ├── sofr.js               CME SOFR futures fetch (optional)
 │   ├── capPricer.js          Bachelier cap pricer and vol surface
@@ -1987,6 +1990,42 @@ for every line. Flag: amber when unfavorable by more than the threshold
 **KPIs:** NOI (last 12 months of actuals, annualized), occupancy and average
 rent from the rent roll, WALT, capex spent vs budget.
 
+### 7.32 Underwritten vs. actual (`lib/uwActual.js`)
+
+**Baseline.** Asset Summary → Details → **Freeze underwriting baseline**
+keeps a copy of the asset's model inputs as underwritten (do it at closing;
+"IC" is noted when the IC-approved figures are on the deal). It is stored as
+`inputs.uwBaseline` and never changes unless you **Replace baseline**
+(confirmed and logged). Its figures are recalculated from the frozen inputs,
+so the baseline always runs through the same model as today.
+
+**Actual + projected.** For each hold year (year 1 starts in the acquisition
+month): NOI from the Asset Business Plan's actuals for the months that have
+them, and today's model for the rest (status actual, partial or projected).
+Cash flow moves with NOI; capital and debt service come from the model (the
+income statement import has none). Occupancy for the current year is the
+rent roll's today. Returns: levered IRR and multiple on these cash flows
+with today's model's exit; unlevered IRR on NOI less TI and leasing, with
+the exit net of sale costs.
+
+**Comparison.** By year: NOI, occupancy, capital, cash flow, cash-on-cash,
+DSCR; returns: levered and unlevered IRR, multiple, exit value, exit cap,
+total cost, loan; each with its variance.
+
+**IRR gap by cause.** Starting from the baseline, each group of inputs is
+switched to today's values in turn, and the change in IRR is credited to it:
+price and closing costs → rent and leasing (rent roll, rents, vacancy,
+leasing costs, NOI overrides) → operating expenses and fees → capex →
+financing (loan, rate, curve, caps) → timing (acquisition date, hold) → exit
+(exit cap, sale costs, realized sale). **Other inputs** is anything not in a
+group; **Operations to date** is actual + projected vs. today's model. The
+causes add up to the gap. The order matters a little (a later group is
+measured with the earlier ones already changed).
+
+**Views.** Asset Summary → Details (with **Excel** and a **PDF report**, the
+printable asset-management report) and, on Fund Return, every asset with a
+baseline ranked by IRR gap, largest shortfall first (Excel).
+
 ### 7.31 Asset photos, map, floor plan and actual NOI (`lib/assetMedia.js`)
 
 Shown under the business plan on the **Asset Business Plan** tab (phase I
@@ -2410,6 +2449,7 @@ reference data except lease end, which sets months remaining (§7.19).
 | `loanTerms` | `{ lender, maturityDate, floorPct, capMaxStrikePct, capMinRating, capReplacementDays, prepayment, reserves, reporting, docId }` |
 | `loanCovenants` | `{ dscr, debtYieldPct, ltvPct, testing, cure }` |
 | `businessPlan` | `{ revisions: [{ n, at, by, note, reason, changes, plan, budget, model }], actuals: { "YYYY-MM": lines }, actualsSource, comments: { "<period>|<line>": text }, thresholdPct }` (§7.30) |
+| `uwBaseline` | `{ at, by, note, source: "closing" \| "ic", inputs }`: the frozen underwriting (model inputs without `businessPlan`, `assetMedia`, `icApproved`) (§7.32) |
 | `assetMedia` | `{ photos: [{ id, path, name, caption, date, order, cover }], floorPlan: { path, name, kind, boxes: { unitId: { x, y, w, h } } }, geo: { lat, lon, label, query, source, at } }` (§7.31). Files are in the private `asset-photos` bucket at `<workspace>/<deal id>/photos/…` and `…/floorplan/…`; box coordinates are fractions of the plan; `geo.source` is `geocoded` or `manual` |
 | `executedCaps` | `[{ holdYear, provider, rating, strikePct, effective, termination, notional, premium, index, tradeDate, docId }]` from cap confirmations |
 
@@ -3025,7 +3065,7 @@ each phase and the decisions behind it are in
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Live (PR #72) |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 built 11/23: photos, map, floor plan, demising / combining, actual NOI in Valuation and Sell/Hold |
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
-| J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
+| J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
