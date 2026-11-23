@@ -1,0 +1,27 @@
+Construction Invoice Detail through 10/31/2026
+"SAMPLE – FICTIONAL – FOR TESTING ONLY (generic layout in the style of a construction manager export, not a Yardi template)"
+
+Job Code,Property,Unit,Vendor,Invoice Number,Invoice Date,Cost Code,Description,Amount,Status
+mf1-01-J01,mf1-01,001,Example Builders Inc.,INV-1001,2026-08-17,TI-200,"Unit 001 re-tenant TI, draw 1",8620,Paid
+mf1-01-J01,mf1-01,001,Sample Electric Co.,INV-1002,2026-08-31,TI-200,"Unit 001 re-tenant TI, draw 2",8628,Paid
+mf1-01-J02,mf1-01,002,Example Builders Inc.,INV-1003,2026-09-22,TI-200,"Unit 002 renewal TI, draw 1",1900,Paid
+mf1-01-J02,mf1-01,002,Sample Electric Co.,INV-1004,2026-10-06,TI-200,"Unit 002 renewal TI, draw 2",1900,Paid
+mf1-01-J03,mf1-01,012,Example Builders Inc.,INV-1005,2026-10-15,TI-200,"Unit 012 lease-up TI, draw 1",3200,Paid
+mf1-01-J03,mf1-01,012,Sample Electric Co.,INV-1006,2026-10-29,TI-200,"Unit 012 lease-up TI, draw 2",3200,Paid
+mf1-01-J04,mf1-01,,Test Roofing & Paving LLC,INV-1007,2026-09-29,CAP-100,"Roof replacement, Building B, draw 1",33000,Paid
+mf1-01-J04,mf1-01,,Example Builders Inc.,INV-1008,2026-10-13,CAP-100,"Roof replacement, Building B, draw 2",33000,Paid
+mf1-01-J04,mf1-01,,Test Roofing & Paving LLC,INV-1009,2026-10-27,CAP-100,"Roof replacement, Building B, draw 3",33000,Approved
+mf1-02-J05,mf1-02,017,Example Builders Inc.,INV-1010,2026-05-18,TI-200,"Unit 017 lease-up TI, draw 1",9200,Paid
+mf1-02-J05,mf1-02,017,Sample Electric Co.,INV-1011,2026-06-01,TI-200,"Unit 017 lease-up TI, draw 2",9200,Paid
+mf1-02-J07,mf1-02,001,Example Builders Inc.,INV-1012,2026-09-15,TI-200,"Unit 001 renewal TI, draw 1",2300,Paid
+mf1-02-J07,mf1-02,001,Sample Electric Co.,INV-1013,2026-09-29,TI-200,"Unit 001 renewal TI, draw 2",2300,Paid
+mf1-03-J08,mf1-03,016,Example Builders Inc.,INV-1014,2026-09-28,TI-200,"Unit 016 lease-up TI, draw 1",5400,Paid
+mf1-03-J08,mf1-03,016,Sample Electric Co.,INV-1015,2026-10-12,TI-200,"Unit 016 lease-up TI, draw 2",5400,Approved
+mf1-03-J09,mf1-03,,Test Roofing & Paving LLC,INV-1016,2026-07-20,CAP-100,"Parking lot resurfacing, draw 1",31670,Paid
+mf1-03-J09,mf1-03,,Example Builders Inc.,INV-1017,2026-08-03,CAP-100,"Parking lot resurfacing, draw 2",31670,Paid
+mf1-03-J09,mf1-03,,Test Roofing & Paving LLC,INV-1018,2026-08-17,CAP-100,"Parking lot resurfacing, draw 3",31660,Paid
+mf1-04-J10,mf1-04,014,Example Builders Inc.,INV-1019,2026-08-03,TI-200,"Unit 014 lease-up TI, draw 1",7170,Paid
+mf1-04-J10,mf1-04,014,Sample Electric Co.,INV-1020,2026-08-17,TI-200,"Unit 014 lease-up TI, draw 2",7170,Paid
+mf1-04-J10,mf1-04,014,Fictional HVAC Services,INV-1021,2026-08-31,TI-200,"Unit 014 lease-up TI, draw 3",7164,Approved
+mf1-06-J11,mf1-06,021,Example Builders Inc.,INV-1022,2026-10-19,TI-200,"Unit 021 lease-up TI, draw 1",2250,Paid
+mf1-06-J11,mf1-06,021,Sample Electric Co.,INV-1023,2026-10-31,TI-200,"Unit 021 lease-up TI, draw 2",2250,Paid

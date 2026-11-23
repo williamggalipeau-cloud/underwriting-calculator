@@ -19,7 +19,7 @@ changes the model without the user clicking to apply it.
 | F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Live (PR #71); 27 Node + 12 Playwright checks |
 | G | Appraisal → Valuations tab | ✅ Live (PR #71); 14 Node + 8 Playwright checks |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Live (PR #72); 32 Node + 23 Playwright checks |
-| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 built 11/23 (PR); 30 Node + 18 Playwright checks. Part 2 (photos, map, floor plan, demising) next |
+| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); 30 Node + 18 Playwright checks. Part 2 (photos, map, floor plan, demising) next |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
@@ -382,7 +382,7 @@ following H.
 
 ### Phase I: asset business plan and budget vs. plan (added 11/22)
 
-**Part 1 built 11/23.** New **Business Plan** tab: revision 1 seeded from the
+**Part 1 built 11/23.** New **Asset Business Plan** tab: revision 1 seeded from the
 IC memo and closing model with the budget locked; edits and model changes
 saved as new revisions (never overwriting), compared side by side; leasing
 plan by unit, capital plan (spent vs budget), operating / financing / exit,
@@ -395,6 +395,37 @@ one) and Excel; fund NOI vs budget card on Portfolio Return.
 **Part 2 (next):** asset photos, location map and floor plan (need a storage
 bucket and a map source), demising / combining units, and feeding actual
 NOI to Valuations and Sell / Hold.
+
+**Later enhancement (user, 11/23; not scheduled): TI spend by unit.** As the
+value-add plan is carried out, record TI dollars actually spent against the
+unit they were spent on. Each entry has a date, unit, amount, vendor or
+description, and an optional invoice PDF. Three ways in (user, 11/23):
+- **Manual:** add or edit a job (unit, category, budget, committed, status)
+  and its invoices or payments by hand on the business plan.
+- **Upload:** CSV or Excel job summaries and invoice detail, with columns
+  matched like the other imports (property and unit mapped once, then kept).
+  The format is the mock export below.
+- **Yardi Construction Manager, auto-import (future):** when a Yardi
+  connection is set up, jobs and invoices are pulled automatically on a
+  schedule and matched to assets and units. Manual entries and uploads stay
+  editable, and each row shows its source (manual, file, Yardi).
+
+Mock data for Model Fund I (fictional, generic columns, not Yardi templates):
+`docs/sample-yardi/construction-jobs-2026-10.csv` (11 jobs: TI by unit and
+two capital projects, with budget, revisions, committed, invoiced, paid,
+retainage and status) and `construction-invoices-2026-10.csv` (their
+invoices), from `scripts/sample-yardi/generate.cjs`; totals in
+`expected.json` → `construction`. Cases: Airport Flex unit 001 re-tenant
+7.8% over budget; Ridgeway unit 014 34% over (red); jobs complete, in
+progress and not started; a roof and a paving project not tied to a unit.
+
+The business plan would show:
+- for each unit in the leasing plan, TI spent vs. planned (TI/SF × SF), with
+  the remaining balance and an overrun flag;
+- the asset total vs. the TI/LC budget and the TI reserve or lender-funded
+  TI draws, and spend vs. the budget's TI/LC line in budget vs. actual;
+- each entry, logged and shown in the plan PDF and Excel export.
+Later this could feed phase L's TI funding coverage heat map.
 
 At closing, each asset gets a business plan for its whole hold, with a
 budget (the financial side of the plan). The plan, the current budget and
