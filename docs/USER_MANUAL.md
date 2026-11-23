@@ -252,7 +252,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
 | **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), after Leases |
 | **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
-| **Portfolio Management** | Fund Plan · Fund Return · Stress Testing | Fund Summary (N) first, Distribution Analysis (X) after Fund Return, Fund Debt (S) |
+| **Portfolio Management** | Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Summary (N) first, Fund Debt (S) |
 | **Market** | (none yet) | Market Data (U) |
 | **Library** | Documents | Reports (L) |
 
@@ -293,6 +293,7 @@ in the header, next to User manual.
 |---|---|
 | **Fund Plan** | The fund's frozen plan (and re-forecasts) against actuals to date and today's forecast: capital called, deployment, distributions, DPI, NAV, projected returns vs. targets, GP promote, a cumulative chart, attribution by asset and cause; Excel and PDF report (§7.33). |
 | **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. Then **Underwritten vs. actual + projected**: each asset with a frozen baseline ranked by IRR gap (§7.32). |
+| **Distribution Analysis** | Each quarter's distributable cash: asset cash (Yardi upload or entered; projected where none is entered, labelled), less reserves, committed TI / capex and 3 months of asset expenses; fund cash less 6 months of fund expenses; less any sub line repayment. Choose the distribution (% or amount), LP / GP split per the waterfall, yield on LP contributed capital and NAV, last 4 quarters; save a proposal and record it as paid; Excel and PDF (§7.34). |
 | **Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 
 **Library**
@@ -2126,6 +2127,61 @@ the final extended term (or end before the decision date) are adjusted to
 the nearest allowed year, with a note naming them; a sale after the fund's
 term is flagged as needing the extensions.
 
+### 7.34 Distribution Analysis (`lib/distributions.js`, phase X)
+
+The **Distribution Analysis** tab (Portfolio Management, after Fund Return)
+works out how much the fund can distribute for a quarter (default: the last
+completed quarter) and how it splits.
+
+**Asset cash.** One row per asset held at the quarter end (assets bought
+later or sold earlier are listed as not included):
+- **Cash at quarter end:** **Upload Yardi cash** reads a cash or bank
+  balance report (CSV or Excel: a property code or name column and a
+  balance column; amounts in parentheses are negative; total rows are
+  skipped). Properties match by Yardi code or name and the match is
+  remembered. The report's as-of date picks the quarter. Or type a balance.
+- With no balance, the asset uses the model's **projected** operating cash
+  for the quarter, marked **projected, no balance entered**; the total shows
+  how much of the cash is actual and how much projected.
+- Less **lender reserves** and **committed TI / capex** not yet paid
+  (entered), and a **working-capital minimum** of 3 months of the asset's
+  projected operating expenses (the model's hold year containing the
+  quarter). An asset never adds less than $0.
+
+**Fund cash and sub line.** Fund cash (entered, else the model's projected
+fund cash) less a minimum of 6 months of projected fund expenses
+(management fee and sub line costs for the next two quarters). The **sub
+line term sheet** rule: no repayment, repay the balance outstanding first
+(clean-down), or repay a fixed amount first.
+
+**Distributable cash** = assets + fund cash available − sub line repayment.
+
+**The distribution:** a % of distributable cash or an amount (capped at
+distributable). It splits LP / GP by the fund's waterfall and income
+treatment (the LPA terms), run on the fund's history before the quarter.
+Under "income pays pref, then returns capital", cash beyond the pref and
+the capital outstanding waits for the next sale and shows as **held by the
+waterfall**; before LPs have funded any capital (purchases on the sub line)
+all of it is held, and the tab suggests repaying the sub line. What isn't
+distributed stays in reserve.
+
+**Yield:** the LP distribution × 4 ÷ LP contributed capital, and ÷ LP NAV
+(the Valuation tab's figures at the quarter).
+
+**History:** the 4 quarters before, from distributions recorded in capital
+activity, each with its yield, the trailing 12 months, and the proposed
+quarter.
+
+**Proposals:** **Save proposal** keeps the amount and split (with who and
+when). **Record as paid** (with the paid date) adds a **Distribution paid**
+entry to the fund's capital activity and marks the proposal paid. It feeds
+the history; it doesn't change the fund model, and it doesn't switch the
+fund to actual capital calls. There is no approval step yet (phase V).
+
+**Excel** and **PDF** export the quarter. Everything entered (balances,
+fund cash, the sub line rule, Yardi code matches, proposals) is saved on the
+fund's record.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -3135,7 +3191,7 @@ each phase and the decisions behind it are in
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
-| X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ⛓ Right after K, before L |
+| X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ⛓ After Z |
 | Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ⛓ With Z |
