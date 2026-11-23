@@ -2174,8 +2174,9 @@ the shareable report) shows, as of the quarter end:
 - **Largest tenants** by rent (flag above 10% of fund rent).
 - **Industry (SIC 2-digit):** share of fund rent and each asset's largest
   industry (limits 20% of the fund, 40% of an asset).
-- **Geography:** states and metros (cities) by share of value and NOI
-  (limits 30% / 25%).
+- **Geography:** a drawn map of the states (no map image), each state's
+  circle sized by its share of fund value and red above the limit, and
+  states and metros (cities) by share of value and NOI (limits 30% / 25%).
 - **Debt:** each loan's balance, LTV, lender, spread, maturity, DSCR vs. its
   test, cap strike, expiry, provider and the cap's market value (flags:
   maturing within 18 months, DSCR below or near the test, no cap, cap
@@ -2238,7 +2239,7 @@ open REC, flood zones, high heat, an old Phase I), TI facilities on the
 loans and one planned re-tenanting, set so the heat map shows every colour,
 only where empty. Still to
 come: insurance against loan requirements (once loan agreements carry
-them) and a map of the assets sized by value.
+them).
 
 ### 7.35 Pipeline (phase M)
 
@@ -2274,6 +2275,9 @@ date added.
   breach, and a one-paragraph summary of each top-10 deal with its key risks
   (unscreened deals use 65% leverage for equity). **Preview**, **PDF**,
   **Excel**, and **Save dated version** (re-download its PDF later).
+- An offering memo read on the Documents tab can start a row: **Add to
+  pipeline** (next to New deal from this OM) adds it at Screening, linked
+  to the OM.
 - Every change is in the change log (area Pipeline). Fictional sample files
   for testing: `docs/sample-pipeline/`.
 
@@ -2295,6 +2299,8 @@ without / with / change; the equity the deal needs and dry powder before and
 after (red if the fund would be over-committed); the largest tenant and
 state shares and fund LTV before and after; and any fund limit (§7.32c) the
 deal would newly breach. Nothing changes on the fund or the deal. Excel.
+When the screener's price, NOI or close date differ from the deal's
+Pipeline row, **Update pipeline row** copies them back (logged).
 
 ### 7.37 Fund Impact (phase M)
 
@@ -2322,7 +2328,8 @@ actual") models pipeline deals into a fund without changing it.
   record.
 - **Add to fund** is the only step that changes anything: the candidate
   becomes a deal of the fund (asks first; logged).
-- **Excel** for the live view or the version shown.
+- **PDF** and **Excel** for the live view or the version shown, stamped
+  "Scenario - not actual" with the scenario name, version, date and author.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3424,7 +3431,7 @@ each phase and the decisions behind it are in
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Remaining: insurance vs. loan requirements, an asset map sized by value |
-| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Remaining: PDF for scenario versions, pipeline deals from an OM on the Documents tab |
+| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Fund Impact PDF; Update pipeline row from the screener; Add to pipeline from an OM (11/23) |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |

@@ -31,7 +31,7 @@ import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
 import { withSampleMedia } from "@/lib/sampleMedia";
-import { EMPTY_PIPELINE, toQuickInputs } from "@/lib/pipeline";
+import { EMPTY_PIPELINE, makePipelineDeal, toQuickInputs } from "@/lib/pipeline";
 import Pipeline from "@/components/Pipeline";
 import FundImpact from "@/components/FundImpact";
 import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
@@ -1251,6 +1251,15 @@ export default function Home() {
     setActiveDealId(d.id);
     setActiveTab("quick");
   }
+  // Documents tab: an offering memo starts a pipeline row (phase M).
+  function handleAddPipelineFromOM(inp, doc) {
+    if (!requireEdit()) return false;
+    const row = makePipelineDeal({ name: inp.propertyName || doc.title || "Deal from OM", address: inp.address, city: inp.city, state: inp.state, sf: inp.squareFootage, askingPrice: inp.purchasePrice, noi: inp.noiYear1, source: `OM${doc.title ? `: ${doc.title}` : ""}`, omDocId: doc.id, stage: "screening" }, { by: session?.user?.email ?? "" });
+    noteAudit(`Added ${row.name} to the pipeline from an offering memo`);
+    setPipeline((p) => ({ ...p, deals: [...(p.deals ?? []), row] }));
+    return true;
+  }
+
   // Fund Impact: the one deliberate step that puts a candidate in a fund.
   function handleAddToFund(dealId, fund) {
     if (!requireEdit()) return;
@@ -1883,7 +1892,7 @@ export default function Home() {
               const pl = (pipeline.deals ?? []).find((x) => x.dealId === activeDeal.id);
               return (
                 <div className="space-y-4">
-                  <ScreenerPicker activeDeal={activeDeal} deals={deals} todayISO={today} owned={owned} onSelect={(id) => setActiveDealId(id)} />
+                  <ScreenerPicker activeDeal={activeDeal} deals={deals} todayISO={today} owned={owned} onSelect={(id) => setActiveDealId(id)} pipelineRow={pl ?? null} onSyncRow={locked ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${pl.name} from Deal Screener`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, ...patch } : x)) })); }} />
                   {!owned && (
                     <>
                       <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={funds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={pl?.targetFund || ""} />
@@ -2163,6 +2172,7 @@ export default function Home() {
                 onApplyDeal={applyToDeal}
                 onApplyFund={applyToFund}
                 onNewDeal={handleNewDealFrom}
+                onAddPipeline={handleAddPipelineFromOM}
                 marks={valuations}
                 onApplyMark={applyToMark}
               />

@@ -6,6 +6,7 @@ import { listDealDocs } from "@/lib/dealDocs";
 import { listLeases } from "@/lib/leaseDocs";
 import { DEFAULT_RISK_LIMITS, ENV_FIELDS, LEVELS, concentrationChange, riskReport, riskXlsx } from "@/lib/riskReport";
 import { COLORS as TI_COLORS } from "@/lib/tiFunding";
+import StateTileMap from "@/components/StateTileMap";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 
@@ -197,6 +198,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           {r.industry.unclassifiedPct > 0 && <p className="mt-1 text-[11px] text-gray-500">{pct(r.industry.unclassifiedPct)} of rent has no SIC code (Unit Roll).</p>}
         </Sec>
         <Sec title="Geography (share of value)" testId="risk-geo">
+          <StateTileMap states={r.geography.states} limitPct={lim.statePct} />
           <T head={["State", "% value", "% NOI", "Assets"]} right={[1, 2, 3]} rows={r.geography.states.map((s) => [s.name, over(s.valuePct, lim.statePct), pct(s.noiPct), s.assets])} />
           <T head={["Metro (city)", "% value", "% NOI", "Assets"]} right={[1, 2, 3]} rows={r.geography.metros.map((s) => [s.name, over(s.valuePct, lim.metroPct), pct(s.noiPct), s.assets])} />
         </Sec>

@@ -175,6 +175,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await rk.getByTestId("risk-stress").locator("tbody tr").count()) >= 8 && /All four together/.test(await rk.getByTestId("risk-stress").innerText()), "stress tests: fund and each asset under five shocks");
   check(/No owner's insurance certificate/.test(await rk.getByTestId("risk-insurance").innerText()) && /No abstracted leases/.test(await rk.getByTestId("risk-lease-flags").innerText()), "insurance and lease flags load from the database (none on file here)");
   check((await rk.getByTestId("risk-change").locator("tbody tr").count()) === 10 && /Largest lender/.test(await rk.getByTestId("risk-change").innerText()) && /6\/30\/2026/.test(await rk.getByTestId("risk-change").innerText()), "change vs. last quarter (6/30/2026)");
+  check((await rk.getByTestId("state-map").count()) === 1 && (await rk.getByTestId("state-tile-held").count()) >= 4, "geography: assets on a drawn state map, sized by value");
   const tiRows = rk.getByTestId("ti-row");
   const nTi = await tiRows.count();
   check(nTi >= 7 && (await rk.getByTestId("ti-cell").count()) === nTi * 8 && /Capital call needed/.test(await rk.getByTestId("risk-ti").innerText()), `TI heat map: ${nTi} assets × 8 quarters, capital call row`);

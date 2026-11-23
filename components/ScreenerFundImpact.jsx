@@ -19,13 +19,25 @@ const tone = (v, good = 1) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-400"
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "—");
 
 // The pipeline deals to pick from, and the notice for an owned asset.
-export function ScreenerPicker({ activeDeal, deals, todayISO, onSelect, owned }) {
+export function ScreenerPicker({ activeDeal, deals, todayISO, onSelect, owned, pipelineRow = null, onSyncRow = null }) {
+  const q = activeDeal.quick ?? {};
+  const diffs = pipelineRow ? [
+    ["askingPrice", "price", q.purchasePrice],
+    ["noi", "NOI", q.noiYear1],
+    ["expectedClose", "close date", q.acquisitionDate],
+  ].filter(([k, , v]) => v != null && v !== "" && String(pipelineRow[k] ?? "") !== String(v)) : [];
   const pipe = deals.filter((d) => isPipeline(d, todayISO));
   return (
     <div className="space-y-2" data-testid="screener-picker">
       {owned && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="screener-owned">
           <span className="font-semibold">{activeDeal.inputs.propertyName}</span> is an owned asset of {activeDeal.inputs.fundName} (acquired {usDate(activeDeal.inputs.acquisitionDate)}). Deal Screener is for pipeline deals; owned assets are on the Asset Management tabs.
+        </p>
+      )}
+      {!owned && diffs.length > 0 && onSyncRow && (
+        <p className="flex flex-wrap items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs text-sky-900" data-testid="screener-sync">
+          The screener&apos;s {diffs.map(([, l]) => l).join(", ")} differ from the Pipeline row.
+          <button type="button" onClick={() => onSyncRow(Object.fromEntries(diffs.map(([k, , v]) => [k, v])))} className="rounded border border-sky-300 bg-white px-2 py-0.5 font-medium">Update pipeline row</button>
         </p>
       )}
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
