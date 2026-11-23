@@ -164,5 +164,24 @@ ok(rr2.limits.lenderPct === 80 && !rr2.fundFlags.some((f) => /holds/.test(f.text
 const rx = RK.riskXlsx("Model Fund I", rr);
 ok(/INTERNAL/.test(rx[0][0]) && rx.some((r2) => r2[0] === "Lender") && rx.some((r2) => r2[0] === "Cap counterparty") && rx.some((r2) => r2[0] === "Environmental"), "Excel: internal title and every section");
 
+// ── TI funding coverage (lib/tiFunding.js) ──
+const TI = j(R + "/lib/tiFunding.js");
+const tic = TI.tiCoverage(qdeals, qterms, { asOf: "2026-11-23" });
+ok(tic.quarters.length === 8 && tic.quarters[0].label === "2026 Q4" && tic.quarters[7].label === "2028 Q3", "8 quarters from 2026 Q4");
+const colors = new Set(tic.assets.flatMap((a) => a.cells.map((c) => c.color)));
+ok(["green", "lightgreen", "amber", "red", "grey"].every((c) => colors.has(c)), `the test data shows every colour (${[...colors].join(", ")})`);
+ok(tic.assets.every((a) => a.cells.every((c) => Math.abs(c.fromFacility + c.fromCash + c.fromLine + c.call - c.need) < 1e-6)), "each quarter's need = facility + cash flow + sub line + capital call");
+const rgw = tic.assets.find((a) => a.name === "Ridgeway Trade Center");
+ok(rgw.cells[0].testFailed && rgw.cells[0].color === "red" && rgw.cells[0].dscr < 1.45 && rgw.cells.slice(2).every((c) => !c.testFailed), "Ridgeway misses its 1.45x draw test at first, passes later");
+const lks = tic.assets.find((a) => a.name === "Lakeshore Service Center");
+const q28 = lks.cells.find((c) => c.label === "2028 Q1");
+ok(q28.need >= 400000 && q28.fromLine === 0 && q28.call > 0 && tic.fundCall[5] > 0 && tic.lineExpires === "2027-12-31", "Lakeshore's 2028 re-tenanting: sub line expired, capital call needed");
+ok(tic.assets.every((a) => !a.facility || a.cells.every((c, i) => i === 0 || c.facilityLeft <= a.cells[i - 1].facilityLeft + 1e-6)), "facility balance only goes down");
+const cnl = tic.assets.find((a) => a.name === "Canal Street Workshops");
+ok(!cnl.facility && cnl.cells.some((c) => c.color === "amber") && cnl.cells.every((c) => c.fromFacility === 0), "no facility: cash flow, then the sub line");
+ok(TI.facilityOf({ tiReserve: { enabled: true, reservePSF: 8, minDrawDSCR: 1.1 } }, 1000).total === 8000 && TI.facilityOf({}, 1000) === null, "facility from the model's TI reserve when no loan facility is set");
+const rrt = RK.riskReport(qdeals.filter((d) => sh.portfolio.some((x) => x.id === d.id)), qterms, { asOf: "2026-09-30", values, tiAsOf: "2026-11-23" });
+ok(rrt.ti && rrt.watch.some((w) => w.reasons.some((x) => /TI draw test/.test(x))), "risk report: TI heat map and draw-test flags on the watch list");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

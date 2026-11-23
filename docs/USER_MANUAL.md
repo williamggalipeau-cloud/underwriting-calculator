@@ -2193,16 +2193,32 @@ the shareable report) shows, as of the quarter end:
   materials, FEMA flood zone, wildfire and heat exposure, notes. Open items:
   no Phase I or one over 5 years old, RECs without an NFA letter, flood zone
   A or V, high wildfire or heat.
+- **TI funding coverage** (heat map): for each asset and the next 8
+  quarters, the TI and leasing commissions due (expiring leases at the
+  renewal / new-lease mix the cash flow uses, vacant units leased in the
+  first quarter, and planned TI entered for the asset) and how they're
+  covered, in order: the loan's TI facility (what's left, if the asset
+  passes the draw test that quarter: DSCR at or above the minimum, a debt
+  yield minimum where set, and the facility not yet expired), the asset's
+  cash flow, the fund's sub line (active to the end of the investment period,
+  room = size less the model's balance, shared across assets), then a
+  capital call. Green = facility, light green = asset cash flow, amber =
+  needs the sub line, red = capital call or the draw test fails, grey = no
+  TI due. Hover a cell for the need, each source, and how far NOI could fall
+  before draws stop. A fund row shows the capital call needed each quarter.
+  Draw-test failures and capital calls go on the watch list.
 - **Concentration limits used here** can be changed per fund.
 **PDF** (watermarked "Internal - not for distribution" on every page),
 **Excel**, and **Issue risk report** (frozen, v1, v2…).
 
 **Sample data → Add risk test data to the sample assets** (owners) gives the
 sample assets made-up lenders (one over the 35% limit), cap counterparties
-(one writing most caps, one asset with none) and environmental entries (an
-open REC, flood zones, high heat, an old Phase I), only where empty. Still to
-come in phase L: the TI funding heat map with its test data, stress tests,
-insurance and lease risk flags in the report.
+(one writing most caps, one asset with none), environmental entries (an
+open REC, flood zones, high heat, an old Phase I), TI facilities on the
+loans and one planned re-tenanting, set so the heat map shows every colour,
+only where empty. Still to
+come in phase L: stress tests, insurance and lease risk flags in the
+report, and TI actions (postpone, cut, plan a call) on the heat map.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 

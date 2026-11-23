@@ -172,6 +172,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/Atlas Derivatives Bank/.test(await rk.getByTestId("risk-caps").innerText()) && /No provider entered/.test(await rk.getByTestId("risk-caps").innerText()), "cap counterparties, and the asset with no provider");
   check((await rk.getByTestId("risk-watch").locator("tbody tr").count()) >= 3, "watch list ranks assets");
   check(/Fund leverage/.test(await rk.getByTestId("risk-fund-limits").innerText()), "fund limits in the risk report");
+  const tiRows = rk.getByTestId("ti-row");
+  const nTi = await tiRows.count();
+  check(nTi >= 7 && (await rk.getByTestId("ti-cell").count()) === nTi * 8 && /Capital call needed/.test(await rk.getByTestId("risk-ti").innerText()), `TI heat map: ${nTi} assets × 8 quarters, capital call row`);
+  const r9ti = tiRows.filter({ hasText: "Route 9 Small Bay" });
+  const r9cols = await r9ti.getByTestId("ti-cell").evaluateAll((els) => els.map((e) => e.dataset.color));
+  check(/\$336,000 facility, 1\.25x/.test(await r9ti.innerText()) && r9cols.includes("green"), `Route 9: $336k facility at 1.25x, covered (${r9cols.join(",")})`);
+  const tip = await r9ti.getByTestId("ti-cell").filter({ hasText: /\d/ }).first().getAttribute("title");
+  check(/need \$[\d,]+ · facility/.test(tip ?? "") && /capital call/.test(tip ?? ""), `hover explains the sources: ${tip}`);
   const envHl = rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" });
   check(/RECs without a no-further-action letter/.test(await envHl.innerText()), "environmental: Harbor Light's open REC");
   await envHl.getByLabel("No-further-action letter Harbor Light Industrial").check();

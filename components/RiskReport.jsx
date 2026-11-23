@@ -3,6 +3,7 @@
 // Phase L: the internal risk report (Reports tab, owners and editors only).
 import { useMemo, useState } from "react";
 import { DEFAULT_RISK_LIMITS, ENV_FIELDS, LEVELS, riskReport, riskXlsx } from "@/lib/riskReport";
+import { COLORS as TI_COLORS } from "@/lib/tiFunding";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 
@@ -38,7 +39,8 @@ function T({ head, rows, right = [] }) {
 const over = (v, lim) => (v > lim ? <span className="font-semibold text-red-700">{pct(v)}</span> : pct(v));
 
 export default function RiskReport({ fundName, terms, deals, values, asOf, curve, planGap, lineBalance = 0, email, canEdit, onFundTermsChange, onApplyDeal }) {
-  const r = useMemo(() => riskReport(deals, terms, { asOf, values, curve, planGap, lineBalance }), [deals, terms, asOf, values, curve, planGap, lineBalance]);
+  const today = new Date().toISOString().slice(0, 10);
+  const r = useMemo(() => riskReport(deals, terms, { asOf, values, curve, planGap, lineBalance, tiAsOf: today }), [deals, terms, asOf, values, curve, planGap, lineBalance, today]);
   const [busy, setBusy] = useState(false);
   const lim = r.limits;
   const store = terms.reports ?? {};
@@ -81,6 +83,33 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
       {r.fundLimits.length > 0 && (
         <Sec title="Fund limits (LPA / PPM and internal)" testId="risk-fund-limits">
           <T head={["Limit", "Source", "Limit", "Actual", "Largest", "Status"]} right={[2, 3]} rows={r.fundLimits.map((l) => [l.label, l.source, l.unit === "text" ? l.limit : `${l.limit}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.actual == null ? "—" : `${l.actual.toFixed(1)}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.what || "—", <span key="s" className={l.status === "breached" ? "font-semibold text-red-700" : l.status === "near" ? "text-amber-700" : ""}>{l.status}</span>])} />
+        </Sec>
+      )}
+
+      {r.ti && (
+        <Sec title="TI funding coverage, next 8 quarters" testId="risk-ti" right={<span className="text-[11px] text-gray-500">Facility → asset cash flow → sub line (to {usDate(r.ti.lineExpires)}) → capital call</span>}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="text-gray-500"><tr><th className={`${th} text-left`}>Asset</th>{r.ti.quarters.map((q) => <th key={q.quarter} className={`${th} text-center`}>{q.label}</th>)}</tr></thead>
+              <tbody>
+                {r.ti.assets.map((a) => (
+                  <tr key={a.id} data-testid="ti-row">
+                    <td className={`${td} whitespace-nowrap`}>{a.name}<span className="ml-1 text-[10px] text-gray-400">{a.facility ? `${fmtM(a.facility.total)} facility, ${a.facility.minDscr.toFixed(2)}x` : "no facility"}</span></td>
+                    {a.cells.map((c) => (
+                      <td key={c.quarter} className="p-0.5">
+                        <div data-testid="ti-cell" data-color={c.color} style={{ background: TI_COLORS[c.color].fill }} className="h-7 rounded text-center text-[10px] leading-7 text-white"
+                          title={c.need > 0 ? `${c.label}: need ${fmtM(c.need)} · facility ${fmtM(c.fromFacility)}${c.testFailed ? ` (draw test fails: DSCR ${c.dscr?.toFixed(2)}x < ${a.facility.minDscr.toFixed(2)}x)` : a.facility && c.headroomPct != null ? ` (NOI could fall ${c.headroomPct.toFixed(0)}% before draws stop)` : ""} · cash flow ${fmtM(c.fromCash)} · sub line ${fmtM(c.fromLine)} · capital call ${fmtM(c.call)}` : `${c.label}: no TI due`}>
+                          {c.need > 0 ? fmtM(c.need).replace("$", "") : ""}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                <tr className="border-t border-gray-200 font-semibold" data-testid="ti-call-row"><td className={td}>Capital call needed</td>{r.ti.fundCall.map((x, i) => <td key={i} className={`${td} text-center ${x > 1 ? "text-red-700" : "text-gray-400"}`}>{x > 1 ? fmtM(x) : "—"}</td>)}</tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-gray-600">{Object.entries(TI_COLORS).map(([k, c]) => <span key={k} className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded" style={{ background: c.fill }} />{c.label}</span>)}</div>
         </Sec>
       )}
 
