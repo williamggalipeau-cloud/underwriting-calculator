@@ -2890,7 +2890,7 @@ each phase and the decisions behind it are in
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
-| M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
+| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 

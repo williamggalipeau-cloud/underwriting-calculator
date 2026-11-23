@@ -23,7 +23,7 @@ changes the model without the user clicking to apply it.
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
-| M | Fund impact modeling (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener tab retired | ⛓ Starts when L is complete |
+| M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener tab retired | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
 
@@ -729,6 +729,25 @@ changing the fund.
   phase E. Each candidate has its price, closing date, equity and loan,
   business plan and exit, using the same underwriting as any deal. Nothing
   is added to the fund until the user chooses **Add to fund**.
+- **Pipeline tab** (added 11/23, user's request; Acquisitions group, before
+  Deal Screener and Fund Impact): every deal being watched, one row each:
+  - *Fields:* name, address and market, SF, asking price, $/SF, cap rate or
+    NOI, broker or source, date added, owner, stage, next step and date,
+    target fund, notes, and a link to its OM on the Documents tab.
+  - *Stages:* Watching → Screening → LOI → Under contract (PSA) → Closed,
+    plus Passed / Lost with a reason.
+  - *Adding deals:* entered by hand, or uploaded from **CoStar** exports or
+    an **internal spreadsheet** (CSV or Excel). Columns are matched like the
+    Sales Comps import, the map is remembered per source, and a blank
+    template can be downloaded. A deal can also come from an OM read on the
+    Documents tab. Re-uploads update matching deals (by name and address)
+    instead of duplicating them.
+  - *Actions:* **Screen** (opens it in Deal Screener with its inputs filled),
+    **Send to Fund Impact** (adds it as a candidate) and **Convert to asset**
+    once closed.
+  - *Views:* filter by stage, fund, market or owner; totals by stage (count,
+    SF, value); Excel export. The pipeline report's top 10 comes from this
+    list. Every change is logged.
 - **Pipeline assets in Deal Screener** (added 11/22, user's request): the
   Deal Screener has a **Model in fund** picker listing the fund's pipeline
   assets (acquisition date after today) and any saved deals not yet in a
