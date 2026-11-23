@@ -1327,7 +1327,10 @@ the database, so it also goes with exports. Nothing is kept in the browser.
   - Rent roll: vacancy % + x, renewal probability − 2x, downtime + 0.15x
     months.
   - Direct NOI: year-1 NOI × (1 − x%).
-- **Rent / NOI growth −x pts.**
+- **Rent / NOI growth −x pts** (Lower Rent Increases, 0–15%): cuts market
+  rent growth (or NOI growth on direct-NOI deals); a cut larger than the base
+  growth means rents fall. Rent bumps written into existing leases are
+  unchanged.
 - **Rate +x bp:** added to the spread (floating) or the fixed rate.
 - **Exit cap +x pts.**
 - **Opex +x%:** scales each expense line and the management %.
