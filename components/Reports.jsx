@@ -13,6 +13,7 @@ import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, reportXls
 import { assetFileLinks, imageDataUrl, isSamplePath } from "@/lib/assetPhotos";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import FundLimits from "@/components/FundLimits";
+import RiskReport from "@/components/RiskReport";
 
 const fmtM = (n) => {
   if (n == null || !isFinite(n)) return "—";
@@ -48,7 +49,8 @@ function Stat({ label, value }) {
   );
 }
 
-export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, pipeline = [] }) {
+export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, onApplyDeal, pipeline = [] }) {
+  const [view, setView] = useState("quarterly");
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
   const fundName = fundNames.includes(fundPick) ? fundPick : fundNames[0];
@@ -126,6 +128,30 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
         </div>
       </div>
 
+      {canEdit && (
+        <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-xs w-fit" role="tablist">
+          {[["quarterly", "Quarterly report"], ["risk", "Risk report (internal)"]].map(([v, l]) => (
+            <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)} className={`rounded-md px-3 py-1 font-medium ${view === v ? "bg-white text-blue-700 shadow-sm" : "text-gray-500"}`}>{l}</button>
+          ))}
+        </div>
+      )}
+      {view === "risk" && canEdit ? (
+        <RiskReport
+          fundName={fundName}
+          terms={terms}
+          deals={fundDeals.filter((d) => report.portfolio.some((x) => x.id === d.id))}
+          values={Object.fromEntries(report.portfolio.map((x) => [x.id, x.value]))}
+          asOf={report.qEnd}
+          lineBalance={report.nav.lineBalance}
+          curve={curve}
+          planGap={report.plan ? { plan: report.plan.projected.find((x) => x.key === "netLpIrr")?.plan ?? null, current: report.plan.projected.find((x) => x.key === "netLpIrr")?.current ?? null } : null}
+          email={email}
+          canEdit={canEdit}
+          onFundTermsChange={onFundTermsChange}
+          onApplyDeal={onApplyDeal}
+        />
+      ) : (
+      <>
       {msg && <p className={`rounded-lg border px-3 py-2 text-xs ${msg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`} data-testid="report-msg">{msg.text}</p>}
       {k === "internal" && <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="internal-banner">Internal version: adds underwritten vs. actual, budget variances and internal notes. Not for distribution.</p>}
 
@@ -198,6 +224,8 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           </ul>
         )}
       </div>
+      </>
+      )}
     </section>
   );
 }

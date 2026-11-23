@@ -31,6 +31,7 @@ import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
 import { withSampleMedia } from "@/lib/sampleMedia";
+import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
@@ -1351,6 +1352,16 @@ export default function Home() {
     setDeals((prev) => prev.map(withSampleMedia));
   }
 
+  // Risk test data (phase L): made-up lenders, cap counterparties and
+  // environmental entries on the sample assets, only where still empty.
+  function handleAddRiskTestData() {
+    if (!requireEdit()) return;
+    const n = deals.filter((d) => withRiskTestData(d) !== d).length;
+    if (!n) { window.alert("The sample assets already have lenders, cap providers and environmental entries."); return; }
+    noteAudit(`Added risk test data (lenders, cap providers, environmental) to ${n} sample asset${n === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map(withRiskTestData));
+  }
+
   function handleClearTest() {
     if (!requireEdit()) return;
     noteAudit("Cleared test and sample data");
@@ -1516,6 +1527,7 @@ export default function Home() {
                 {[
                   { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
                   { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
+                  { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
                   { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
                   { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
                 ].map((a) => (
@@ -1845,6 +1857,7 @@ export default function Home() {
             {activeTab === "reports" && (
               <Reports
                 pipeline={unassignedDeals}
+                onApplyDeal={applyToDeal}
                 deals={fundDeals}
                 funds={funds}
                 marks={valuations}

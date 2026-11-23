@@ -162,11 +162,39 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const [xl] = await Promise.all([p.waitForEvent("download"), rp.getByRole("button", { name: "Excel" }).first().click()]);
   check(/2026-Q3-shareable-report\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
   await p.screenshot({ path: S + "/phaseL_reports.png", fullPage: true });
+
+  // Risk report (internal)
+  await rp.getByRole("tab", { name: "Risk report (internal)" }).click();
+  await p.waitForTimeout(2000);
+  const rk = rp.getByTestId("risk-report");
+  check((await rk.count()) === 1 && /Internal — not for distribution/.test(await rk.innerText()), "risk report: marked internal");
+  check(/Cascade Commercial Bank/.test(await rk.getByTestId("risk-lenders").innerText()) && /Cascade Commercial Bank holds/.test(await rk.getByTestId("risk-fund-flags").innerText()), "lender concentration over 35% flagged");
+  check(/Atlas Derivatives Bank/.test(await rk.getByTestId("risk-caps").innerText()) && /No provider entered/.test(await rk.getByTestId("risk-caps").innerText()), "cap counterparties, and the asset with no provider");
+  check((await rk.getByTestId("risk-watch").locator("tbody tr").count()) >= 3, "watch list ranks assets");
+  check(/Fund leverage/.test(await rk.getByTestId("risk-fund-limits").innerText()), "fund limits in the risk report");
+  const envHl = rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" });
+  check(/RECs without a no-further-action letter/.test(await envHl.innerText()), "environmental: Harbor Light's open REC");
+  await envHl.getByLabel("No-further-action letter Harbor Light Industrial").check();
+  await p.waitForTimeout(1200);
+  check(!/RECs without/.test(await rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" }).innerText()), "ticking the NFA letter closes the REC item");
+  const [rpdf] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), rk.getByRole("button", { name: "PDF", exact: true }).first().click()]);
+  const rPath = S + "/l_risk.pdf"; await rpdf.saveAs(rPath);
+  const rTxt = execFileSync("pdftotext", ["-layout", rPath, "-"]).toString();
+  check(/Risk report/.test(rTxt) && /INTERNAL - not for distribution/.test(rTxt) && /Cascade Commercial Bank/.test(rTxt) && /Environmental/.test(rTxt), "risk PDF: internal, lenders, environmental");
+  await rk.getByRole("button", { name: "Issue risk report" }).click();
+  await p.waitForTimeout(1000);
+  check(/v1 · issued/.test(await rk.getByTestId("risk-issued").innerText()), "risk report issued as v1");
+  await p.screenshot({ path: S + "/phaseL_risk.png", fullPage: true });
+  await rp.getByRole("tab", { name: "Quarterly report" }).click();
+  await p.waitForTimeout(800);
   await p.waitForTimeout(22000);
   const sfr = (saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.reports;
   check((await (async () => { const f = (saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]; return f?.internalLimits?.[0]?.key === "hold_years" && f.internalLimits[0].limit === 4; })()), "saved: the internal limit on the fund");
   check(sfr?.issued?.length === 1 && sfr.issued[0].kind === "internal" && sfr.issued[0].report?.portfolio?.length >= 7 && sfr.issued[0].notes.includes("Route 9 taxes"), "saved: the issued report with its frozen figures");
   check(/test letter/.test(sfr?.drafts?.["2026-Q3"]?.letter ?? ""), "saved: the edited letter draft");
+  check(sfr?.riskIssued?.length === 1 && sfr.riskIssued[0].report?.lenders?.rows?.length >= 3, "saved: the issued risk report");
+  const hlSaved = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.inputs.propertyName === "Harbor Light Industrial")?.inputs;
+  check(hlSaved?.envRisk?.nfa === true, "saved: Harbor Light's NFA letter on the deal");
 
   console.log("errors", errs);
   if (errs.length) fails++;

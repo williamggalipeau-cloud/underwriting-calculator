@@ -2160,6 +2160,50 @@ check:** pick a pipeline deal (a deal not yet in a fund) and each limit shows
 its status with the deal added, flagging any **new breach**. Excel export.
 The internal quarterly report includes the limits table.
 
+### 7.32d Risk report (internal, phase L)
+
+On the Reports tab, **Risk report (internal)** (owners and editors; never in
+the shareable report) shows, as of the quarter end:
+- **Watch list:** assets ranked by a risk score (each flag weighs 1–3), with
+  the reasons; and **fund-level flags** (concentration limits, fund limit
+  breaches).
+- **Fund limits** (§7.32c).
+- **Leasing:** lease expirations by year as % of rent, the 12-month rollover
+  and vacancy, for the fund and each asset (flags: 30%+ of rent rolling in
+  12 months, 15%+ vacant).
+- **Largest tenants** by rent (flag above 10% of fund rent).
+- **Industry (SIC 2-digit):** share of fund rent and each asset's largest
+  industry (limits 20% of the fund, 40% of an asset).
+- **Geography:** states and metros (cities) by share of value and NOI
+  (limits 30% / 25%).
+- **Debt:** each loan's balance, LTV, lender, spread, maturity, DSCR vs. its
+  test, cap strike, expiry, provider and the cap's market value (flags:
+  maturing within 18 months, DSCR below or near the test, no cap, cap
+  expiring within 12 months).
+- **Debt by lender** and **rate cap counterparties:** balance or notional,
+  share, loans, spread, maturities or expiries, the exposure (cap value, what
+  the fund would lose if the counterparty failed) and a concentration index
+  (HHI); limits 35% of debt per lender and 50% of capped notional per
+  counterparty; caps with no provider listed.
+- **Valuation:** marks vs. cost (flag 5%+ below cost), implied vs. exit cap.
+- **Execution:** IRR gap to underwriting (phase J), budget lines over the
+  threshold (phase I), the fund plan gap (phase K).
+- **Environmental and climate,** entered per asset: Phase I date, RECs,
+  Phase II / remediation, no-further-action letter, tenants using hazardous
+  materials, FEMA flood zone, wildfire and heat exposure, notes. Open items:
+  no Phase I or one over 5 years old, RECs without an NFA letter, flood zone
+  A or V, high wildfire or heat.
+- **Concentration limits used here** can be changed per fund.
+**PDF** (watermarked "Internal - not for distribution" on every page),
+**Excel**, and **Issue risk report** (frozen, v1, v2…).
+
+**Sample data → Add risk test data to the sample assets** (owners) gives the
+sample assets made-up lenders (one over the 35% limit), cap counterparties
+(one writing most caps, one asset with none) and environmental entries (an
+open REC, flood zones, high heat, an old Phase I), only where empty. Still to
+come in phase L: the TI funding heat map with its test data, stress tests,
+insurance and lease risk flags in the report.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3259,7 +3303,7 @@ each phase and the decisions behind it are in
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c). Next: the risk report |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). Next: TI funding heat map, stress tests, insurance and lease flags in the risk report |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |

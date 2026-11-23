@@ -133,5 +133,36 @@ ok(FL.limitsXlsx("Model Fund I", rowsL).length === rowsL.length + 3, "Excel rows
 const itl = QR.buildQuarterlyReport(qdeals, lt, {}, { qEnd: Q3, todayISO: "2026-11-23", kind: "internal" });
 ok(itl.internal.limits.length === 5 && itl.internal.limits.some((x) => x.source === "internal"), "internal report summarises the fund limits");
 
+// ── Risk report (lib/riskReport.js) and its test data (lib/sampleRiskData.js) ──
+const RK = j(R + "/lib/riskReport.js");
+const SR = j(R + "/lib/sampleRiskData.js");
+ok(built.every((b) => SR.SAMPLE_RISK[b.inputs.propertyName] && b.inputs.envRisk && b.inputs.lenderName !== "First National Bank"), "sample assets are built with made-up lenders and environmental entries");
+const plainDeal = { id: "x", inputs: { ...built[0].inputs, lenderName: "First National Bank", capProviders: {}, envRisk: undefined } };
+ok(SR.withRiskTestData(plainDeal).inputs.lenderName === "Desert Mountain Bank" && SR.withRiskTestData(plainDeal).inputs.capProviders[1] === "Atlas Derivatives Bank", "Sample data → risk test data fills the default lender and empty provider");
+const own = { id: "y", inputs: { ...built[0].inputs, lenderName: "My Bank" } };
+ok(SR.withRiskTestData(own).inputs.lenderName === "My Bank" && SR.withRiskTestData(built[0]) === built[0], "a lender someone entered is kept; nothing to add returns the same deal");
+const rr = RK.riskReport(held7, { ...qterms, limits: lt.limits }, { asOf: "2026-09-30", values });
+ok(rr.leasing.fund.by.length === 6 && rr.leasing.assets.length === 7 && rr.leasing.fund.rollover12RentPct > 0, `leasing: 6 years of expirations; 12-month rollover ${rr.leasing.fund.rollover12RentPct.toFixed(0)}% of rent`);
+ok(Math.abs(rr.leasing.fund.by.reduce((t2, b2) => t2 + b2.rentPct, 0)) <= 100.0001, "expirations never exceed 100% of rent");
+ok(rr.tenants.length === 10 && rr.tenants[0].rent >= rr.tenants[9].rent && rr.tenants.every((x) => x.pct > 0), "top 10 tenants by rent");
+ok(rr.industry.fund.length > 3 && close(rr.industry.fund.reduce((t2, g) => t2 + g.rentPct, 0) + rr.industry.unclassifiedPct, 100, 1e-6), "industry groups + unclassified = 100% of fund rent");
+const cas = rr.lenders.rows.find((l) => l.lender === "Cascade Commercial Bank");
+ok(cas && cas.pct > 35 && rr.fundFlags.some((f) => /Cascade Commercial Bank holds/.test(f.text)), `lender concentration: Cascade ${cas.pct.toFixed(1)}% > 35%, flagged`);
+ok(rr.lenders.hhi > 0 && rr.lenders.hhi <= 10000 && close(rr.lenders.rows.reduce((t2, l) => t2 + l.pct, 0), 100, 1e-6), `lender HHI ${rr.lenders.hhi}; shares add to 100%`);
+const atlas = rr.caps.byProvider.find((x) => x.provider === "Atlas Derivatives Bank");
+ok(atlas && atlas.pct > 50 && rr.caps.missing.includes("Canal Street Workshops"), `cap counterparties: Atlas ${atlas.pct.toFixed(0)}% of capped notional; Canal Street has no provider`);
+ok(rr.caps.byProvider.every((p) => p.value >= 0) && rr.debt.every((d) => d.capped ? d.capEnd > "2026-09-30" : true), "cap market values (exposure) and expiries");
+ok(rr.geography.states[0].valuePct >= rr.geography.states.at(-1).valuePct && close(rr.geography.states.reduce((t2, x) => t2 + x.valuePct, 0), 100, 1e-6), "geography: states by share of value");
+const hl = rr.environmental.find((e) => e.name === "Harbor Light Industrial");
+const rg = rr.environmental.find((e) => e.name === "Ridgeway Trade Center");
+ok(hl.open.some((o) => /RECs without/.test(o)) && hl.open.some((o) => /flood zone AE/.test(o)) && rg.open.some((o) => /over 5 years old/.test(o)), "environmental: open REC, flood zone AE, old Phase I flagged");
+ok(!rr.environmental.find((e) => e.name === "Mill Creek Business Park").open.some((o) => /RECs/.test(o)), "a REC with a no-further-action letter isn't open");
+ok(rr.watch.length > 0 && rr.watch[0].score >= rr.watch.at(-1).score && rr.watch.every((w) => w.reasons.length), `watch list: ${rr.watch.length} assets, top ${rr.watch[0].name} (${rr.watch[0].score})`);
+ok(rr.fundLimits.length === 4 && rr.fundFlags.some((f) => f.section === "Fund limits"), "fund limits included; a breach is a fund flag");
+const rr2 = RK.riskReport(held7, { ...qterms, riskLimits: { lenderPct: 80 } }, { asOf: "2026-09-30", values });
+ok(rr2.limits.lenderPct === 80 && !rr2.fundFlags.some((f) => /holds/.test(f.text)), "concentration limits can be changed per fund");
+const rx = RK.riskXlsx("Model Fund I", rr);
+ok(/INTERNAL/.test(rx[0][0]) && rx.some((r2) => r2[0] === "Lender") && rx.some((r2) => r2[0] === "Cap counterparty") && rx.some((r2) => r2[0] === "Environmental"), "Excel: internal title and every section");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;
