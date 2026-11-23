@@ -266,7 +266,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900">Return Stress Testing</h2>
+          <h2 className="text-base font-semibold text-gray-900">Stress Testing</h2>
           <p className="text-xs text-gray-400 mt-0.5">
             Adjust risk factors below to see how returns shift under adverse scenarios.
             Base case values shown in grey; stressed values in colour.
@@ -520,7 +520,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
         <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
           <p className="text-sm font-medium text-gray-500">No portfolio assets saved</p>
           <p className="text-xs text-gray-400 mt-1">
-            Save deals in the Portfolio Return tab to see portfolio-level stress impact here.
+            Save deals in the Fund Return tab to see portfolio-level stress impact here.
           </p>
         </div>
       )}

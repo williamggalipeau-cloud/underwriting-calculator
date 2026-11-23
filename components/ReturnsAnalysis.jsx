@@ -32,10 +32,13 @@ const tierColors = {
   bad:   { text: "text-red-700",     bg: "bg-red-50",     border: "border-red-200" },
 };
 
-function KPI({ label, value, sub, t }) {
-  const c = t ? tierColors[t] : { text: "text-gray-900", bg: "bg-gray-50", border: "border-gray-200" };
+// Targets the header used to flag (moved here 11/23): red below these.
+export const TARGETS = { irr: 14, em: 2.0, coc: 7, dscr: 1.25 };
+
+function KPI({ label, value, sub, t, warn }) {
+  const c = warn ? tierColors.bad : t ? tierColors[t] : { text: "text-gray-900", bg: "bg-gray-50", border: "border-gray-200" };
   return (
-    <div className={`rounded-xl border p-4 ${c.bg} ${c.border}`}>
+    <div className={`rounded-xl border p-4 ${c.bg} ${c.border}`} title={warn || undefined} data-testid={warn ? "kpi-below-target" : undefined}>
       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{label}</p>
       <p className={`text-2xl font-bold ${c.text}`}>{value}</p>
       {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
@@ -129,7 +132,7 @@ function WaterfallSection({ wf }) {
 import { AssetCashYield } from "@/components/CashYield";
 import { assetCashYield } from "@/lib/cashYield";
 
-export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs, savedDeals = [] }) {
+export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs, savedDeals = [], dscr }) {
   const [selectedId, setSelectedId] = useState("active");
 
   const selectedInputs = useMemo(() => {
@@ -138,12 +141,17 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
   }, [selectedId, savedDeals, inputs]);
 
   const selectedResults = useMemo(() => {
-    if (selectedId === "active") return { returns, cashFlows, waterfall };
+    if (selectedId === "active") return { returns, cashFlows, waterfall, dscr };
     const r = underwrite(selectedInputs);
-    return { returns: r.returns, cashFlows: r.annualCashFlows, waterfall: r.waterfall };
-  }, [selectedId, selectedInputs, returns, cashFlows, waterfall]);
+    return { returns: r.returns, cashFlows: r.annualCashFlows, waterfall: r.waterfall, dscr: r.debt?.dscr };
+  }, [selectedId, selectedInputs, returns, cashFlows, waterfall, dscr]);
 
-  const { returns: r, cashFlows: cfs, waterfall: wf } = selectedResults;
+  const { returns: r, cashFlows: cfs, waterfall: wf, dscr: dscrSel } = selectedResults;
+  const below = (v, target, unit, what) => (isFinite(v) && v < target ? `Below target: ${what} under ${target}${unit}` : "");
+  const irrWarn = below(r.irr, TARGETS.irr, "%", "IRR");
+  const emWarn = below(r.equityMultiple, TARGETS.em, "x", "equity multiple");
+  const cocWarn = below(r.yearOneCashOnCash, TARGETS.coc, "%", "year-1 cash-on-cash");
+  const dscrWarn = below(dscrSel, TARGETS.dscr, "x", "DSCR");
 
   // Rollover TI/LC over the hold plus any up-front capex budget.
   const totalCapEx = cfs.reduce((s, cf) => s + (cf.tiAndLeasing ?? 0), 0) + (selectedInputs?.capexBudget ?? 0);
@@ -179,17 +187,18 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
 
       {/* Top KPIs */}
       <div className="grid grid-cols-2 gap-3">
-        <KPI label="Gross IRR" value={fmtPct(r.irr)} sub="Levered, before promote" t={irrTier} />
+        <KPI label="Gross IRR" value={fmtPct(r.irr)} sub="Levered, before promote" t={irrTier} warn={irrWarn} />
         {wf
           ? <KPI label="Net LP IRR" value={fmtPct(wf.lpIRR)} sub="After LP/GP waterfall" t={netIrrTier} />
-          : <KPI label="Equity Multiple" value={`${fmt(r.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
+          : <KPI label="Equity Multiple" value={`${fmt(r.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} warn={emWarn} />
         }
-        <KPI label="Year 1 Cash-on-Cash" value={fmtPct(r.yearOneCashOnCash)} sub="Pre-tax cash flow ÷ equity" t={cocTier} />
+        <KPI label="Year 1 Cash-on-Cash" value={fmtPct(r.yearOneCashOnCash)} sub="Pre-tax cash flow ÷ equity" t={cocTier} warn={cocWarn} />
         <KPI label="Going-In Cap Rate" value={fmtPct(r.goingInCapRate)} sub="Year 1 NOI ÷ purchase price" t={capTier} />
+        <KPI label="DSCR (year 1)" value={isFinite(dscrSel) ? `${dscrSel.toFixed(2)}x` : "—"} sub="NOI ÷ debt service" warn={dscrWarn} />
       </div>
       {wf && (
         <div className="grid grid-cols-2 gap-3">
-          <KPI label="Equity Multiple" value={`${fmt(r.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} />
+          <KPI label="Equity Multiple" value={`${fmt(r.equityMultiple, 2)}x`} sub="Total distributions ÷ equity" t={emTier} warn={emWarn} />
           <KPI label="LP Equity Multiple" value={`${fmt(wf.lpEquityMultiple, 2)}x`} sub="LP distributions ÷ LP equity" />
         </div>
       )}

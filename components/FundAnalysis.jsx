@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import FundTypeBadge from "@/components/FundTypeBadge";
+import { FUND_TYPES, filterFundsByType } from "@/lib/fundTypes";
 import {
   acquisitionDate,
   assetQuarterlyEvents,
@@ -764,7 +766,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
       {/* Fund header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{fundName}</h3>
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">{fundName} <FundTypeBadge type={terms?.type} /></h3>
           <p className="text-xs text-gray-400 mt-0.5">{deals.length} asset{deals.length !== 1 ? "s" : ""} · {fmt(totalSF)} SF · {fmtM(totalPurchasePrice)} total purchase price</p>
           <button
             type="button"
@@ -1152,19 +1154,27 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
 export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove, funds = {}, onFundTermsChange, onNewFund, onEditFund, onDeleteFund, curve, allAssets = [], unassigned = [], onAssignFund }) {
   const groups = groupByFund(savedDeals);
   // Funds with terms but no deals yet still show (as empty cards).
-  const fundNames = [...new Set([...Object.keys(funds), ...Object.keys(groups)])];
+  const allFundNames = [...new Set([...Object.keys(funds), ...Object.keys(groups)])];
+  const [typeFilter, setTypeFilter] = useState("All");
+  const fundNames = filterFundsByType(allFundNames, funds, typeFilter);
   const termsFor = (name) => ({ ...DEFAULT_FUND_TERMS, ...(funds[name] ?? {}), name });
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-base font-semibold text-gray-900">Fund Analysis</h2>
+          <h2 className="text-base font-semibold text-gray-900">Fund Return</h2>
           <p className="text-xs text-gray-400 mt-0.5">
             Open deals with a Fund name are included live. Add to Fund saves a fixed snapshot.
           </p>
         </div>
         <div className="flex items-center gap-2">
+        {allFundNames.length > 1 && (
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} aria-label="Filter funds by type" className="rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm text-gray-700">
+            <option value="All">All types</option>
+            {FUND_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
+          </select>
+        )}
         {onNewFund && (
           <button
             type="button"
@@ -1221,7 +1231,9 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
         </div>
       )}
 
-      {fundNames.length === 0 ? (
+      {fundNames.length === 0 && allFundNames.length > 0 ? (
+        <p className="rounded-xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">No {typeFilter} funds. Choose All types to see every fund.</p>
+      ) : fundNames.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 p-10 text-center">
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -1255,7 +1267,7 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
               ) : (
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">{name}</h3>
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">{name} <FundTypeBadge type={funds[name]?.type} /></h3>
                     <p className="text-xs text-gray-500 mt-0.5">
                       No deals yet. Type <span className="font-medium">{name}</span> in a deal&apos;s Fund field (left panel) to add it.
                     </p>

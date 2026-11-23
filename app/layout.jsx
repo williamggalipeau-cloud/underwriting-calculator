@@ -12,8 +12,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Underwriting Calculator",
-  description: "Industrial real estate underwriting tool",
+  title: "Baywise · Industrial Fund & Asset Management",
+  description: "Baywise: industrial fund and asset management (internal)",
+  applicationName: "Baywise",
 };
 
 export default function RootLayout({ children }) {

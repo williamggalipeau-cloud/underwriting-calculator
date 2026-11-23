@@ -1,4 +1,4 @@
-# Industrial Underwriting Calculator — User Manual
+# Baywise · Industrial Fund & Asset Management — User Manual
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
@@ -214,12 +214,6 @@ One-time setup (full detail, table layout and admin queries in §12):
 
 ## 2. Using the app, tab by tab
 
-> **New layout (11/23 release).** The header, tab groups and tab names
-> below arrive with the build of 11/23/2026 (phase I part 2). Until it is
-> live, the app shows the previous single row of tabs: Sensitivity, Sell /
-> Hold, Valuations, Portfolio Return and Return Stress Testing under those
-> old names, and the per-asset metrics in the header.
-
 **Header.** **Baywise**, *Industrial Fund & Asset Management*, then a
 firm-wide strip that is the same on every tab. It covers every fund in the
 workspace and owned assets only (no sold, pipeline, Deal Screener or
@@ -258,8 +252,12 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Library** | Documents | Reports (L) |
 
 A group's header appears once it has tabs. Each fund carries a **type tag**
-(Fund, Separate Account or Joint Venture), shown as a badge next to its name.
-The tag is a label only. The Change Log opens from the **Change log** button
+(Fund, Separate Account or Joint Venture), chosen in **New fund** and
+editable in the fund's terms. It shows as a badge next to the fund's name on
+Asset Summary, Valuation and Fund Return, in fund pickers (e.g. "Fund II ·
+Separate Account") and on the valuation and business plan PDF covers. Fund
+Return has an **All types** filter when there is more than one fund. The tag
+is a label only: every type uses the same fund model. The Change Log opens from the **Change log** button
 in the header, next to User manual.
 
 **Acquisitions**
@@ -288,7 +286,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. Also fund NAV by quarter, gross and net LP interim returns and the fund's quarter-over-quarter value change (moved from Valuation). |
+| **Fund Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. |
 | **Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 
 **Library**
@@ -468,7 +466,7 @@ dataviz). The app does not need them to run.
 | `next` | 16.2.4 | App Router framework, static export (`output: "export"`). |
 | `@supabase/supabase-js` | 2.x | Database sign-in and storage (§12). |
 | `react`, `react-dom` | 19.2.4 | UI. |
-| `jspdf`, `jspdf-autotable` | 2.5.2, 3.8.4 | PDF reports, built in the browser and loaded only when you export (Valuations → Export PDF). |
+| `jspdf`, `jspdf-autotable` | 2.5.2, 3.8.4 | PDF reports, built in the browser and loaded only when you export (Valuation → Export PDF). |
 | `tailwindcss`, `@tailwindcss/postcss` | 4 | Styling (dev). |
 | `eslint`, `eslint-config-next` | 9 / 16.2.4 | Linting (dev). |
 
@@ -525,7 +523,9 @@ underwriting-calculator/
 │   ├── FundAnalysis.jsx      Fund Return tab (funds, waterfall, sub line, dry powder)
 │   ├── FundTermsEditor.jsx   New / edit fund dialog, template upload
 │   ├── AssetSummary.jsx      Asset Summary tab (one row per fund asset + totals)
-│   ├── Valuations.jsx        Valuation tab (fair value marks, NAV, interim returns)
+│   ├── Valuations.jsx        Valuation tab (fair value marks, asset NAV, valuation PDF)
+│   ├── FundNav.jsx           Fund NAV and interim returns (top of Fund Return)
+│   ├── FundTypeBadge.jsx     Fund type tag badge
 │   ├── AssetPicker.jsx       Asset dropdown above the single-deal tabs
 │   ├── CashYield.jsx         Cash-on-cash yield charts and table
 │   ├── SellHold.jsx          Sell/Hold Analysis tab
@@ -544,6 +544,8 @@ underwriting-calculator/
 │   ├── forwardCurve.js       Pensford forward-curve snapshot, annual averaging
 │   ├── pensfordImport.js     Read a Pensford export (xlsx/csv/pasted)
 │   ├── nyfed.js              NY Fed live SOFR, curve anchoring
+│   ├── enterprise.js         Firm-wide header figures (AUM, SF, assets, tenants, occupancy)
+│   ├── fundTypes.js          Fund type tag (Fund / Separate Account / Joint Venture)
 │   ├── sofr.js               CME SOFR futures fetch (optional)
 │   ├── capPricer.js          Bachelier cap pricer and vol surface
 │   ├── fundTimeline.js       Dates, XIRR, quarterly asset events, dated waterfall
@@ -2390,6 +2392,7 @@ column.
 | Field | Stored at (`workspaces.data`) | Template label | Units | Default | Meaning |
 |---|---|---|---|---|---|
 | `name` | `funds["Fund name"].name` | Fund name | text | | Must match the deals' Fund field |
+| `type` | `funds["Fund name"].type` | — | `Fund` / `Separate Account` / `Joint Venture` | Fund (when missing) | Type tag, a label only (11/23): chosen in New fund, editable in the terms; badge on Asset Summary, Valuation, Fund Return, pickers and PDF covers; Fund Return can filter by it. No effect on any calculation |
 | `finalClose` | `funds["Fund name"].finalClose` | Final close date | date | 2025-12-31 | Start of the fund timeline |
 | `investmentPeriodYears` | `funds["Fund name"].investmentPeriodYears` | Investment period (years) | years | 2 | From final close |
 | `termYears` | `funds["Fund name"].termYears` | Fund term (years) | years | 5 | From final close |
@@ -2974,6 +2977,7 @@ each phase and the decisions behind it are in
 | G. Appraisal | Appraised value and cap rate to the Valuation tab | ✅ Live (PR #71) |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Live (PR #72) |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 next: photos, map, floor plan, demising |
+| Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |

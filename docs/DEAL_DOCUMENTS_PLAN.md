@@ -33,7 +33,7 @@ changes the model without the user clicking to apply it.
 | T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager (added 11/23) | ⛓ After S |
 | U | Market group: Market Data tab, submarket statistics (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
-| UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip (decided 11/23; see "App name and layout"; manual §2 already describes it, so once built remove the "New layout (11/23 release)" note at the top of §2) | ⛓ Built with phase I part 2 (11/23, 8:40 PM Pacific) |
+| UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
 value change with exit cap and a PDF of valuation adjustments and their
@@ -827,19 +827,14 @@ changing the fund.
   stamped with the scenario name, version, date, author and "Scenario — not
   actual". An exported report always matches its version.
 - Reuses phase L's pre-acquisition limit check.
-- **Deal Screener folds into phase M** (decided 11/22, user's request; the
-  Quick Underwrite tab was renamed Deal Screener the same night): the
-  candidate screen gets two ways to add a candidate: **Deal Screener** (the
-  same few inputs as today's Deal Screener tab: price,
-  closing costs, year-1 NOI and growth, hold, exit cap, loan, SOFR and
-  spread, fees, with the forward curve; the rate cap is set as on the Debt
-  tab) or **Full Underwrite** (a full rent-roll deal). A Deal Screener
-  candidate can later be converted to a Full Underwrite deal (its inputs carried over, as linking does today). Once
-  this works, the separate **Deal Screener tab is retired**: existing
-  deals keep their quick settings, linked deals are converted to full deals
-  with the same inputs (results unchanged, checked by a test), and the
-  forward curve controls move to the Debt tab next to the rate cap. Nothing
-  is retired until the candidate screen covers everything the tab does.
+- **Deal Screener stays a tab** (11/23; reverses the 11/22 decision to fold it
+  into phase M and retire it). The candidate screen still offers two ways
+  to add a candidate: **Deal Screener** inputs (price, closing costs, year-1
+  NOI and growth, hold, exit cap, loan, SOFR and spread, fees, with the
+  forward curve) or **Full Underwrite** (a full rent-roll deal), and a
+  screened candidate can later be converted to a full deal. The Deal
+  Screener tab itself is not retired and stays first under Acquisitions
+  after Pipeline.
 
 ## Phase N: Fund Summary (added 11/23, after M)
 
@@ -1238,11 +1233,9 @@ M, the work is pushed and resumes about 15 minutes later at the next phase.
     counterparty, dates, notional, index, strike and premium, and applied to
     that cap's row (executed terms replace modeled ones); checked against
     the loan's cap requirement; expiry to critical dates.
-24. **Deal Screener folds into phase M** (decided 11/22; Quick Underwrite
-    renamed Deal Screener): Deal Screener becomes one of the two ways to add a
-    candidate (with Full Underwrite, a full rent-roll deal), and the separate tab is retired once the candidate
-    screen covers it; linked deals become full deals with unchanged results,
-    and the forward curve controls move to the Debt tab.
+24. **Deal Screener stays a tab** (11/23, reversing 11/22): Deal Screener
+    is one of the two ways to add a candidate (with Full Underwrite), and
+    the Deal Screener tab is not retired.
 25. **Debt concentration by lender and rate cap counterparty exposure**
     (added 11/22) in phase L's risk report: fund debt and capped notional
     and cap market value grouped by lender and by cap counterparty, with

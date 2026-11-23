@@ -1,5 +1,6 @@
 "use client";
 
+import { FUND_TYPES, fundType } from "@/lib/fundTypes";
 import { useEffect, useState } from "react";
 import { compareDoc } from "@/lib/dealDocApply";
 import { createDealDoc, listDealDocs } from "@/lib/dealDocs";
@@ -218,6 +219,18 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                   className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Type</span>
+                <select
+                  value={fundType(t.type)}
+                  onChange={(e) => set("type")(e.target.value)}
+                  aria-label="Fund type"
+                  title="A label only: every type uses the same fund model"
+                  className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 bg-white"
+                >
+                  {FUND_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
+                </select>
+              </label>
               <Num label="Total commitments" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint="Fund size; drives dry powder" />
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Hurdle rate</span>
@@ -407,7 +420,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
             <button
               type="button"
               disabled={blocking}
-              onClick={() => onSave(normalizeTerms({ ...t, name }), { addCurrentDeal: addCurrent })}
+              onClick={() => onSave(normalizeTerms({ ...t, type: fundType(t.type), name }), { addCurrentDeal: addCurrent })}
               className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 disabled:opacity-40"
             >
               {mode === "new" ? "Create fund" : "Save terms"}
