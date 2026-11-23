@@ -923,6 +923,21 @@ changing the fund.
 
 ## Phase N: Fund Summary (added 11/23, after M)
 
+**Also in N (user, 11/23):**
+- **All key terms** from the LPA / PPM already in the app: fund type,
+  commitments and GP commitment, pref, catch-up and promote tiers,
+  management fee and basis, investment period, term and extensions,
+  distribution policy, investment limits, the sub line's main terms, and
+  key-person / removal clauses where the LPA has them.
+- **Legal entities:** the fund, GP, manager and each asset's property-owning
+  company: state, formation date, EIN (last 4 digits only), registered
+  agent, annual-report due date (on the critical-dates list) and the asset
+  it owns; a simple ownership chart drawn from those links (fund → asset
+  companies; GP / manager).
+- **Uploads:** legal org charts, formation documents, operating agreements,
+  good-standing certificates and the like (as on the Leases tab).
+- **Exports:** a one-page fund fact sheet (PDF) and Excel.
+
 A new **Fund Summary** tab: one page of key facts about the selected fund.
 
 - **Key dates** (user): launch date, final close date, investment period
