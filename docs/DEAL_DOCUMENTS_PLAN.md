@@ -996,6 +996,23 @@ true-up, distribution notice) added to the `deal_documents` check
 constraint. Prepare that SQL and have the user apply it before the phase P
 build starts, so the overnight run needs no approvals.
 
+## Build rules: tests in the repository (user, 11/23)
+
+From tonight's build on, every phase commits its tests:
+- **Location:** Node checks and Playwright browser tests live in `tests/`
+  (e.g. `tests/node/phaseH.test.cjs`, `tests/e2e/phaseH.spec.cjs`). They
+  are run by `npm test`, `npm run test:e2e` and `npm run test:regression`.
+- **CI:** a GitHub Actions workflow (`.github/workflows/tests.yml`) runs
+  them on every pull request and push to main. It builds the site, serves
+  `out/` and runs Playwright with mocked database routes, so it needs no
+  secrets. A red ✗ on a PR means a test failed.
+- **Fixtures:** test data comes only from the fictional sample portfolio
+  and sample documents, never from a copy of the user's workspace. Earlier
+  phases' tests (C–I) are moved in first, with any workspace-copy fixture
+  rebuilt from `buildSampleDeals`.
+- **Each phase** adds its tests in its own PR, and a PR isn't ready until CI
+  is green.
+
 ## Order and review
 
 A → B → C → D → E → F → G → H → I → J → K → L → M. Each phase starts as soon as the
