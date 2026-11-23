@@ -46,7 +46,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const groups = await p.getByTestId("tab-group").allInnerTexts();
   check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PORTFOLIO MANAGEMENT | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
   const nav = await p.locator("nav").first().innerText();
-  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Leasing", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Fund Summary", "Fund Plan", "Fund Return", "Distribution Analysis", "Stress Testing", "Documents", "Reports"];
+  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Leasing", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Fund Summary", "Fund Plan", "Fund Return", "Fund Debt", "Distribution Analysis", "Stress Testing", "Documents", "Reports"];
   // Each tab found after the previous one (names can contain earlier ones, e.g. "Sale Documents").
   const pos = [];
   for (const t of order) pos.push(nav.indexOf(t, pos.length ? pos[pos.length - 1] + 1 : 0));

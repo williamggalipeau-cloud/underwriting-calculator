@@ -11,6 +11,7 @@ import AssetPicker from "@/components/AssetPicker";
 import HomeView from "@/components/Home";
 import Dispositions from "@/components/Dispositions";
 import Leasing from "@/components/Leasing";
+import FundDebt from "@/components/FundDebt";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
@@ -454,6 +455,7 @@ const TAB_GROUPS = [
     { id: "fundsummary", label: "Fund Summary" },
     { id: "fundplan",    label: "Fund Plan" },
     { id: "fund",        label: "Fund Return" },
+    { id: "funddebt",    label: "Fund Debt" },
     { id: "distributions", label: "Distribution Analysis" },
     { id: "stress",      label: "Stress Testing" },
   ] },
@@ -2002,6 +2004,9 @@ export default function Home() {
                 onOpenSnapshot={handleOpenSnapshot}
                 label={`${viewDeals.length} open${scope ? ` in ${scope}` : ""}${savedDeals.length ? ` · ${savedDeals.length} saved` : ""}`}
               />
+            )}
+            {activeTab === "funddebt" && (
+              <FundDebt deals={viewDeals.filter((d) => d.inputs.fundName?.trim()).map((d) => ({ ...d, inputs: { ...d.inputs, fundName: resolveFund(d.inputs.fundName) } }))} funds={viewFunds} marks={valuations} />
             )}
             {activeTab === "leasing" && (
               <Leasing

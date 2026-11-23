@@ -2552,6 +2552,39 @@ asset, so its edits save and log like any other.
   is on the attention list, and the Asset Management lane counts active
   prospects.
 
+### 7.45 Fund Debt (`lib/fundDebt.js`, phase S)
+
+**Fund Debt** (Portfolio Management, right after Fund Return) shows every
+loan in the fund. It's built from each asset's Debt inputs and model, and
+changes nothing. The Debt tab stays for one asset's loan.
+
+- **Summary:** total debt, number of loans, DSCR and LTV weighted by loan
+  balance, the share floating (including capped), and loans maturing within
+  18 months.
+- **Loans:** one row per owned asset with a loan:
+  - lender and balance;
+  - rate type (floating, capped, swapped or fixed) with the spread or fixed
+    rate;
+  - current maturity, fully extended date and extensions left;
+  - DSCR, debt yield and LTV in the current hold year (value from the latest
+    valuation mark, else cost);
+  - the **next extension test**: DSCR, debt yield and LTV projected at the
+    next maturity against the loan's tests. The tests are the asset's
+    sizing constraints unless covenants are entered.
+- **Maturity ladder:** balance maturing each year on current terms, and if
+  fully extended.
+- **Rate exposure and caps:** balance and share by rate type, and each cap's
+  notional, strike and expiry (soonest first; flagged when it expires before
+  the loan matures).
+- **Lender concentration:** balance and share by lender, with the HHI.
+- **Refinance planner:** pick a loan and set rate, maximum LTV, minimum
+  DSCR, amortization and an optional minimum debt yield. It shows the
+  proceeds each test allows, which test binds, the payoff, the cash out or
+  pay-down, and the new DSCR.
+- **Excel** of all of the above.
+- Still to come: quarterly covenant compliance certificates for lenders
+  (Excel and PDF) and a PDF of the tab.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3658,7 +3691,7 @@ each phase and the decisions behind it are in
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
-| S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
+| S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | 🔨 Part 1 built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, Excel (§7.45); covenant certificates and PDF next |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
