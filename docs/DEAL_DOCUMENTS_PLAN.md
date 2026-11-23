@@ -382,7 +382,7 @@ following H.
 
 ### Phase I: asset business plan and budget vs. plan (added 11/22)
 
-**Part 1 built 11/23.** New **Business Plan** tab: revision 1 seeded from the
+**Part 1 built 11/23.** New **Asset Business Plan** tab: revision 1 seeded from the
 IC memo and closing model with the budget locked; edits and model changes
 saved as new revisions (never overwriting), compared side by side; leasing
 plan by unit, capital plan (spent vs budget), operating / financing / exit,

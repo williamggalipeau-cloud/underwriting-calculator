@@ -45,7 +45,7 @@ export function BudgetVsActualSummary({ deals, onOpen }) {
   const f = fundVariance(deals, { kind: "ytd", end });
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid="budget-summary">
-      <div className="flex items-center justify-between"><div><h3 className="text-sm font-semibold">NOI vs budget · year to date {end}</h3><p className="text-[11px] text-gray-500">Fund variance compares the {f.total.comparedAssets} asset{f.total.comparedAssets === 1 ? "" : "s"} with both a budget and actuals.</p></div>{onOpen && <button type="button" onClick={onOpen} className={`${btn} border-gray-200 text-blue-700`}>Business plan</button>}</div>
+      <div className="flex items-center justify-between"><div><h3 className="text-sm font-semibold">NOI vs budget · year to date {end}</h3><p className="text-[11px] text-gray-500">Fund variance compares the {f.total.comparedAssets} asset{f.total.comparedAssets === 1 ? "" : "s"} with both a budget and actuals.</p></div>{onOpen && <button type="button" onClick={onOpen} className={`${btn} border-gray-200 text-blue-700`}>Asset business plan</button>}</div>
       <Table head={["Asset", "Plan (rev. 1)", "Current budget", "Actual", "Variance", "%"]} rows={[...f.rows.map((r) => (
         <tr key={r.dealId} className={`border-t border-gray-100 ${FLAG[r.flag] ?? ""}`}><td className="px-2 py-1">{r.asset}{r.noPlan ? <span className="ml-1 text-[10px] text-gray-400">(no plan yet)</span> : ""}</td><td className="px-2 py-1">{money(r.plan)}</td><td className="px-2 py-1">{money(r.current)}</td><td className="px-2 py-1">{money(r.actual)}</td><td className="px-2 py-1">{money(r.variance)}</td><td className="px-2 py-1">{pct(r.variancePct)}</td></tr>
       )), <tr key="t" className="border-t border-gray-300 font-semibold"><td className="px-2 py-1">Fund</td><td className="px-2 py-1">{money(f.total.plan)}</td><td className="px-2 py-1">{money(f.total.current)}</td><td className="px-2 py-1">{money(f.total.actual)}</td><td className="px-2 py-1">{money(f.total.variance)}</td><td className="px-2 py-1">{pct(f.total.variancePct)}</td></tr>]} />
@@ -72,7 +72,7 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundDeals = [],
   if (!cur) {
     return (
       <div className="space-y-3 text-gray-900" data-testid="business-plan">
-        <h2 className="text-lg font-bold">Business plan · {name}</h2>
+        <h2 className="text-lg font-bold">Asset business plan · {name}</h2>
         <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-600">
           <p>No business plan yet. Revision 1 is the plan at closing: seeded from the IC memo and the closing underwriting, with the budget locked from the model. It is never overwritten; later changes are new revisions.</p>
           {canEdit && <button type="button" className={`${btn} mt-3 border-blue-600 bg-blue-600 text-white`} onClick={() => {
@@ -147,7 +147,7 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundDeals = [],
     <div className="space-y-3 text-gray-900" data-testid="business-plan">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-lg font-bold">Business plan · {name}</h2>
+          <h2 className="text-lg font-bold">Asset business plan · {name}</h2>
           <p className="text-xs text-gray-500">Revision {shown.n} of {revs.length}{shown.n === revs.length ? " (current)" : ""} · {shown.at.slice(0, 10)}{shown.by ? ` · ${shown.by}` : ""} · {shown.reason}{shown.note ? `: ${shown.note}` : ""} · budget: {shown.budget?.label}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">

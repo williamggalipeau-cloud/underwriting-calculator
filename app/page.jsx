@@ -395,19 +395,19 @@ function newDeal(overrides = {}) {
 const TABS = [
   { id: "quick",       label: "Deal Screener" },
   { id: "assets",      label: "Asset Summary" },
-  { id: "valuations",  label: "Valuations" },
+  { id: "plan",        label: "Asset Business Plan" },
+  { id: "returns",     label: "Asset Return" },
   { id: "units",       label: "Unit Roll" },
   { id: "leases",      label: "Leases" },
-  { id: "documents",   label: "Documents" },
-  { id: "plan",        label: "Business Plan" },
+  { id: "valuations",  label: "Valuations" },
   { id: "debt",        label: "Debt" },
   { id: "cashflow",    label: "Cash Flow" },
-  { id: "returns",     label: "Asset Return" },
   { id: "fund",        label: "Portfolio Return" },
   { id: "sensitivity", label: "Sensitivity" },
   { id: "sellhold",    label: "Sell / Hold" },
   { id: "stress",      label: "Return Stress Testing" },
   { id: "comps",       label: "Sales Comps" },
+  { id: "documents",   label: "Documents" },
 ];
 
 // Tabs that show one deal: they get the Asset dropdown.

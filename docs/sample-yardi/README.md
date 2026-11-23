@@ -9,7 +9,7 @@ for testing only. Regenerate them with `node scripts/sample-yardi/generate.cjs`.
 |---|---|---|
 | `aged-receivables-2026-08/09/10.csv` | Aged receivables by tenant at three month-ends (current, 1–30 … over 180, prepayments) | Phase H rent delinquency (Unit Roll → Upload aged report) |
 | `tenant-ledger.csv` | Charges and payments for three tenants, Aug–Oct 2026 | Phase H collections (Upload tenant ledger) |
-| `income-statement-2026.csv` | Monthly income statement by property, from acquisition to Oct 2026 (the closing budget with deliberate variances) | Phase I budget vs. actual (Business Plan → Import actuals) |
+| `income-statement-2026.csv` | Monthly income statement by property, from acquisition to Oct 2026 (the closing budget with deliberate variances) | Phase I budget vs. actual (Asset Business Plan → Import actuals) |
 | `construction-jobs-2026-10.csv` | Construction manager job summary: TI by unit and capital jobs with budget, revisions, committed, invoiced, paid, retainage, status | Planned: TI spend by unit (business plan enhancement) |
 | `construction-invoices-2026-10.csv` | The invoices behind those jobs | Planned: TI spend by unit |
 
