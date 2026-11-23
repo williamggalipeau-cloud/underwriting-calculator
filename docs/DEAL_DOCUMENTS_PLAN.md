@@ -23,9 +23,10 @@ changes the model without the user clicking to apply it.
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
-| M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener tab retired | ⛓ Starts when L is complete |
+| M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
+| UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip (decided 11/23; see "App name and layout") | ⛓ Built with phase I part 2 (11/23, 8:40 PM Pacific) |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
 value change with exit cap and a PDF of valuation adjustments and their
@@ -872,6 +873,54 @@ user found this clunky. Instead:
   removed in phase H). Taking an asset out of a fund stays on Portfolio Return.
 - Tests: open, edit and close the panel; a new asset appears in the picker
   and the fund; nothing opens the panel by itself; earlier suites still pass.
+
+## App name and layout (decided 11/23, built with phase I part 2)
+
+**Name:** **Baywise**, tagline *Industrial Fund & Asset Management*
+(internal use only; checked 11/23 that no real-estate or fund software uses
+the name). Shown in the header, the browser tab ("Baywise · Industrial Fund &
+Asset Management"), report covers, footers and export titles, the manual and
+the README. The repository name and site URL stay as they are.
+
+**Tab bar:** grouped, with a small header over each group:
+
+| Group | Tabs (left to right) | Later additions |
+|---|---|---|
+| **Acquisitions** | Deal Screener | Pipeline (M) first, Fund Impact (M) last |
+| **Asset** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
+| **Fund** | Fund Return · Stress Testing | Fund Summary (N) first, Fund Plan (K, its own tab) second |
+| **Library** | Documents | Reports (L) |
+
+**Renames:** Sensitivity → Return Sensitivity; Sell / Hold → Sell/Hold
+Analysis; Valuations → Valuation; Portfolio Return → Fund Return; Return
+Stress Testing → Stress Testing (everywhere the user sees them).
+
+**Fund figures move to Fund Return:** fund NAV by quarter, gross and net LP
+interim returns, and the fund totals of quarter-over-quarter value change.
+Asset marks, the appraisal schedule, asset NAV and interim returns, and
+mark editing stay on Valuation; its PDF stays there, linked from Fund Return.
+
+**Deal Screener is not retired** (reverses the 11/22 phase M decision): it
+stays a standalone quick screen in Acquisitions with **Send to Fund
+Impact**; Fund Impact can also add quick-screen candidates itself.
+
+**Header strip:** the six per-asset chips (IRR, multiple, CoC, cap rate,
+DSCR, equity) are removed; their red warnings move to Asset Return (IRR <
+14%, multiple < 2.0x, year-1 CoC < 7%, DSCR < 1.25x, with the threshold on
+hover). In their place, firm-wide figures, the same on every tab, each with
+its definition on hover:
+
+| Figure | Definition |
+|---|---|
+| **AUM** | Sum of each owned asset's latest fair value (Valuation mark on or before today); purchase price while in the 6-month cost hold or with no mark |
+| **Square feet** | Total SF of owned assets |
+| **Assets** | Owned assets, "across N funds" |
+| **Tenants** | Occupied units on the rent rolls, each tenant counted once per asset |
+| **Occupancy** | Leased SF ÷ total SF |
+
+Scope: every fund in the workspace, owned assets only (acquired by today;
+not sold; no pipeline, Deal Screener or unassigned deals). No committed
+capital figure.
 
 ## Order and review
 
