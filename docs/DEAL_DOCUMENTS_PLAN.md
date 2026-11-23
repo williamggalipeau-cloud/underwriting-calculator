@@ -18,13 +18,14 @@ changes the model without the user clicking to apply it.
 | E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ✅ Live (PR #71); 45 Node + 22 Playwright checks |
 | F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Live (PR #71); 27 Node + 12 Playwright checks |
 | G | Appraisal → Valuations tab | ✅ Live (PR #71); 14 Node + 8 Playwright checks |
-| H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Built 11/23 (PR); 32 Node + 23 Playwright checks |
-| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ⛓ Next (after H) |
+| H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Live (PR #72); 32 Node + 23 Playwright checks |
+| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 built 11/23 (PR); 30 Node + 18 Playwright checks. Part 2 (photos, map, floor plan, demising) next |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
 | M | Fund impact modeling (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener tab retired | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
+| O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
 value change with exit cap and a PDF of valuation adjustments and their
@@ -313,6 +314,16 @@ Samples: `docs/sample-yardi/` (three month-ends, ledger, income statement for
 phase I) and the Desert Aero estoppel, Lakeshore 2025 CAM reconciliation and
 Riverside billing in `docs/sample-deal-docs/deals/`.
 
+**Follow-ups (user, 11/23; to scope with the user, not started):**
+- *Workflow and reporting for H need improving.* Today an estoppel, CAM or
+  billing issue shows as a badge on its document card (added in phase I),
+  in the Check panel, and for estoppels on the lease card and unit. There is
+  no fund-wide list of open issues, no way to mark one resolved, and no report.
+- *Linking leases to tenants.* Leases link to rent roll units with **Edit
+  tenant / units** or **Apply to rent roll**. The user found this hard to use.
+  Idea on hold: suggest the unit whose tenant name matches ("Link to unit 104
+  (Desert Aero Parts)?") and put a unit picker on the card.
+
 - **Estoppel** (`estoppel_validate` / `estoppel_show`) compared with the lease
   abstract and the rent roll unit: rent, dates, deposit, options, defaults,
   amendments. Differences show as mismatch flags on the lease and the unit.
@@ -370,6 +381,20 @@ Scheduled (11/22): each starts as soon as the previous phase is complete,
 following H.
 
 ### Phase I: asset business plan and budget vs. plan (added 11/22)
+
+**Part 1 built 11/23.** New **Business Plan** tab: revision 1 seeded from the
+IC memo and closing model with the budget locked; edits and model changes
+saved as new revisions (never overwriting), compared side by side; leasing
+plan by unit, capital plan (spent vs budget), operating / financing / exit,
+milestones (late flagged; open ones on Leases → Critical dates), KPIs vs
+target, risks and recommendation. Actuals imported from a monthly income
+statement for the whole fund; budget vs plan vs actual by month, quarter,
+year to date and since closing, in $ and $/SF, amber / red flags with a
+comment per variance; PDF per revision (with changes since the previous
+one) and Excel; fund NOI vs budget card on Portfolio Return.
+**Part 2 (next):** asset photos, location map and floor plan (need a storage
+bucket and a map source), demising / combining units, and feeding actual
+NOI to Valuations and Sell / Hold.
 
 At closing, each asset gets a business plan for its whole hold, with a
 budget (the financial side of the plan). The plan, the current budget and
@@ -778,6 +803,25 @@ A new **Fund Summary** tab: one page of key facts about the selected fund.
   extensions; % of commitments called; sub line drawn vs capacity.
 - **Exports** (user confirmed 11/23): the summary as a one-page PDF and as
   Excel.
+
+## Phase O: asset and fund setup workflow (added 11/23, after N)
+
+The left inputs panel is always open today, with a tab per open deal. The
+user found this clunky. Instead:
+
+- Four buttons in the header: **New asset**, **Edit asset**, **New fund**,
+  **Edit fund**. Edit asset and Edit fund pick from the existing assets and
+  funds.
+- The asset inputs panel opens only from New asset or Edit asset, as a
+  slide-over with **Done**. The result tabs use the full page width
+  otherwise. The asset picker above the tabs still chooses which asset the
+  tabs show.
+- New fund and Edit fund open the fund terms editor (as today from
+  Portfolio Return). New fund keeps the LPA/PPM upload.
+- Assets are never deleted from this panel (the ✕ on the deal tabs was
+  removed in phase H). Taking an asset out of a fund stays on Portfolio Return.
+- Tests: open, edit and close the panel; a new asset appears in the picker
+  and the fund; nothing opens the panel by itself; earlier suites still pass.
 
 ## Order and review
 
