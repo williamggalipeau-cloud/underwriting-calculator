@@ -254,7 +254,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
 | **Portfolio Management** | Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Summary (N) first, Fund Debt (S) |
 | **Market** | (none yet) | Market Data (U) |
-| **Library** | Documents | Reports (L) |
+| **Library** | Documents · Reports | |
 
 A group's header appears once it has tabs. Each fund carries a **type tag**
 (Fund, Separate Account or Joint Venture), chosen in **New fund** and
@@ -283,7 +283,7 @@ in the header, next to User manual.
 | **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. The live NY Fed SOFR and forward-curve panel is at the top of this tab. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
-| **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. IRR, equity multiple, year-1 cash-on-cash and DSCR turn red below 14%, 2.0x, 7% and 1.25x (hover for the threshold). |
+| **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. IRR, equity multiple, year-1 cash-on-cash and DSCR turn red below 14%, 2.0x, 7% and 1.25x (hover for the threshold). The waterfall summary shows **GP profit** (GP distributions − GP equity: upside above capital returned; formerly "GP Promote"), **GP promote** (GP distributions − the GP's share of equity × all distributions: upside above its pro-rata share) and **GP ROE** (GP profit ÷ GP equity, total, not annualized). Example: GP 10% of equity ($1.0M), the deal distributes $20M, the GP gets $2.6M: GP profit $1.6M, GP promote $0.6M, GP ROE 160%. **Projected fee revenue**: property management and construction management fees by hold year, the total and its present value at a discount rate you set (default 8%); Excel. The asset management fee is the fund's management fee (Fund Return), so it isn't counted per asset, and promote is never fee revenue (phase L, 11/23). |
 | **Return Sensitivity** | Two-way IRR / multiple / cash-on-cash grids on any two of: exit cap, rent / SF, purchase price, NOI growth, year-1 NOI. |
 | **Sell/Hold Analysis** | For each fund asset on a decision date: sell now, hold to a later year, or refinance and hold. Forward IRR and forward multiple of holding, spread to the fund's hurdle, NPV versus selling, total IRR and equity multiple since purchase, breakeven exit cap, and a suggested decision (§7.23). **Whole fund** sets a decision per asset (or **Use suggested decisions**) and compares the fund's returns with the base plan, including net LP TVPI, LP DPI by the end of the fund's term and GP promote. **All assets** changes every hold at once (each hold ± years, or every asset to one year); holds past the fund's final extended term are capped with a note, and sales past the term are flagged as needing an extension (§7.33). Scenarios can be saved and reloaded. Excel export. |
 
@@ -346,6 +346,11 @@ illustrative light-industrial assets (§7.13). The **Sample data ▾** menu
 (left, under the header; owners only, 11/23) holds three actions, each with
 a warning and a confirm because they change the firm's data for everyone:
 **Load Model Fund I** restores them and **Clear test data** removes them.
+**Add drawn photos to the sample assets** gives each sample asset that has
+no photos or floor plan four drawn photos (front, truck court, interior,
+street; the front is the cover) and a drawn floor plan with its units boxed
+(fictional drawings, not photographs; edits to the assets are kept). Load
+Model Fund I includes them too.
 **Load test scenario** adds three more saved deals to Model Fund I, all closed after the fund's
 final close: Eastside Distribution Hub (5/29/26), Northgate Flex Center
 (8/31/26) and Riverside Commerce Park (10/30/26), for twelve assets.
@@ -2081,6 +2086,160 @@ quarter's fair value) under each asset's implied cap; **Sell/Hold Analysis**
 shows an **Actual NOI** tile with its difference from the year-ahead NOI and
 the value at the same cap. Neither changes the underwritten model.
 
+### 7.32a The full Asset Business Plan PDF (phase L)
+
+The business plan's **PDF** button prints the whole plan in one file:
+- page 1 with the **cover photo** at the top right;
+- the plan, KPIs, leasing, capital, operating, financing and exit,
+  milestones, risks;
+- **the asset**: address, coordinates (when entered), a Google Maps link
+  (clickable; no map picture, since the free map can't be printed), size,
+  and **actual NOI** (annualized from the months imported);
+- **photos**, two across with captions and dates (up to 12);
+- the **floor plan**: the uploaded plan (or the schematic) with each unit
+  coloured by lease status (leased, expiring within 12 months, vacant), a
+  legend and a unit table;
+- the budget and budget vs. actual;
+- **underwritten vs. actual + projected** (phase J) when the asset has a
+  frozen baseline: returns, the IRR gap by cause and the by-year table;
+- changes since the previous revision.
+Stored photos are included when you're signed in; drawn sample photos
+always. A PDF upload as the floor plan prints as the schematic.
+
+### 7.32b Reports: the quarterly performance report (phase L)
+
+The **Reports** tab (Library) builds each quarter's performance report from
+the app's own figures. Choose the fund, the quarter (default: the last
+completed one) and the version:
+- **Shareable** (for investors and the investor portal): the letter; fund
+  summary (net LP IRR, TVPI, DPI, RVPI, gross IRR and TVPI since
+  inception); the quarter's LP NAV movement (start, contributions,
+  distributions, change in value, end) and gross asset value; capital
+  called and distributed against commitments; property debt and loan to
+  value; the portfolio table; plan vs. actual once a fund plan is frozen
+  (§7.33); and a half page per asset with its cover photo, value, occupancy,
+  NOI (actual and plan), business plan status and loan.
+- **Internal** (owners and editors only): the same plus underwritten vs.
+  actual by asset (§7.32), flagged budget variances with their comments
+  (§7.30) and **internal notes**; every page is marked "INTERNAL - not for
+  distribution".
+
+The **letter** starts as a draft written from the figures (with a
+placeholder for the quarter's highlights); edit it in place, or **Redraft
+from the figures**. Drafts are saved per quarter. **PDF (draft)** and
+**Excel** download the current version. **Issue report** freezes the
+figures, letter and notes as an issued version (v1, v2…) with who and when;
+later changes never alter it, and its PDF can be downloaded again from the
+issued list. Before LPs have funded capital, net returns show as not yet
+meaningful and the letter describes gross asset value. The app never sends
+anything: download the PDF and upload it to the investor portal.
+
+### 7.32c Fund limits, actual vs. limit (phase L)
+
+On the Reports tab (owners and editors), **Fund limits** lists every
+investment limit applied from the fund's LPA / PPM (Documents tab, phase E:
+with its clause; hover ⓘ for the document's words) and every **internal
+limit** you add, each with the fund's actual figure, what drives it (the
+largest asset, tenant, state…), the headroom and a status: **within**,
+**near** (90% of the limit or more), **breached**, or **review** (text
+limits such as permitted property types, and limits the app can't measure
+yet).
+
+| Limit | Actual figure |
+|---|---|
+| Single asset, % of commitments | largest asset's equity ÷ commitments |
+| Single tenant, % of fund rent | largest tenant's rent (all its units) ÷ fund rent |
+| Single state / metro, % of fund value | largest state's (city's, until ZIPs map to metros) share of value |
+| Fund leverage (LTV) | property loans ÷ value |
+| Single-asset LTV | highest loan ÷ value |
+| Total borrowing, % of commitments | sub line balance ÷ commitments |
+| Maximum hold | longest planned hold |
+
+Values are each asset's mark for the quarter (else cost). **Pre-acquisition
+check:** pick a pipeline deal (a deal not yet in a fund) and each limit shows
+its status with the deal added, flagging any **new breach**. Excel export.
+The internal quarterly report includes the limits table.
+
+### 7.32d Risk report (internal, phase L)
+
+On the Reports tab, **Risk report (internal)** (owners and editors; never in
+the shareable report) shows, as of the quarter end:
+- **Watch list:** assets ranked by a risk score (each flag weighs 1–3), with
+  the reasons; and **fund-level flags** (concentration limits, fund limit
+  breaches).
+- **Fund limits** (§7.32c).
+- **Leasing:** lease expirations by year as % of rent, the 12-month rollover
+  and vacancy, for the fund and each asset (flags: 30%+ of rent rolling in
+  12 months, 15%+ vacant).
+- **Largest tenants** by rent (flag above 10% of fund rent).
+- **Industry (SIC 2-digit):** share of fund rent and each asset's largest
+  industry (limits 20% of the fund, 40% of an asset).
+- **Geography:** states and metros (cities) by share of value and NOI
+  (limits 30% / 25%).
+- **Debt:** each loan's balance, LTV, lender, spread, maturity, DSCR vs. its
+  test, cap strike, expiry, provider and the cap's market value (flags:
+  maturing within 18 months, DSCR below or near the test, no cap, cap
+  expiring within 12 months).
+- **Debt by lender** and **rate cap counterparties:** balance or notional,
+  share, loans, spread, maturities or expiries, the exposure (cap value, what
+  the fund would lose if the counterparty failed) and a concentration index
+  (HHI); limits 35% of debt per lender and 50% of capped notional per
+  counterparty; caps with no provider listed.
+- **Valuation:** marks vs. cost (flag 5%+ below cost), implied vs. exit cap.
+- **Execution:** IRR gap to underwriting (phase J), budget lines over the
+  threshold (phase I), the fund plan gap (phase K).
+- **Environmental and climate,** entered per asset: Phase I date, RECs,
+  Phase II / remediation, no-further-action letter, tenants using hazardous
+  materials, FEMA flood zone, wildfire and heat exposure, notes. Open items:
+  no Phase I or one over 5 years old, RECs without an NFA letter, flood zone
+  A or V, high wildfire or heat.
+- **TI funding coverage** (heat map): for each asset and the next 8
+  quarters, the TI and leasing commissions due (expiring leases at the
+  renewal / new-lease mix the cash flow uses, vacant units leased in the
+  first quarter, and planned TI entered for the asset) and how they're
+  covered, in order: the loan's TI facility (what's left, if the asset
+  passes the draw test that quarter: DSCR at or above the minimum, a debt
+  yield minimum where set, and the facility not yet expired), the asset's
+  cash flow, the fund's sub line (active to the end of the investment period,
+  room = size less the model's balance, shared across assets), then a
+  capital call. Green = facility, light green = asset cash flow, amber =
+  needs the sub line, red = capital call or the draw test fails, grey = no
+  TI due. Hover a cell for the need, each source, and how far NOI could fall
+  before draws stop. A fund row shows the capital call needed each quarter.
+  Draw-test failures and capital calls go on the watch list.
+- **Stress tests:** each asset's levered IRR under five standard shocks
+  (rent growth −3 pts, vacancy +10 pts, exit cap +75 bps, rates +200 bps,
+  all four together) and the fund's equity-weighted IRR; red where DSCR
+  falls below the asset's test in some year (combined-shock breaches go on
+  the watch list). The Stress Testing tab has the sliders.
+- **Insurance certificates** (from the Documents tab, signed in): expired or
+  expiring (60 days) policies, no owner's certificate, leases with no tenant
+  certificate, and tenant coverage below the lease's requirements; expired
+  policies go on the watch list.
+- **Lease risk flags** (abstracted leases): counts by type and the high ones,
+  which go on the watch list.
+- **Change vs. last quarter:** the largest lender, cap counterparty, state,
+  metro, industry and tenant shares, the 12-month rollover, vacancy and both
+  HHIs, now and at the previous quarter end, with the change (red = more
+  concentrated).
+- **TI actions (modeling only):** click a heat-map cell to postpone its TI to
+  a later quarter, cut it by a percentage, or plan a capital call (shown
+  blue). Actions are saved as the fund's TI scenario; tick **With scenario
+  actions** to see the heat map with them. Nothing changes on the asset;
+  carry chosen actions into the business plan as a new revision.
+- **Concentration limits used here** can be changed per fund.
+**PDF** (watermarked "Internal - not for distribution" on every page),
+**Excel**, and **Issue risk report** (frozen, v1, v2…).
+
+**Sample data → Add risk test data to the sample assets** (owners) gives the
+sample assets made-up lenders (one over the 35% limit), cap counterparties
+(one writing most caps, one asset with none), environmental entries (an
+open REC, flood zones, high heat, an old Phase I), TI facilities on the
+loans and one planned re-tenanting, set so the heat map shows every colour,
+only where empty. Still to
+come: insurance against loan requirements (once loan agreements carry
+them) and a map of the assets sized by value.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3180,7 +3339,7 @@ each phase and the decisions behind it are in
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | ⛓ After K |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Remaining: insurance vs. loan requirements, an asset map sized by value |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
@@ -3196,6 +3355,7 @@ each phase and the decisions behind it are in
 | Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ⛓ With Z |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
+| Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so the Sales Comps tab, valuations and reports show a full set | ⛓ Future release |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
 

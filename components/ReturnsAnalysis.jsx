@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { underwrite } from "@/lib/calculations";
+import { feeRevenue, feeRevenueXlsx, gpEconomics } from "@/lib/assetFees";
+import { writeXlsx } from "@/lib/xlsx";
+import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 
 function fmt(n, decimals = 0) {
   if (!isFinite(n)) return "—";
@@ -81,9 +84,11 @@ function WaterfallSection({ wf }) {
           { label: "GP Equity Invested",     value: fmtM(wf.gpEquity),             sub: "GP co-invest" },
           { label: "LP Total Distributions", value: fmtM(wf.lpTotalDistributions), sub: "Cash flows + reversion to LP" },
           { label: "GP Total Distributions", value: fmtM(wf.gpTotalDistributions), sub: "Cash flows + reversion to GP" },
-          { label: "GP Promote",             value: fmtM(wf.gpPromote),            sub: "GP upside above capital return" },
+          { label: "GP profit",              value: fmtM(gpEconomics(wf).gpProfit),  sub: "GP upside above capital returned" },
+          { label: "GP promote",             value: fmtM(gpEconomics(wf).gpPromote), sub: "GP upside above its pro-rata share" },
+          { label: "GP ROE",                 value: gpEconomics(wf).gpRoe == null ? "—" : fmtPct(gpEconomics(wf).gpRoe), sub: "GP profit ÷ GP equity invested (total, not annualized)" },
         ].map(({ label, value, sub }) => (
-          <div key={label} className="flex items-center justify-between px-4 py-3">
+          <div key={label} className="flex items-center justify-between px-4 py-3" data-testid="wf-row">
             <div>
               <p className="text-sm font-medium text-gray-700">{label}</p>
               {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
@@ -131,6 +136,40 @@ function WaterfallSection({ wf }) {
 
 import { AssetCashYield } from "@/components/CashYield";
 import { assetCashYield } from "@/lib/cashYield";
+
+function FeeRevenue({ cfs, wf, name }) {
+  const [rate, setRate] = useState(8);
+  const fr = feeRevenue(cfs ?? [], rate);
+  const gp = gpEconomics(wf);
+  return (
+    <div className="space-y-2" data-testid="fee-revenue">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">Projected fee revenue</h3>
+          <p className="text-xs text-gray-500">The firm&apos;s fees from this asset over the hold: property management and construction management. The asset management fee is the fund&apos;s management fee (Fund Return), so it isn&apos;t repeated per asset; promote is shown in the waterfall, not here.</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          <label className="flex items-center gap-1.5 text-gray-600">Discount rate <input aria-label="Fee discount rate" type="number" step="0.5" value={rate} onChange={(e) => setRate(e.target.value)} className="w-16 rounded border border-gray-300 px-1.5 py-1 text-right" />%</label>
+          <button type="button" onClick={() => downloadBlob(writeXlsx(feeRevenueXlsx(name, fr, gp), { sheetName: "Fee revenue", title: `Baywise · ${name} fee revenue` }), `${safeFileName(name)}-fee-revenue.xlsx`)} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">Excel</button>
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-xs tabular-nums">
+          <thead className="bg-gray-50 text-gray-500">
+            <tr>{["Year", "Property management", "Construction management", "Total"].map((h, i) => <th key={h} className={`px-3 py-2 font-semibold uppercase tracking-wide ${i ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {fr.rows.map((x) => (
+              <tr key={x.year}><td className="px-3 py-2 font-medium text-gray-700">Y{x.year}</td><td className="px-3 py-2 text-right">{fmtM(x.pm)}</td><td className="px-3 py-2 text-right">{fmtM(x.cm)}</td><td className="px-3 py-2 text-right font-medium">{fmtM(x.total)}</td></tr>
+            ))}
+            <tr className="bg-gray-50 font-semibold"><td className="px-3 py-2">Total</td><td className="px-3 py-2 text-right">{fmtM(fr.pm)}</td><td className="px-3 py-2 text-right">{fmtM(fr.cm)}</td><td className="px-3 py-2 text-right" data-testid="fee-total">{fmtM(fr.total)}</td></tr>
+            <tr><td className="px-3 py-2 text-gray-600">Present value at {fr.discountPct}%</td><td colSpan={2} /><td className="px-3 py-2 text-right font-medium" data-testid="fee-pv">{fmtM(fr.pv)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs, savedDeals = [], dscr }) {
   const [selectedId, setSelectedId] = useState("active");
@@ -278,6 +317,9 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
 
       {/* LP / GP waterfall */}
       {wf && <WaterfallSection wf={wf} />}
+
+      {/* Projected fee revenue (phase L) */}
+      <FeeRevenue cfs={cfs} wf={wf} name={selectedInputs?.propertyName || inputs?.propertyName || "Asset"} />
     </div>
   );
 }

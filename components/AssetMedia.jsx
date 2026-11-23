@@ -27,7 +27,7 @@ import {
   unitStatus,
   updatePhoto,
 } from "@/lib/assetMedia";
-import { assetFileLinks, checkAssetFile, removeAssetFiles, uploadAssetFile } from "@/lib/assetPhotos";
+import { assetFileLinks, checkAssetFile, isSamplePath, removeAssetFiles, uploadAssetFile } from "@/lib/assetPhotos";
 
 const btn = "rounded-lg border px-2.5 py-1 text-xs font-medium disabled:opacity-40";
 const today = () => new Date().toISOString().slice(0, 10);
@@ -58,9 +58,11 @@ export default function AssetMedia({ dealId, inputs, canEdit, workspaceId, onApp
   const pathKey = paths.join("|");
 
   useEffect(() => {
-    if (!workspaceId || !paths.length) return;
+    // Sample images (shipped with the app) show signed out; stored ones need the database.
+    const want = paths.filter((p) => !links[p] && (workspaceId || isSamplePath(p)));
+    if (!want.length) return;
     let live = true;
-    assetFileLinks(paths.filter((p) => !links[p])).then((l) => live && setLinks((prev) => ({ ...prev, ...l }))).catch((e) => live && setMsg({ error: e.message }));
+    assetFileLinks(want).then((l) => live && setLinks((prev) => ({ ...prev, ...l }))).catch((e) => live && setMsg({ error: e.message }));
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId, pathKey]);
@@ -117,7 +119,7 @@ export default function AssetMedia({ dealId, inputs, canEdit, workspaceId, onApp
           </>
         )}
       >
-        {!workspaceId && <p className="text-xs text-gray-500">Sign in to see and add photos (they are stored privately in the database).</p>}
+        {!workspaceId && !photos.some((p) => isSamplePath(p.path)) && <p className="text-xs text-gray-500">Sign in to see and add photos (they are stored privately in the database).</p>}
         {workspaceId && !photos.length && <p className="text-xs text-gray-500">No photos yet.{canUpload ? " Add JPEG, PNG, WebP or GIF files (up to 25 MB each)." : ""}</p>}
         {photos.length > 0 && (
           <div className="grid gap-4 lg:grid-cols-[2fr_3fr]">

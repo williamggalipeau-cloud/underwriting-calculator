@@ -46,7 +46,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const groups = await p.getByTestId("tab-group").allInnerTexts();
   check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | ASSET MANAGEMENT | PORTFOLIO MANAGEMENT | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
   const nav = await p.locator("nav").first().innerText();
-  const order = ["Deal Screener", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Fund Plan", "Fund Return", "Distribution Analysis", "Stress Testing", "Documents"];
+  const order = ["Deal Screener", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Fund Plan", "Fund Return", "Distribution Analysis", "Stress Testing", "Documents", "Reports"];
   const pos = order.map((t) => nav.indexOf(t));
   check(pos.every((x) => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "tabs in the agreed order with the new names");
   check(!/Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
@@ -61,7 +61,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(300);
   const items = await sm.getByRole("menuitem").allInnerTexts();
-  check(items.length === 3 && /Load Model Fund I/.test(items[0]) && /Load test scenario/.test(items[1]) && /Clear test data/.test(items[2]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
+  check(items.length === 5 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Load test scenario/.test(items[3]) && /Clear test data/.test(items[4]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
   check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
   await sm.getByRole("button", { name: /Sample data/ }).click();
 

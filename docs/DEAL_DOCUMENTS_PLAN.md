@@ -22,7 +22,7 @@ changes the model without the user clicking to apply it.
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
 | J | Underwritten vs. actual performance | ✅ Built 11/23 (pulled forward into window 1): frozen baseline, actual + projected, IRR gap by cause, fund ranking, Excel and PDF; 29 Node + 16 Playwright checks |
 | K | Fund plan vs. actual; Sell/Hold hold-period impact on the fund (added 11/23) | ✅ Built 11/23 (window 2): Fund Plan tab before Fund Return (lib/fundPlan.js, components/FundPlan.jsx, lib/fundPlanPdf.js): frozen plan v1 + re-forecasts on the fund record; since-inception plan vs. actual (called, deployed, assets, distributions, DPI; NAV and TVPI actual); projected plan vs. forecast vs. targets; cumulative chart; by quarter; NOI and cash yield by year; attribution by asset and cause; Excel and PDF. Sell/Hold: all-asset hold change, capped-hold note, past-term flags, TVPI, DPI by term end, GP promote. Tests: 39 Node + 22 browser checks; all earlier suites pass; regression identical. Not built: plan NAV (the plan has no marks), leverage plan vs. actual (with phase S) |
-| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock sample-asset images; full Asset Business Plan PDF; Asset Return GP ROE and projected fee revenue (added 11/23) | ⛓ Starts when K is complete |
+| L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock sample-asset images; full Asset Business Plan PDF; Asset Return GP ROE and projected fee revenue (added 11/23) | 🔨 Started 11/23 (window 2): done: Asset Return additions (lib/assetFees.js), full business plan PDF (lib/businessPlanExtras.js), drawn sample photos and plans (lib/sampleMedia.js, public/sample-media, scripts/sample-media/generate.cjs; Sample data → Add drawn photos). Reports tab with the quarterly performance report (lib/quarterlyReport.js, lib/quarterlyReportPdf.js, components/Reports.jsx): shareable and internal, editable letter, issued versions frozen, PDF and Excel. Fund limits (lib/fundLimits.js, components/FundLimits.jsx): LPA / PPM and internal limits, actual vs. limit, near at 90%, pre-acquisition check, in the internal report. Risk report (lib/riskReport.js, lib/riskReportPdf.js, components/RiskReport.jsx): watch list, leasing, tenants, SIC, geography, debt, lenders and cap counterparties with HHI, valuation, execution, environmental and climate; sample risk test data (lib/sampleRiskData.js, Sample data menu). TI funding heat map (lib/tiFunding.js) with made-up TI facilities and a planned re-tenanting (lib/sampleRiskData.js), stress tests, insurance certificates and lease risk flags. TI actions on the heat map (postpone, cut, plan a call; terms.tiScenario) and change vs. last quarter. Remaining (small): a map of assets sized by value, insurance vs. loan requirements (needs loan insurance terms from phase F) |
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23); Deal Screener fund picker with acquisition impact, pipeline assets only (added 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
@@ -38,6 +38,7 @@ changes the model without the user clicking to apply it.
 | Z | Home page: today's attention list, workflow lanes matching the tab headers, fund cards, quick actions (incl. New fund setup), recent activity (added 11/23) | ⛓ After O |
 | Picker | "Working on" fund picker in the header (All funds / each Fund, SMA, JV): filters every tab, remembered per person; also on the Home page (added 11/23) | ⛓ With Z (or earlier if wanted) |
 | Demo | Separate Demo firm for the sample fund and test deals, so the real firm holds only real assets (added 11/23) | ⛓ After Picker |
+| Comps | Mock comps for each Model Fund I asset: fictional sales comps on the Sales Comps tab and lease (rent) comps for phase R's Leasing tab, near each sample address (added 11/23) | ⛓ Future release (with the next sample-data update) |
 | Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
@@ -1339,6 +1340,20 @@ saved record by record), so this is a **filter**, not a load:
   reopens on the portfolio they last worked on.
 - Pipeline deals with no fund show under All funds and under the fund they
   are being screened for (phase M).
+
+## Mock comps for the sample assets (added 11/23, future release)
+
+User, 11/23: "add mock comps for each asset in Fund I in a future release."
+- **Sales comps:** 5–8 fictional sales per sample asset (same metro and
+  property type, sized near the asset, dated over the last 24 months) with
+  price, $/SF, cap rate, buyer / seller, so the Sales Comps tab, the
+  Valuation tab's comp support and the reports show what a full set looks
+  like.
+- **Lease (rent) comps:** fictional recent leases near each asset (size,
+  $/SF, term, TI, free rent) for the Leasing tab (phase R) and mark to
+  market.
+- Fictional names and addresses only; loaded with the sample portfolio and
+  from the Sample data menu (edits kept), like the drawn photos.
 
 ## Demo firm (added 11/23, after the fund picker)
 

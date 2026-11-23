@@ -23,12 +23,15 @@ import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
 import DistributionAnalysis from "@/components/DistributionAnalysis";
+import Reports from "@/components/Reports";
 import AssetMedia from "@/components/AssetMedia";
 import { FundUwTable } from "@/components/UwVsActual";
 import { fundType } from "@/lib/fundTypes";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
+import { withSampleMedia } from "@/lib/sampleMedia";
+import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
@@ -432,6 +435,7 @@ const TAB_GROUPS = [
   ] },
   { label: "Library", tabs: [
     { id: "documents",   label: "Documents" },
+    { id: "reports",     label: "Reports" },
   ] },
 ];
 const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
@@ -1338,6 +1342,26 @@ export default function Home() {
     setActiveTab("fund");
   }
 
+  // Drawn photos and floor plans for the sample assets (phase L), added to
+  // sample assets with no photos or plan; edits to them are kept.
+  function handleAddSampleMedia() {
+    if (!requireEdit()) return;
+    const n = deals.filter((d) => withSampleMedia(d) !== d).length;
+    if (!n) { window.alert("Every sample asset already has photos or a floor plan."); return; }
+    noteAudit(`Added drawn sample photos and floor plans to ${n} sample asset${n === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map(withSampleMedia));
+  }
+
+  // Risk test data (phase L): made-up lenders, cap counterparties and
+  // environmental entries on the sample assets, only where still empty.
+  function handleAddRiskTestData() {
+    if (!requireEdit()) return;
+    const n = deals.filter((d) => withRiskTestData(d) !== d).length;
+    if (!n) { window.alert("The sample assets already have lenders, cap providers and environmental entries."); return; }
+    noteAudit(`Added risk test data (lenders, cap providers, environmental) to ${n} sample asset${n === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map(withRiskTestData));
+  }
+
   function handleClearTest() {
     if (!requireEdit()) return;
     noteAudit("Cleared test and sample data");
@@ -1502,6 +1526,8 @@ export default function Home() {
                 </p>
                 {[
                   { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
+                  { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
+                  { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
                   { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
                   { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
                 ].map((a) => (
@@ -1826,6 +1852,20 @@ export default function Home() {
                 inputs={inputs}
                 results={results}
                 savedDeals={fundDeals}
+              />
+            )}
+            {activeTab === "reports" && (
+              <Reports
+                pipeline={unassignedDeals}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                onApplyDeal={applyToDeal}
+                deals={fundDeals}
+                funds={funds}
+                marks={valuations}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                onFundTermsChange={handleFundTermsChange}
               />
             )}
             {activeTab === "distributions" && (
