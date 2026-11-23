@@ -478,6 +478,7 @@ underwriting-calculator/
 │   ├── Leases.jsx            Leases tab (lease documents, abstracts, apply to rent roll, mismatch flags)
 │   ├── LeaseViews.jsx        Leases tab: Critical dates and Risk flags views
 │   ├── Documents.jsx         Documents tab (deal and fund documents, review, apply, IC conditions)
+│   ├── LoanAgreement.jsx     Debt tab: loan agreement terms, covenant tests, executed rate caps
 │   ├── TenantCredit.jsx      Tenant credit section on each lease
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
@@ -784,6 +785,10 @@ flows never change sign.
 
 **Peak equity** = the lowest cumulative levered cash; **payback** = the first
 year cumulative cash turns positive.
+
+**Actual loan.** When a loan agreement has been applied
+(`loanAmountActual` > 0), the loan is that amount instead of the lesser of
+the sizing tests (§7.28).
 
 **Realized sale.** When a disposition closing statement has been applied
 (`realizedSalePrice` > 0), the exit value is the actual sale price instead
@@ -1782,8 +1787,41 @@ reads "✓ Validated by the connector" or "Not connector-validated".
 | Final IC memo | The as-approved baseline (`icApproved`: approval date, approvers, price, total cost, loan, equity, year-1 NOI, going-in and exit caps, IRR, multiple, cash-on-cash, hold, capex), a reference that doesn't change the model, and the conditions of approval (`icConditions`). **IC approved vs current** compares the baseline with the current model (Documents tab and Asset Summary → Details); each condition is ticked off with who and when (logged). |
 | Closing statement (acquisition) | Purchase price and acquisition date (actual); closing costs replaced by one line for the statement's total; `actualBasis` (loan proceeds, equity funded, seller credits, prorations, deposits transferred), shown in Asset Summary → Details. |
 | Closing statement (disposition) | `realizedSalePrice` and `realizedSellingCosts` replace the modelled exit value and selling costs (§7.7); hold = whole years from acquisition to the sale; sale date, loan payoff and net proceeds recorded. |
+| Loan agreement / rate cap confirmation | See below. |
 | Insurance certificate | Owner or tenant (linked to the lease). **Check coverage**: policies lapsed or expiring within 60 days; for a tenant, the lease's requirements (general liability per occurrence and aggregate, umbrella, auto, pollution, workers' comp, additional insured, waiver of subrogation, read from the lease abstract) against the certificate. Expiry dates go to critical dates (amber 60 days before, red when lapsed). Loan insurance covenants come with phase F. |
 | LPA / PPM | Fund terms: commitments, GP commitment, management fee, preferred return, catch-up, investment period, term, extensions and their length, sub line size. Investment limits (single investment, tenant, state, metro, property types, non-core, fund and asset leverage, hold, other), each with its clause and quote, stored in the fund's `limits` (phase L checks actual vs limit). Also shown in **New fund / Edit all terms** (LPA / PPM panel: upload, then **Use** each term or limit). |
+
+**Loan agreement** (validated by the CREparser connector,
+`loan_validate_abstract`): loan amount → `loanAmountActual` (the engine
+uses it instead of the sizing tests; "Loan agreement" is shown as the
+binding test), spread, floating rate, initial term, extensions, extension
+fee, IO and amortization years; covenants (`loanCovenants`: DSCR, debt
+yield, LTV, testing, cure); and `loanTerms` (lender, maturity, index floor,
+the rate cap requirement: maximum index strike, minimum counterparty rating
+and days before expiry a replacement is due; prepayment, reserves,
+reporting). The Debt tab's **Loan agreement and executed rate caps** panel
+shows the terms and the covenant tests by year from the model (DSCR = NOI
+÷ debt service, debt yield = NOI ÷ loan balance, LTV = loan balance ÷
+purchase price; failures in red). Maturity, extension notice deadlines and
+other dated terms go to critical dates.
+
+**Rate cap confirmation** (the executed trade confirmation; read and
+checked locally): counterparty and rating, trade, effective and
+termination dates, notional, index, strike, premium and payment date, day
+count, calculation agent, assignment to the lender. Upload it on the Debt
+tab (**Upload cap confirmation**) or the Documents tab; apply it on the
+Documents tab. Applying records it in `executedCaps` for the hold year its
+effective date falls in and puts its terms in the cash flows: the premium
+(initial cap: `capPremiumAmount`; a renewal: that year's replacement cost)
+and the all-in strike (index strike + spread) for the years it covers. The
+rate cap schedule marks that year **executed** with the provider; renewals
+not yet bought stay modeled, and changing the cap settings keeps executed
+caps. **Checks** against the applied loan agreement: strike above the
+maximum, notional below the loan, counterparty rating below the minimum
+(S&P / Fitch scale; Moody's mapped), term under a year, and expiry before
+the loan matures (a replacement is needed). The cap's expiry and the
+replacement deadline (expiry minus the loan's days, 30 if none) go to
+critical dates.
 
 **Applying** marks the document "Applied" with the fields taken
 (`applied_fields`) and logs each change (field, from → to) with the source
@@ -2173,6 +2211,10 @@ reference data except lease end, which sets months remaining (§7.19).
 | `icConditions` | `[{ id, text, deadline, done, doneBy, doneAt }]` conditions of approval |
 | `actualBasis` | `{ loanProceeds, equityFunded, sellerCredits, prorations, depositsTransferred, docId }` from the acquisition closing statement |
 | `realizedSalePrice`, `realizedSellingCosts`, `realizedSaleDate`, `realizedNetProceeds`, `realizedLoanPayoff` | From the disposition closing statement; price and costs replace the modelled exit (§7.7) |
+| `loanAmountActual` | From the loan agreement; replaces the sizing tests (§7.7) |
+| `loanTerms` | `{ lender, maturityDate, floorPct, capMaxStrikePct, capMinRating, capReplacementDays, prepayment, reserves, reporting, docId }` |
+| `loanCovenants` | `{ dscr, debtYieldPct, ltvPct, testing, cure }` |
+| `executedCaps` | `[{ holdYear, provider, rating, strikePct, effective, termination, notional, premium, index, tradeDate, docId }]` from cap confirmations |
 
 Fund terms (`funds[name]`) also get `limits`: `[{ key, label, limit, unit, basis, clause, quote, docId }]` from the LPA / PPM.
 
@@ -2742,7 +2784,7 @@ each phase and the decisions behind it are in
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags (§7.25) | ✅ Live (PR #69) |
 | D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease (§7.26–7.27) | ✅ Live (PR #70) |
 | E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ✅ Built 11/23 (pull request) |
-| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ⛓ After E |
+| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Built 11/23 (pull request) |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |

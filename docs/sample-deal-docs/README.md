@@ -50,3 +50,7 @@ validate (OM, rent roll, T-12, LOI); review them with Claude to validate.
 | route9-closing-disp.pdf | Route 9 Small Bay | Test sale $14,850,000 on 10/30/2026: realized price, costs and hold |
 | model-fund-i-lpa.pdf | Model Fund I | Fund terms (match the app) and eight investment limits |
 | model-fund-i-ppm.pdf | Model Fund I | Same terms; the 35% state limit |
+| airport-flex-loan.pdf | Airport Flex Park | $4,980,000 loan, SOFR + 2.00%: matches the model; covenants (1.30x DSCR, 8.50% debt yield, 70% LTV) and cap requirement (≤ 4.00%, A or better, replace 30 days before expiry) |
+| airport-flex-cap-2026.pdf | Airport Flex Park | Executed 3.91% cap from Fictional Capital Markets (A+): passes; expires 1/30/2027, replacement due 12/31/2026 |
+| route9-loan.pdf | Route 9 Small Bay | $9,125,000 loan, SOFR + 1.75%, same requirements |
+| route9-cap-2026.pdf | Route 9 Small Bay | Cap from a BBB+ provider on $9,000,000: rating and notional flagged |

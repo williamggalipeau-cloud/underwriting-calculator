@@ -16,7 +16,7 @@ changes the model without the user clicking to apply it.
 | C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ✅ Live (PR #69); 24 Node + 18 Playwright checks |
 | D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ✅ Live (PR #70); 34 Node + 25 Playwright checks |
 | E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ✅ Built 11/23 (PR); 45 Node + 22 Playwright checks |
-| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ⛓ Starts when E is complete |
+| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Built 11/23 (PR); 27 Node + 12 Playwright checks |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ⛓ Starts when H is complete |
@@ -219,7 +219,23 @@ existing fund (e.g. Model Fund I) or an amended LPA, showing what changed.
   in the change log, and open items shown on the Documents tab.
 - **Dates:** the approval date and any condition deadlines go to critical dates.
 
-### Phase F: loan agreement to the Debt tab
+### Phase F: loan agreement to the Debt tab — built 11/23
+
+**Built**: loan agreement and rate cap confirmation types on the Documents
+tab (no database change: the table already allowed them); loan terms and
+covenants applied to the Debt inputs, the actual loan amount in the engine,
+the Debt tab's loan panel with covenant tests by year; executed caps in the
+cash flows and the rate cap schedule ("executed", provider), checked
+against the loan's cap requirement (strike, notional, rating, term,
+maturity); upload of confirmations from the Debt tab; maturity, extension
+notice, cap expiry and replacement deadlines in critical dates; fictional
+loan agreements and cap confirmations for Airport Flex Park (clean) and
+Route 9 Small Bay (BBB+ provider and short notional, flagged). Not yet:
+loan insurance covenants in the insurance check; the index floor in the
+engine (stored for reference); amortizing cap notionals. Tested: 27 Node
+and 12 Playwright checks (all earlier suites still pass).
+
+Scope as planned:
 
 - Loan abstract (`loan_validate_abstract` / `loan_show_abstract`) compared with
   the Debt tab inputs: loan amount, index, spread and floor, term and extensions
