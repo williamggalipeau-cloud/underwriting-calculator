@@ -10,6 +10,7 @@ import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import HomeView from "@/components/Home";
 import Dispositions from "@/components/Dispositions";
+import Leasing from "@/components/Leasing";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
@@ -440,6 +441,7 @@ const TAB_GROUPS = [
     { id: "assets",      label: "Asset Summary" },
     { id: "units",       label: "Unit Roll" },
     { id: "leases",      label: "Leases" },
+    { id: "leasing",     label: "Leasing" },
     { id: "valuations",  label: "Valuation" },
     { id: "comps",       label: "Sales Comps" },
     { id: "debt",        label: "Debt" },
@@ -463,7 +465,7 @@ const TAB_GROUPS = [
 const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
 
 
 export default function Home() {
@@ -1999,6 +2001,15 @@ export default function Home() {
                 onPick={setActiveDealId}
                 onOpenSnapshot={handleOpenSnapshot}
                 label={`${viewDeals.length} open${scope ? ` in ${scope}` : ""}${savedDeals.length ? ` · ${savedDeals.length} saved` : ""}`}
+              />
+            )}
+            {activeTab === "leasing" && (
+              <Leasing
+                deal={activeDeal}
+                deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
+                canEdit={!locked}
+                onUpdate={updateDealInputs}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
             )}
             {activeTab === "units" && (

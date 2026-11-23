@@ -2507,6 +2507,43 @@ they follow the **Working on** picker.
 - Still to come: reading a document's terms in with Claude (BOV, LOI, PSA,
   closing statement) and applying them to the sale.
 
+### 7.44 Leasing (`lib/leasing.js`, phase R)
+
+The **Leasing** tab (Asset Management, right after Leases) is kept on each
+asset, so its edits save and log like any other.
+
+- **Leasing Pipeline:** **+ Prospect** adds one (it starts on a vacant
+  unit); **+ Renewal** adds a renewal negotiation for the next lease to
+  expire, with its tenant. For each one:
+  - the unit, prospect or tenant, source and broker;
+  - the stage (Inquiry → Tour → Proposal → LOI → Lease out → Signed, or
+    Lost with a reason);
+  - SF, asking and proposed rent, term, free months, TI per SF and the
+    expected start;
+  - the next step and its date.
+
+  It shows the **net effective rent** (rent over the term with escalations,
+  less free rent and TI, per year). It also compares the deal with the
+  business plan's leasing target for that unit (the latest revision): rent
+  against the target, and downtime (from the lease end, or today for a
+  vacant unit, to the expected start) against the plan's. Counts by stage
+  are at the top. Signed and lost prospects are hidden unless **Show signed
+  and lost** is on. The **All assets** view lists every asset's prospects
+  in the chosen portfolio.
+- **Rent Comps:** add comps by hand, or **Upload** a CoStar export or an
+  internal spreadsheet (.xlsx or .csv). The columns are matched like Sales
+  Comps, shown before importing and remembered for the asset's next upload.
+  A comp with the same address, tenant and sign date updates instead of
+  duplicating. You can filter by sign date, size, submarket and lease type,
+  and untick a comp to leave it out. The summary shows the SF-weighted
+  average, median, range and net effective rent, and the asset's in-place
+  rent and the model's market rent against the comps. **Set market rent
+  from comps** sets the model's market rent to the comps' average (asked
+  first); the returns update.
+- **Excel** exports the pipeline and the comps.
+- Still to come: uploads on each prospect (proposals, LOIs, lease drafts,
+  approval memos, broker reports) and on the comps section, and a PDF.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3612,7 +3649,7 @@ each phase and the decisions behind it are in
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
-| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
+| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | 🔨 Part 1 built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, Excel (§7.44); uploads and PDF next |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
