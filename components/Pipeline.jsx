@@ -76,9 +76,9 @@ function PipelineReport({ pipeline, deals, funds, curve, canEdit, email, onChang
   );
 }
 
-export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, email, onScreen, onConvert, onSendToFundImpact, deals: allDeals = [], funds = {}, curve }) {
+export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, email, onScreen, onConvert, onSendToFundImpact, deals: allDeals = [], funds = {}, curve, workingOn = "" }) {
   const deals = pipeline?.deals ?? [];
-  const [f, setF] = useState({ stage: "active", fund: "", market: "", owner: "" });
+  const [f, setF] = useState({ stage: "active", fund: workingOn, market: "", owner: "" }); // starts on the "Working on" fund
   const [msg, setMsg] = useState(null);
   const [source, setSource] = useState("costar");
   const [adding, setAdding] = useState(false);

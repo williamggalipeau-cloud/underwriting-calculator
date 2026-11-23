@@ -2374,6 +2374,31 @@ full page width. Under the header:
 - The **Asset** picker above the single-asset tabs still chooses which asset
   those tabs show.
 
+### 7.40 "Working on" fund picker (`lib/workingOn.js`)
+
+The **Working on** dropdown at the left of the header's figure strip chooses
+the portfolio you are working on: **All funds** (the whole firm), or one
+fund, separate account or joint venture (shown with its type). It is a
+filter only: all the firm's data is already loaded, and choosing a fund
+changes nothing and saves nothing.
+
+- The header figures (AUM, square feet, assets, tenants, occupancy) become
+  that fund's, labelled with its name.
+- Every tab follows it: Asset Summary, Fund Return, Valuation, Fund Plan,
+  Fund Summary, Distribution Analysis, Fund Impact, Reports, the critical
+  dates and the stress test show only that fund. The Pipeline tab starts
+  filtered to deals screened for it (clear the fund filter there to see all).
+- The **Asset** list above the single-asset tabs shows the fund's assets,
+  pipeline deals being screened for it, and drafts not yet on the pipeline. A
+  pipeline deal aimed at another fund, or at no fund, shows under All funds.
+  If the open asset isn't in the chosen fund, the fund's first asset opens.
+- Your choice is remembered on your sign-in (not the firm's data), so you
+  reopen on the portfolio you last worked on, on any computer. Signed out,
+  this browser remembers it. A fund that no longer exists falls back to All
+  funds.
+- **Edit asset…**, **Edit fund…** and the Documents tab still list every
+  asset and fund, so nothing is out of reach.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3487,7 +3512,7 @@ each phase and the decisions behind it are in
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ⛓ After Z |
 | Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
-| Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ⛓ With Z |
+| Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so the Sales Comps tab, valuations and reports show a full set | ⛓ Future release |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
