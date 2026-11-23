@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Baywise · Industrial Fund & Asset Management",
+  title: "Baywise · Industrial Real Estate Management",
   description: "Baywise: industrial fund and asset management (internal)",
   applicationName: "Baywise",
 };

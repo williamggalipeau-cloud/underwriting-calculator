@@ -979,7 +979,7 @@ user found this clunky. Instead:
 
 ## App name and layout (decided 11/23, built with phase I part 2)
 
-**Name:** **Baywise**, tagline *Industrial Fund & Asset Management*
+**Name:** **Baywise**, tagline *Industrial Real Estate Management (renamed from "Industrial Real Estate Management", user 11/23)*
 (internal use only; checked 11/23 that no real-estate or fund software uses
 the name). Shown in the header, the browser tab ("Baywise · Industrial Fund &
 Asset Management"), report covers, footers and export titles, the manual and

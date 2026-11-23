@@ -1,4 +1,4 @@
-# Baywise · Industrial Fund & Asset Management — User Manual
+# Baywise · Industrial Real Estate Management — User Manual
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
@@ -214,7 +214,7 @@ One-time setup (full detail, table layout and admin queries in §12):
 
 ## 2. Using the app, tab by tab
 
-**Header.** **Baywise**, *Industrial Fund & Asset Management*, then a
+**Header.** **Baywise**, *Industrial Real Estate Management*, then a
 firm-wide strip that is the same on every tab. It covers every fund in the
 workspace and owned assets only (no sold, pipeline, Deal Screener or
 unassigned deals). Hover over a figure for its definition:

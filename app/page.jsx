@@ -1436,7 +1436,7 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-sm font-bold text-gray-900 leading-tight">Baywise</h1>
-              <p className="text-xs text-gray-400 leading-tight">Industrial Fund &amp; Asset Management</p>
+              <p className="text-xs text-gray-400 leading-tight">Industrial Real Estate Management</p>
             </div>
           </div>
 

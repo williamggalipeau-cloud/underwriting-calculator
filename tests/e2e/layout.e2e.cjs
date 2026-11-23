@@ -38,9 +38,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const tab = (name) => p.getByRole("button", { name: new RegExp(`^${name.replace("/", "\\/")}`) }).first();
 
   // Name and title
-  check((await p.title()) === "Baywise · Industrial Fund & Asset Management", `browser tab title: ${await p.title()}`);
+  check((await p.title()) === "Baywise · Industrial Real Estate Management", `browser tab title: ${await p.title()}`);
   check((await p.locator("header h1").innerText()).trim() === "Baywise", "header: Baywise");
-  check((await p.locator("header").innerText()).includes("Industrial Fund & Asset Management"), "header: tagline");
+  check((await p.locator("header").innerText()).includes("Industrial Real Estate Management"), "header: tagline");
 
   // Tab groups, in order, with the renamed tabs
   const groups = await p.getByTestId("tab-group").allInnerTexts();
