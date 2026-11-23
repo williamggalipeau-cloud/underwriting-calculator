@@ -2871,7 +2871,7 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
-*Lease, documents, performance and reporting: phases A–O.* What has been built and
+*Lease, documents, performance and reporting: phases A–V.* What has been built and
 what is coming, kept up to date as each phase finishes. The full scope of
 each phase and the decisions behind it are in
 [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
@@ -2893,12 +2893,32 @@ each phase and the decisions behind it are in
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
+| P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
+| Q. Workspace storage | Deals, funds, valuations and the change log in their own tables; safe saving when several people edit at once; no change to what you see | ⏸ After O, with you present |
+| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
+| S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
+| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager | ⛓ After S |
+| U. Market | Market Data tab: submarket statistics with sources | ⛓ After T |
+| V. Automated workflow | Approvals and reminders | ⏸ Later |
 
-**How phases are delivered.** Each phase starts as soon as the previous one
-is complete. Each comes with this manual updated and Node and Playwright
-tests, and goes into a pull request that is merged only when you say so.
-CREparser connectors are used to validate only, so your free documents are
-not used. Nothing changes your data until you click to apply it.
+**How phases are delivered.**
+- **Scheduling:** phases I–O run in scheduled 5-hour windows (from 11/22, 8:40
+  PM Pacific). Phases Q–U run in bundles, one per usage window, each started
+  when you say "next bundle":
+  1. Q, with you present;
+  2. P;
+  3. R and S;
+  4. T;
+  5. U.
+  V (automated workflow) is scoped later.
+- **Testing:** each phase comes with this manual updated and Node and
+  Playwright tests. The tests are kept in the repository and run
+  automatically on every pull request.
+- **Merging:** each phase goes into a pull request that is merged only when
+  you say so.
+- **Your data:** CREparser connectors are used to validate only, so your free
+  documents are not used. Nothing changes your data until you click to apply
+  it.
 
 **What each phase adds**
 

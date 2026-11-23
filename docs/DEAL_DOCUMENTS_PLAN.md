@@ -26,6 +26,13 @@ changes the model without the user clicking to apply it.
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
 | N | Fund Summary tab: key dates, key terms, capital raised / deployed / available (added 11/23) | ⛓ Starts when M is complete |
 | O | Asset and fund setup workflow: New / Edit asset and New / Edit fund buttons; the left inputs panel opens only from them (added 11/23) | ⛓ Starts when N is complete |
+| Q | Workspace storage: deals, funds, valuations and the change log in their own tables; safe concurrent saving (added 11/23) | ⏸ After O, **attended** (the user present; database changes and a live data migration) |
+| P | Dispositions group: Assets for Sale, Offers, Track Record, Documents; whole and partial sales; uploads in each tab; Excel and PDF exports (added 11/23) | ⛓ After Q |
+| R | Leasing tab (Asset Management): leasing pipeline and rent comps, with uploads (added 11/23) | ⛓ After P |
+| S | Fund Debt tab (Portfolio Management): every loan in the fund, maturities, rate exposure, covenant certificates (added 11/23) | ⛓ After R |
+| T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager (added 11/23) | ⛓ After S |
+| U | Market group: Market Data tab, submarket statistics (added 11/23) | ⛓ After T |
+| V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip (decided 11/23; see "App name and layout") | ⛓ Built with phase I part 2 (11/23, 8:40 PM Pacific) |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
@@ -887,9 +894,29 @@ the README. The repository name and site URL stay as they are.
 | Group | Tabs (left to right) | Later additions |
 |---|---|---|
 | **Acquisitions** | Deal Screener | Pipeline (M) first, Fund Impact (M) last |
-| **Asset** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
-| **Fund** | Fund Return · Stress Testing | Fund Summary (N) first, Fund Plan (K, its own tab) second |
+| **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
+| **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), right after Leases |
+| **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
+| **Portfolio Management** | Fund Return · Stress Testing | Fund Summary (N) first, Fund Plan (K, its own tab) second, Fund Debt (S) after Fund Return |
+| **Market** | (none yet) | Market Data (U) |
 | **Library** | Documents | Reports (L) |
+
+Group order (user, 11/23): Acquisitions · Dispositions · Asset Management ·
+Property Management · Portfolio Management · Market · Library. A header
+shows only once its group has tabs. Sales Comps stays in Asset Management;
+rent comps live on the Leasing tab. The live SOFR panel moves from the top of
+the page to the top of the Debt tab (user, 11/23; built with phase I part 2).
+Tab names keep "Fund" (Fund Return, Fund Summary, Fund Plan,
+Fund Impact); only the group header says Portfolio Management.
+
+**Fund type tag** (user, 11/23; a label only, no change to any
+calculation): each fund is tagged **Fund**, **Separate Account** or **Joint
+Venture**. The tag is chosen in New fund and editable in the fund's terms
+(`funds[name].type`), and existing funds default to Fund. It shows as a
+small badge next to the fund's name in the fund pickers, Asset Summary, Fund
+Return, Valuation and report covers. Fund lists can be filtered by it. The
+header strip shows consolidated figures only, with no split by type (user,
+11/23).
 
 **Renames:** Sensitivity → Return Sensitivity; Sell / Hold → Sell/Hold
 Analysis; Valuations → Valuation; Portfolio Return → Fund Return; Return
@@ -921,6 +948,195 @@ its definition on hover:
 Scope: every fund in the workspace, owned assets only (acquired by today;
 not sold; no pipeline, Deal Screener or unassigned deals). No committed
 capital figure.
+
+## Phase P: Dispositions (added 11/23, after O)
+
+A **Dispositions** group, right after Acquisitions, with four tabs. It covers
+whole and partial sales (selected units or buildings), and uses the work
+already built: Sell/Hold Analysis (the decision to sell), Sales Comps,
+valuation marks, the disposition closing statement (realized price and
+proceeds in the model) and the fund waterfall.
+
+- **Assets for Sale:** every sale in progress, one row each.
+  - *What's sold:* the whole asset, or chosen units or buildings with
+    their SF and rent roll. For a partial sale, the rest of the asset is
+    re-modeled without them.
+  - *Why and target:* reason (business plan complete, hold reached, fund
+    term, opportunistic), target price, cap and $/SF, and target close date.
+    A sale can be started from Sell/Hold Analysis.
+  - *Stage:* Preparing → Marketing → Offers → Under contract → Closed, plus
+    Withdrawn with a reason.
+  - *Broker:* BOVs side by side (price, cap, fee), the broker chosen, and
+    the listing agreement (fee, term, exclusions).
+  - *Marketing:* CAs signed, tours, and the call-for-offers date.
+  - *Under contract:* PSA date, deposits and hard dates, and due diligence
+    and closing deadlines (also on Critical dates). Price changes and
+    credits are logged.
+  - *Closing:* the closing statement's price, costs, loan payoff and net
+    proceeds, with the distribution to LPs and GP through the fund
+    waterfall.
+  - *Documents:* an upload area on each sale, as on the Leases tab: BOVs,
+    listing agreement, offering memo, marketing materials, PSA and
+    amendments, estoppels and the closing statement. Each can be reviewed
+    with Claude, checked and applied.
+  - *Exports:* Excel and PDF of every active sale (stage, target, broker,
+    key dates, and each sale's offers side by side with net proceeds), for
+    one sale or all.
+- **Offers:** every offer received, across all sales.
+  - Buyer, buyer type and broker; date and round (initial, best and final);
+    price, $/SF and cap; deposit; due diligence and closing days; financing
+    contingency; notes.
+  - Net proceeds after costs and loan payoff for each offer, compared side
+    by side per sale; one offer can be marked selected.
+  - A buyer's earlier offers on other assets show with them.
+  - Documents: an upload area on each offer for its LOI or offer letter.
+    Its terms can be read in to fill the offer.
+- **Track Record:** every closed sale, with fund and firm totals.
+  - Purchase vs. sale price and date, hold period, realized IRR, multiple
+    and profit, each against the acquisition underwriting and the last
+    valuation mark. For partial sales, the figures cover the part sold.
+  - Documents: an upload area on each closed sale for its final closing
+    statement, post-closing true-ups and distribution notice.
+  - Exports: Excel and PDF, by fund and firm-wide.
+- **Documents:** every disposition document across all sales, filterable by
+  asset, sale and type. It is the same store as Library → Documents (each
+  file kept once).
+
+Needs new document types (BOV, listing agreement, offer letter, post-closing
+true-up, distribution notice) added to the `deal_documents` check
+constraint. Prepare that SQL and have the user apply it before the phase P
+build starts, so the overnight run needs no approvals.
+
+## Phase Q: workspace storage (added 11/23, after O; attended)
+
+Today the whole workspace (deals, funds, valuations, comps, the change log,
+business plans, actuals) is saved as one JSON record. As data grows
+(photos, actuals, pipeline, offers) and more people edit, this gets slower
+and two people saving at once can overwrite each other. This phase:
+- moves deals, funds, valuations and the change log into their own tables
+  (`deals`, `funds`, `valuations`, `audit_log` already exists), each row
+  saved on its own, with the same workspace-member access rules;
+- saves per row with a version check, so concurrent edits to different
+  assets never clash, and an edit to the same asset asks the second person
+  to reload instead of overwriting;
+- loads only what a tab needs where that helps;
+- keeps the app's behaviour and numbers identical; the regression check
+  and every test suite must pass unchanged.
+Run with the user present, at a time they choose, not overnight. It needs
+several database changes, and it migrates the live workspace:
+1. back up the workspace record;
+2. migrate;
+3. compare every deal's inputs and results before and after;
+4. keep the old record as a fallback until the user is satisfied.
+
+## Phase R: Leasing tab (added 11/23)
+
+One **Leasing** tab in Asset Management, right after Leases (one asset,
+with a whole-fund view):
+Two sections (user, 11/23): **Leasing Pipeline** (leasing prospects, not the
+deal Pipeline of phase M) and **Rent Comps**.
+- **Leasing Pipeline:** prospects by unit, with source and broker. Stages: Inquiry →
+  Tour → Proposal → LOI → Lease out → Signed, plus Lost with a reason. It
+  also covers renewal negotiations, lease approval memos and broker
+  reports, and compares downtime and achieved rent with the business plan's
+  leasing targets.
+- **Rent Comps:** lease comps entered by hand or uploaded (CoStar or an
+  internal spreadsheet, columns matched like Sales Comps), with filters,
+  asking and achieved rent vs. the comps, and a way to set a unit's market
+  rent from them.
+- **Uploads:** each prospect or deal (proposals, LOIs, lease drafts,
+  approval memos, broker reports) and the rent comps section.
+- **Exports:** Excel and PDF.
+
+## Phase S: Fund Debt tab (added 11/23)
+
+A **Fund Debt** tab in Portfolio Management, after Fund Return. The Debt tab
+in Asset Management stays for one asset's loan. Fund Debt shows every loan
+in the fund:
+- a maturity ladder;
+- extension tests and a refinance planner;
+- total rate exposure (floating, capped, fixed) and cap expiries;
+- lender concentration;
+- quarterly **covenant compliance certificates** for lenders (Excel and
+  PDF).
+
+## Phase T: Property Management group (added 11/23)
+
+A **Property Management** header after Asset Management, with four tabs.
+Each tab shows one asset, with a whole-fund view, uploads in each section
+(as on the Leases tab) and an Excel export:
+- **Property Taxes:** parcels, assessed values, bills and due dates (on
+  Critical dates), appeals (filed, hearing, outcome, savings), tax vs.
+  budget.
+- **Insurance:** policies by type, carrier, limits, premium and renewal date
+  (on Critical dates), and a claims log (date, cause, amount, status,
+  recovery). Builds on the insurance certificates already on Documents.
+- **Property Condition:** PCA, Phase I/II and zoning reports as document
+  types. Their findings become items with cost, urgency and status, which
+  can be added to the business plan's capital plan.
+- **Service Contracts:** vendor contracts (landscaping, HVAC, roofing…),
+  with term, cost and renewal date.
+- **Yardi Construction Manager:** condition projects and service contracts
+  link to their jobs, contracts and invoices. For now this works by
+  CSV/Excel upload (the format of `docs/sample-yardi/construction-*.csv`)
+  or by hand; once a Yardi connection exists, it is pulled automatically.
+  This is the same link as the planned TI spend by unit.
+
+## Phase U: Market group (added 11/23)
+
+A **Market** header before Library, with a **Market Data** tab:
+- **Submarket statistics** by quarter: inventory, vacancy and
+  availability, net absorption, asking rent (small-bay and overall),
+  deliveries and under construction, sales volume and cap rates, with
+  trend charts.
+- **Sources:** CoStar or broker report uploads (CSV or Excel, columns
+  matched), or entered by hand. Each figure keeps its source and date.
+- **Links:** each asset is tagged to its submarket, so underwriting,
+  Valuation and the business plan can show the asset's assumptions next to
+  the market's (e.g. rent growth vs. the asking-rent trend, exit cap vs.
+  market cap rates).
+- **Exports:** Excel and PDF market summaries.
+Sales Comps stays in Asset Management, and the live SOFR panel is on the
+Debt tab.
+
+## Phase V: automated workflow (added 11/23; later, to be scoped)
+
+Approvals (sign-offs for leases, capex over a threshold, budgets and sales)
+and reminders before critical dates. On hold until the user scopes it.
+
+## Bundles for phases Q–U (user, 11/23: "no rush; bundle so I don't get crushed on cost")
+
+Each bundle fits one 5-hour usage window. Nothing runs on its own after the
+I → O windows. Bundle 1 starts when the user picks a time to be present.
+After that, each bundle starts only when the user says "next bundle", so
+they set the pace. A bundle that runs over is finished at the start of the
+next one, never in an extra window of its own.
+
+| Bundle | Phases | Notes |
+|---|---|---|
+| 1 (attended) | Q Workspace storage | The user present (confirmed 11/23) for the database changes and the live-data check; first, so later phases are built on it. The user picks the time |
+| 2 | P Dispositions | The largest: four tabs, uploads, exports. Its document-type SQL is prepared ahead and applied in bundle 1 |
+| 3 | R Leasing + S Fund Debt | Two single tabs |
+| 4 | T Property Management | Four tabs and the Yardi Construction Manager uploads |
+| 5 | U Market Data | One tab, with room to catch up |
+| — | V Automated workflow | Not scheduled until scoped |
+
+## Build rules: tests in the repository (user, 11/23)
+
+From tonight's build on, every phase commits its tests:
+- **Location:** Node checks and Playwright browser tests live in `tests/`
+  (e.g. `tests/node/phaseH.test.cjs`, `tests/e2e/phaseH.spec.cjs`). They
+  are run by `npm test`, `npm run test:e2e` and `npm run test:regression`.
+- **CI:** a GitHub Actions workflow (`.github/workflows/tests.yml`) runs
+  them on every pull request and push to main. It builds the site, serves
+  `out/` and runs Playwright with mocked database routes, so it needs no
+  secrets. A red ✗ on a PR means a test failed.
+- **Fixtures:** test data comes only from the fictional sample portfolio
+  and sample documents, never from a copy of the user's workspace. Earlier
+  phases' tests (C–I) are moved in first, with any workspace-copy fixture
+  rebuilt from `buildSampleDeals`.
+- **Each phase** adds its tests in its own PR, and a PR isn't ready until CI
+  is green.
 
 ## Order and review
 
