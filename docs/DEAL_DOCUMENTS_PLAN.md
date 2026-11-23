@@ -1195,8 +1195,10 @@ for each quarter's fund distribution. Decided with the user 11/23:
 - **Distributable cash** for a fund and quarter:
   - cash at each asset (operating accounts), **uploaded from Yardi** (cash or
     bank balance report, mapped once like the other Yardi imports) **or
-    entered by hand**; no model fallback (an asset with no balance shows
-    "not entered");
+    entered by hand**; when an asset has no balance for the quarter, the
+    **model's projected cash is used as a fallback** (user, 11/23), clearly
+    labelled "projected, no balance entered", and the total shows how much
+    of it is projected vs. actual;
   - less lender-required reserves (loan terms) and committed TI / capex not
     yet paid (business plan);
   - less an asset working-capital minimum of **3 months of projected
