@@ -1844,6 +1844,7 @@ export default function Home() {
             )}
             {activeTab === "reports" && (
               <Reports
+                pipeline={unassignedDeals}
                 deals={fundDeals}
                 funds={funds}
                 marks={valuations}

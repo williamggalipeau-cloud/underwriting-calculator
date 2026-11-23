@@ -102,5 +102,36 @@ sh.nav.end = 1; ok(reps.issued[0].report.nav.end !== 1, "an issued report's figu
 const xr = QR.reportXlsx(it, { letter: "L", notes: "N" });
 ok(xr[0][0].includes("internal") && xr.some((r2) => r2[0] === "Internal notes") && !QR.reportXlsx(wp, {}).some((r2) => r2[0] === "Internal notes"), "Excel: internal rows only in the internal version");
 
+// ── Fund limits (lib/fundLimits.js) ──
+const FL = j(R + "/lib/fundLimits.js");
+const held7 = qdeals.filter((d) => sh.portfolio.some((x) => x.id === d.id));
+const values = Object.fromEntries(sh.portfolio.map((x) => [x.id, x.value]));
+const li = FL.limitInputs(held7, { values, lineBalance: 20_000_000 });
+ok(li.assets.length === 7 && li.assets.every((a) => a.value > 0 && a.equity > 0 && a.loan > 0), "limit inputs: value, equity and loan per asset");
+const lt = { ...qterms, targetEquity: 100_000_000, limits: [
+  { key: "single_asset_pct", label: "Single asset", limit: 15, unit: "%", clause: "6.2(a)", quote: "no more than 15% of commitments in any one asset" },
+  { key: "fund_ltv_pct", label: "Fund leverage", limit: 65, unit: "%", clause: "6.4" },
+  { key: "state_pct", label: "Single state", limit: 40, unit: "%" },
+  { key: "property_type", label: "Property types", limit: "Industrial and flex only", unit: "text" },
+], internalLimits: [{ key: "borrowing_pct", label: "Sub line", limit: 21, unit: "%" }] };
+const rowsL = FL.checkLimits(lt, li);
+const rk = (k) => rowsL.find((x) => x.key === k);
+const bigEq = Math.max(...li.assets.map((a) => a.equity));
+ok(close(rk("single_asset_pct").actual, bigEq / 1e6) && rk("single_asset_pct").status === "within" && rk("single_asset_pct").clause === "6.2(a)", `single asset ${rk("single_asset_pct").actual.toFixed(1)}% of commitments: within, with its clause`);
+const ltv = (li.assets.reduce((t2, a) => t2 + a.loan, 0) / li.assets.reduce((t2, a) => t2 + a.value, 0)) * 100;
+ok(close(rk("fund_ltv_pct").actual, ltv) && rk("fund_ltv_pct").status === (ltv > 65 ? "breached" : ltv >= 58.5 ? "near" : "within"), `fund LTV ${ltv.toFixed(1)}% vs 65%: ${rk("fund_ltv_pct").status}`);
+ok(rk("state_pct").what && rk("state_pct").actual > 0 && rk("state_pct").actual <= 100, `largest state: ${rk("state_pct").what} ${rk("state_pct").actual.toFixed(1)}%`);
+ok(rk("property_type").status === "review" && /Industrial/.test(rk("property_type").what), "text limit: review, with the fund's property types");
+ok(rk("borrowing_pct").source === "internal" && close(rk("borrowing_pct").actual, 20) && rk("borrowing_pct").status === "near" && close(rk("borrowing_pct").headroom, 1), "internal limit: sub line 20% of commitments vs 21%: near, 1 pt headroom");
+ok(FL.statusOf(10, 10) === "near" && FL.statusOf(10.01, 10) === "breached" && FL.statusOf(8.99, 10) === "within" && FL.statusOf(null, 10) === "review", "status thresholds: within < 90% ≤ near ≤ limit < breached");
+const tenantDeal = { id: "t", inputs: { propertyName: "T", purchasePrice: 1e6, units: [{ tenantName: "Acme", leaseStatus: "occupied", currentRentPSF: 10, squareFeet: 3000 }, { tenantName: "Beta", leaseStatus: "occupied", currentRentPSF: 10, squareFeet: 1000 }, { tenantName: "Acme", leaseStatus: "occupied", currentRentPSF: 10, squareFeet: 1000 }] } };
+ok(close(FL.actualFor("single_tenant_pct", FL.limitInputs([tenantDeal]), 0).value, 80) && FL.actualFor("single_tenant_pct", FL.limitInputs([tenantDeal]), 0).what === "Acme", "largest tenant: Acme 80% of rent (units summed by tenant)");
+const big = { id: "pipe", inputs: { ...held7[0].inputs, propertyName: "Big Pipeline Deal", purchasePrice: 60_000_000, state: "CA", city: "Fontana" } };
+const pre = FL.preAcquisition(lt, held7, big, { values, lineBalance: 20_000_000 });
+ok(pre.find((x) => x.key === "single_asset_pct").newBreach && pre.find((x) => x.key === "single_asset_pct").before.status === "within", "pre-acquisition: a $60M deal would breach the 15% single-asset limit (new breach)");
+ok(FL.limitsXlsx("Model Fund I", rowsL).length === rowsL.length + 3, "Excel rows");
+const itl = QR.buildQuarterlyReport(qdeals, lt, {}, { qEnd: Q3, todayISO: "2026-11-23", kind: "internal" });
+ok(itl.internal.limits.length === 5 && itl.internal.limits.some((x) => x.source === "internal"), "internal report summarises the fund limits");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

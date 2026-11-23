@@ -2134,6 +2134,32 @@ issued list. Before LPs have funded capital, net returns show as not yet
 meaningful and the letter describes gross asset value. The app never sends
 anything: download the PDF and upload it to the investor portal.
 
+### 7.32c Fund limits, actual vs. limit (phase L)
+
+On the Reports tab (owners and editors), **Fund limits** lists every
+investment limit applied from the fund's LPA / PPM (Documents tab, phase E:
+with its clause; hover ⓘ for the document's words) and every **internal
+limit** you add, each with the fund's actual figure, what drives it (the
+largest asset, tenant, state…), the headroom and a status: **within**,
+**near** (90% of the limit or more), **breached**, or **review** (text
+limits such as permitted property types, and limits the app can't measure
+yet).
+
+| Limit | Actual figure |
+|---|---|
+| Single asset, % of commitments | largest asset's equity ÷ commitments |
+| Single tenant, % of fund rent | largest tenant's rent (all its units) ÷ fund rent |
+| Single state / metro, % of fund value | largest state's (city's, until ZIPs map to metros) share of value |
+| Fund leverage (LTV) | property loans ÷ value |
+| Single-asset LTV | highest loan ÷ value |
+| Total borrowing, % of commitments | sub line balance ÷ commitments |
+| Maximum hold | longest planned hold |
+
+Values are each asset's mark for the quarter (else cost). **Pre-acquisition
+check:** pick a pipeline deal (a deal not yet in a fund) and each limit shows
+its status with the deal added, flagging any **new breach**. Excel export.
+The internal quarterly report includes the limits table.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3233,7 +3259,7 @@ each phase and the decisions behind it are in
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b). Next: fund limits and the risk report |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c). Next: the risk report |
 | M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |

@@ -12,6 +12,7 @@ import { writeXlsx } from "@/lib/xlsx";
 import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, reportXlsx } from "@/lib/quarterlyReport";
 import { assetFileLinks, imageDataUrl, isSamplePath } from "@/lib/assetPhotos";
 import FundTypeBadge from "@/components/FundTypeBadge";
+import FundLimits from "@/components/FundLimits";
 
 const fmtM = (n) => {
   if (n == null || !isFinite(n)) return "—";
@@ -47,7 +48,7 @@ function Stat({ label, value }) {
   );
 }
 
-export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange }) {
+export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, pipeline = [] }) {
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
   const fundName = fundNames.includes(fundPick) ? fundPick : fundNames[0];
@@ -168,6 +169,19 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           )}
         </div>
       </div>
+
+      {canEdit && (
+        <FundLimits
+          fundName={fundName}
+          terms={terms}
+          deals={fundDeals.filter((d) => r.portfolio.some((x) => x.id === d.id))}
+          values={Object.fromEntries(r.portfolio.map((x) => [x.id, x.value]))}
+          lineBalance={r.nav.lineBalance}
+          pipeline={pipeline}
+          canEdit={canEdit}
+          onFundTermsChange={onFundTermsChange}
+        />
+      )}
 
       <div className="rounded-xl border border-gray-200 p-3 text-xs" data-testid="report-issued">
         <h3 className="mb-2 text-sm font-semibold text-gray-800">Issued · {r.quarterLabel}</h3>

@@ -18,6 +18,16 @@ data.activeDealId = "sample-deal-2";
   r9.inputs.uwBaseline = { at: "2026-03-16T15:00:00Z", by: "am@example.com", note: "", source: "closing", inputs: base };
   r9.inputs.businessPlan = { thresholdPct: 5, revisions: [], comments: {}, actuals: Object.fromEntries(["2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"].map((m) => [m, { noi: 52000 }])) };
 }
+// Fund limits from the (fictional) LPA, and a pipeline deal for the pre-acquisition check.
+data.funds["Model Fund I"].limits = [
+  { key: "single_asset_pct", label: "Single asset, % of commitments", limit: 15, unit: "%", clause: "6.2(a)", quote: "no more than 15% of commitments in any one asset" },
+  { key: "fund_ltv_pct", label: "Fund leverage (LTV)", limit: 65, unit: "%", clause: "6.4" },
+  { key: "property_type", label: "Permitted property types", limit: "Industrial and flex only", unit: "text", clause: "6.1" },
+];
+{
+  const src = data.deals.find((d) => d.id === "sample-deal-3");
+  data.deals.push({ id: "pipe-1", inputs: { ...structuredClone(src.inputs), propertyName: "Fontana Pipeline Deal", fundName: "", purchasePrice: 60000000, city: "Fontana", state: "CA" } });
+}
 const now = Math.floor(Date.now() / 1000);
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com", role: "authenticated", exp: now + 3600, aud: "authenticated" })}.sig`;
@@ -127,14 +137,34 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const inPath = S + "/l_report_internal.pdf"; await ip.saveAs(inPath);
   const inTxt = execFileSync("pdftotext", ["-layout", inPath, "-"]).toString();
   check(/INTERNAL - not for distribution/.test(inTxt) && /Watch Route 9 taxes/.test(inTxt) && /underwritten vs\. actual/i.test(inTxt) && /issued \d+\/\d+\/\d{4} by t@example\.com \(v1\)/.test(inTxt), "issued internal PDF: watermark, notes, underwritten vs. actual, who and when");
+  // Fund limits
+  const fl = rp.getByTestId("fund-limits");
+  check((await fl.getByTestId("limit-row").count()) === 3, "fund limits: the three LPA limits");
+  const ltvRow = fl.getByTestId("limit-row").filter({ hasText: "Fund leverage" });
+  check(/Breached/.test(await ltvRow.innerText()) && /LPA \/ PPM §6\.4/.test(await ltvRow.innerText()), `fund LTV breached, with its clause: ${(await ltvRow.innerText()).replace(/\s+/g, " ")}`);
+  check(/Within/.test(await fl.getByTestId("limit-row").filter({ hasText: "Single asset" }).innerText()) && /Review/.test(await fl.getByTestId("limit-row").filter({ hasText: "Permitted property types" }).innerText()), "single asset within; property types to review");
+  await fl.getByLabel("Internal limit", { exact: true }).selectOption("hold_years");
+  await fl.getByLabel("Internal limit value").fill("4");
+  await fl.getByRole("button", { name: "Add", exact: true }).click();
+  await p.waitForTimeout(1000);
+  const hold = fl.getByTestId("limit-row").filter({ hasText: "Maximum hold" });
+  check((await hold.count()) === 1 && /Internal/.test(await hold.innerText()) && /Near/.test(await hold.innerText()), `internal limit added: ${(await hold.innerText()).replace(/\s+/g, " ")}`);
+  await fl.getByLabel("Pipeline deal").selectOption({ label: "Fontana Pipeline Deal" });
+  await p.waitForTimeout(1500);
+  const saRow = fl.getByTestId("limit-row").filter({ hasText: "Single asset" });
+  check(/new breach/.test(await saRow.getByTestId("pre-status").innerText()), "pre-acquisition: the $60M pipeline deal would breach the single-asset limit");
+  const [xf] = await Promise.all([p.waitForEvent("download"), fl.getByRole("button", { name: "Excel" }).click()]);
+  check(/fund-limits\.xlsx$/.test(xf.suggestedFilename()), `limits Excel: ${xf.suggestedFilename()}`);
+
   await rp.getByLabel("Version").selectOption("shareable");
   await p.waitForTimeout(800);
   check((await rp.getByTestId("issued-report").count()) === 1, "issued list shows the quarter's issued reports");
-  const [xl] = await Promise.all([p.waitForEvent("download"), rp.getByRole("button", { name: "Excel" }).click()]);
+  const [xl] = await Promise.all([p.waitForEvent("download"), rp.getByRole("button", { name: "Excel" }).first().click()]);
   check(/2026-Q3-shareable-report\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
   await p.screenshot({ path: S + "/phaseL_reports.png", fullPage: true });
   await p.waitForTimeout(22000);
   const sfr = (saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.reports;
+  check((await (async () => { const f = (saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]; return f?.internalLimits?.[0]?.key === "hold_years" && f.internalLimits[0].limit === 4; })()), "saved: the internal limit on the fund");
   check(sfr?.issued?.length === 1 && sfr.issued[0].kind === "internal" && sfr.issued[0].report?.portfolio?.length >= 7 && sfr.issued[0].notes.includes("Route 9 taxes"), "saved: the issued report with its frozen figures");
   check(/test letter/.test(sfr?.drafts?.["2026-Q3"]?.letter ?? ""), "saved: the edited letter draft");
 
