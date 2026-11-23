@@ -1,4 +1,4 @@
-const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs"); const { execSync } = require("child_process");
+const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs"); const { execFileSync } = require("child_process");
 const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const T = j(R + "/lib/dealDocTypes.js"); const A = j(R + "/lib/dealDocApply.js"); const V = j(R + "/lib/leaseViews.js");
 const c = j(R + "/lib/calculations.js"); const sp = j(R + "/lib/samplePortfolio.js"); const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
@@ -11,7 +11,7 @@ const asOf = "2026-11-22";
 // Local check against the PDF text, for every sample
 for (const f of fs.readdirSync(D + "/abstracts").sort()) {
   const n = f.replace(".json", "");
-  const text = execSync(`pdftotext -layout ${D}/${n}.pdf -`).toString();
+  const text = execFileSync("pdftotext", ["-layout", `${D}/${n}.pdf`, "-"]).toString();
   const probs = T.checkLocally(abs(n), text);
   ok(probs.length === 0, `${n}: every quote is in the PDF and every figure in its quote${probs.length ? ` — ${probs.slice(0, 2).join("; ")}` : ""}`);
 }

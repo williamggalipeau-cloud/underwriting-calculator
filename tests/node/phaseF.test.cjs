@@ -1,4 +1,4 @@
-const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs"); const { execSync } = require("child_process");
+const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs"); const { execFileSync } = require("child_process");
 const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const T = j(R + "/lib/dealDocTypes.js"); const A = j(R + "/lib/dealDocApply.js"); const V = j(R + "/lib/leaseViews.js");
 const c = j(R + "/lib/calculations.js"); const sp = j(R + "/lib/samplePortfolio.js"); const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
@@ -8,7 +8,7 @@ const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 const doc = (n, deal = "D") => ({ id: "doc-" + n, doc_type: abs(n).doc_type, deal_id: deal, fund_name: "Model Fund I", title: abs(n).title, abstract: abs(n), applied_fields: {} });
 const asOf = "2026-11-22";
 for (const n of ["airport-flex-loan", "route9-loan", "airport-flex-cap-2026", "route9-cap-2026"]) {
-  const probs = T.checkLocally(abs(n), execSync(`pdftotext -layout ${D}/${n}.pdf -`).toString());
+  const probs = T.checkLocally(abs(n), execFileSync("pdftotext", ["-layout", `${D}/${n}.pdf`, "-"]).toString());
   ok(probs.length === 0, `${n}: quotes in the PDF, figures in quotes${probs.length ? " — " + probs.slice(0, 2).join("; ") : ""}`);
 }
 const deals = sp.buildSampleDeals(TEST_INPUTS);

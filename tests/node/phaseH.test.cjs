@@ -1,4 +1,4 @@
-const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs"); const { execSync } = require("child_process");
+const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs"); const { execFileSync } = require("child_process");
 const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const T = j(R + "/lib/dealDocTypes.js"); const A = j(R + "/lib/dealDocApply.js"); const Q = j(R + "/lib/delinquency.js");
 const { parseCSV } = j(R + "/lib/fundTerms.js");
@@ -42,7 +42,7 @@ ok(coll.length === 3 && near(c9.collectedPct, 200 / 3) && c9.belowAssumption && 
 const D = R + "/docs/sample-deal-docs/deals";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 for (const n of ["airport-flex-estoppel-desert-aero", "lakeshore-cam-2025", "riverside-billing-2026-12"]) {
-  const probs = T.checkLocally(abs(n), execSync(`pdftotext -layout ${D}/${n}.pdf -`).toString());
+  const probs = T.checkLocally(abs(n), execFileSync("pdftotext", ["-layout", `${D}/${n}.pdf`, "-"]).toString());
   ok(probs.length === 0, `${n}: quotes in the PDF${probs.length ? " — " + probs[0] : ""}`);
 }
 const L = R + "/docs/sample-leases/abstracts";
