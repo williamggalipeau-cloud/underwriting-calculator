@@ -47,6 +47,7 @@ server.listen(PORT, async () => {
   for (const [f, env] of jobs) {
     const label = f + (env.ROLE ? ` (${env.ROLE})` : "");
     const { code, out } = await run(path.join(dir, f), env);
+    if (process.env.VERBOSE) console.log(out);
     const lines = out.split("\n");
     const passes = lines.filter((l) => l.startsWith("PASS")).length;
     const fails = lines.filter((l) => l.startsWith("FAIL"));

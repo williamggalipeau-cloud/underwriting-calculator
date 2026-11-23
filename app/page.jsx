@@ -39,8 +39,6 @@ import CloudPanel from "@/components/CloudPanel";
 import {
   REQUIRE_SIGN_IN,
   claimInvites,
-  createWorkspace as dbCreateWorkspace,
-  deleteWorkspace as dbDeleteWorkspace,
   fetchAudit,
   getSession,
   listWorkspaces,
@@ -52,7 +50,14 @@ import {
 } from "@/lib/cloud";
 import ChangeLog from "@/components/ChangeLog";
 import FundTermsEditor from "@/components/FundTermsEditor";
-import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace, readLegacyWorkspace } from "@/lib/workspace";
+import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
+import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
+
+// The firm's data is saved record by record (phase Q) this many seconds after
+// the last change.
+const RECORD_SAVE_SECONDS = 1;
+// The asset on screen is per person and per browser, not firm data.
+const ACTIVE_DEAL_KEY = "baywise:activeDealId";
 
 // Workspaces are saved only in the database, never in the browser. Changes
 // save this many seconds after the last edit, on Save now, and when you leave.
@@ -478,6 +483,14 @@ export default function Home() {
   const editorName = session?.user?.email || auditUser;
   const latestData = useRef(null); // latest workspace snapshot to save
   const dbTimer = useRef(null); // pending save after the last edit
+  // Phase Q: the saved version of every record (Map recId → { kind, key, sort,
+  // data, deleted, version }); what differs from it is saved.
+  const recBase = useRef(new Map());
+  const [recordNotice, setRecordNotice] = useState(null); // "X was changed by …; reloaded"
+  const activeDealIdRef = useRef(null);
+  useEffect(() => {
+    activeDealIdRef.current = activeDealId;
+  });
   // Quick Underwrite inputs live on each deal. When a deal is linked, every
   // change is mapped onto its full-model inputs so all tabs stay in sync.
   function setQuick(updater) {
@@ -653,9 +666,10 @@ export default function Home() {
       unsub();
     };
   }, []);
-  // After signing in: claim invites, move any workspace an earlier version
-  // saved in this browser into the database, then open the most recently
-  // saved workspace (creating one if the user has none).
+  // After signing in: claim invites, then open the firm (phase Q: one firm,
+  // no workspaces to choose). Data an older version left in this browser is
+  // cleared, never imported. Someone with no access sees a message; nothing
+  // is created for them.
   const userId = session?.user?.id;
   useEffect(() => {
     if (!userId || !ready) return;
@@ -664,22 +678,15 @@ export default function Home() {
       .catch(() => {})
       .then(async () => {
         if (stop || dbLinkRef.current) return;
-        const legacy = readLegacyWorkspace();
-        if (legacy) {
-          const name = `Moved from browser ${new Date().toLocaleDateString()}`;
-          const id = await dbCreateWorkspace(name, { ...legacy, app: "industrial-uw" });
-          clearLegacyBrowserData();
-          if (!stop) await openDbWorkspace({ id });
+        clearLegacyBrowserData();
+        const firm = await loadFirm(userId);
+        if (stop || dbLinkRef.current) return;
+        if (!firm) {
+          setDbLink({ id: null, name: "", error: "You don't have access to the firm's data yet. Ask an owner to add you (☁ Database → People with access)." });
           return;
         }
-        const list = await listWorkspaces();
-        if (stop || dbLinkRef.current) return;
-        if (list.length) {
-          await openDbWorkspace(list[0]);
-        } else {
-          const id = await dbCreateWorkspace(SAMPLE_FUND_NAME, workspaceData());
-          if (!stop) await openDbWorkspace({ id });
-        }
+        if (firm.storage === "records") await openFirm(firm);
+        else await openDbWorkspace(firm);
       })
       .catch((e) => !stop && setDbLink({ id: null, name: "", error: e.message }));
     return () => {
@@ -687,6 +694,23 @@ export default function Home() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, ready]);
+  // Live updates: other people's saves appear on screen (phase Q).
+  const firmId = dbLink?.mode === "records" ? dbLink.id : null;
+  const applyRemoteRef = useRef(null);
+  useEffect(() => {
+    if (!firmId) return;
+    return subscribeRecords(firmId, (row) => applyRemoteRef.current?.(row));
+  }, [firmId]);
+  useEffect(() => {
+    applyRemoteRef.current = applyRemote;
+    if (typeof window !== "undefined" && window.__BAYWISE_TEST__) window.__baywiseApplyRemote = applyRemote;
+  });
+  // The asset on screen is remembered per browser.
+  useEffect(() => {
+    try {
+      if (activeDealId) localStorage.setItem(ACTIVE_DEAL_KEY, activeDealId);
+    } catch {}
+  }, [activeDealId]);
   // Verified change log for the Change Log tab.
   useEffect(() => {
     if (activeTab !== "changes" || !dbLink?.id || !session) return;
@@ -754,7 +778,17 @@ export default function Home() {
       auditBaseline.current = snap;
       // Database: take the baseline after opening, or mark unsaved changes.
       let schedule = false;
-      if (dbLinkRef.current) {
+      if (dbLinkRef.current?.mode === "records") {
+        // Phase Q: unsaved = any record that differs from its saved version.
+        const pending = recordItems(recBase.current, savableRecords({ deals, savedDeals, funds, baseCurve, anchorToLive, comps, valuations, v: 1, app: "industrial-uw" })).length > 0;
+        if (pending) {
+          if (!dbLinkRef.current.dirty) {
+            dbLinkRef.current = { ...dbLinkRef.current, dirty: true };
+            setDbLink((l) => (l ? { ...l, dirty: true } : l));
+          }
+          schedule = true;
+        }
+      } else if (dbLinkRef.current) {
         if (!dbBaseline.current || dbBaseline.current === "pending") dbBaseline.current = snap;
         else if (dbLinkRef.current.dirty) schedule = true;
         else if (diffWorkspace(dbBaseline.current, snap).length) {
@@ -770,9 +804,9 @@ export default function Home() {
       latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog: log };
       if (schedule) {
         clearTimeout(dbTimer.current);
-        dbTimer.current = setTimeout(() => saveRef.current?.(), DB_SAVE_SECONDS * 1000);
+        dbTimer.current = setTimeout(() => saveRef.current?.(), (dbLinkRef.current?.mode === "records" ? RECORD_SAVE_SECONDS : DB_SAVE_SECONDS) * 1000);
       }
-    }, 400);
+    }, dbLinkRef.current?.mode === "records" ? 150 : 400);
     return () => clearTimeout(t);
     // auditLog/auditUser are read through refs/closure; changes to them alone don't need a save.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -850,12 +884,98 @@ export default function Home() {
     linkDb({ ...meta, version: row.version }, { savedAt: row.updated_at });
   }
 
-  async function createDbWorkspace(name) {
-    const data = workspaceData();
-    const id = await dbCreateWorkspace(name, data);
-    dbBaseline.current = auditSnapshot(data);
-    linkDb({ id, name, version: 1, role: "owner" }, { savedAt: new Date().toISOString() });
+  // Phase Q: opens the firm from its records.
+  async function openFirm(firm) {
+    clearTimeout(dbTimer.current);
+    const rows = await loadRecords(firm.id);
+    const data = dataFromRecords(rows);
+    if (!isWorkspace(data)) throw new Error("The firm's data has no deals yet.");
+    let active = null;
+    try {
+      active = localStorage.getItem(ACTIVE_DEAL_KEY);
+    } catch {}
+    recBase.current = new Map(rows.map((r) => [recId(r.kind, r.key), r]));
+    applyWorkspace({ ...data, activeDealId: active || data.activeDealId }, `Opened ${firm.name}`);
+    dbBaseline.current = auditSnapshot({ deals: [], savedDeals: [], funds: {}, comps: null, valuations: {}, baseCurve: null, ...data });
+    // The old app may have saved the workspace JSON after the migration.
+    const imported = Math.max(firm.records_from_version ?? 0, data.importedFromVersion ?? 0);
+    const importPending = firm.records_from_version != null && firm.version > imported;
+    const savedAt = rows.reduce((m, r) => (r.updated_at && r.updated_at > m ? r.updated_at : m), "") || null;
+    linkDb(firm, { mode: "records", savedAt, importPending });
   }
+
+  // Puts one record into what's on screen without logging it as this
+  // person's edit (a remote change, or a reload after a conflict).
+  function putRecord(row) {
+    const cur = latestData.current ?? workspaceData();
+    const next = applyRecord(cur, row);
+    latestData.current = { ...cur, ...next };
+    auditBaseline.current = auditSnapshot(next);
+    dbBaseline.current = auditSnapshot(next);
+    if (row.kind === "deal") {
+      setDealsRaw(next.deals);
+      if (row.deleted && activeDealIdRef.current === row.key && next.deals.length) setActiveDealId(next.deals[0].id);
+    } else if (row.kind === "saved_deal") setSavedDealsRaw(next.savedDeals);
+    else if (row.kind === "fund") setFundsRaw(next.funds);
+    else if (row.kind === "valuation") setValuationsRaw(next.valuations);
+    else if (row.kind === "settings") {
+      setCompsRaw({ ...DEFAULT_COMPS_STATE, ...(next.comps ?? {}) });
+      if (next.baseCurve?.points?.length) setBaseCurveRaw(next.baseCurve);
+      if (typeof next.anchorToLive === "boolean") setAnchorToLiveRaw(next.anchorToLive);
+    }
+  }
+
+  // Live update from the database (another person's save).
+  function applyRemote(row) {
+    const l = dbLinkRef.current;
+    if (!l || l.mode !== "records" || !row || row.kind === "local_log") return;
+    const id = recId(row.kind, row.key);
+    const base = recBase.current.get(id);
+    if (base && row.version <= base.version) return; // our own save, or older
+    const cur = latestData.current;
+    if (!cur) return;
+    if (base) {
+      // An unsaved edit here to the same record wins locally; its save then
+      // meets the conflict and reloads that record.
+      const mine = savableRecords(cur).find((r) => r.kind === row.kind && r.key === row.key);
+      if (mine && JSON.stringify(mine.data) !== JSON.stringify(base.data)) return;
+    }
+    recBase.current.set(id, { ...row });
+    putRecord(row);
+  }
+
+  const recordLabel = (kind, key) =>
+    kind === "deal" || kind === "saved_deal"
+      ? [...deals, ...savedDeals].find((d) => d.id === key)?.inputs?.propertyName || "A deal"
+      : kind === "fund" ? `Fund terms of ${key}` : kind === "valuation" ? "Valuation marks" : "Settings";
+
+  // A save met a newer version: reload that record and keep everything else.
+  async function reloadConflict(l, c) {
+    const row = await loadRecord(l.id, c.kind, c.key);
+    const label = recordLabel(c.kind, c.key);
+    if (row) {
+      recBase.current.set(recId(c.kind, c.key), row);
+      putRecord(row);
+    } else {
+      recBase.current.delete(recId(c.kind, c.key));
+    }
+    setRecordNotice(`${label} was changed by ${row?.updated_by_email || "someone else"}; reloaded. Your other changes are kept.`);
+  }
+
+  // One-time import of what the old app saved after the move (owners).
+  async function importFromOldApp() {
+    const l = dbLinkRef.current;
+    if (!l || l.mode !== "records") return;
+    const legacy = await loadLegacyJson(l.id);
+    const data = { ...legacy.data, importedFromVersion: legacy.version };
+    const items = recordItems(recBase.current, savableRecords(data));
+    await saveRecords(l.id, items, [{ area: "Workspace", item: l.name, field: "Import", note: `Imported changes saved by the old app (version ${legacy.version})` }]);
+    dbLinkRef.current = null;
+    await openFirm(await loadFirm(session.user.id));
+    setRecordNotice(`Imported ${items.length} change${items.length === 1 ? "" : "s"} saved by the old app.`);
+  }
+
+
 
   // Saves to the linked database workspace with the field-level changes since
   // the last save (stamped with the signed-in user by the database).
@@ -880,6 +1000,7 @@ export default function Home() {
     }
     if (changes.length > BULK_LIMIT) changes = [{ area: "Workspace", item: "Bulk change", field: `${changes.length} fields changed`, note: "Bulk change" }];
     changes.push(...sourced.map((e) => ({ area: e.area, item: e.item, field: e.field, path: e.path, from: e.from, to: e.to, note: e.source })));
+    if (l.mode === "records") return saveRecordsNow(l, data, snap, [...notes, ...changes]);
     dbSaving.current = true;
     try {
       const version = await dbSaveWorkspace(l.id, l.version, data, [...notes, ...changes]);
@@ -891,6 +1012,42 @@ export default function Home() {
       if (activeTab === "changes") fetchAudit(l.id).then(setDbLog).catch(() => {});
     } catch (e) {
       setDbLink((x) => (x ? { ...x, error: e.message, conflict: !!e.conflict } : x));
+      throw e;
+    } finally {
+      dbSaving.current = false;
+    }
+  }
+
+  // Phase Q: saves only the records that changed, each checked against the
+  // version it was loaded at. A newer version elsewhere reloads that record
+  // (never overwritten) and the rest is saved.
+  async function saveRecordsNow(l, data, snap, changes, attempt = 0) {
+    const items = recordItems(recBase.current, savableRecords(data));
+    const clean = () => {
+      dbBaseline.current = snap;
+      const next = { ...dbLinkRef.current, savedAt: new Date().toISOString(), dirty: false, error: null, conflict: false };
+      dbLinkRef.current = next;
+      setDbLink(next);
+    };
+    if (!items.length) return clean();
+    dbSaving.current = true;
+    try {
+      const res = await saveRecords(l.id, items, changes);
+      for (const it of items) {
+        const id = recId(it.kind, it.key);
+        const prev = recBase.current.get(id);
+        const v = res.find((x) => x.kind === it.kind && x.key === it.key)?.version ?? (prev?.version ?? 0) + 1;
+        recBase.current.set(id, { ...prev, kind: it.kind, key: it.key, sort: it.sort ?? prev?.sort ?? 0, data: it.deleted ? prev?.data : it.data, deleted: !!it.deleted, version: v });
+      }
+      clean();
+      if (activeTab === "changes") fetchAudit(l.id).then(setDbLog).catch(() => {});
+    } catch (e) {
+      if (e.conflict?.kind && attempt < 3) {
+        dbSaving.current = false;
+        await reloadConflict(l, e.conflict);
+        return saveRecordsNow(l, latestData.current ?? data, auditSnapshot(latestData.current ?? data), [], attempt + 1);
+      }
+      setDbLink((x) => (x ? { ...x, error: e.message } : x));
       throw e;
     } finally {
       dbSaving.current = false;
@@ -909,12 +1066,7 @@ export default function Home() {
     await saveToDbNow(true);
   }
 
-  function unlinkDb() {
-    clearTimeout(dbTimer.current);
-    dbLinkRef.current = null;
-    setDbLink(null);
-    setDbLog(null);
-  }
+
 
   const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog });
 
@@ -1357,7 +1509,7 @@ export default function Home() {
           Clear test data
         </button>
         <span className="ml-auto text-[11px] text-gray-400">
-          {!session ? "Not saved. Sign in to save to the database" : !dbLink ? "Opening your workspace…" : null}
+          {!session ? "Not saved. Sign in to save to the database" : !dbLink ? "Opening the firm's data…" : null}
         </span>
         <input
           ref={importRef}
@@ -1374,7 +1526,7 @@ export default function Home() {
           <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs ${dbLink.conflict || dbLink.error ? "border-red-200 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-900"}`}>
             <span aria-hidden="true">☁</span>
             <button type="button" onClick={() => setCloudOpen(true)} className="font-semibold hover:underline" title="Database">{dbLink.name}</button>
-            <span className="text-sky-700">v{dbLink.version}</span>
+            {dbLink.mode !== "records" && <span className="text-sky-700">v{dbLink.version}</span>}
             {dbLink.conflict ? (
               <>
                 <span>· someone else saved a newer version</span>
@@ -1396,11 +1548,23 @@ export default function Home() {
           </span>
         ) : session && dbLink?.error ? (
           <span className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-800">
-            <span aria-hidden="true">☁</span> Couldn&apos;t open your database workspace: {dbLink.error}
+            <span aria-hidden="true">☁</span> Couldn&apos;t open the firm&apos;s data: {dbLink.error}
             <button type="button" onClick={() => setCloudOpen(true)} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Database…</button>
 
           </span>
         ) : null}
+        {recordNotice && (
+          <span className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs text-amber-900" role="status" data-testid="record-notice">
+            {recordNotice}
+            <button type="button" onClick={() => setRecordNotice(null)} aria-label="Dismiss" className="text-amber-700">✕</button>
+          </span>
+        )}
+        {dbLink?.importPending && dbLink.role === "owner" && (
+          <span className="flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-xs text-violet-900" data-testid="import-old-app">
+            Changes were saved by the old app after the move.
+            <button type="button" onClick={() => importFromOldApp().catch((e) => setRecordNotice(e.message))} className="rounded border border-violet-300 bg-white px-1.5 py-0.5 font-medium">Import changes made in the old app</button>
+          </span>
+        )}
         {cloudOpen && (
           <CloudPanel
             session={session}
@@ -1408,13 +1572,7 @@ export default function Home() {
             recovery={pwRecovery}
             onRecoveryDone={() => setPwRecovery(false)}
             onClose={() => setCloudOpen(false)}
-            onCreate={createDbWorkspace}
-            onOpen={(w) => openDbWorkspace(w)}
             onSaveNow={() => saveToDbNow(true)}
-            onDelete={async (w) => {
-              await dbDeleteWorkspace(w.id);
-              if (dbLinkRef.current?.id === w.id) unlinkDb();
-            }}
             onSignOut={async () => {
               await saveToDbNow().catch(() => {});
               await signOut();

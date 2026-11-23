@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addMember, listMembers, listWorkspaces, removeMember, sendPasswordReset, signInWithPassword, signUpWithPassword, updatePassword } from "@/lib/cloud";
+import { addMember, listMembers, removeMember, sendPasswordReset, signInWithPassword, signUpWithPassword, updatePassword } from "@/lib/cloud";
 
 const MIN_PASSWORD = 8;
 
@@ -117,12 +117,10 @@ function PasswordForm({ busy, run, clearMsg, onPasswordSet, recovery = false, st
 
 // Database panel: sign in, save the workspace to the database, open a saved
 // workspace, and (owners) manage who can open it.
-export default function CloudPanel({ session, link, recovery, onRecoveryDone, onClose, onCreate, onOpen, onSaveNow, onSignOut, onDelete }) {
+export default function CloudPanel({ session, link, recovery, onRecoveryDone, onClose, onSaveNow, onSignOut }) {
   const [changingPassword, setChangingPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
-  const [list, setList] = useState(null);
-  const [name, setName] = useState("Model Fund I");
   const [members, setMembers] = useState(null);
   const [newMember, setNewMember] = useState({ email: "", role: "editor" });
   const signedIn = !!session;
@@ -142,7 +140,6 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
       setBusy(false);
     }
   }
-  const refresh = () => run(async () => setList(await listWorkspaces()));
   const refreshMembers = () => link && run(async () => setMembers(await listMembers(link.id)));
 
   useEffect(() => {
@@ -150,16 +147,6 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-  useEffect(() => {
-    if (!signedIn) return;
-    let stop = false;
-    listWorkspaces()
-      .then((l) => !stop && setList(l))
-      .catch((e) => !stop && setMsg({ ok: false, text: e.message }));
-    return () => {
-      stop = true;
-    };
-  }, [signedIn, link?.id, link?.version]);
   useEffect(() => {
     if (!signedIn || !link?.id) return;
     let stop = false;
@@ -179,7 +166,7 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
           <div>
             <h2 className="text-lg font-bold">Database</h2>
             <p className="text-xs text-gray-500">
-              Your work is saved here, in the database, and nowhere else. Share workspaces, keep every version, and get a verified change log.
+              The firm&apos;s data is saved here, in the database, and nowhere else: every change within about a second, with a verified change log. Everyone sees the same data.
             </p>
           </div>
           <button type="button" onClick={onClose} className="text-sm text-gray-400 hover:text-gray-700" aria-label="Close">✕</button>
@@ -209,10 +196,10 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
             )}
 
             {link ? (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-2">
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-2" data-testid="firm-status">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span>
-                    Saving to <span className="font-semibold">{link.name}</span> (version {link.version}, you&apos;re {link.role})
+                    Saving to <span className="font-semibold">{link.name}</span> (you&apos;re {link.role}){link.savedAt ? ` · last saved ${fmtTime(link.savedAt)}` : ""}
                   </span>
                   <span className="flex gap-2">
                     {link.role !== "viewer" && (
@@ -222,72 +209,12 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
                 </div>
               </div>
             ) : (
-              <form
-                className="flex flex-wrap items-end gap-2 rounded-lg border border-blue-200 bg-blue-50/40 px-3 py-2"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  await run(() => onCreate(name.trim()), "Saved to the database. Changes now save there too.");
-                  refresh();
-                }}
-              >
-                <label className="flex flex-col gap-0.5">
-                  <span className="text-gray-600">Create a workspace from what&apos;s on screen, named</span>
-                  <input value={name} onChange={(e) => setName(e.target.value)} required className="w-60 rounded-md border border-gray-300 px-2 py-1.5" />
-                </label>
-                <button type="submit" disabled={busy || !name.trim()} className={`${btn} bg-blue-600 text-white hover:bg-blue-700`}>Save to database</button>
-              </form>
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">You don&apos;t have access to the firm&apos;s data yet. Ask an owner to add you with the email you signed in with.</p>
             )}
-
-            <div>
-              <div className="mb-1 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-700">Your workspaces</h3>
-                <button type="button" onClick={refresh} className="text-blue-700 hover:underline">Refresh</button>
-              </div>
-              {!list ? (
-                <p className="text-gray-400">Loading…</p>
-              ) : list.length === 0 ? (
-                <p className="text-gray-400">None yet. Save this workspace above, or ask an owner to add you to theirs.</p>
-              ) : (
-                <table className="w-full">
-                  <thead className="text-gray-500">
-                    <tr className="border-b border-gray-200">
-                      {["Workspace", "Your role", "Version", "Last saved", ""].map((h) => <th key={h} className="px-2 py-1 text-left font-medium">{h}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {list.map((w) => (
-                      <tr key={w.id} className={`border-b border-gray-100 ${link?.id === w.id ? "bg-emerald-50/50" : ""}`}>
-                        <td className="px-2 py-1.5 font-medium">{w.name}</td>
-                        <td className="px-2 py-1.5">{w.role}</td>
-                        <td className="px-2 py-1.5">{w.version}</td>
-                        <td className="px-2 py-1.5 text-gray-500">{fmtTime(w.updated_at)} {w.updated_by_email ? `· ${w.updated_by_email}` : ""}</td>
-                        <td className="px-2 py-1.5 text-right whitespace-nowrap">
-                          {link?.id === w.id ? (
-                            <span className="text-emerald-700">Open</span>
-                          ) : (
-                            <button type="button" disabled={busy} onClick={() => run(() => onOpen(w), `Opened ${w.name}.`)} className="text-blue-700 hover:underline">Open</button>
-                          )}
-                          {w.role === "owner" && (
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() => window.confirm(`Delete "${w.name}" and all its versions and audit history from the database? This can't be undone.`) && run(() => onDelete(w).then(refresh), "Deleted.")}
-                              className="ml-3 text-gray-400 hover:text-red-600"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
 
             {link && members && (
               <div>
-                <h3 className="mb-1 font-semibold text-gray-700">People with access to {link.name}</h3>
+                <h3 className="mb-1 font-semibold text-gray-700">People with access</h3>
                 <ul className="space-y-1">
                   {members.members.map((m) => (
                     <li key={m.email} className="flex items-center justify-between rounded bg-gray-50 px-2 py-1">
