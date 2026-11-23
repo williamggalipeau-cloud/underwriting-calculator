@@ -3081,7 +3081,7 @@ each phase and the decisions behind it are in
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
-| X. Distributions | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ⛓ Right after K, before L |
+| X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ⛓ Right after K, before L |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
 
 **How phases are delivered.**

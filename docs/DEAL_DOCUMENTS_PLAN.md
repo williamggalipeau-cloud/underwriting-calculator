@@ -33,7 +33,7 @@ changes the model without the user clicking to apply it.
 | T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager; TI spend by unit with mock TI actuals (added 11/23) | ⛓ After S |
 | U | Market group: Market Data tab, submarket statistics; stress tests in standard deviations with a simulation (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
-| X | Distributions tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
+| X | Distribution Analysis tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
@@ -1188,9 +1188,9 @@ A **Market** header before Library, with a **Market Data** tab:
 Sales Comps stays in Asset Management, and the live SOFR panel is on the
 Debt tab.
 
-## Phase X: Distribution Planner (added 11/23; built right after K, before L)
+## Phase X: Distribution Analysis (added 11/23; built right after K, before L)
 
-A **Distributions** tab in Portfolio Management, after Fund Return: a model
+A **Distribution Analysis** tab (named by the user 11/23) in Portfolio Management, after Fund Return: a model
 for each quarter's fund distribution. Decided with the user 11/23:
 - **Distributable cash** for a fund and quarter:
   - cash at each asset (operating accounts), **uploaded from Yardi** (cash or
