@@ -3,7 +3,7 @@
 // Phase Z: the Home page. Today's attention list, fund cards, workflow lanes
 // (one per tab header), quick actions and recent activity, for the portfolio
 // chosen in the "Working on" picker.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { attentionList, fundCards, lanes, money, recentActivity } from "@/lib/home";
 import { formatValue } from "@/lib/audit";
 
@@ -13,6 +13,10 @@ const KIND = {
   lease: ["Lease", "bg-amber-50 text-amber-800"],
   leasing: ["Leasing", "bg-indigo-50 text-indigo-800"],
   covenant: ["Covenant", "bg-red-50 text-red-700"],
+  tax: ["Property tax", "bg-orange-50 text-orange-800"],
+  insurance: ["Insurance", "bg-teal-50 text-teal-800"],
+  contract: ["Contract", "bg-gray-100 text-gray-700"],
+  condition: ["Repair", "bg-red-50 text-red-700"],
   extension: ["Extension", "bg-amber-50 text-amber-800"],
   loan: ["Loan", "bg-violet-50 text-violet-800"],
   cap: ["Rate cap", "bg-sky-50 text-sky-800"],
@@ -28,7 +32,8 @@ export default function Home({ deals = [], funds = {}, valuations = {}, pipeline
   const laneList = useMemo(() => lanes({ deals, funds, pipeline, attention, cards, firm, todayISO }), [deals, funds, pipeline, attention, cards, firm, todayISO]);
   const recent = useMemo(() => recentActivity(log, 10), [log]);
   const open = (a) => (a.dealId && onOpenDeal ? onOpenDeal(a.dealId, a.tab) : onOpenTab?.(a.tab));
-  const shown = attention.slice(0, 12);
+  const [allAtt, setAllAtt] = useState(false);
+  const shown = allAtt ? attention : attention.slice(0, 12);
 
   return (
     <div className="space-y-5 text-gray-900" data-testid="home">
@@ -62,7 +67,7 @@ export default function Home({ deals = [], funds = {}, valuations = {}, pipeline
               ))}
             </ul>
           )}
-          {attention.length > shown.length && <p className="mt-1 text-[11px] text-gray-400">and {attention.length - shown.length} more</p>}
+          {attention.length > 12 && <button type="button" onClick={() => setAllAtt(!allAtt)} className="mt-1 text-[11px] text-blue-700 hover:underline">{allAtt ? "Show fewer" : `Show all ${attention.length} (${attention.length - shown.length} more)`}</button>}
         </section>
 
         {/* Recent activity */}

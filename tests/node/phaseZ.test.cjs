@@ -31,7 +31,8 @@ const ap = by("appraisal")[0];
 ok(ap && ap.assets.length === deals.filter((d) => d.inputs.acquisitionDate <= "2026-09-30").length - 1 && !ap.assets.includes("Ridgeway Trade Center") && ap.tab === "valuations", `appraisals: ${ap?.assets.length} held assets without a 9/30 mark (the marked one excluded)`);
 const rent = by("rent");
 ok(rent.length === 1 && rent[0].amount === 3000 && /Late Tenant LLC: \$3,000 60\+ days late/.test(rent[0].text) && rent[0].tab === "units", "rent 60+ days late from the latest delinquency report (30-day bucket not counted)");
-ok(att.findIndex((a) => !a.date) > att.findIndex((a) => a.kind === "lease"), "dated items first, by date");
+ok(att.findIndex((a) => !a.date && !["covenant", "condition"].includes(a.kind)) > att.findIndex((a) => a.kind === "lease"), "dated items before other undated ones");
+ok(att.findIndex((a) => ["covenant", "condition"].includes(a.kind) && !a.date) <= 0 && att.filter((a) => a.date).every((a, i, xs) => i === 0 || a.date >= xs[i - 1].date), "urgent undated items (covenant breach, immediate repair) lead; dated ones by date");
 
 const cards = H.fundCards(deals, funds, marks, { todayISO: TODAY });
 ok(cards.length === 1 && cards[0].name === FUND && cards[0].type === "Fund" && cards[0].nav > 0 && cards[0].dryPowder > 0 && cards[0].nextDate?.label === "Investment period ends", "fund card: type, NAV, dry powder, next key date");
@@ -40,7 +41,7 @@ ok(jv.length === 2 && jv[0].name === "Example JV II" && jv[0].type === "Joint Ve
 
 const pl = { deals: [{ stage: "loi", askingPrice: 1e7 }, { stage: "screening" }, { stage: "screening" }, { stage: "passed" }] };
 const L = H.lanes({ deals, funds, pipeline: pl, attention: att, cards, firm: { occupancy: 95.5 }, todayISO: TODAY });
-ok(L.map((l) => l.label).join() === "Acquisitions,Dispositions,Asset Management,Portfolio Management,Library", "lanes in the tab bar's order (headers that have tabs)");
+ok(L.map((l) => l.label).join() === "Acquisitions,Dispositions,Asset Management,Property Management,Portfolio Management,Library", "lanes in the tab bar's order (headers that have tabs)");
 const st = (lane, label) => L.find((l) => l.label === lane).stats.find((s) => s.label === label)?.value;
 ok(st("Acquisitions", "Active pipeline") === "3 deals" && /Screening 2 · LOI 1/.test(st("Acquisitions", "By stage")), "acquisitions: active pipeline by stage");
 ok(st("Asset Management", "Occupancy") === "95.5%" && st("Asset Management", "Leases expiring in 2026") === "1" && st("Asset Management", "Appraisals due") === String(ap.assets.length), "asset management: occupancy, leases expiring this year, appraisals due");

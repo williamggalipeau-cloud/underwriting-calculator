@@ -12,6 +12,7 @@ import HomeView from "@/components/Home";
 import Dispositions from "@/components/Dispositions";
 import Leasing from "@/components/Leasing";
 import FundDebt from "@/components/FundDebt";
+import PropertyMgmt from "@/components/PropertyMgmt";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
@@ -451,6 +452,12 @@ const TAB_GROUPS = [
     { id: "sensitivity", label: "Return Sensitivity" },
     { id: "sellhold",    label: "Sell/Hold Analysis" },
   ] },
+  { label: "Property Management", tabs: [
+    { id: "taxes",       label: "Property Taxes" },
+    { id: "insurance",   label: "Insurance" },
+    { id: "condition",   label: "Property Condition" },
+    { id: "contracts",   label: "Service Contracts" },
+  ] },
   { label: "Portfolio Management", tabs: [
     { id: "fundsummary", label: "Fund Summary" },
     { id: "fundplan",    label: "Fund Plan" },
@@ -467,7 +474,7 @@ const TAB_GROUPS = [
 const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
 
 
 export default function Home() {
@@ -2003,6 +2010,17 @@ export default function Home() {
                 onPick={setActiveDealId}
                 onOpenSnapshot={handleOpenSnapshot}
                 label={`${viewDeals.length} open${scope ? ` in ${scope}` : ""}${savedDeals.length ? ` · ${savedDeals.length} saved` : ""}`}
+              />
+            )}
+            {["taxes", "insurance", "condition", "contracts"].includes(activeTab) && (
+              <PropertyMgmt
+                key={activeTab}
+                tab={activeTab}
+                deal={activeDeal}
+                deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
+                canEdit={!locked}
+                onUpdate={updateDealInputs}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
             )}
             {activeTab === "funddebt" && (

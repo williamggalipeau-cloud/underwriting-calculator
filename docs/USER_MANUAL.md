@@ -2594,6 +2594,50 @@ changes nothing. The Debt tab stays for one asset's loan.
 - On **Home**, a covenant breach now, or an extension test that fails
   within 18 months, is on the attention list and opens Fund Debt.
 
+### 7.46 Property Management (`lib/propertyMgmt.js`, phase T)
+
+A **Property Management** group sits after Asset Management, with four
+tabs. Each shows the open asset, with editable tables (**+ Add** a row; ✕
+removes one). **All assets** gives a read-only whole-fund view by asset.
+Each tab has a summary line, a **Coming up (120 days)** list and Excel.
+Everything is kept on the asset, so edits save and log like any other.
+
+- **Property Taxes:**
+  - **Parcels:** APN, address, assessed value, rate and year.
+  - **Tax bills:** parcel, tax year, installment, amount, due and paid
+    dates.
+  - **Appeals:** filed, hearing, outcome, savings and consultant.
+  - The summary gives, for the chosen tax year: billed, paid, unpaid, the
+    business plan's tax budget and the difference, assessed value, appeal
+    savings and pending appeals.
+- **Insurance:**
+  - **Policies:** coverage, carrier, number, limit, deductible, premium,
+    effective and renewal dates, and broker.
+  - **Claims log:** date of loss, cause, policy, amount, status and
+    recovery.
+  - The summary gives total premium, property limit, open claims, and
+    claimed vs. recovered.
+- **Property Condition:** findings from a PCA, Phase I/II, zoning or
+  inspection report. Each has the system, finding, cost, urgency
+  (Immediate, within 1 year, 1–5 years, 5+ years), status and Yardi job.
+  The summary gives open cost by urgency and the completed cost.
+- **Service Contracts:** vendor, service, start and end, annual cost,
+  auto-renewal, notice days and Yardi contract. The summary gives annual
+  cost and how many auto-renew.
+- **On Home**, these go on the attention list within 60 days:
+  - an unpaid tax bill coming due
+  - an appeal hearing
+  - a policy renewal
+  - a contract's notice deadline (end date less notice days) or end date
+
+  An open **Immediate** repair leads the list. The Property Management lane
+  shows the annual premium, open condition items and their cost, and the
+  dates coming up. When there are more than 12 items, **Show all** lists
+  every one.
+- Still to come: uploads in each section; adding a condition item to the
+  business plan's capital plan; the Yardi Construction Manager upload; and
+  TI spend by unit with sample construction files.
+
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
 The **Fund Plan** tab (Portfolio Management, before Fund Return) tracks the
@@ -3701,7 +3745,7 @@ each phase and the decisions behind it are in
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
-| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
+| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | 🔨 Part 1 built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, Excel), Home items (§7.46); uploads, capital plan, Yardi construction and TI spend next |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
