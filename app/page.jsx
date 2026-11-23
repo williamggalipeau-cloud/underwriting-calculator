@@ -29,6 +29,7 @@ import { fundType } from "@/lib/fundTypes";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
+import { withSampleMedia } from "@/lib/sampleMedia";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
@@ -1338,6 +1339,16 @@ export default function Home() {
     setActiveTab("fund");
   }
 
+  // Drawn photos and floor plans for the sample assets (phase L), added to
+  // sample assets with no photos or plan; edits to them are kept.
+  function handleAddSampleMedia() {
+    if (!requireEdit()) return;
+    const n = deals.filter((d) => withSampleMedia(d) !== d).length;
+    if (!n) { window.alert("Every sample asset already has photos or a floor plan."); return; }
+    noteAudit(`Added drawn sample photos and floor plans to ${n} sample asset${n === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map(withSampleMedia));
+  }
+
   function handleClearTest() {
     if (!requireEdit()) return;
     noteAudit("Cleared test and sample data");
@@ -1502,6 +1513,7 @@ export default function Home() {
                 </p>
                 {[
                   { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
+                  { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                   { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
                   { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
                 ].map((a) => (

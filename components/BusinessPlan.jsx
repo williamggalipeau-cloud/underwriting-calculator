@@ -54,6 +54,7 @@ export function BudgetVsActualSummary({ deals, onOpen }) {
 }
 
 export default function BusinessPlan({ dealId, inputs, fundName, fundType = "", fundDeals = [], canEdit, email, onApplyDeal }) {
+  const [pdfBusy, setPdfBusy] = useState(false);
   const bp = inputs.businessPlan ?? null;
   const revs = bp?.revisions ?? [];
   const cur = revs[revs.length - 1] ?? null;
@@ -162,7 +163,16 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundType = "", 
               {revs.filter((r) => r.n !== shown.n).map((r) => <option key={r.n} value={r.n}>Revision {r.n}</option>)}
             </select>
           </label>}
-          <button type="button" className={`${btn} border-gray-300`} onClick={async () => downloadBlob(await (await import("@/lib/businessPlanPdf")).businessPlanPdf(inputs, { rev: shown.n, fundName, fundType, variance: end ? { kind: period.kind, end } : null }), `${safeFileName(name)}-business-plan-rev${shown.n}.pdf`)}>PDF</button>
+          <button type="button" className={`${btn} border-gray-300`} onClick={async () => {
+            setPdfBusy(true);
+            try {
+              const asOfPdf = new Date().toISOString().slice(0, 10);
+              const extras = await (await import("@/lib/businessPlanExtras")).planExtras(inputs, { asOf: asOfPdf, signedIn: !!email });
+              downloadBlob(await (await import("@/lib/businessPlanPdf")).businessPlanPdf(inputs, { rev: shown.n, fundName, fundType, variance: end ? { kind: period.kind, end } : null, asOf: asOfPdf, extras }), `${safeFileName(name)}-business-plan-rev${shown.n}.pdf`);
+            } finally {
+              setPdfBusy(false);
+            }
+          }} disabled={pdfBusy} title="The whole plan in one PDF: plan, KPIs, budget, budget vs. actual, photos, floor plan, location, actual NOI and underwritten vs. actual">{pdfBusy ? "Making PDF…" : "PDF"}</button>
           <button type="button" className={`${btn} border-gray-300`} onClick={async () => downloadBlob(await writeXlsx([...budgetRows(bp), [], ...(rep ? varianceRows(rep) : [])], { sheetName: "Budget", colWidths: [34, 14, 14, 14, 14, 14, 14, 10, 30] }), `${safeFileName(name)}-budget.xlsx`)}>Excel</button>
           {canEdit && !editing && shown.n === revs.length && <button type="button" className={`${btn} border-blue-600 bg-blue-600 text-white`} onClick={() => { setDraft(structuredClone(cur.plan)); setMsg(null); }}>Edit plan</button>}
         </div>
