@@ -1,5 +1,6 @@
 "use client";
 
+import UwVsActual from "@/components/UwVsActual";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import { fundOptionLabel } from "@/lib/fundTypes";
 import { useEffect, useMemo, useState } from "react";
@@ -117,7 +118,7 @@ function Fact({ label, value, sub }) {
 
 // Everything about one asset: terms, year-by-year cash flow, returns,
 // valuation history and tagged capital activity.
-function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose }) {
+function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, onApplyDeal }) {
   const { inputs: inp, cashFlows: cfs, debt, returns, closingCosts, sellingCosts, irrFlows, valuationRows, activity } = row.detail;
   const hold = cfs.length;
   const direct = !!inp.noiOverrideEnabled;
@@ -201,6 +202,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose }) {
 
       {/* IC approval and actual basis / realized sale (Documents tab) */}
       {inp.icApproved && <IcVarianceTable ic={inp.icApproved} inputs={inp} />}
+      <UwVsActual deal={{ id: row.id, inputs: inp }} canEdit={canEdit && row.live} email={email} onApplyDeal={onApplyDeal} />
       {(inp.actualBasis || inp.realizedSalePrice > 0) && (
         <p className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs" data-testid="actual-basis">
           {inp.actualBasis && <>Actual basis (closing statement): price {fmtM(inp.purchasePrice)} on {fmtDate(inp.acquisitionDate)}{inp.actualBasis.equityFunded ? ` · equity funded ${fmtM(inp.actualBasis.equityFunded)}` : ""}{inp.actualBasis.loanProceeds ? ` · loan ${fmtM(inp.actualBasis.loanProceeds)}` : ""}. </>}
@@ -358,7 +360,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose }) {
   );
 }
 
-export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onOpenDeal, onOpenLeases, workspaceId }) {
+export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onOpenDeal, onOpenLeases, workspaceId, canEdit = false, email = null, onApplyDeal }) {
   // Lease documents for the Leases column and Details (signed in with a workspace).
   const [leases, setLeases] = useState([]);
   useEffect(() => {
@@ -559,7 +561,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
       </div>
 
       {detailId && summary.rows.some((r) => r.id === detailId) && (
-        <AssetDetail row={rows.find((r) => r.id === detailId)} onOpenDeal={onOpenDeal} onOpenLeases={onOpenLeases} onClose={() => setDetailId(null)} />
+        <AssetDetail row={rows.find((r) => r.id === detailId)} onOpenDeal={onOpenDeal} onOpenLeases={onOpenLeases} onClose={() => setDetailId(null)} canEdit={canEdit} email={email} onApplyDeal={onApplyDeal} />
       )}
 
       <p className="text-[11px] leading-relaxed text-gray-400">

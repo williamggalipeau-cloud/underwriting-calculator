@@ -20,7 +20,7 @@ changes the model without the user clicking to apply it.
 | G | Appraisal → Valuations tab | ✅ Live (PR #71); 14 Node + 8 Playwright checks |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Live (PR #72); 32 Node + 23 Playwright checks |
 | I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ✅ Part 1 live (PR #73); part 2 built 11/23 (photos, map, floor plan, demising / combining, actual NOI to Valuation and Sell/Hold; 43 Node + 22 Playwright checks) |
-| J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
+| J | Underwritten vs. actual performance | ✅ Built 11/23 (pulled forward into window 1): frozen baseline, actual + projected, IRR gap by cause, fund ranking, Excel and PDF; 29 Node + 16 Playwright checks |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
 | M | Fund impact modeling and a Pipeline tab (Deal Screener and Full Underwrite candidates, pipeline assets, versioned scenarios); pipeline report with top 10 assets; Deal Screener stays as its own tab with Send to Fund Impact (decided 11/23) | ⛓ Starts when L is complete |
@@ -546,6 +546,11 @@ actual results are then tracked against each other.
 - Every change logged; owners/editors edit, viewers read.
 
 ### Phase J: underwritten vs. actual performance (added 11/22)
+
+**Built 11/23** (manual §7.32). The baseline is frozen on click (Asset Summary
+→ Details), stored as `inputs.uwBaseline`; occupancy by year is the model's
+except the current year (rent roll today); capital and debt service are from
+the model because the income statement import has no such lines.
 
 Builds on phase I. Phase I tracks the operating budget line by line; this
 tracks the deal against what was underwritten to buy it.

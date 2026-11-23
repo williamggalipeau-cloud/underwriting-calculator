@@ -22,6 +22,7 @@ import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import FundNav from "@/components/FundNav";
 import AssetMedia from "@/components/AssetMedia";
+import { FundUwTable } from "@/components/UwVsActual";
 import { fundType } from "@/lib/fundTypes";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
@@ -1838,6 +1839,14 @@ export default function Home() {
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 onOpenValuation={() => setActiveTab("valuations")}
               />
+              {[...new Set(fundDeals.map((d) => resolveFund(d.inputs.fundName)).filter(Boolean))].map((name) => (
+                <FundUwTable
+                  key={`uw-${name}`}
+                  fundName={name}
+                  deals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === name).map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))}
+                  onOpen={() => setActiveTab("assets")}
+                />
+              ))}
               <div className="mb-4">
                 <BudgetVsActualSummary deals={fundDeals.map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))} onOpen={() => setActiveTab("plan")} />
               </div>
@@ -1878,6 +1887,9 @@ export default function Home() {
                   setActiveTab("leases");
                 }}
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                onApplyDeal={applyToDeal}
               />
             )}
             {activeTab === "sellhold" && (
