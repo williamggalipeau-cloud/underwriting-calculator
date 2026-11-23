@@ -7,6 +7,8 @@ import { LEASE_FIELDS, leaseAnalytics, leaseEndOf, monthsRemainingFor, parseRent
 import { readXlsxGrid, writeXlsx } from "@/lib/xlsx";
 import { leaseMismatches, showValue } from "@/lib/leaseApply";
 import { listLeases } from "@/lib/leaseDocs";
+import { listDealDocs } from "@/lib/dealDocs";
+import { estoppelChecks } from "@/lib/dealDocApply";
 
 // ─── CSV / Excel import ──────────────────────────────────────────────────────
 
@@ -330,12 +332,16 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
   // Abstracted leases for this asset (signed in with a workspace): rows whose
   // unit differs from its lease abstract are flagged.
   const [leases, setLeases] = useState([]);
+  const [estoppels, setEstoppels] = useState([]);
   useEffect(() => {
     // Loads this asset's leases; nothing to load without a workspace.
     if (!workspaceId || !dealId) return;
     let alive = true;
     listLeases(workspaceId)
       .then((list) => alive && setLeases(list.filter((l) => l.deal_id === dealId && l.abstract)))
+      .catch(() => {});
+    listDealDocs(workspaceId)
+      .then((list) => alive && setEstoppels(list.filter((d) => d.deal_id === dealId && d.doc_type === "estoppel" && d.abstract)))
       .catch(() => {});
     return () => {
       alive = false;
@@ -564,6 +570,11 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                     </td>
                     <td className="px-2 py-1.5">
                       <TextCell label="Unit name" value={u.name} onChange={(v) => update(u.id, "name", v)} />
+                      {(() => {
+                        const l = leases.find((x) => (x.unit_ids ?? []).includes(u.id));
+                        const bad = l ? estoppels.filter((d) => d.lease_id === l.id).flatMap((d) => estoppelChecks(d, l.abstract, u)).filter((r) => !r.ok) : [];
+                        return bad.length ? <span className="mt-0.5 block whitespace-nowrap rounded bg-red-100 px-1 text-[10px] font-medium text-red-800" title={bad.map((r) => r.label).join(", ")} data-testid="unit-estoppel-flag">⚠ estoppel</span> : null;
+                      })()}
                       {(() => {
                         const dq = delinquencyByUnit?.byUnit?.[u.id];
                         if (!dq || !(dq.delinquent > 0)) return null;

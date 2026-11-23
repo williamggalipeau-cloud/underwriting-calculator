@@ -220,7 +220,10 @@ rate** moves the whole curve up or down so it starts at today's 30-day
 average SOFR.
 
 The left panel holds the deals (tabs across the top of the panel) and the
-full-model inputs for the active deal.
+full-model inputs for the active deal: it is where you type an asset's
+assumptions by hand. Click a tab to switch assets; **+** sets up a new asset.
+The tabs have no ✕: an asset can't be deleted from here (to take one out of
+a fund, use Remove on the Portfolio Return tab, which keeps the deal).
 
 Tabs, left to right: Deal Screener, Asset Summary, Valuations, Unit Roll,
 Leases, Debt, Cash Flow, Asset Return, Portfolio Return, Sensitivity,
@@ -232,9 +235,9 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Deal Screener** (named Quick Underwrite until 11/22/2026) | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. |
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
-| **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
+| **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
-| **Documents** | Deal and fund documents (§7.28), for this asset or the whole fund: offering memo, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant) and the fund's LPA and PPM. **Review with Claude** makes a prompt for a Claude session with the CREparser Deal Review connector (validators for OM, rent roll, T-12 and LOI; the others are read and checked locally); **Save abstract**; **View abstract** shows each value with its quote, page link and status; **Apply** compares the model with the document field by field (tick and apply; each change logged as from the document; a badge stays on fields not taken). Rent roll: merge or replace units. OM: **New deal from this OM**. IC memo: approved vs current and a conditions checklist. Insurance: **Check coverage** against the tenant's lease. LPA / PPM: fund terms and investment limits. Deadlines go to Leases → Critical dates. Owners and editors change; viewers read. |
+| **Documents** | Deal and fund documents (§7.28), for this asset or the whole fund: offering memo, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant) and the fund's LPA and PPM. **Review with Claude** makes a prompt for a Claude session with the CREparser Deal Review connector (validators for OM, rent roll, T-12 and LOI; the others are read and checked locally); **Save abstract**; **View abstract** shows each value with its quote, page link and status; **Apply** compares the model with the document field by field (tick and apply; each change logged as from the document; a badge stays on fields not taken). Rent roll: merge or replace units. OM: **New deal from this OM**. IC memo: approved vs current and a conditions checklist. Insurance: **Check coverage** against the tenant's lease. LPA / PPM: fund terms and investment limits. Estoppel, CAM reconciliation and billing: **Check** against the leases and the rent roll (§7.29). The LPA and PPM upload has an **Assign to fund** picker, and each LPA/PPM card can be moved to another fund. Deadlines go to Leases → Critical dates. Owners and editors change; viewers read. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
@@ -1847,7 +1850,40 @@ expirations appear on Leases → Critical dates (type "Document deadline" /
 Airport Flex Park, a test sale of Route 9 Small Bay and Model Fund I's LPA
 and PPM, with abstracts (see its README).
 
-## 8. Worked example: the default deal
+### 7.29 Rent delinquency, estoppels, CAM and billing (`lib/delinquency.js`, `lib/dealDocApply.js`)
+
+**Aged receivables.** Upload Yardi's aged receivables report (CSV or Excel)
+on the Unit Roll tab, one per month-end. The report date comes from the
+title ("as of 10/31/2026"); the header row is found by its column names
+(Property, Tenant Code, Tenant, Unit, Charge Code, Current, 0-30, 31-60,
+61-90, 91-180, Over 180, Prepayments, Total). Property codes are mapped to
+assets by name or Yardi code, and tenant codes to units by tenant name or
+unit; the map is kept for later months. Credits (prepayments) are negative.
+
+| Measure | Calculation |
+|---|---|
+| Past due | 1–30 + 31–60 + 61–90 + 91–180 + over 180 (current charges are not late) |
+| % of monthly rent | past due ÷ the monthly rent of the asset's (or fund's) occupied units (rent PSF × SF ÷ 12) |
+| Months owed | a tenant's past due ÷ its monthly rent |
+| Net of deposits | past due − the unit's security deposit (not below zero) |
+| Change vs last month | this month's fund past due − last month's |
+| Collections (tenant ledger) | payments ÷ charges, vs 100% − the asset's credit loss % |
+
+Each tenant shows its lease's default and cure terms. Stored on the fund as
+`funds[name].delinquency` (§11.7).
+
+**Estoppel check.** Each estoppel row compares the estoppel with the lease
+abstract and the rent roll unit: expiration and commencement dates, monthly
+base rent (the abstract's rent schedule on the estoppel date), security
+deposit, number of renewal options, amendments, tenant defaults, landlord
+defaults or claims (high), and prepaid rent. **CAM reconciliation:** for each
+tenant with an abstracted lease, recoverable = lease share × (total expenses
+− management fee above the lease's cap × gross revenue) − base year amount;
+over-recovery (billed above recoverable) is owed back to the tenant. A billed
+share different from the lease's, or a fee over the cap, is flagged.
+**Billing:** each month's billed base rent vs the lease's rent for that month.
+
+
 
 The inputs are the Deal Screener defaults:
 - $10.0M price, $400K closing costs, 30,000 SF, acquired 2/13/2026;
@@ -2280,6 +2316,7 @@ column.
 | `subLineUnusedFeePct` | `funds["Fund name"].subLineUnusedFeePct` | Sub line unused fee (% / yr) | % | 0.25 | On the undrawn facility |
 | `subLineMaxDays` | `funds["Fund name"].subLineMaxDays` | Sub line max days outstanding | days | 365 | Each draw repaid by an LP call after this |
 | `capitalActivity` | `funds["Fund name"].capitalActivity` | — | list of §11.8 | [] | Actual capital calls and line activity |
+| `delinquency` | `funds["Fund name"].delinquency` | — | `{ mapping: { properties: {code: deal id}, tenants: {code: unit id} }, months: { "YYYY-MM-DD": { rows, file, uploadedAt } }, notes: {tenant code: text}, ledger }` | none | Yardi aged receivables by month-end (§7.29) |
 
 ### 11.8 Capital activity entry (`capitalActivity[]`)
 
@@ -2795,10 +2832,10 @@ each phase and the decisions behind it are in
 | B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
 | C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags (§7.25) | ✅ Live (PR #69) |
 | D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease (§7.26–7.27) | ✅ Live (PR #70) |
-| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ✅ Built 11/23 (pull request) |
-| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Built 11/23 (pull request) |
-| G. Appraisal | Appraised value and cap rate to the Valuations tab | ✅ Built 11/23 (pull request) |
-| H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |
+| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ✅ Live (PR #71) |
+| F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Live (PR #71) |
+| G. Appraisal | Appraised value and cap rate to the Valuations tab | ✅ Live (PR #71) |
+| H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Built 11/23 (pull request) |
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |

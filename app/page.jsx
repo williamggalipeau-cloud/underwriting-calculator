@@ -1081,22 +1081,6 @@ export default function Home() {
     setActiveDealId(id);
   }
 
-  function handleCloseDeal(id) {
-    if (!requireEdit()) return;
-    setDeals((prev) => {
-      const next = prev.filter((d) => d.id !== id);
-      if (next.length === 0) {
-        const fresh = newDeal({ propertyName: "Small Bay Industrial" });
-        setActiveDealId(fresh.id);
-        return [fresh];
-      }
-      if (id === activeDealId) {
-        setActiveDealId(next[next.length - 1].id);
-      }
-      return next;
-    });
-  }
-
   const results = useMemo(() => underwrite(inputs), [inputs]);
 
   // Live fund membership: every open deal with a fund name is in that fund
@@ -1490,18 +1474,6 @@ export default function Home() {
                     <span className="text-xs font-medium max-w-[100px] truncate">
                       {deal.inputs.propertyName || "Unnamed"}
                     </span>
-                    {deals.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleCloseDeal(deal.id); }}
-                        className={`ml-0.5 rounded-full w-4 h-4 flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition-colors ${isActive ? "text-blue-400" : "text-gray-300"}`}
-                        title="Close deal"
-                      >
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
                 );
               })}

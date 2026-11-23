@@ -26,6 +26,7 @@ import { CriticalDatesView, RiskFlagsView } from "@/components/LeaseViews";
 import TenantCredit from "@/components/TenantCredit";
 import { listCreditDocs } from "@/lib/creditDocs";
 import { listDealDocs } from "@/lib/dealDocs";
+import { estoppelChecks } from "@/lib/dealDocApply";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 
 const STATUS_STYLE = {
@@ -495,6 +496,19 @@ function ApplyPanel({ lease, units, inputs, email, onApply, onDone, onError }) {
 }
 
 // Mismatch flag: where the linked rent roll unit(s) differ from the abstract.
+// Estoppel flag: an estoppel (Documents tab) that differs from the lease or unit.
+function EstoppelFlag({ lease, units, docs }) {
+  const est = (docs ?? []).filter((d) => d.doc_type === "estoppel" && d.lease_id === lease.id && d.abstract);
+  if (!est.length) return null;
+  const unit = units.find((u) => (lease.unit_ids ?? []).includes(u.id));
+  const bad = est.flatMap((d) => estoppelChecks(d, lease.abstract ?? null, unit)).filter((r) => !r.ok);
+  return bad.length ? (
+    <span className="rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-800" title={bad.map((r) => `${r.label}: estoppel ${r.estoppel ?? "—"}, lease ${r.lease ?? "—"}`).join("\n")} data-testid="estoppel-flag">⚠ Estoppel differs: {bad.map((r) => r.label).join(", ")}</span>
+  ) : (
+    <span className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-800" data-testid="estoppel-flag">✓ Estoppel matches</span>
+  );
+}
+
 function MismatchFlag({ lease, units, inputs }) {
   if (!lease.abstract || !inputs) return null;
   const linked = units.filter((u) => (lease.unit_ids ?? []).includes(u.id));
@@ -509,7 +523,7 @@ function MismatchFlag({ lease, units, inputs }) {
   );
 }
 
-function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, email, userId, credit, onApply, onChanged, onCreditChanged, onError }) {
+function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, email, userId, credit, dealDocs, onApply, onChanged, onCreditChanged, onError }) {
   const [busy, setBusy] = useState(false);
   const [panel, setPanel] = useState(null); // "abstract" | "view" | "apply" | "credit" | null
   const [adding, setAdding] = useState([]);
@@ -559,6 +573,7 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
         <div className="flex flex-col items-end gap-1">
           <span className={`rounded border px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[lease.status] ?? STATUS_STYLE.uploaded}`} title={lease.applied_at ? `Applied ${fmtWhen(lease.applied_at)}` : ""}>{STATUS_LABEL[lease.status] ?? lease.status}</span>
           <MismatchFlag lease={lease} units={units} inputs={inputs} />
+          <EstoppelFlag lease={lease} units={units} docs={dealDocs} />
         </div>
       </div>
 
@@ -849,6 +864,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
                       onApply={onApplyUnits}
                       credit={creditFor?.filter((c) => c.lease_id === l.id)}
                       onCreditChanged={refreshCredit}
+                      dealDocs={dealDocs}
                       canEdit={canEdit}
                       workspaceId={wsId}
                       email={email}
