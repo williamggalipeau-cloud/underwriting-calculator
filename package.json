@@ -7,7 +7,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node tests/run-node.cjs",
+    "test:regression": "node tests/regression/regression.test.cjs",
+    "test:e2e": "next build && node tests/run-e2e.cjs",
+    "test:e2e:built": "node tests/run-e2e.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

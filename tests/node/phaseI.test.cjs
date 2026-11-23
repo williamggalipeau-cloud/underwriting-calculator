@@ -1,0 +1,71 @@
+const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs");
+const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
+const B = j(R + "/lib/businessPlan.js"); const LV = j(R + "/lib/leaseViews.js");
+const { parseCSV } = j(R + "/lib/fundTerms.js");
+const c = j(R + "/lib/calculations.js"); const sp = j(R + "/lib/samplePortfolio.js"); const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
+let fail = 0; const ok = (cnd, m) => { console.log((cnd ? "PASS " : "FAIL ") + m); if (!cnd) fail++; };
+const near = (a, b, t = 0.5) => Math.abs(a - b) <= t;
+const deals = sp.buildSampleDeals(TEST_INPUTS);
+const af = deals[0].inputs, hl = deals[2].inputs, r9 = deals[1].inputs;
+// Budget from the model
+const bud = B.budgetFromModel(af, { label: "Closing budget", at: "2026-01-30T00:00:00Z" });
+const cf = c.underwrite(af).annualCashFlows;
+ok(bud.years.length === cf.length && bud.start === "2026-01", `budget: ${bud.years.length} hold years from 2026-01`);
+ok(bud.years.every((y, i) => near(y.lines.noi, cf[i].noi, 0.01)), "budget NOI = the model's NOI each year");
+ok(bud.years.every((y) => near(y.lines.egr + y.lines.opex, y.lines.noi, 0.05)), "EGR + operating expenses = NOI (NNN gross-up nets out)");
+ok(bud.years[0].lines.taxes === -(af.realEstateTaxPSF * af.squareFootage) && bud.years[0].lines.recoveries > 0, "NNN: taxes grossed up as expense and recovery");
+ok(near(bud.years[0].lines.cashFlow, cf[0].pretaxCashFlow, 0.01) && near(bud.years[0].lines.debtService, -cf[0].debtService, 0.01), "cash flow and debt service from the model");
+const m1 = B.budgetMonth(bud, "2026-01"), m13 = B.budgetMonth(bud, "2027-01");
+ok(near(m1.noi, cf[0].noi / 12, 0.01) && near(m13.noi, cf[1].noi / 12, 0.01) && B.budgetMonth(bud, "2025-12") === null, "month budget = hold year ÷ 12; none before closing");
+// Plan and revisions
+const plan = B.seedPlan({ ...af, icApproved: { thesis: "Infill flex at a basis below replacement cost" } });
+ok(plan.thesis.startsWith("Infill") && plan.leasing.length === af.units.length && plan.kpis.some((k) => k.key === "noi" && near(k.target, cf[0].noi, 0.01)), "seed: thesis from IC memo, a leasing row per unit, NOI target from the model");
+ok(plan.leasing.some((l) => l.action === "Lease up") && plan.milestones.length >= 2 && plan.milestones.some((m) => /Annual business plan review/.test(m.label)), "seed: vacant units to lease up; milestones");
+let bp = B.addRevision(null, { plan, budget: bud, inputs: af, by: "a@x", at: "2026-01-30T00:00:00Z" });
+ok(bp.revisions.length === 1 && bp.revisions[0].reason === "Closing" && bp.revisions[0].changes.length === 0, "revision 1 (closing)");
+const p2 = structuredClone(plan); p2.capital.push({ id: "c9", project: "Roof", scope: "", budget: 250000, start: "2026-06-01", end: "2026-09-30", spent: 120000, expectedReturn: "" }); p2.leasing[0].action = "Re-tenant";
+bp = B.addRevision(bp, { plan: p2, inputs: af, by: "b@x", note: "Roof added" });
+ok(bp.revisions.length === 2 && bp.revisions[1].budget.label === "Closing budget" && bp.revisions[1].changes.some((x) => /capital\[c9\]\.budget/.test(x.field)) && bp.revisions[1].changes.some((x) => /leasing\[.*\]\.action/.test(x.field) && x.to === "Re-tenant"), "revision 2: roof and re-tenant listed as changes; budget carried");
+ok(JSON.stringify(bp.revisions[0].plan) === JSON.stringify(plan), "revision 1 is unchanged");
+const af2 = { ...af, exitCapRatePct: 7.25 };
+ok(B.modelChanges(bp.revisions[1].model, B.modelFingerprint(af2)).join() === "Hold or exit cap", "model change detected (exit cap)");
+bp = B.addRevision(bp, { plan: p2, budget: B.budgetFromModel(af2, { label: "2027 budget" }), inputs: af2, reason: "Model change" });
+ok(bp.revisions[2].budget.label === "2027 budget" && bp.revisions[2].changes.some((x) => x.field === "budget"), "revision 3: re-forecast budget");
+ok(B.diffPlans(bp.revisions[0], bp.revisions[2]).length > B.diffPlans(bp.revisions[1], bp.revisions[2]).length, "compare any two revisions");
+// Milestones and critical dates
+const ms = { ...p2, milestones: [{ id: "a", label: "Lease unit 012", due: "2026-08-01", owner: "AM", status: "open" }, { id: "b", label: "Roof", due: "2026-12-10", status: "open" }, { id: "c", label: "Done one", due: "2026-03-01", status: "done" }] };
+ok(B.milestoneStatus(ms.milestones[0], "2026-11-23") === "late" && B.milestoneStatus(ms.milestones[1], "2026-11-23") === "due" && B.milestoneStatus(ms.milestones[2], "2026-11-23") === "done", "milestone status: late, due within a month, done");
+const withMs = B.addRevision(bp, { plan: ms, inputs: af2 });
+const pd = B.planDates([{ id: "D1", inputs: { ...af, businessPlan: withMs } }], "2026-11-23");
+const cd = LV.criticalDates([], { milestones: pd, asOf: "2026-11-23" });
+ok(pd.length === 2 && cd.length === 2 && cd[0].kindLabel === "Business plan milestone" && cd[0].status === "past", "open milestones on Critical dates (late one red)");
+// Actuals from the sample income statement
+const parsed = B.parseIncomeStatement(parseCSV(fs.readFileSync(R + "/docs/sample-yardi/income-statement-2026.csv", "utf8")));
+const map = B.matchProperties(parsed, deals.map((d, i) => ({ id: d.id ?? "D" + i, inputs: d.inputs })));
+ok(Object.keys(parsed.properties).length === 8 && !parsed.properties["mf1-09"] && Object.values(map).every(Boolean) && parsed.warnings.length === 0, "income statement: 8 properties held by October (Lakeshore acquired later), all matched, lines tie to NOI");
+ok(Object.keys(parsed.properties["mf1-02"].months)[0] === "2026-03" && Object.keys(parsed.properties["mf1-01"].months).length === 10, "months from each acquisition (Route 9 from March; Airport Flex Jan–Oct)");
+const rep = (inp, code, kind = "ytd", end = "2026-10") => {
+  const b = { ...B.addRevision(null, { plan: B.seedPlan(inp), budget: B.budgetFromModel(inp), inputs: inp }), actuals: parsed.properties[code].months };
+  return B.varianceReport(b, { kind, end, sf: inp.squareFootage });
+};
+const row = (r, k) => r.rows.find((x) => x.key === k);
+const ra = rep(af, "mf1-01");
+ok(ra.months.length === 10 && row(ra, "utilities").flag === "red" && near(row(ra, "utilities").variancePct, -12, 0.2) && row(ra, "taxes").flag === "", `Airport Flex YTD: utilities ${row(ra, "utilities").variancePct.toFixed(1)}% (red), taxes on budget`);
+const r9r = rep(r9, "mf1-02");
+ok(r9r.months.length === 8 && near(row(r9r, "taxes").variancePct, -15, 0.1) && row(r9r, "taxes").flag === "red" && row(r9r, "noi").variance < 0, "Route 9: taxes 15% over budget (red), NOI below");
+const hq = rep(hl, "mf1-03", "quarter", "2026-09"), hm = rep(hl, "mf1-03", "month", "2026-06");
+ok(hq.months.join() === "2026-07,2026-08,2026-09" && near(row(hq, "rent").variancePct, -8, 0.1) && row(hq, "rent").flag === "amber" && near(row(hm, "rent").variancePct, 0, 0.1), "Harbor Light Q3: rent 8% short (amber); June on budget");
+ok(row(ra, "capital").actual == null && row(ra, "capital").current < 0, "below-NOI lines: budget only (no actuals)");
+ok(row(ra, "noi").actualPSF != null && near(row(ra, "noi").actualPSF, row(ra, "noi").actual / af.squareFootage, 1e-9), "$/SF");
+const itd = rep(af, "mf1-01", "itd");
+ok(itd.months.length === 10 && row(itd, "noi").plan === row(itd, "noi").current, "since closing; plan = current when only revision 1");
+// KPIs, fund roll-up, exports
+const fundDeals = deals.slice(0, 3).map((d, i) => { const code = `mf1-0${i + 1}`; return { id: "D" + i, inputs: { ...d.inputs, businessPlan: { ...B.addRevision(null, { plan: B.seedPlan(d.inputs), budget: B.budgetFromModel(d.inputs), inputs: d.inputs }), actuals: parsed.properties[code].months } } }; });
+const fv = B.fundVariance(fundDeals, { kind: "ytd", end: "2026-10" });
+ok(fv.rows.length === 3 && near(fv.total.actual, fv.rows.reduce((s, r) => s + r.actual, 0), 0.01) && fv.total.variance < 0, "fund roll-up: NOI by asset and fund total");
+const k = B.kpiActuals(fundDeals[0].inputs);
+ok(k.noiMonths === 10 && near(k.noi, (Object.values(parsed.properties["mf1-01"].months).reduce((s, m) => s + m.noi, 0) * 12) / 10, 0.01) && isFinite(k.occupancy) && isFinite(k.walt), "KPIs: annualized NOI, occupancy, WALT");
+const xr = B.budgetRows(fundDeals[0].inputs.businessPlan);
+ok(near(B.seedPlan(af).kpis.find((x) => x.key === "irr").target, c.underwrite(af).returns.irr, 0.01) && B.seedPlan(af).kpis.find((x) => x.key === "irr").target < 100, "IRR target in percent"); ok(xr[0][0] === "Line" && xr.some((r) => r[0] === "Net operating income") && xr.some((r) => r[0] === "Milestone"), "Excel rows: budget by year and milestones");
+ok(B.varianceRows(ra).length === B.LINES.length + 1, "Excel rows: variance");
+console.log(fail ? fail + " FAILED" : "ALL PASS"); process.exit(fail ? 1 : 0);

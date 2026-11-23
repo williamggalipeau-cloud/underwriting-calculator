@@ -93,14 +93,14 @@ Reset links work once and expire after about an hour.
 **Changing your password.** While signed in, open **☁ Database** and click
 **Change password** next to "Signed in as …".
 
-**After you sign in**
-- Any workspace someone shared with your email is added to your list
-  automatically (**☁ Database → Your workspaces**).
-- Your most recently saved workspace opens automatically. The first time
-  you sign in, a workspace named **Model Fund I** is created for you.
-- If an earlier version of the app had saved work in this browser, it is
-  moved into the database as a workspace named **Moved from browser
-  *date***, and the browser copy is deleted.
+**After you sign in** the firm's data opens straight away: there are no
+workspaces to choose (phase Q, 11/22).
+- If an owner added you, or invited your email, you get access the first
+  time you sign in.
+- If you have no access yet, the app says so. Nothing is created for you;
+  ask an owner to add you.
+- Anything an older version of the app left in this browser is cleared, not
+  imported.
 
 **What you can do depends on your role** in a shared database workspace:
 
@@ -158,26 +158,29 @@ email sender) are in §12.2 and §12.3.
 
 ### Saving your work
 
-Everything you enter is saved in **one place: your workspace in the
-Supabase database**. Nothing is saved in the browser, and no files are
-written automatically.
+Everything you enter is saved in **one place: the firm's data in the
+Supabase database** (named **Baywise**). Everyone with access sees the same
+data. Nothing is saved in the browser, and no files are written
+automatically.
 
 - **Sign in first.** Signed out, the app is View only and nothing is saved.
-- **Your workspace opens on sign-in.** It holds your deals, fund terms,
-  valuation marks, comps and the forward curve. The first time you sign in,
-  one named **Model Fund I** is created for you.
-- **When it saves:** about **20 seconds after your last change**, when you
-  click **Save now**, and when you switch away from or close the tab. Each
-  save is a new version; earlier versions are kept.
-- **Status:** the ☁ label in the header shows the workspace name, version
-  and either "saved *time*" or "unsaved changes".
-- **Leaving with unsaved changes:** the browser asks before closing the tab,
-  because the changes exist only on screen until they are saved.
-- **Conflicts:** if someone else saved first, choose **Open latest** (load
-  theirs) or **Keep mine** (save over it; theirs stays in the version
-  history).
-- **Other workspaces:** **☁ Database → Your workspaces** lists every
-  workspace you can open. **Open** switches to one; owners can **Delete**.
+- **The firm opens on sign-in:** deals, fund terms, valuation marks, comps
+  and the forward curve. There are no workspaces to open, create or delete.
+- **When it saves:** about **one second after each change**. Only what
+  changed is saved: the deal, fund or setting you edited, each as its own
+  record. It also saves when you click **Save now** and when you switch away
+  from or close the tab.
+- **Live updates:** when someone else saves, their change appears on your
+  screen within a moment, without reloading.
+- **Status:** the ☁ label in the header shows **Baywise** and either "saved
+  *time*" or "unsaved changes".
+- **Leaving with unsaved changes:** the browser asks before closing the tab.
+- **Two people editing the same thing:** nothing is overwritten. If someone
+  saved that deal (or fund, or setting) after you opened it, your save of it
+  is refused. The app reloads their version and shows "*Name* was changed by
+  *email*; reloaded. Your other changes are kept." Re-enter your change if
+  it's still needed. Edits to different deals never clash.
+- **The asset on screen** is remembered per browser; it isn't firm data.
 - **Sharing:** owners add people under **☁ Database → People with access**
   as owner, editor or viewer. People who haven't signed in yet get access on
   their first sign-in with that email.
@@ -186,12 +189,10 @@ written automatically.
   those entries.
 
 **Backups and copies (optional, by hand):**
-- **Export workspace** downloads a `.json` copy you keep.
-- **Import workspace** loads a `.json` copy into the open workspace,
-  replacing its contents. It saves as a new version, so the previous one
-  stays in the version history.
-- **Reset workspace** puts the open workspace back to the starting deals,
-  also as a new version.
+- **Export workspace** downloads a `.json` copy of the firm's data you keep.
+- **Import workspace** loads a `.json` copy, replacing what's on screen;
+  every record it changes is saved (and logged) as usual.
+- **Reset workspace** puts the firm's data back to the starting deals.
 
 **What the browser still keeps:** only your sign-in, so you don't have to
 sign in on every visit (`sb-nydqmigxorahfkfpkjnq-auth-token`). It holds no
@@ -553,7 +554,8 @@ underwriting-calculator/
 │   ├── cashYield.js          Projected cash-on-cash yield (asset and fund)
 │   ├── sellHold.js           Sell / hold / refinance analysis and fund scenarios
 │   ├── samplePortfolio.js    Nine sample assets, deal snapshot for funds
-│   ├── cloud.js              Supabase: sign-in, workspaces, saving, members, audit log
+│   ├── cloud.js              Supabase: sign-in, members, audit log (and the old workspace save)
+│   ├── records.js            Phase Q: the firm saved record by record, live updates, conflicts
 │   ├── audit.js              Change log: detect changes, merge repeat edits, bulk entries
 │   ├── assetSummary.js       Asset Summary rows, fund totals, Excel export
 │   ├── leaseDocs.js          Lease documents in Supabase (table + storage bucket), save abstract
@@ -576,7 +578,7 @@ underwriting-calculator/
 │   ├── valuationPdf.js       Valuation adjustments PDF report (jsPDF)
 │   ├── comps.js              Sales comps import, mapping, adjustments, stats
 │   ├── testScenario.js       "Load test scenario" data
-│   ├── workspace.js          Workspace check; moves an old browser copy into the database
+│   ├── workspace.js          Workspace check; clears data older versions left in the browser
 │   └── xlsx.js               Dependency-free .xlsx reader and writer
 ├── docs/USER_MANUAL.md       This manual
 ├── supabase/setup.sql        Database setup (run once in the Supabase SQL Editor)
@@ -2671,15 +2673,52 @@ the net change between saves.
 
 ## 12. Database (Supabase)
 
-The app saves workspaces only to a hosted Postgres database on
+The app saves the firm's data only to a hosted Postgres database on
 [Supabase](https://supabase.com). Without signing in the app is View only
 and nothing is saved; nothing is ever saved in the browser.
 
 **What the database adds:**
-- **Sharing:** shared workspaces with owner, editor and viewer access.
-- **Version history:** every save is kept.
+- **Sharing:** one firm, with owner, editor and viewer access.
+- **Record-by-record saving:** each change is saved within about a second,
+  and screens update live.
 - **Verified change log:** entries record the signed-in user and the
   server's time, and can't be edited or deleted.
+
+**Firm records (phase Q, `supabase/firm_records.sql`, applied 11/22).**
+- **Storage:** the firm's data lives in `firm_records`, one row per item:
+
+  | `kind` | `key` | Holds |
+  |---|---|---|
+  | `deal` | deal id | an open deal (`sort` = tab order) |
+  | `saved_deal` | deal id | a saved fund snapshot |
+  | `fund` | fund name | fund terms |
+  | `valuation` | deal id | quarterly marks |
+  | `settings` | `main` | comps, forward curve and other settings |
+  | `local_log` | `main` | the working change log, kept for history; not re-saved |
+
+  Each row has a `version`, `updated_by_email` and `updated_at`.
+- **Saving:** writes go only through `save_records(ws, items, changes)`:
+  - each item names the version it started from;
+  - a mismatch refuses the whole call (`conflict: kind/key is at version n`)
+    and nothing is saved;
+  - `changes` go to `audit_log`;
+  - only owners and editors can save, and archived workspaces are refused.
+- **Never hard-deleted:** a removed deal is saved with `deleted = true`.
+- **Live updates:** `firm_records` is in the `supabase_realtime`
+  publication. Open screens apply other people's saves, and row-level
+  security limits each person to their firm.
+- **The migration (11/22):** the user's real workspace ("Moved from browser
+  11/21/2026") became the firm and was renamed **Baywise**:
+  - 12 deals, 1 fund and the 247-entry working log moved across, and a
+    rebuild was checked to equal the original exactly;
+  - its leases, documents, members and change log stay attached (same
+    workspace id);
+  - the two other workspaces were **archived** (`workspaces.archived`): kept,
+    never shown, never deleted;
+  - `workspaces.data` was left as a fallback, and `records_from_version`
+    notes the version it was copied from.
+- **Old-app saves:** if an older copy of the app saved after the move, owners
+  see **Import changes made in the old app**, a one-time import.
 
 ### 12.1 Project and keys
 
@@ -2942,7 +2981,7 @@ each phase and the decisions behind it are in
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
-| Q. Workspace storage | Deals, funds, valuations and the change log in their own tables; safe saving when several people edit at once; no change to what you see | ⏸ After O, with you present |
+| Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager | ⛓ After S |
