@@ -621,10 +621,12 @@ against what the fund actually does, using phases I and J for each asset.
 - **GP ROE** at the bottom of the LP / GP waterfall summary: GP profit ÷ GP
   equity invested, i.e. (GP distributions − GP equity) ÷ GP equity (total,
   not annualised; the GP IRR already shows the annual rate).
-- **Relabel "GP Promote" to "GP profit"** (it is GP distributions − GP
-  equity, so it includes the GP's pro-rata share on its co-invest), and add
-  a true **GP promote** row: what the GP receives beyond its pro-rata share
-  of distributions.
+- **Relabel "GP Promote" to "GP profit"**, sub-line "GP upside above
+  capital returned" = GP distributions − GP equity invested; and add a
+  **GP promote** row, sub-line "GP upside above its pro-rata share" = GP
+  distributions − (GP share of equity × total distributions) (user, 11/23).
+  Example: GP 10% of equity ($1.0M), deal distributes $20M, GP receives
+  $2.6M → GP profit $1.6M, GP promote $0.6M.
 - **Projected fee revenue** section: the firm's fee income from the asset
   over the hold, by year and in total: asset management fees (the AM fee
   items), property management fee (the PM fee, % of revenue) and
