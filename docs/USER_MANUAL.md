@@ -234,6 +234,7 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Valuations** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, fund NAV and gross / net LP interim returns, quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
+| **Documents** | Deal and fund documents (§7.28), for this asset or the whole fund: offering memo, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant) and the fund's LPA and PPM. **Review with Claude** makes a prompt for a Claude session with the CREparser Deal Review connector (validators for OM, rent roll, T-12 and LOI; the others are read and checked locally); **Save abstract**; **View abstract** shows each value with its quote, page link and status; **Apply** compares the model with the document field by field (tick and apply; each change logged as from the document; a badge stays on fields not taken). Rent roll: merge or replace units. OM: **New deal from this OM**. IC memo: approved vs current and a conditions checklist. Insurance: **Check coverage** against the tenant's lease. LPA / PPM: fund terms and investment limits. Deadlines go to Leases → Critical dates. Owners and editors change; viewers read. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
@@ -476,6 +477,7 @@ underwriting-calculator/
 │   ├── SellHold.jsx          Sell / Hold tab
 │   ├── Leases.jsx            Leases tab (lease documents, abstracts, apply to rent roll, mismatch flags)
 │   ├── LeaseViews.jsx        Leases tab: Critical dates and Risk flags views
+│   ├── Documents.jsx         Documents tab (deal and fund documents, review, apply, IC conditions)
 │   ├── TenantCredit.jsx      Tenant credit section on each lease
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
@@ -506,6 +508,9 @@ underwriting-calculator/
 │   ├── leaseReportPdf.js     Printable lease abstraction report (PDF)
 │   ├── tenantCredit.js       Credit figures, checks, flags, statement requirements
 │   ├── creditDocs.js         Tenant credit documents (Supabase rows and files)
+│   ├── dealDocs.js           Deal documents (Supabase rows and files, deal-docs bucket)
+│   ├── dealDocTypes.js       Document types, templates, prompts, local checks
+│   ├── dealDocApply.js       Compare and apply documents: deal inputs, T-12, rent roll, IC, closings, insurance, LPA
 │   ├── assetLocations.js     Model Fund I asset addresses; state list
 │   ├── sampleRentRolls.js    Model Fund I rent rolls with a 20–40% mark to market
 │   ├── leases.js             Unit counts, occupancy, WALT, expirations, critical dates, rent roll import/export
@@ -779,6 +784,11 @@ flows never change sign.
 
 **Peak equity** = the lowest cumulative levered cash; **payback** = the first
 year cumulative cash turns positive.
+
+**Realized sale.** When a disposition closing statement has been applied
+(`realizedSalePrice` > 0), the exit value is the actual sale price instead
+of exit NOI ÷ exit cap, and `realizedSellingCosts` (when given) replaces
+the modelled selling costs.
 
 ### 7.8 Deal-level waterfall (Asset Return tab)
 
@@ -1743,6 +1753,50 @@ statements (debt / equity 0.60 → 1.05), the guarantor's June 2024
 personal statement (stale) and a Cascade Cabinet report; the expected
 figures and flags are in `expected.json`.
 
+### 7.28 Deal and fund documents (`lib/dealDocTypes.js`, `lib/dealDocApply.js`)
+
+Each document is stored with its PDFs (in order) in `deal_documents` and
+the private `deal-docs` bucket; fund-level documents (LPA, PPM) have no
+asset and are kept with the fund's name. The abstract has `fields` (each
+with value, status, clause and quotes), `critical_dates`, and per type a
+list: `units` (rent roll), `policies` (insurance), `limits` (LPA / PPM),
+`conditions` (IC memo).
+
+**Checks.** OM, rent roll, T-12 and LOI can be validated by the CREparser
+connector (`om_validate`, `rentroll_validate`, `t12_validate`,
+`loi_validate`; the prompt forbids the `*_show` tools so no free documents
+are used). The other types have no validator. Every abstract is also
+checked in the app: each figure and date in a found value must appear in
+its quote ("checked locally"; problems listed in the viewer). The badge
+reads "✓ Validated by the connector" or "Not connector-validated".
+
+**What each type applies** (field → model):
+
+| Document | Applies to |
+|---|---|
+| Offering memo | Property name, street, city, state, ZIP, square footage, unit count, year built, purchase price (asking; the note shows the difference from the underwritten price), year-1 NOI (used with Direct NOI), vacancy = 100 − occupancy. **New deal from this OM** creates a deal with all of them (in the current fund) and moves the OM to it. |
+| Rent roll | Units matched by name: new, changed (tenant, SF, status, lease type, rent, lease end, escalation) and not in the document. **Merge** updates and adds; **Replace** also removes units not in the document. New units take the deal's assumptions; SIC is suggested from each business; months remaining follow the lease end. |
+| T-12 | Each expense line ÷ the deal's SF → real estate tax, insurance, utilities, maintenance, janitorial $/SF; other income $/SF; management fee % = fee ÷ (rent + other income + recoveries). Lines more than 10% from underwriting are highlighted. |
+| LOI | Purchase price; deal terms (`dealTerms`): deposit, due diligence and closing days, financing contingency, LOI date. |
+| PSA | Purchase price; deal terms: deposits, the date they go hard, due diligence expiry, closing date, reps survival and cap, PSA date. Title, survey, closing and other deadlines go to critical dates. |
+| Final IC memo | The as-approved baseline (`icApproved`: approval date, approvers, price, total cost, loan, equity, year-1 NOI, going-in and exit caps, IRR, multiple, cash-on-cash, hold, capex), a reference that doesn't change the model, and the conditions of approval (`icConditions`). **IC approved vs current** compares the baseline with the current model (Documents tab and Asset Summary → Details); each condition is ticked off with who and when (logged). |
+| Closing statement (acquisition) | Purchase price and acquisition date (actual); closing costs replaced by one line for the statement's total; `actualBasis` (loan proceeds, equity funded, seller credits, prorations, deposits transferred), shown in Asset Summary → Details. |
+| Closing statement (disposition) | `realizedSalePrice` and `realizedSellingCosts` replace the modelled exit value and selling costs (§7.7); hold = whole years from acquisition to the sale; sale date, loan payoff and net proceeds recorded. |
+| Insurance certificate | Owner or tenant (linked to the lease). **Check coverage**: policies lapsed or expiring within 60 days; for a tenant, the lease's requirements (general liability per occurrence and aggregate, umbrella, auto, pollution, workers' comp, additional insured, waiver of subrogation, read from the lease abstract) against the certificate. Expiry dates go to critical dates (amber 60 days before, red when lapsed). Loan insurance covenants come with phase F. |
+| LPA / PPM | Fund terms: commitments, GP commitment, management fee, preferred return, catch-up, investment period, term, extensions and their length, sub line size. Investment limits (single investment, tenant, state, metro, property types, non-core, fund and asset leverage, hold, other), each with its clause and quote, stored in the fund's `limits` (phase L checks actual vs limit). Also shown in **New fund / Edit all terms** (LPA / PPM panel: upload, then **Use** each term or limit). |
+
+**Applying** marks the document "Applied" with the fields taken
+(`applied_fields`) and logs each change (field, from → to) with the source
+"From <document>" in the working log and the database's verified log.
+
+**Critical dates**: every document's dated deadlines and insurance
+expirations appear on Leases → Critical dates (type "Document deadline" /
+"Insurance expires").
+
+**Samples**: `docs/sample-deal-docs/deals/` (fictional) has a full set for
+Airport Flex Park, a test sale of Route 9 Small Bay and Model Fund I's LPA
+and PPM, with abstracts (see its README).
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -2109,6 +2163,19 @@ reference data except lease end, which sets months remaining (§7.19).
 | `leaseNotes` | `deals[].inputs.units[].leaseNotes` | Notes [comments] | text | Free-form notes |
 | `rentSteps` | `deals[].inputs.units[].rentSteps` | (from an applied lease abstract; not imported) | [{ start, end, rentPSF }] | Dated rent steps, $/SF/yr on the unit's SF; drive the rent while the in-place lease runs (§7.25) |
 
+**Document fields on the deal** (`deals[].inputs`, set by the Documents tab, §7.28):
+
+| Field | Meaning |
+|---|---|
+| `yearBuilt` | From the offering memo |
+| `dealTerms` | `{ deposit, additionalDeposit, depositHardDate, ddDays, ddExpiry, closingDays, closingDate, financingContingency, repsSurvivalMonths, repsCap, loiDate, psaDate }` from the LOI / PSA |
+| `icApproved` | As-approved baseline from the final IC memo (reference only) |
+| `icConditions` | `[{ id, text, deadline, done, doneBy, doneAt }]` conditions of approval |
+| `actualBasis` | `{ loanProceeds, equityFunded, sellerCredits, prorations, depositsTransferred, docId }` from the acquisition closing statement |
+| `realizedSalePrice`, `realizedSellingCosts`, `realizedSaleDate`, `realizedNetProceeds`, `realizedLoanPayoff` | From the disposition closing statement; price and costs replace the modelled exit (§7.7) |
+
+Fund terms (`funds[name]`) also get `limits`: `[{ key, label, limit, unit, basis, clause, quote, docId }]` from the LPA / PPM.
+
 ### 11.6 Deal snapshot (fund deals and saved deals)
 
 Every fund view works from snapshots of each deal. **Add to Fund** stores
@@ -2375,6 +2442,29 @@ by `supabase/tenant_credit.sql`; §7.27). Owners and editors only. Index on
 Inserts, changes and deletes write `audit_log` rows with area **Tenant
 credit** ("Credit document added / changed / deleted"), without figures.
 
+**`deal_documents`**: one row per deal or fund document (created by
+`supabase/deal_documents.sql`; §7.28). Index on (`workspace_id`, `deal_id`).
+
+| Column | Type | Default / set by | Meaning |
+|---|---|---|---|
+| `id` | uuid, primary key | app (random) | Document id; also its storage folder |
+| `workspace_id` | uuid → `workspaces.id` (cascade) | app | Workspace |
+| `deal_id` | text | app | The asset; null for fund documents (LPA, PPM, other) |
+| `fund_name` | text | `''` | The fund |
+| `doc_type` | text | required | om, rent_roll, t12, loi, psa, ic_memo, closing_acq, closing_disp, lpa, ppm, insurance_cert, loan, rate_cap, appraisal, estoppel, cam, billing, other |
+| `title` | text | `''` | Optional title |
+| `lease_id` | uuid → `lease_documents.id` (set null) | null | Tenant insurance certificate (and later estoppels): the lease |
+| `files` | jsonb array | `[]` | `path`, `name`, `size`, `uploaded_at`, `uploaded_by_email`, in order |
+| `status` | text | uploaded | uploaded → abstracted → applied |
+| `abstract` | jsonb | null | §7.28; saved only through `save_deal_abstract` |
+| `applied_fields` | jsonb | `{}` | Field key → `{ at, by }` for each field applied |
+| `abstracted_at`, `abstracted_by_email`, `applied_at`, `applied_by_email` | timestamptz, text | null | Who and when |
+| `created_by_email`, `created_at`, `updated_at` | text, timestamptz | signed-in user, now | Who added it; when added / changed |
+
+Every insert, change and delete writes `audit_log` rows with area
+**Documents** ("Document added", "Files", "Status", "Abstract", "Document
+details", "Document deleted").
+
 **How the browser change log maps to `audit_log`:**
 
 | Browser `auditLog` field | `audit_log` column | Difference |
@@ -2507,7 +2597,10 @@ Column-by-column definitions of every table are in the data dictionary,
 lease's `credit/` folder (`lease_path_is_credit`), which only owners and
 editors can open; owners and editors can add, change and delete them,
 directly under these rules. **Tenant credit** (`lease_credit_documents`):
-owners and editors only, for reading as well as changes. Storage paths must
+owners and editors only, for reading as well as changes. **Documents**
+(`deal_documents` and the `deal-docs` bucket): every member reads and
+opens; owners and editors add, change and delete; abstracts are saved with
+`save_deal_abstract` (owners and editors). Storage paths must
 start with the workspace id (`lease_path_ws`). Abstracts are saved with `save_lease_abstract`
 (owners and editors; checked in the function as well).
 
@@ -2646,9 +2739,9 @@ each phase and the decisions behind it are in
 |---|---|---|
 | A. Lease documents | Upload, store and open each lease's PDFs per asset (Leases tab) | ✅ Live |
 | B. Lease abstraction | Abstract with Claude, Save abstract, View abstract (§7.24) | ✅ Live |
-| C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags (§7.25) | ✅ Built 11/22 (pull request, awaiting merge) |
-| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease (§7.26–7.27) | ✅ Built 11/22 (pull request) |
-| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ⛓ After D |
+| C. Review and apply | Apply an abstract to the rent roll (replace or add a unit); rent steps and renewal options drive the cash flow; mismatch flags (§7.25) | ✅ Live (PR #69) |
+| D. Fund lease views | Critical dates, risk flags, Excel and printable reports, lease info on the Asset Summary; tenant credit reports and financial statements on each lease (§7.26–7.27) | ✅ Live (PR #70) |
+| E. Acquisition documents | New Documents tab: OM, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant); the fund's LPA and PPM, also from New fund (fund terms and investment limits) | ✅ Built 11/23 (pull request) |
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ⛓ After E |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ⛓ After F |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ⛓ After G |

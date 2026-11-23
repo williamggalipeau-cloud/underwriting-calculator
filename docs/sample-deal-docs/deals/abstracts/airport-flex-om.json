@@ -1,0 +1,147 @@
+{
+ "doc_type": "om",
+ "title": "Airport Flex Park offering memo",
+ "summary": "Offering memo for Airport Flex Park, a 24,000 SF, 12-unit flex park in Las Vegas, asking $7,500,000 (6.48% cap on $486,000 in-place NOI), 91.7% leased.",
+ "fields": [
+  {
+   "key": "property_name",
+   "value": "Airport Flex Park",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Property is Airport Flex Park, a multi-tenant flex industrial park.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "address",
+   "value": "6230 Runway Vista Drive",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The address is 6230 Runway Vista Drive, Las Vegas, NV 89119.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "city",
+   "value": "Las Vegas",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The address is 6230 Runway Vista Drive, Las Vegas, NV 89119.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "state",
+   "value": "NV",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The address is 6230 Runway Vista Drive, Las Vegas, NV 89119.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "zip",
+   "value": "89119",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The address is 6230 Runway Vista Drive, Las Vegas, NV 89119.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "square_feet",
+   "value": "24,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The buildings contain 24,000 rentable square feet in 12 units.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "units",
+   "value": "12",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The buildings contain 24,000 rentable square feet in 12 units.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "year_built",
+   "value": "1998",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Property was built in 1998 and renovated in 2017.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "asking_price",
+   "value": "$7,500,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Seller is asking $7,500,000 for the Property.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "in_place_noi",
+   "value": "$486,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "In-place net operating income is $486,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cap_rate",
+   "value": "6.48%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The asking price reflects a 6.48% cap rate on in-place income.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "occupancy",
+   "value": "91.7%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Property is 91.7% leased to 11 tenants.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-om.pdf"
+  ]
+ }
+}

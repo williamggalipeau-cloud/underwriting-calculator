@@ -14,8 +14,8 @@ changes the model without the user clicking to apply it.
 | A | Lease documents: upload, store, open | ✅ Done, live (PR #43) |
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
 | C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ✅ Live (PR #69); 24 Node + 18 Playwright checks |
-| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ✅ Built 11/22 (PR); 34 Node + 25 Playwright checks |
-| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ⛓ Starts when D is complete |
+| D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ✅ Live (PR #70); 34 Node + 25 Playwright checks |
+| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ✅ Built 11/23 (PR); 45 Node + 22 Playwright checks |
 | F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ⛓ Starts when E is complete |
 | G | Appraisal → Valuations tab | ⛓ Starts when F is complete |
 | H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
@@ -168,7 +168,25 @@ reviews and applies it field by field.
 - **Critical dates:** every dated deadline from every document flows into
   phase D's fund-wide critical dates.
 
-### Phase E: acquisition documents (OM, rent roll, T-12, LOI, PSA, IC memo)
+### Phase E: acquisition documents (OM, rent roll, T-12, LOI, PSA, IC memo) — built 11/23
+
+**Built**: the shared foundation (`supabase/deal_documents.sql`:
+`deal_documents`, `save_deal_abstract`, the `deal-docs` bucket, audit log;
+fund documents without an asset), the Documents tab (upload, Review with
+Claude, Save abstract, viewer with quotes and local checks, Apply with
+field-by-field ticks and a mismatch badge), every type below, document
+deadlines in Critical dates, IC approved vs current (Documents and Asset
+Summary), the IC conditions checklist, an LPA / PPM panel in New fund /
+Edit all terms, the engine's realized sale, and fictional samples in
+`docs/sample-deal-docs/deals/`. Not yet: the Portfolio Return roll-up of
+approved vs current (the fund view of the Documents tab lists each asset's
+instead); premiums compared with insurance expense; showing what changed
+in an amended LPA beyond the field comparison. Tested: 45 Node checks
+(every sample abstract against its PDF text, each type's mapping, rent
+roll merge / replace, insurance gaps, IC variance, realized sale in the
+engine, limits, deadlines, prompts) and 22 Playwright checks.
+
+Scope as planned:
 
 | Document | Connector tools | Applies to |
 |---|---|---|

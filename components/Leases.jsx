@@ -25,6 +25,7 @@ import { newUnit } from "@/components/UnitRoll";
 import { CriticalDatesView, RiskFlagsView } from "@/components/LeaseViews";
 import TenantCredit from "@/components/TenantCredit";
 import { listCreditDocs } from "@/lib/creditDocs";
+import { listDealDocs } from "@/lib/dealDocs";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 
 const STATUS_STYLE = {
@@ -680,6 +681,16 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
     // Loads this workspace's leases; nothing to load without one.
     refresh();
   }, [refresh]);
+  const [dealDocs, setDealDocs] = useState([]);
+  useEffect(() => {
+    // Deal documents' deadlines for Critical dates (phase E).
+    if (!wsId) return;
+    let alive = true;
+    listDealDocs(wsId).then((d) => alive && setDealDocs(d)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [wsId]);
   const refreshCredit = useCallback(async () => {
     if (!wsId || !canEdit) return;
     try {
@@ -733,6 +744,10 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
   const scopeTitle = scope === "asset" ? deal?.inputs?.propertyName || "Asset" : fundName || "Fund";
   const today = new Date().toISOString().slice(0, 10);
   const creditFor = canEdit ? credit ?? [] : null;
+  const docsFor = useMemo(() => {
+    const ids = new Set(scope === "asset" ? [deal?.id] : fundDeals.map((d) => d.id));
+    return dealDocs.filter((d) => (d.deal_id ? ids.has(d.deal_id) : scope === "fund" && d.fund_name === fundName));
+  }, [dealDocs, scope, deal?.id, fundDeals, fundName]);
   async function report() {
     setReporting(true);
     try {
@@ -774,7 +789,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
             ))}
             {reporting && <span className="ml-2 text-gray-400">Making the report…</span>}
           </div>
-          {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} onReport={report} />}
+          {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} docs={docsFor} onReport={report} />}
           {view === "risks" && <RiskFlagsView leases={shown} assetName={dealName} title={scopeTitle} onReport={report} />}
           {error && (
             <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">

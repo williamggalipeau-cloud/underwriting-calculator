@@ -1,0 +1,103 @@
+{
+ "doc_type": "closing_acq",
+ "title": "Airport Flex Park acquisition settlement statement",
+ "summary": "Closed January 30, 2026 at $7,200,000; $288,000 buyer closing costs; $4,980,000 loan; $2,424,250 cash from buyer.",
+ "fields": [
+  {
+   "key": "closing_date",
+   "value": "January 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Settlement date: January 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "contract_price",
+   "value": "$7,200,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Contract sales price: $7,200,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "seller_credits",
+   "value": "$45,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Seller credit for roof repairs: $45,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "prorations",
+   "value": "$12,350",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Rent and tax prorations credited to Buyer: $12,350.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "deposits_transferred",
+   "value": "$26,400",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Tenant security deposits transferred to Buyer: $26,400.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "closing_costs",
+   "value": "$288,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer's closing costs (title, escrow, legal, lender fees): $288,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "loan_proceeds",
+   "value": "$4,980,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "New loan proceeds: $4,980,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "equity_funded",
+   "value": "$2,424,250",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Cash from Buyer at closing: $2,424,250.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-closing-acq.pdf"
+  ]
+ }
+}

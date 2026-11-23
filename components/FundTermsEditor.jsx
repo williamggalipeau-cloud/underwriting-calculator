@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { compareDoc } from "@/lib/dealDocApply";
+import { createDealDoc, listDealDocs } from "@/lib/dealDocs";
 import {
   DEFAULT_FUND_TERMS,
   MAX_TIERS,
@@ -42,7 +44,83 @@ function Num({ label, value, onChange, suffix, prefix, step = 1, min = 0, hint }
 
 // Modal to create a fund or edit all of its terms, with template download
 // and Excel / CSV upload.
-export default function FundTermsEditor({ mode = "new", initial, existingNames = [], currentDealName, onSave, onClose }) {
+// The fund's LPA / PPM (Documents tab, fund-level): each term and limit read
+// from them, beside the form, to use one by one. Upload here too.
+function LpaPanel({ workspaceId, email, fundName, terms, onUse, onUseLimit }) {
+  const [docs, setDocs] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [kind, setKind] = useState("lpa");
+  useEffect(() => {
+    if (!workspaceId) return;
+    let alive = true;
+    listDealDocs(workspaceId).then((d) => alive && setDocs(d.filter((x) => !x.deal_id && (x.doc_type === "lpa" || x.doc_type === "ppm")))).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [workspaceId, busy]);
+  if (!workspaceId) return null;
+  const mine = (docs ?? []).filter((d) => d.fund_name.toLowerCase() === String(fundName ?? "").trim().toLowerCase());
+  const upload = async (file) => {
+    if (!file || !String(fundName ?? "").trim()) return setMsg("Enter the fund name first.");
+    setBusy(true);
+    try {
+      await createDealDoc(workspaceId, { dealId: null, fundName: String(fundName).trim(), docType: kind, title: file.name.replace(/\.pdf$/i, ""), files: [file] }, email);
+      setMsg(`Uploaded ${file.name}. Review it with Claude on the Documents tab (Whole fund); its terms then show here.`);
+    } catch (e) {
+      setMsg(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-3 text-xs" data-testid="lpa-panel">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="font-semibold text-gray-800">LPA / PPM</p>
+        <select value={kind} onChange={(e) => setKind(e.target.value)} className="rounded border border-gray-300 bg-white px-1.5 py-1" aria-label="LPA or PPM">
+          <option value="lpa">LPA</option>
+          <option value="ppm">PPM</option>
+        </select>
+        <label className="cursor-pointer rounded-lg border border-violet-300 bg-white px-2.5 py-1 font-medium text-violet-800">
+          {busy ? "Uploading…" : "Upload LPA / PPM"}
+          <input type="file" accept="application/pdf,.pdf" className="sr-only" aria-label="Upload LPA or PPM" onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ""; }} />
+        </label>
+        {msg && <span className="text-gray-600">{msg}</span>}
+      </div>
+      {mine.length === 0 ? (
+        <p className="mt-1 text-gray-500">No LPA or PPM for this fund yet. Upload one, review it with Claude on the Documents tab, and its terms and investment limits appear here to use one by one.</p>
+      ) : (
+        mine.map((d) => {
+          if (!d.abstract) return <p key={d.id} className="mt-1 text-gray-500">{d.doc_type.toUpperCase()} {d.title}: not reviewed yet (Documents tab → Review with Claude).</p>;
+          const rows = compareDoc(d, { terms });
+          return (
+            <div key={d.id} className="mt-2">
+              <p className="font-medium">{d.doc_type.toUpperCase()} {d.title} <span className="font-normal text-gray-500">(not connector-validated; check each clause)</span></p>
+              <table className="mt-1 w-full">
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.key} className="border-t border-violet-100 align-top" data-testid={`lpa-row-${r.key}`}>
+                      <td className="py-1 pr-2">{r.label}</td>
+                      <td className="py-1 pr-2 text-gray-500">now {r.appValue == null || r.appValue === "" ? "—" : String(r.appValue)}</td>
+                      <td className="py-1 pr-2 font-medium">{String(r.docValue)}{r.limit?.clause ? <span className="ml-1 text-[10px] font-normal text-gray-400">§ {r.limit.clause}</span> : null}</td>
+                      <td className="py-1 text-right">
+                        {r.differs ? (
+                          <button type="button" onClick={() => (r.limit ? onUseLimit({ ...r.setValue, docId: d.id, quote: r.limit.evidence?.[0]?.quote ?? "" }) : onUse(r.target, r.setValue))} className="rounded border border-violet-300 bg-white px-2 py-0.5 text-violet-800">Use</button>
+                        ) : <span className="text-emerald-700">✓</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+export default function FundTermsEditor({ mode = "new", initial, existingNames = [], currentDealName, onSave, onClose, workspaceId, email }) {
   const [t, setT] = useState(() => normalizeTerms({ ...DEFAULT_FUND_TERMS, ...(initial ?? {}) }));
   const [addCurrent, setAddCurrent] = useState(mode === "new" && !!currentDealName);
   const [upload, setUpload] = useState(null); // { ok } | { error } | { warnings }
@@ -87,6 +165,14 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
         </div>
 
         <div className="px-6 py-5 space-y-6">
+          <LpaPanel
+            workspaceId={workspaceId}
+            email={email}
+            fundName={t.name}
+            terms={t}
+            onUse={(k, v) => setT((p) => ({ ...p, [k]: v, ...(k === "subLineSizePct" ? { subLineEnabled: v > 0 } : {}) }))}
+            onUseLimit={(l) => setT((p) => ({ ...p, limits: [...(p.limits ?? []).filter((x) => x.key !== l.key), l] }))}
+          />
           {/* Upload / template */}
           <div className="rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-3 text-xs text-gray-700 space-y-2">
             <div className="flex flex-wrap items-center gap-3">

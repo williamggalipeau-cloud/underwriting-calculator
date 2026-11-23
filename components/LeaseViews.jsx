@@ -28,11 +28,11 @@ function Select({ label, value, onChange, options }) {
 
 // Every deadline from the abstracts (plus financial statements due, for
 // owners and editors), oldest first: red when past, amber within 90 days.
-export function CriticalDatesView({ leases, assetName, title, asOf, credit, onReport }) {
+export function CriticalDatesView({ leases, assetName, title, asOf, credit, docs, onReport }) {
   const [asset, setAsset] = useState("all");
   const [kind, setKind] = useState("all");
   const [show, setShow] = useState("upcoming"); // upcoming | all
-  const all = useMemo(() => criticalDates(leases, { assetName, asOf, credit }), [leases, assetName, asOf, credit]);
+  const all = useMemo(() => criticalDates(leases, { assetName, asOf, credit, docs }), [leases, assetName, asOf, credit, docs]);
   const assets = [...new Set(all.map((r) => r.asset))].sort();
   const kinds = [...new Set(all.map((r) => r.kind))];
   const rows = all.filter((r) => (asset === "all" || r.asset === asset) && (kind === "all" || r.kind === kind) && (show === "all" || r.status !== "past" || r.days >= -365));
@@ -52,7 +52,7 @@ export function CriticalDatesView({ leases, assetName, title, asOf, credit, onRe
         </div>
       </div>
       {shown.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-300 p-4 text-center text-xs text-gray-500">No critical dates: abstract a lease to see its deadlines here.</p>
+        <p className="rounded-lg border border-dashed border-gray-300 p-4 text-center text-xs text-gray-500">No critical dates: abstract a lease or review a document to see its deadlines here.</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200">
           <table className="w-full text-xs">
@@ -87,7 +87,7 @@ export function CriticalDatesView({ leases, assetName, title, asOf, credit, onRe
         </div>
       )}
       <p className="text-[11px] text-gray-400">
-        Dates come from each lease&apos;s abstract (calculated dates show their arithmetic); SNDA and estoppel response periods run from a request, so they have no date.
+        Dates come from each lease&apos;s abstract and each reviewed document on the Documents tab (calculated dates show their arithmetic; insurance turns amber 60 days before expiry); SNDA and estoppel response periods run from a request, so they have no date.
         {credit ? " Financial statements due come from lease clauses requiring statements and the statements on file under Tenant credit." : ""}{" "}
         Reminders: nothing is sent from the app. A Claude scheduled task could check these dates weekly and notify you before notice deadlines; ask Claude to set one up if you want it.
       </p>
