@@ -22,6 +22,7 @@ import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
+import DistributionAnalysis from "@/components/DistributionAnalysis";
 import AssetMedia from "@/components/AssetMedia";
 import { FundUwTable } from "@/components/UwVsActual";
 import { fundType } from "@/lib/fundTypes";
@@ -426,6 +427,7 @@ const TAB_GROUPS = [
   { label: "Portfolio Management", tabs: [
     { id: "fundplan",    label: "Fund Plan" },
     { id: "fund",        label: "Fund Return" },
+    { id: "distributions", label: "Distribution Analysis" },
     { id: "stress",      label: "Stress Testing" },
   ] },
   { label: "Library", tabs: [
@@ -1824,6 +1826,17 @@ export default function Home() {
                 inputs={inputs}
                 results={results}
                 savedDeals={fundDeals}
+              />
+            )}
+            {activeTab === "distributions" && (
+              <DistributionAnalysis
+                deals={fundDeals}
+                funds={funds}
+                marks={valuations}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                onFundTermsChange={handleFundTermsChange}
               />
             )}
             {activeTab === "fundplan" && (

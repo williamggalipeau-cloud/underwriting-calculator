@@ -33,7 +33,7 @@ changes the model without the user clicking to apply it.
 | T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager; TI spend by unit with mock TI actuals (added 11/23) | ⛓ After S |
 | U | Market group: Market Data tab, submarket statistics; stress tests in standard deviations with a simulation (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
-| X | Distribution Analysis tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ⛓ Right after K, before L |
+| X | Distribution Analysis tab (Portfolio Management, after Fund Return): quarterly distribution planner from asset (Yardi upload or manual) and fund cash, 3 / 6-month reserves, sub line per term sheet, LP / GP split per LPA, yield on contributed capital and NAV, rolling 4-quarter history (added 11/23) | ✅ Built 11/23 (window 2): lib/distributions.js, components/DistributionAnalysis.jsx, lib/distributionPdf.js; mock docs/sample-yardi/cash-balances-2026-09.csv (Southpoint has no balance, Mill Creek overdrawn). Capital activity gains a "Distribution paid" type (history only; doesn't switch the fund to actual calls). Tests: 34 Node + 23 browser checks. Lender reserves and committed TI / capex are entered by hand for now (read from loan terms and the business plan later) |
 | Revert | Revert button on change-log entries, restore a deal or fund as of a date, Recently deleted list (added 11/23; workspace buttons removed the same day) | ⛓ After Z |
 | Z | Home page: today's attention list, workflow lanes matching the tab headers, fund cards, quick actions (incl. New fund setup), recent activity (added 11/23) | ⛓ After O |
 | Picker | "Working on" fund picker in the header (All funds / each Fund, SMA, JV): filters every tab, remembered per person; also on the Home page (added 11/23) | ⛓ With Z (or earlier if wanted) |
@@ -1217,6 +1217,8 @@ Sales Comps stays in Asset Management, and the live SOFR panel is on the
 Debt tab.
 
 ## Phase X: Distribution Analysis (added 11/23; built right after K, before L)
+
+**Built 11/23 (window 2).** See the status table and manual §7.34.
 
 A **Distribution Analysis** tab (named by the user 11/23) in Portfolio Management, after Fund Return: a model
 for each quarter's fund distribution. Decided with the user 11/23:
