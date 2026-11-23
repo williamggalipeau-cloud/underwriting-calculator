@@ -113,8 +113,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const vac = info.filter((x) => x.status === "vacant");
   const leased = info.find((x) => x.status !== "vacant");
   check(unitCount > 3 && vac.length >= 1 && !!leased, `schematic: ${unitCount} unit boxes, ${vac.length} vacant, coloured by status (${[...new Set(info.map((x) => x.status))].join(", ")})`);
-  const box = (name) => boxes.filter({ has: p.locator(`text=${name}`) }).first();
-  const pickBox = (name) => fp.locator(`g[data-testid="unit-box"]`).filter({ has: p.locator("text", { hasText: new RegExp(`^${name.replace(/[/+]/g, "\\$&")}$`) }) }).first();
+  const pickBox = (name) => fp.locator(`g[data-testid="unit-box"]`).filter({ has: p.locator("text", { hasText: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}$`) }) }).first();
 
   // Demise a vacant unit into two, then combine them back
   const v = vac[0];
@@ -130,7 +129,6 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(600);
   const comb = `${v.name}-A/${v.name}-B`;
   check((await boxes.count()) === unitCount && (await fp.innerText()).includes(comb), `combined back into ${comb}`);
-  void box;
   await pickBox(leased.name).click();
   await fp.getByLabel("New unit sizes (SF)").fill("100, 100");
   await fp.getByRole("button", { name: "Demise", exact: true }).click();
