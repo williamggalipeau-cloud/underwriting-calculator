@@ -630,7 +630,7 @@ against what the fund actually does, using phases I and J for each asset.
   items), property management fee (the PM fee, % of revenue) and
   construction management fee (the CM fee, % of price), with a total and
   its present value. Promote and the fund-level management fee are shown
-  separately below it, not in the fee total (to confirm with the user).
+  separately below it, never in the fee revenue total (user, 11/23).
   Excel export.
 
 **Also in L (user, 11/23): the full Asset Business Plan PDF.** The
