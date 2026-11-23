@@ -75,22 +75,28 @@ for (const [asset, unit, pays] of [["Airport Flex Park", "003", [1, 0, 2]], ["Ca
 }
 fs.writeFileSync(path.join(OUT, "tenant-ledger.csv"), csv([["Tenant Ledger, August 1 – October 31, 2026"], ["SAMPLE – FICTIONAL – FOR TESTING ONLY"], [], ...led]));
 
-// Monthly income statement per asset, Jan–Oct 2026, from each asset's
-// underwritten year 1 (÷ 12), with a few deliberate variances (phase I).
+// Monthly income statement per asset from its acquisition month to Oct 2026:
+// the closing budget (lib/businessPlan budgetFromModel, year 1 ÷ 12) with a
+// few deliberate variances (phase I).
+const B = j(R + "/lib/businessPlan.js");
 const isRows = [["Property", "Property Name", "Month", "Base Rent", "Expense Recoveries", "Other Income", "Vacancy and Credit Loss", "Real Estate Taxes", "Insurance", "Utilities", "Repairs and Maintenance", "Management Fee", "Net Operating Income"]];
+const VAR = {
+  "Harbor Light Industrial": (mo) => ({ rent: mo >= 7 ? 0.92 : 1 }),          // rent shortfall from July
+  "Route 9 Small Bay": () => ({ taxes: 1.15 }),                                // tax reassessment
+  "Airport Flex Park": (mo) => ({ utilities: mo >= 6 && mo <= 9 ? 1.3 : 1 }),  // summer utilities
+};
 for (const p of props) {
-  const cf = c.underwrite(p.inputs).annualCashFlows[0];
-  const egr = cf.effectiveGrossRevenue / 12;
+  const bud = B.budgetFromModel(p.inputs);
   for (let mo = 1; mo <= 10; mo++) {
-    const ym = `2026-${String(mo).padStart(2, "0")}`;
-    const bump = p.code === "mf1-03" && mo >= 7 ? 0.92 : 1; // Harbor Light: rent shortfall from July
-    const rent = r2(egr * 0.9 * bump), rec = r2(egr * 0.08), oth = r2(egr * 0.02), vac = r2(-egr * 0.01);
-    const sf = p.inputs.squareFootage;
-    const tax = r2(-(p.inputs.realEstateTaxPSF * sf) / 12 * (p.code === "mf1-02" ? 1.15 : 1)); // Route 9: tax reassessment
-    const ins = r2(-(p.inputs.insurancePSF * sf) / 12), utl = r2(-(p.inputs.utilitiesPSF * sf) / 12), rm = r2(-(p.inputs.maintenancePSF * sf) / 12);
-    const mgmt = r2(-(rent + rec + oth) * (p.inputs.managementFeePct ?? 0) / 100 * 0.5);
+    const ymS = `2026-${String(mo).padStart(2, "0")}`;
+    const L = B.budgetMonth(bud, ymS);
+    if (!L) continue;
+    const f = { rent: 1, taxes: 1, utilities: 1, ...(VAR[p.name]?.(mo) ?? {}) };
+    const rent = r2(L.rent * 0.98 * f.rent), oth = r2(L.rent * 0.02 * f.rent), rec = r2(L.recoveries), vac = r2(L.vacancy);
+    const tax = r2(L.taxes * f.taxes), ins = r2(L.insurance), utl = r2(L.utilities * f.utilities), rm = r2(L.repairs);
+    const mgmt = r2(L.management + L.otherOpex);
     const noi = r2(rent + rec + oth + vac + tax + ins + utl + rm + mgmt);
-    isRows.push([p.code, p.name, ym, rent, rec, oth, vac, tax, ins, utl, rm, mgmt, noi]);
+    isRows.push([p.code, p.name, ymS, rent, rec, oth, vac, tax, ins, utl, rm, mgmt, noi]);
   }
 }
 fs.writeFileSync(path.join(OUT, "income-statement-2026.csv"), csv([["Income Statement by Month, January – October 2026"], ["SAMPLE – FICTIONAL – FOR TESTING ONLY"], [], ...isRows]));

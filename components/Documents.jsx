@@ -333,6 +333,11 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks
   const open = async (path, page) => {
     try { const url = await dealFileLink(path); window.open(page ? `${url}#page=${page}` : url, "_blank", "noopener"); } catch (e) { onError(e.message || String(e)); }
   };
+  // Estoppel, CAM and billing: the Check panel's issues, shown on the card.
+  const issues = !doc.abstract ? [] : doc.doc_type === "estoppel"
+    ? (() => { const l = (leases ?? []).find((x) => x.id === doc.lease_id); const u = l ? (units ?? []).find((x) => (l.unit_ids ?? []).includes(x.id)) : null; return estoppelChecks(doc, l?.abstract ?? null, u).filter((r) => !r.ok).map((r) => r.label); })()
+    : doc.doc_type === "cam" ? camCheck(doc, leases ?? []).tenants.filter((r) => !r.noLease && (r.issues.length || Math.abs(r.diff) > 1)).map((r) => `${r.tenant}: ${r.diff > 0 ? "over" : "under"}-billed $${Math.abs(Math.round(r.diff)).toLocaleString("en-US")}`)
+    : doc.doc_type === "billing" ? billingCheck(doc, leases ?? []).filter((r) => isFinite(r.diff) && Math.abs(r.diff) > 0.5).map((r) => `${r.tenant} ${r.month}: ${r.diff > 0 ? "over" : "under"}-billed $${Math.abs(r.diff).toFixed(2)}`) : [];
   const pending = !doc.abstract || ["estoppel", "cam", "billing"].includes(doc.doc_type) ? [] : doc.doc_type === "appraisal" ? (appraisalMark(doc, inputs ?? {}, marks ?? {})?.rows ?? []).filter((r) => r.differs) : compareDoc(doc, { inputs: inputs ?? {}, terms: terms ?? {} }).filter((r) => r.differs);
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid="doc-card">
@@ -351,6 +356,7 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks
         </div>
         <div className="flex flex-col items-end gap-1">
           <span className={`rounded border px-2 py-0.5 text-[11px] font-medium ${STATUS[doc.status]?.[1]}`}>{STATUS[doc.status]?.[0]}</span>
+          {issues.length > 0 && <span className="rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-800" data-testid="doc-issues" title={issues.join("\n")}>⚠ {issues.length} issue{issues.length === 1 ? "" : "s"}: {issues.join("; ").slice(0, 90)}{issues.join("; ").length > 90 ? "…" : ""}</span>}
           {doc.abstract && pending.length > 0 && <span className="rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800" data-testid="doc-mismatch" title={pending.map((r) => r.label).join(", ")}>⚠ {pending.length} field{pending.length === 1 ? "" : "s"} differ from the {TYPE[doc.doc_type]?.scope === "fund" ? "fund terms" : "model"}</span>}
         </div>
       </div>

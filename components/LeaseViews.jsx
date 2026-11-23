@@ -28,11 +28,11 @@ function Select({ label, value, onChange, options }) {
 
 // Every deadline from the abstracts (plus financial statements due, for
 // owners and editors), oldest first: red when past, amber within 90 days.
-export function CriticalDatesView({ leases, assetName, title, asOf, credit, docs, onReport }) {
+export function CriticalDatesView({ leases, assetName, title, asOf, credit, docs, milestones, onReport }) {
   const [asset, setAsset] = useState("all");
   const [kind, setKind] = useState("all");
   const [show, setShow] = useState("upcoming"); // upcoming | all
-  const all = useMemo(() => criticalDates(leases, { assetName, asOf, credit, docs }), [leases, assetName, asOf, credit, docs]);
+  const all = useMemo(() => criticalDates(leases, { assetName, asOf, credit, docs, milestones }), [leases, assetName, asOf, credit, docs, milestones]);
   const assets = [...new Set(all.map((r) => r.asset))].sort();
   const kinds = [...new Set(all.map((r) => r.kind))];
   const rows = all.filter((r) => (asset === "all" || r.asset === asset) && (kind === "all" || r.kind === kind) && (show === "all" || r.status !== "past" || r.days >= -365));

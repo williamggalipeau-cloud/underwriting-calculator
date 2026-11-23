@@ -27,6 +27,7 @@ import TenantCredit from "@/components/TenantCredit";
 import { listCreditDocs } from "@/lib/creditDocs";
 import { listDealDocs } from "@/lib/dealDocs";
 import { estoppelChecks } from "@/lib/dealDocApply";
+import { planDates } from "@/lib/businessPlan";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 
 const STATUS_STYLE = {
@@ -763,6 +764,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
     const ids = new Set(scope === "asset" ? [deal?.id] : fundDeals.map((d) => d.id));
     return dealDocs.filter((d) => (d.deal_id ? ids.has(d.deal_id) : scope === "fund" && d.fund_name === fundName));
   }, [dealDocs, scope, deal?.id, fundDeals, fundName]);
+  const milestonesFor = useMemo(() => planDates(scope === "asset" ? (deal ? [deal] : []) : fundDeals), [scope, deal, fundDeals]);
   async function report() {
     setReporting(true);
     try {
@@ -804,7 +806,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
             ))}
             {reporting && <span className="ml-2 text-gray-400">Making the report…</span>}
           </div>
-          {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} docs={docsFor} onReport={report} />}
+          {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} docs={docsFor} milestones={milestonesFor} onReport={report} />}
           {view === "risks" && <RiskFlagsView leases={shown} assetName={dealName} title={scopeTitle} onReport={report} />}
           {error && (
             <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">

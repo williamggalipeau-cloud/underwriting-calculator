@@ -226,7 +226,7 @@ The tabs have no ✕: an asset can't be deleted from here (to take one out of
 a fund, use Remove on the Portfolio Return tab, which keeps the deal).
 
 Tabs, left to right: Deal Screener, Asset Summary, Valuations, Unit Roll,
-Leases, Debt, Cash Flow, Asset Return, Portfolio Return, Sensitivity,
+Leases, Documents, Business Plan, Debt, Cash Flow, Asset Return, Portfolio Return, Sensitivity,
 Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 **Change log** button in the header, next to User manual.
 
@@ -238,6 +238,7 @@ Sell / Hold, Return Stress Testing, Sales Comps. The Change Log opens from the
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
 | **Documents** | Deal and fund documents (§7.28), for this asset or the whole fund: offering memo, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant) and the fund's LPA and PPM. **Review with Claude** makes a prompt for a Claude session with the CREparser Deal Review connector (validators for OM, rent roll, T-12 and LOI; the others are read and checked locally); **Save abstract**; **View abstract** shows each value with its quote, page link and status; **Apply** compares the model with the document field by field (tick and apply; each change logged as from the document; a badge stays on fields not taken). Rent roll: merge or replace units. OM: **New deal from this OM**. IC memo: approved vs current and a conditions checklist. Insurance: **Check coverage** against the tenant's lease. LPA / PPM: fund terms and investment limits. Estoppel, CAM reconciliation and billing: **Check** against the leases and the rent roll (§7.29). The LPA and PPM upload has an **Assign to fund** picker, and each LPA/PPM card can be moved to another fund. Deadlines go to Leases → Critical dates. Owners and editors change; viewers read. |
+| **Business Plan** | The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Portfolio Return shows NOI vs budget by asset. |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. |
@@ -480,6 +481,7 @@ underwriting-calculator/
 │   ├── SellHold.jsx          Sell / Hold tab
 │   ├── Leases.jsx            Leases tab (lease documents, abstracts, apply to rent roll, mismatch flags)
 │   ├── LeaseViews.jsx        Leases tab: Critical dates and Risk flags views
+│   ├── BusinessPlan.jsx      Business Plan tab (plan revisions, budget vs actual) and the fund NOI card
 │   ├── Documents.jsx         Documents tab (deal and fund documents, review, apply, IC conditions)
 │   ├── LoanAgreement.jsx     Debt tab: loan agreement terms, covenant tests, executed rate caps
 │   ├── TenantCredit.jsx      Tenant credit section on each lease
@@ -514,6 +516,8 @@ underwriting-calculator/
 │   ├── creditDocs.js         Tenant credit documents (Supabase rows and files)
 │   ├── dealDocs.js           Deal documents (Supabase rows and files, deal-docs bucket)
 │   ├── dealDocTypes.js       Document types, templates, prompts, local checks
+│   ├── businessPlan.js       Business plan revisions, budget from the model, actuals import, variance
+│   ├── businessPlanPdf.js    Business plan PDF for a revision
 │   ├── dealDocApply.js       Compare and apply documents: deal inputs, T-12, rent roll, IC, closings, insurance, LPA
 │   ├── assetLocations.js     Model Fund I asset addresses; state list
 │   ├── sampleRentRolls.js    Model Fund I rent rolls with a 20–40% mark to market
@@ -1882,8 +1886,52 @@ tenant with an abstracted lease, recoverable = lease share × (total expenses
 over-recovery (billed above recoverable) is owed back to the tenant. A billed
 share different from the lease's, or a fee over the cap, is flagged.
 **Billing:** each month's billed base rent vs the lease's rent for that month.
+Each estoppel, CAM and billing card on the Documents tab shows a red
+**⚠ n issues** badge with the differences, without opening **Check**.
 
 
+### 7.30 Business plan and budget vs. plan (`lib/businessPlan.js`)
+
+**Revisions.** Revision 1 is the plan at closing, seeded from the IC memo
+(thesis, strategy) and the closing model: a leasing row per unit (vacant →
+lease up; a lease ending within the hold → renew if its renewal probability
+is 50% or more, else re-tenant; target rent = in-place × 1.03, vacant at the
+unit's rent), the capex budget as a project, milestones (each lease action
+three months before expiry, lease-up within six months, the capital plan,
+the annual review), KPI targets from the model and the exit from the hold
+and exit cap. A revision is never edited: every save adds the next one with
+who, when, the note, the reason and the list of changes from the previous
+revision. The model's rent roll, loan, hold / exit cap and capex budget are
+fingerprinted with each revision; when they change, the tab offers a new
+revision (reason "Model change").
+
+**Budget.** Locked from the model at closing: each hold year's lines from the
+cash flow (§7.9), signed like an income statement, ÷ 12 for a month, from
+the acquisition month. On NNN deals the model nets recoverable expenses out;
+the budget grosses them back up (inputs $/SF × SF) as both an expense and a
+recovery so lines compare with an income statement. NOI is the model's.
+A re-forecast ("2027 budget") is saved with a new revision; revision 1's
+budget stays the plan.
+
+| Line | Budget (from the model) | Actual (income statement columns) |
+|---|---|---|
+| Base rent and other income | gross revenue | Base Rent, Rental Income, Other Income |
+| Expense recoveries | NNN gross-up | Expense Recoveries, Reimbursements, CAM Income |
+| Vacancy and credit loss | EGR − gross revenue | Vacancy, Credit Loss, Bad Debt, Concessions |
+| Taxes, insurance, utilities, repairs | model lines (or the gross-up) | matching columns |
+| Management fee | model | Management Fee |
+| Other operating expenses | leasing fees, reserves, AM fees in opex | any other negative column |
+| NOI | model NOI | EGR + expenses (checked against the statement's NOI) |
+| TI, leasing and capital; debt service; cash flow | model | not imported |
+
+**Variance** = actual − current budget for the months with actuals in the
+period (month, quarter, year to date, since closing); positive is favorable
+for every line. Flag: amber when unfavorable by more than the threshold
+(default 5%), red over twice it. Also vs plan (revision 1) and $/SF.
+**KPIs:** NOI (last 12 months of actuals, annualized), occupancy and average
+rent from the rent roll, WALT, capex spent vs budget.
+
+## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
 - $10.0M price, $400K closing costs, 30,000 SF, acquired 2/13/2026;
@@ -2262,6 +2310,7 @@ reference data except lease end, which sets months remaining (§7.19).
 | `loanAmountActual` | From the loan agreement; replaces the sizing tests (§7.7) |
 | `loanTerms` | `{ lender, maturityDate, floorPct, capMaxStrikePct, capMinRating, capReplacementDays, prepayment, reserves, reporting, docId }` |
 | `loanCovenants` | `{ dscr, debtYieldPct, ltvPct, testing, cure }` |
+| `businessPlan` | `{ revisions: [{ n, at, by, note, reason, changes, plan, budget, model }], actuals: { "YYYY-MM": lines }, actualsSource, comments: { "<period>|<line>": text }, thresholdPct }` (§7.30) |
 | `executedCaps` | `[{ holdYear, provider, rating, strikePct, effective, termination, notional, premium, index, tradeDate, docId }]` from cap confirmations |
 
 Fund terms (`funds[name]`) also get `limits`: `[{ key, label, limit, unit, basis, clause, quote, docId }]` from the LPA / PPM.
@@ -2836,7 +2885,7 @@ each phase and the decisions behind it are in
 | F. Loan agreement | Loan terms, rate cap, covenants and dates to the Debt tab; executed rate cap confirmations read into the cap schedule (counterparty, strike, dates, premium) | ✅ Live (PR #71) |
 | G. Appraisal | Appraised value and cap rate to the Valuations tab | ✅ Live (PR #71) |
 | H. Estoppels, CAM, billing and delinquency | Estoppels checked against leases and the rent roll; CAM and billing checked against lease terms; rent delinquency imported from Yardi | ✅ Live (PR #72) |
-| I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ⛓ After H |
+| I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 built 11/23 (pull request): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 next: photos, map, floor plan, demising |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ⛓ After I |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |

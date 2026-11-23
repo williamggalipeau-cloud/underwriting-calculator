@@ -33,6 +33,7 @@ import { applyExecutedCap } from "@/lib/dealDocApply";
 import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
 import LoanAgreementPanel from "@/components/LoanAgreement";
 import Delinquency, { DelinquencySummary } from "@/components/Delinquency";
+import BusinessPlan, { BudgetVsActualSummary } from "@/components/BusinessPlan";
 import { aggregate as aggregateDelinquency } from "@/lib/delinquency";
 import CloudPanel from "@/components/CloudPanel";
 import {
@@ -398,6 +399,7 @@ const TABS = [
   { id: "units",       label: "Unit Roll" },
   { id: "leases",      label: "Leases" },
   { id: "documents",   label: "Documents" },
+  { id: "plan",        label: "Business Plan" },
   { id: "debt",        label: "Debt" },
   { id: "cashflow",    label: "Cash Flow" },
   { id: "returns",     label: "Asset Return" },
@@ -409,7 +411,7 @@ const TABS = [
 ];
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
 
 function fmtPct(n) {
   return isFinite(n) ? `${n.toFixed(1)}%` : "—";
@@ -1662,6 +1664,9 @@ export default function Home() {
                   />
                 </div>
               ))}
+              <div className="mb-4">
+                <BudgetVsActualSummary deals={fundDeals.map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))} onOpen={() => setActiveTab("plan")} />
+              </div>
               <FundAnalysis
                 savedDeals={fundDeals}
                 unassigned={unassignedDeals.map((d) => ({ id: d.id, name: d.inputs.propertyName || "Unnamed deal" }))}
@@ -1747,6 +1752,18 @@ export default function Home() {
                 fundName={resolveFund(inputs.fundName)}
                 dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
                 onApplyUnits={handleApplyLease}
+              />
+            )}
+            {activeTab === "plan" && (
+              <BusinessPlan
+                key={activeDealId}
+                dealId={activeDealId}
+                inputs={inputs}
+                fundName={resolveFund(inputs.fundName)}
+                fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName)).map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))}
+                canEdit={!locked}
+                email={session?.user?.email ?? null}
+                onApplyDeal={applyToDeal}
               />
             )}
             {activeTab === "documents" && (
