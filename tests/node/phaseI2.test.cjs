@@ -92,6 +92,8 @@ const g = M.googleEmbedUrl(M.mapQuery(inp, null));
 ok(g === "https://maps.google.com/maps?q=6230%20Runway%20Vista%20Drive%2C%20Las%20Vegas%2C%20NV%2C%2089119&t=m&z=16&output=embed", "Google embed URL (map)");
 ok(M.googleEmbedUrl("x", { view: "satellite" }).includes("&t=k&"), "satellite view");
 ok(M.googleEmbedUrl("Kent, WA", { key: "TESTKEY", view: "satellite" }) === "https://www.google.com/maps/embed/v1/place?key=TESTKEY&q=Kent%2C%20WA&zoom=16&maptype=satellite", "with a key: the Maps Embed API");
+ok(M.cleanKey(' "AIzaTEST-key_1"\n') === "AIzaTEST-key_1" && M.googleEmbedUrl("x", { key: " AIzaTEST\n" }).includes("key=AIzaTEST&"), "spaces, line breaks and quotes around the key are dropped");
+ok(M.cleanKey("GOOGLE_MAPS_EMBED_KEY=AIzaSyA1234567890abcdefghijklmnopqrstuv\n") === "AIzaSyA1234567890abcdefghijklmnopqrstuv", "a key pasted with its name in front is pulled out");
 ok(M.GOOGLE_EMBED_KEY === "" && !g.includes("key="), "no key set in tests: keyless embed");
 ok(M.googleMapsLink("Las Vegas, NV") === "https://www.google.com/maps/search/?api=1&query=Las%20Vegas%2C%20NV", "Open in Google Maps link");
 
