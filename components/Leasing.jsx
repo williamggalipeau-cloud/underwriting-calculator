@@ -3,13 +3,38 @@
 // Phase R: Leasing tab (Asset Management, after Leases). Leasing Pipeline
 // and Rent Comps for one asset, with a whole-fund view of the pipeline.
 // Data lives on each asset (inputs.leasing); onUpdate(dealId, fn) edits it.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ACTIVE_PROSPECT_STAGES, PROSPECT_SOURCES, PROSPECT_STAGES, RENT_COMP_FIELDS, allProspects, detectRentCompMapping, filterRentComps, importRentComps, leasingOf,
   leasingXlsx, makeProspect, makeRentComp, netEffective, pipelineTotals, rentCompStats, rentCompsFromFile, rentVsComps, stageLabel, vsPlan,
 } from "@/lib/leasing";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
+import { COMPS_DOC_TYPES, PROSPECT_DOC_TYPES, leasingDocs, leasingTypeLabel, uploadLeasingDoc } from "@/lib/leasingDocs";
+import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+
+// Upload area for a prospect or the rent comps (signed in to the firm).
+function Docs({ docs, types, ctx, compact = false }) {
+  const ref = useRef(null);
+  const [type, setType] = useState(types[0]);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  if (!ctx) return null;
+  const open = async (d) => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); };
+  return (
+    <div className={compact ? "min-w-[9rem]" : "flex flex-wrap items-center gap-2"} data-testid="leasing-docs">
+      {docs.map((d) => <button key={d.id} type="button" onClick={() => open(d)} className="block text-left text-[11px] text-blue-700 hover:underline">{d.typeLabel}: {d.name}</button>)}
+      {ctx.canEdit && (
+        <span className="flex items-center gap-1">
+          <select aria-label="Leasing document type" value={type} onChange={(e) => setType(e.target.value)} className="rounded border border-gray-200 px-1 py-0.5 text-[11px]">{types.map((k) => <option key={k} value={k}>{leasingTypeLabel(k)}</option>)}</select>
+          <button type="button" disabled={busy} onClick={() => ref.current?.click()} className="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-[11px] text-gray-700 hover:bg-gray-50 disabled:opacity-40">{busy ? "…" : "Upload"}</button>
+          <input ref={ref} type="file" accept="application/pdf" className="hidden" data-testid="leasing-file" onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (!f) return; setBusy(true); setMsg(null); try { await ctx.upload(type, f); } catch (err) { setMsg(err.message); } finally { setBusy(false); } }} />
+        </span>
+      )}
+      {msg && <span className="text-[11px] text-red-700">{msg}</span>}
+    </div>
+  );
+}
 
 const inp = "rounded border border-gray-200 px-1.5 py-0.5 text-xs disabled:bg-transparent disabled:border-transparent";
 const btn = "rounded-lg border px-3 py-1.5 text-xs font-medium";
@@ -18,12 +43,15 @@ const psf = (v) => (v == null || !Number.isFinite(v) ? "—" : `$${v.toFixed(2)}
 const pct = (v) => (v == null || !Number.isFinite(v) ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`);
 const STAGE_CLS = { inquiry: "bg-gray-100 text-gray-700", tour: "bg-sky-50 text-sky-800", proposal: "bg-indigo-50 text-indigo-800", loi: "bg-violet-50 text-violet-800", leaseout: "bg-amber-50 text-amber-800", signed: "bg-emerald-50 text-emerald-800", lost: "bg-red-50 text-red-700" };
 
-export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "" }) {
+export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null }) {
   const [scope, setScope] = useState("asset");
   const [showDone, setShowDone] = useState(false);
   const [f, setF] = useState({ since: "", minSF: "", maxSF: "", submarket: "", leaseType: "" });
   const [msg, setMsg] = useState(null);
   const [pending, setPending] = useState(null); // { grid, det } awaiting column confirmation
+  const [allDocs, setAllDocs] = useState([]);
+  const reload = () => (workspaceId ? listDealDocs(workspaceId).then(setAllDocs).catch(() => {}) : Promise.resolve());
+  useEffect(() => { reload(); }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!deal) return <p className="text-xs text-gray-500">Choose an asset.</p>;
   const inputs = deal.inputs;
   const L = leasingOf(inputs);
@@ -37,6 +65,13 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, t
   const comps = filterRentComps(L.comps, f);
   const stats = rentCompStats(comps);
   const vs = rentVsComps(inputs, stats);
+  const lDocs = leasingDocs(allDocs);
+  const ctxFor = (dealId, target) => (workspaceId ? { canEdit, upload: async (type, file) => { await uploadLeasingDoc(workspaceId, { dealId, target, type, file }, email); await reload(); } } : null);
+  async function exportPdf() {
+    const { leasingPdf } = await import("@/lib/leasingPdf");
+    const cs = (scope === "fund" ? deals : [deal]).flatMap((d) => leasingOf(d.inputs).comps.map((c) => ({ ...c, asset: d.inputs.propertyName })));
+    downloadBlob(await leasingPdf({ title: scope === "fund" ? scopeName || "All assets" : inputs.propertyName, rows, comps: cs, todayISO }), `leasing-${todayISO}.pdf`);
+  }
 
   async function exportX() {
     downloadBlob(await writeXlsx(leasingXlsx(rows, (scope === "fund" ? deals : [deal]).flatMap((d) => leasingOf(d.inputs).comps.map((c) => ({ ...c, asset: d.inputs.propertyName }))), { todayISO }), { sheetName: "Leasing" }), `leasing-${todayISO}.xlsx`);
@@ -66,6 +101,7 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, t
           <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             {[["asset", inputs.propertyName || "This asset"], ["fund", scopeName ? `All of ${scopeName}` : "All assets"]].map(([k, l]) => <button key={k} type="button" onClick={() => setScope(k)} className={`rounded-md px-2 py-1 ${scope === k ? "bg-white font-semibold shadow-sm" : "text-gray-500"}`}>{l}</button>)}
           </div>
+          <button type="button" onClick={exportPdf} className={`${btn} border-gray-300 bg-white`}>PDF</button>
           <button type="button" onClick={exportX} className={`${btn} border-gray-300 bg-white`}>Excel</button>
         </div>
       </div>
@@ -84,7 +120,7 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, t
         {shown.length === 0 ? <p className="rounded-xl border border-dashed border-gray-300 p-5 text-center text-xs text-gray-500">No prospects{showDone ? "" : " in progress"}.</p> : (
           <div className="overflow-x-auto rounded-xl border border-gray-200">
             <table className="w-full text-xs tabular-nums">
-              <thead className="bg-gray-50 text-gray-500"><tr>{[...(scope === "fund" ? ["Asset"] : []), "Unit", "Prospect / tenant", "Kind", "Source / broker", "Stage", "SF", "Asking", "Proposed", "Term (mo)", "Free (mo)", "TI/SF", "Net effective", "Start", "vs. plan rent", "Downtime vs. plan", "Next step"].map((h) => <th key={h} className="px-1.5 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
+              <thead className="bg-gray-50 text-gray-500"><tr>{[...(scope === "fund" ? ["Asset"] : []), "Unit", "Prospect / tenant", "Kind", "Source / broker", "Stage", "SF", "Asking", "Proposed", "Term (mo)", "Free (mo)", "TI/SF", "Net effective", "Start", "vs. plan rent", "Downtime vs. plan", "Next step", ...(workspaceId ? ["Documents"] : [])].map((h) => <th key={h} className="px-1.5 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>{shown.map((x) => {
                 const p = x.p, ed = canEdit && scope === "asset";
                 const set = (patch) => (scope === "asset" ? setP(p.id, patch) : onUpdate(x.dealId, (cur) => ({ ...cur, leasing: { ...leasingOf(cur), prospects: leasingOf(cur).prospects.map((z) => (z.id === p.id ? { ...z, ...patch } : z)) } })));
@@ -106,6 +142,7 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, t
                     <td className="px-1.5 py-1" data-testid="prospect-vs-plan">{v ? <span className={v.rentVsPct != null && v.rentVsPct < 0 ? "text-red-700" : "text-emerald-700"}>{pct(v.rentVsPct)}<span className="block text-[10px] text-gray-400">plan {psf(v.targetRentPSF)}</span></span> : <span className="text-gray-400">no plan</span>}</td>
                     <td className="px-1.5 py-1">{v?.downtime != null ? <span className={v.downtimeVs > 0 ? "text-red-700" : "text-emerald-700"}>{v.downtime} mo{v.targetDowntime != null ? <span className="block text-[10px] text-gray-400">plan {v.targetDowntime} mo</span> : null}</span> : "—"}</td>
                     <td className="px-1.5 py-1"><input aria-label="Next step" value={p.nextStep} disabled={!ed} onChange={(e) => set({ nextStep: e.target.value })} className={`${inp} w-28`} /><input aria-label="Next date" type="date" value={p.nextDate} disabled={!ed} onChange={(e) => set({ nextDate: e.target.value })} className={`${inp} mt-0.5 block`} /></td>
+                    {workspaceId && <td className="px-1.5 py-1"><Docs compact docs={lDocs.filter((d) => d.target === p.id)} types={PROSPECT_DOC_TYPES} ctx={ctxFor(x.dealId, p.id)} /></td>}
                   </tr>
                 );
               })}</tbody>
@@ -135,6 +172,7 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, t
             </div>
           )}
           {msg && <p role="status" className="text-xs text-gray-600" data-testid="leasing-msg">{msg}</p>}
+          {workspaceId && <Docs docs={lDocs.filter((d) => d.target === "comps" && d.dealId === deal.id)} types={COMPS_DOC_TYPES} ctx={ctxFor(deal.id, "comps")} />}
           <div className="flex flex-wrap items-end gap-2 text-xs">
             <label className="flex flex-col"><span className="text-[10px] text-gray-500">Signed on or after</span><input aria-label="Comps since" type="date" value={f.since} onChange={(e) => setF({ ...f, since: e.target.value })} className={inp} /></label>
             <label className="flex flex-col"><span className="text-[10px] text-gray-500">Min SF</span><input aria-label="Min SF" type="number" value={f.minSF} onChange={(e) => setF({ ...f, minSF: e.target.value })} className={`${inp} w-20`} /></label>

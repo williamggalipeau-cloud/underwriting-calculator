@@ -2005,6 +2005,8 @@ export default function Home() {
             )}
             {activeTab === "leasing" && (
               <Leasing
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                email={session?.user?.email ?? null}
                 deal={activeDeal}
                 deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
                 canEdit={!locked}

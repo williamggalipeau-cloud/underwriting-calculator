@@ -69,5 +69,25 @@ ok(vs.inPlace === 10 && close(vs.inPlaceVsPct, (10 - st.avg) / st.avg * 100) && 
 const x = L.leasingXlsx(L.allProspects([deals[0]]), comps.map((c) => ({ ...c, asset: "Fictional Dock" })), { todayISO: TODAY });
 ok(x[1].includes("Net effective ($/SF)") && x[2][0] === "Fictional Dock" && x.some((r) => r[0] === "Rent comps") && x.filter((r) => r[1] === "100 Example Way").length === 1, "Excel: pipeline and rent comps");
 
-console.log(fail ? `${fail} FAILED` : "ALL PASS");
-process.exitCode = fail ? 1 : 0;
+// ── Part 2: documents ──
+const LD = j(R + "/lib/leasingDocs.js");
+const tt = LD.leasingTitle({ target: "lp-1", type: "approval_memo", name: "Memo: final.pdf" });
+ok(tt === "[leasing:lp-1] Lease approval memo: Memo: final.pdf" && LD.parseLeasingTitle(tt).target === "lp-1" && LD.parseLeasingTitle(tt).type === "approval_memo" && LD.parseLeasingTitle(tt).name === "Memo: final.pdf", "document title carries the prospect and type (and reads back)");
+const ld = LD.leasingDocs([{ id: "1", deal_id: "a", title: LD.leasingTitle({ target: "comps", type: "comps", name: "c.pdf" }) }, { id: "2", deal_id: "b", title: "[sale:s] BOV: x.pdf" }, { id: "3", deal_id: "b", title: LD.leasingTitle({ target: "lp-2", type: "proposal", name: "p.pdf" }) }], "b");
+ok(ld.length === 1 && ld[0].target === "lp-2" && ld[0].typeLabel === "Proposal", "leasing documents for one asset (sale documents ignored)");
+(async () => {
+  let got = null;
+  await LD.uploadLeasingDoc("w1", { dealId: "a", target: "lp-1", type: "loi", file: { name: "LOI.pdf" } }, "t@example.com", async (ws, a) => { got = a; return a; });
+  ok(got.docType === "other" && got.title === "[leasing:lp-1] LOI: LOI.pdf" && got.dealId === "a", "uploads are filed as Other (no new database type)");
+  // ── Part 2: Home ──
+  const H = j(R + "/lib/home.js");
+  const soon = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+  const hd = [{ id: "a", inputs: { propertyName: "Fictional Dock", fundName: "F", acquisitionDate: "2025-01-01", units: [], leasing: { prospects: [L.makeProspect({ tenant: "Soon Co", stage: "loi", nextStep: "Send lease draft", nextDate: soon }), L.makeProspect({ tenant: "Later Co", stage: "tour", nextDate: "2099-01-01" }), L.makeProspect({ tenant: "Done Co", stage: "signed", nextDate: soon })] } } }];
+  const att = H.attentionList(hd, {}, {}, { todayISO: today }).filter((a) => a.kind === "leasing");
+  ok(att.length === 1 && /Send lease draft: Soon Co \(Fictional Dock\)/.test(att[0].text) && att[0].tab === "leasing", "Home: an active prospect's next step due within a week");
+  const lanes = H.lanes({ deals: hd, funds: {}, pipeline: { deals: [] }, attention: att, cards: [], firm: {}, todayISO: today });
+  ok(lanes.find((l) => l.label === "Asset Management").stats.find((x) => x.label === "Leasing prospects (active)").value === "2", "Home lane: active leasing prospects");
+  console.log(fail ? `${fail} FAILED` : "ALL PASS");
+  process.exitCode = fail ? 1 : 0;
+})();

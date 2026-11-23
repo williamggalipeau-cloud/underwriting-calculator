@@ -2541,8 +2541,16 @@ asset, so its edits save and log like any other.
   from comps** sets the model's market rent to the comps' average (asked
   first); the returns update.
 - **Excel** exports the pipeline and the comps.
-- Still to come: uploads on each prospect (proposals, LOIs, lease drafts,
-  approval memos, broker reports) and on the comps section, and a PDF.
+- **Documents** (signed in): each prospect has an upload for proposals,
+  LOIs, lease drafts, lease approval memos and broker reports, and the Rent
+  Comps section takes rent comp and broker reports. They're kept in the same
+  store as Library → Documents (filed as "Other", the prospect and type in
+  the title; no database change needed).
+- **PDF** of the pipeline (with the plan comparison) and the rent comps with
+  their statistics, for the asset or the whole portfolio.
+- On **Home**, an active prospect's next step due within a week (or overdue)
+  is on the attention list, and the Asset Management lane counts active
+  prospects.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3649,7 +3657,7 @@ each phase and the decisions behind it are in
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
-| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | 🔨 Part 1 built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, Excel (§7.44); uploads and PDF next |
+| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |

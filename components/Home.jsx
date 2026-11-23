@@ -11,6 +11,7 @@ const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8,
 const KIND = {
   rent: ["Rent", "bg-red-50 text-red-700"],
   lease: ["Lease", "bg-amber-50 text-amber-800"],
+  leasing: ["Leasing", "bg-indigo-50 text-indigo-800"],
   loan: ["Loan", "bg-violet-50 text-violet-800"],
   cap: ["Rate cap", "bg-sky-50 text-sky-800"],
   appraisal: ["Appraisal", "bg-gray-100 text-gray-700"],
@@ -46,7 +47,7 @@ export default function Home({ deals = [], funds = {}, valuations = {}, pipeline
         <section className="rounded-xl border border-gray-200 bg-white p-4 lg:col-span-2" data-testid="attention">
           <h3 className="mb-2 text-sm font-semibold">Today · needs attention {attention.length > 0 && <span className="ml-1 rounded-full bg-red-50 px-1.5 text-[11px] text-red-700">{attention.length}</span>}</h3>
           {attention.length === 0 ? (
-            <p className="text-xs text-gray-500">Nothing due: no leases expiring in 90 days, loans maturing in 18 months, rate caps expiring in 12 months, missing marks, rent 60+ days late or budgets in the red.</p>
+            <p className="text-xs text-gray-500">Nothing due: no leases expiring in 90 days, leasing next steps due, loans maturing in 18 months, rate caps expiring in 12 months, missing marks, rent 60+ days late or budgets in the red.</p>
           ) : (
             <ul className="divide-y divide-gray-100 text-xs">
               {shown.map((a, i) => (
