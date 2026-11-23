@@ -99,5 +99,24 @@ scs = FI.saveScenarioVersion(scs, { id: scs[0].id, note: "price cut", base: "all
 ok(scs[0].versions.length === 2 && scs[0].versions[1].v === 2 && JSON.stringify(scs[0].versions[0]) === v1copy && scs[0].name === "Q1 2027: test", "a change saves v2; v1 stays frozen");
 im.change.netLpIrr = 999; ok(scs[0].versions[0].result.change.netLpIrr !== 999, "saved results are copies (they don't shift later)");
 
+// ── Pipeline report (lib/pipelineReport.js) ──
+const PR = j(R + "/lib/pipelineReport.js");
+const plDeals = r2.deals.map((d) => ({ ...d, targetFund: d.stage === "passed" ? "" : "Model Fund I", expectedClose: d.expectedClose || "2027-06-30" }));
+const scr = { id: "scr-1", inputs: { ...cand.inputs, propertyName: "Riverbend Flex", purchasePrice: 7315000 } };
+const plWith = plDeals.map((d) => (d.name === "Riverbend Flex" ? { ...d, dealId: "scr-1" } : d));
+const rep = PR.pipelineReport({ deals: plWith }, [...fdeals, scr], terms, { todayISO: TODAY });
+ok(rep.totals.count === 5 && rep.top.length === 5 && rep.rest.length === 0, "5 active deals for the fund (passed left out)");
+ok(rep.top[0].price >= rep.top[1].price, "top 10 ranked by price by default");
+const rv = rep.top.find((x) => x.name === "Riverbend Flex");
+ok(rv.screened && isFinite(rv.irr) && rv.impact != null && /Screened at a/.test(rv.summary), "a screened deal: deal IRR, fund impact and a summary");
+const un = rep.top.find((x) => !x.screened);
+ok(close(un.equity, un.price * 0.35, 1) && /Not screened yet/.test(un.summary), "an unscreened deal: equity estimated at 65% leverage");
+ok(close(rep.byStage.reduce((t, x) => t + x.price, 0), rep.totals.price, 1) && rep.closings.length >= 1 && rep.closings.every((q) => q.enough !== undefined), "by stage adds up; expected closings vs. dry powder");
+ok(rep.combined && rep.combined.with.assets > rep.combined.without.assets, "combined effect of the screened pipeline on the fund");
+const byClose = PR.pipelineReport({ deals: plWith }, [...fdeals, scr], terms, { todayISO: TODAY, rankBy: "close" });
+ok(byClose.top.every((x, i) => i === 0 || (byClose.top[i - 1].expectedClose || "9999") <= (x.expectedClose || "9999")), "rank by expected close");
+const xr = PR.pipelineReportXlsx(rep);
+ok(xr[0][0].includes("pipeline report") && xr.some((r) => String(r[0]).startsWith("Top 10 by")), "Excel rows");
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

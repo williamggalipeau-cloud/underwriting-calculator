@@ -5,6 +5,8 @@ import { useMemo, useRef, useState } from "react";
 import { gridFromFile } from "@/lib/comps";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
+import { DEFAULT_FUND_TERMS, safeFileName } from "@/lib/fundTerms";
+import { RANKS, pipelineReport, pipelineReportPdf, pipelineReportXlsx } from "@/lib/pipelineReport";
 import {
   ACTIVE_STAGES,
   PIPELINE_FIELDS,
@@ -33,7 +35,48 @@ const inp = "w-full rounded border border-gray-200 px-1.5 py-0.5 text-xs disable
 const btn = "rounded-lg border px-3 py-1.5 text-xs font-medium";
 const STAGE_CLS = { watching: "bg-gray-100 text-gray-700", screening: "bg-sky-50 text-sky-800", loi: "bg-indigo-50 text-indigo-800", psa: "bg-amber-50 text-amber-800", closed: "bg-emerald-50 text-emerald-800", passed: "bg-red-50 text-red-700" };
 
-export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, email, onScreen, onConvert, onSendToFundImpact }) {
+function PipelineReport({ pipeline, deals, funds, curve, canEdit, email, onChange }) {
+  const names = Object.keys(funds);
+  const [fund, setFund] = useState(names[0] ?? "");
+  const [rankBy, setRankBy] = useState("price");
+  const [rep, setRep] = useState(null);
+  const today = new Date().toISOString().slice(0, 10);
+  if (!names.length) return null;
+  const build = () => {
+    const terms = { ...DEFAULT_FUND_TERMS, ...(funds[fund] ?? {}), name: fund };
+    const r = pipelineReport(pipeline, deals, terms, { todayISO: today, curve, rankBy });
+    setRep(r);
+    return r;
+  };
+  const saved = (pipeline?.reports ?? []).filter((x) => x.fund === fund);
+  return (
+    <div className="space-y-2 rounded-xl border border-gray-200 p-3 text-xs" data-testid="pipeline-report">
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="text-sm font-semibold text-gray-800">Pipeline report</h3>
+        <select aria-label="Report fund" value={fund} onChange={(e) => { setFund(e.target.value); setRep(null); }} className="rounded border border-gray-300 px-1.5 py-1">{names.map((n) => <option key={n}>{n}</option>)}</select>
+        <select aria-label="Rank top 10 by" value={rankBy} onChange={(e) => { setRankBy(e.target.value); setRep(null); }} className="rounded border border-gray-300 px-1.5 py-1">{RANKS.map(([k, l]) => <option key={k} value={k}>Top 10 by {l.toLowerCase()}</option>)}</select>
+        <button type="button" onClick={build} className={`${btn} border-gray-300 bg-white text-gray-700`}>Preview</button>
+        <button type="button" onClick={async () => { const r = rep ?? build(); downloadBlob(await pipelineReportPdf(r), `${safeFileName(fund)}-pipeline-report-${today}.pdf`); }} className={`${btn} border-gray-300 bg-white text-gray-700`}>PDF</button>
+        <button type="button" onClick={() => { const r = rep ?? build(); downloadBlob(writeXlsx(pipelineReportXlsx(r), { sheetName: "Pipeline report", title: `Baywise · ${fund} pipeline report` }), `${safeFileName(fund)}-pipeline-report-${today}.xlsx`); }} className={`${btn} border-gray-300 bg-white text-gray-700`}>Excel</button>
+        {canEdit && <button type="button" onClick={() => { const r = rep ?? build(); onChange({ ...pipeline, reports: [...(pipeline?.reports ?? []), JSON.parse(JSON.stringify({ id: `pr-${Date.now().toString(36)}`, fund, at: new Date().toISOString(), by: email ?? "", rankBy, report: r }))] }); }} className={`${btn} border-blue-600 bg-blue-600 text-white`}>Save dated version</button>}
+      </div>
+      {rep && (
+        <div className="space-y-1" data-testid="pipeline-report-preview">
+          <p>{rep.totals.count} active deals for {fund}: {fmtM(rep.totals.price)} ({fmtM(rep.totals.weightedPrice)} probability-weighted), {fmtM(rep.totals.equity)} of equity needed against {fmtM(rep.dryPowder)} of dry powder.{rep.closings.some((q) => q.enough === false) ? <span className="font-semibold text-red-700"> Not enough dry powder for every expected closing.</span> : ""}</p>
+          {rep.combined && <p>Whole pipeline (screened deals): fund net LP IRR {rep.combined.without.returns.netLpIrr?.toFixed(1)}% → {rep.combined.with.returns.netLpIrr?.toFixed(1)}%{rep.combined.newBreaches.length ? <span className="font-semibold text-red-700"> · would breach {rep.combined.newBreaches.map((l) => l.label).join(", ")}</span> : ""}.</p>}
+          <ol className="list-decimal pl-5">{rep.top.map((r) => <li key={r.id}>{r.summary}</li>)}</ol>
+        </div>
+      )}
+      {saved.length > 0 && (
+        <ul className="flex flex-wrap gap-2" data-testid="pipeline-report-versions">
+          {saved.map((x) => <li key={x.id}><button type="button" onClick={async () => downloadBlob(await pipelineReportPdf(x.report), `${safeFileName(fund)}-pipeline-report-${x.at.slice(0, 10)}.pdf`)} className="rounded bg-gray-100 px-2 py-0.5 hover:bg-gray-200">{usDate(x.at.slice(0, 10))}{x.by ? ` · ${x.by}` : ""} · PDF</button></li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, email, onScreen, onConvert, onSendToFundImpact, deals: allDeals = [], funds = {}, curve }) {
   const deals = pipeline?.deals ?? [];
   const [f, setF] = useState({ stage: "active", fund: "", market: "", owner: "" });
   const [msg, setMsg] = useState(null);
@@ -175,6 +218,7 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
           </table>
         </div>
       )}
+      <PipelineReport pipeline={pipeline} deals={allDeals} funds={funds} curve={curve} canEdit={canEdit} email={email} onChange={onChange} />
       {deals.some((d) => d.notes) && <p className="text-[11px] text-gray-400">Notes are kept with each deal and exported to Excel.</p>}
     </section>
   );

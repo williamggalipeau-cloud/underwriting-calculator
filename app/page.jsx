@@ -1948,6 +1948,9 @@ export default function Home() {
                 onScreen={handleScreenPipeline}
                 onConvert={handleConvertPipeline}
                 onSendToFundImpact={handleSendToFundImpact}
+                deals={deals}
+                funds={funds}
+                curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
             )}
             {activeTab === "impact" && (

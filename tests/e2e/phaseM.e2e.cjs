@@ -135,7 +135,19 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.screenshot({ path: S + "/phaseM_impact.png", fullPage: true });
   await p.getByRole("button", { name: /^Pipeline/ }).first().click();
   await p.waitForTimeout(800);
-  const [xl] = await Promise.all([p.waitForEvent("download"), pl.getByRole("button", { name: "Excel" }).click()]);
+  // Pipeline report
+  const prp = pl.getByTestId("pipeline-report");
+  await prp.getByRole("button", { name: "Preview" }).click();
+  await p.waitForTimeout(3000);
+  check(/active deals for Model Fund I/.test(await prp.getByTestId("pipeline-report-preview").innerText()) && (await prp.getByTestId("pipeline-report-preview").locator("li").count()) >= 2, "pipeline report preview: totals and top 10 summaries");
+  const [rpdf] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), prp.getByRole("button", { name: "PDF" }).click()]);
+  const rpPath = S + "/m_pipeline_report.pdf"; await rpdf.saveAs(rpPath);
+  const rpTxt = require("child_process").execFileSync("pdftotext", ["-layout", rpPath, "-"]).toString();
+  check(/Pipeline report/.test(rpTxt) && /Top 10 by Price/.test(rpTxt) && /Top 10: summaries/.test(rpTxt), "pipeline report PDF");
+  await prp.getByRole("button", { name: "Save dated version" }).click();
+  await p.waitForTimeout(800);
+  check((await prp.getByTestId("pipeline-report-versions").locator("li").count()) === 1, "dated version saved");
+  const [xl] = await Promise.all([p.waitForEvent("download"), pl.getByRole("button", { name: "Excel" }).first().click()]);
   check(/^pipeline-\d{4}-\d{2}-\d{2}\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
   const [tp] = await Promise.all([p.waitForEvent("download"), pl.getByRole("button", { name: "Template" }).click()]);
   check(tp.suggestedFilename() === "pipeline-template.xlsx", "template download");
