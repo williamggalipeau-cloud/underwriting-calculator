@@ -29,6 +29,8 @@ import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
 import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
+import { applyExecutedCap } from "@/lib/dealDocApply";
+import LoanAgreementPanel from "@/components/LoanAgreement";
 import CloudPanel from "@/components/CloudPanel";
 import {
   REQUIRE_SIGN_IN,
@@ -496,7 +498,9 @@ export default function Home() {
         const quick = { ...(d.quick ?? QUICK_DEFAULTS), ...patch };
         if (d.linked) return { ...d, quick, inputs: toMainInputs(quick, d.inputs) };
         const loan = underwrite(d.inputs).debt.loanAmount;
-        return { ...d, quick, inputs: { ...d.inputs, ...capEngineFields(capSettingsFor(quick, d.inputs), loan) } };
+        // Executed caps (applied confirmations) keep their actual terms.
+        const modeled = { ...d.inputs, ...capEngineFields(capSettingsFor(quick, d.inputs), loan) };
+        return { ...d, quick, inputs: (d.inputs.executedCaps ?? []).reduce(applyExecutedCap, modeled) };
       })
     );
   }
@@ -1604,6 +1608,17 @@ export default function Home() {
                 inputs={inputs}
                 cap={capSettingsFor(activeDeal.quick, inputs)}
                 onCapChange={setCap}
+              />
+            )}
+            {activeTab === "debt" && (
+              <LoanAgreementPanel
+                deal={activeDeal}
+                results={results}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                canEdit={!!(session && dbLink?.id && dbLink.role !== "viewer")}
+                email={session?.user?.email ?? null}
+                fundName={resolveFund(inputs.fundName)}
+                onOpenDocuments={() => setActiveTab("documents")}
               />
             )}
 {activeTab === "returns" && (

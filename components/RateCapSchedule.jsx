@@ -120,6 +120,8 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
   const total = rows.reduce((s, r) => s + (r.cost || 0), 0);
   // Who wrote each cap, by the hold year it was bought in ("1" = initial cap).
   const providers = cap.capProviders ?? {};
+  // Caps with an applied confirmation (Documents tab): executed terms.
+  const executed = new Map((inputs.executedCaps ?? []).map((c) => [c.holdYear, c]));
   const setProvider = (year, name) => {
     const next = { ...providers };
     if (name) next[year] = name;
@@ -173,7 +175,12 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
                 <td className="py-1.5 pr-2 text-right">{pct(r.allInStrike)}</td>
                 <td className="py-1.5 pr-2 text-right font-medium text-gray-800">{r.bought && hasCap ? usd(r.cost) : ""}</td>
                 <td className="py-1.5 pl-2">
-                  {r.bought && hasCap ? (
+                  {executed.has(r.year) ? (
+                    <span data-testid="executed-cap-row">
+                      <span className="mr-1 rounded bg-violet-100 px-1 text-[10px] font-medium uppercase text-violet-800">executed</span>
+                      {executed.get(r.year).provider}
+                    </span>
+                  ) : r.bought && hasCap ? (
                     <TextCell value={providers[r.year]} onCommit={(v) => setProvider(r.year, v)} placeholder="e.g. bank name" readOnly={readOnly} />
                   ) : r.year > 1 && hasCap ? (
                     <span className="text-gray-400">{providers[[...rows].reverse().find((x) => x.bought && x.year < r.year)?.year] ?? ""}</span>

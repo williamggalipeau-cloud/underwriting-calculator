@@ -1,0 +1,357 @@
+{
+ "doc_type": "loan",
+ "title": "Airport Flex Park loan agreement",
+ "summary": "$4,980,000 floating-rate loan from Fictional Bank at Term SOFR + 2.00% (0.50% floor), maturing January 30, 2029 with two 1-year extensions; rate cap, DSCR 1.30x, debt yield 8.50% and 70% LTV covenants.",
+ "fields": [
+  {
+   "key": "lender",
+   "value": "Fictional Bank, N.A.",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This Loan Agreement is made as of January 30, 2026 between Fictional Bank, N.A. (Lender) and the Borrower, the owner of Airport Flex Park.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "loan_date",
+   "value": "January 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This Loan Agreement is made as of January 30, 2026 between Fictional Bank, N.A. (Lender) and the Borrower, the owner of Airport Flex Park.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "loan_amount",
+   "value": "$4,980,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Loan is in the principal amount of $4,980,000.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "index",
+   "value": "Term SOFR",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Interest accrues at Term SOFR plus 2.00% per year, with Term SOFR not less than 0.50%.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "spread_pct",
+   "value": "2.00%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Interest accrues at Term SOFR plus 2.00% per year, with Term SOFR not less than 0.50%.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "floor_pct",
+   "value": "0.50%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Interest accrues at Term SOFR plus 2.00% per year, with Term SOFR not less than 0.50%.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "maturity_date",
+   "value": "January 30, 2029",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Initial Maturity Date is January 30, 2029, three years after closing.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "initial_term_years",
+   "value": "3 years",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Initial Maturity Date is January 30, 2029, three years after closing.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "extension_count",
+   "value": "2",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower may extend the Maturity Date by two successive extensions of 1 year each, each on payment of an extension fee of $62,000.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "extension_term_years",
+   "value": "1 year",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower may extend the Maturity Date by two successive extensions of 1 year each, each on payment of an extension fee of $62,000.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "extension_fee",
+   "value": "$62,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower may extend the Maturity Date by two successive extensions of 1 year each, each on payment of an extension fee of $62,000.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "extension_conditions",
+   "value": "Notice at least 60 days before maturity, DSCR of at least 1.30x and a replacement rate cap",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "io_years",
+   "value": "4 years",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Payments are interest only for 4 years, then principal is amortized on a 25-year schedule.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "amortization_years",
+   "value": "25 years",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Payments are interest only for 4 years, then principal is amortized on a 25-year schedule.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "cap_strike_pct",
+   "value": "4.00%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower shall maintain an interest rate cap with a strike not greater than 4.00% on Term SOFR, a notional amount not less than the outstanding principal, and a term of at least 1 year.",
+     "page": 1
+    }
+   ],
+   "clause": "3"
+  },
+  {
+   "key": "cap_term",
+   "value": "At least 1 year",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower shall maintain an interest rate cap with a strike not greater than 4.00% on Term SOFR, a notional amount not less than the outstanding principal, and a term of at least 1 year.",
+     "page": 1
+    }
+   ],
+   "clause": "3"
+  },
+  {
+   "key": "cap_min_rating",
+   "value": "A",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The cap provider must be rated A or better by S&P, and Borrower shall deliver a replacement cap at least 30 days before the existing cap expires.",
+     "page": 1
+    }
+   ],
+   "clause": "3"
+  },
+  {
+   "key": "cap_replacement_days",
+   "value": "30 days",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The cap provider must be rated A or better by S&P, and Borrower shall deliver a replacement cap at least 30 days before the existing cap expires.",
+     "page": 1
+    }
+   ],
+   "clause": "3"
+  },
+  {
+   "key": "dscr_covenant",
+   "value": "1.30x",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
+     "page": 1
+    }
+   ],
+   "clause": "4"
+  },
+  {
+   "key": "debt_yield_covenant",
+   "value": "8.50%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower shall maintain a debt yield of not less than 8.50%.",
+     "page": 1
+    }
+   ],
+   "clause": "4"
+  },
+  {
+   "key": "ltv_covenant",
+   "value": "70%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The loan-to-value ratio shall not exceed 70%.",
+     "page": 1
+    }
+   ],
+   "clause": "4"
+  },
+  {
+   "key": "covenant_testing",
+   "value": "Quarterly on the trailing three months annualized",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
+     "page": 1
+    }
+   ],
+   "clause": "4"
+  },
+  {
+   "key": "cure",
+   "value": "Within 10 business days by a principal paydown or a cash collateral deposit",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower may cure a covenant failure within 10 business days by a principal paydown or a cash collateral deposit.",
+     "page": 1
+    }
+   ],
+   "clause": "4"
+  },
+  {
+   "key": "prepayment",
+   "value": "In whole after 12 months; 1% exit fee before then",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Loan may be prepaid in whole after 12 months; before then a 1% exit fee applies.",
+     "page": 1
+    }
+   ],
+   "clause": "5"
+  },
+  {
+   "key": "reserves",
+   "value": "Monthly tax and insurance escrows; $50,000 TI and leasing reserve at closing",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower shall fund monthly tax and insurance escrows and a $50,000 tenant improvement and leasing reserve at closing.",
+     "page": 1
+    }
+   ],
+   "clause": "5"
+  },
+  {
+   "key": "reporting",
+   "value": "Quarterly within 45 days; annual within 120 days",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Borrower shall deliver quarterly operating statements within 45 days after each quarter and annual statements within 120 days after each year.",
+     "page": 1
+    }
+   ],
+   "clause": "5"
+  }
+ ],
+ "critical_dates": [
+  {
+   "date": "2029-01-30",
+   "kind": "deadline",
+   "label": "Initial maturity",
+   "action": "Repay or extend",
+   "clause": "2",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Initial Maturity Date is January 30, 2029, three years after closing.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2028-12-01",
+   "kind": "deadline",
+   "label": "First extension notice deadline",
+   "action": "Give written notice to extend",
+   "clause": "2",
+   "status": "calculated",
+   "calculation": "January 30, 2029 − 60 days = December 1, 2028",
+   "evidence": [
+    {
+     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-loan.pdf"
+  ]
+ }
+}

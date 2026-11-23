@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DOC_TYPES, TYPE, BLOCKS, FIELDS, checkLocally, dealDocPrompt, parseDealAbstract } from "@/lib/dealDocTypes";
-import { applyDoc, applyRentRoll, compareDoc, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
+import { applyDoc, applyRentRoll, capChecks, capFromDoc, compareDoc, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
 import { createDealDoc, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
 import { listLeases, PROJECT_REF, fmtBytes, MAX_FILE_MB } from "@/lib/leaseDocs";
 import { newUnit } from "@/components/UnitRoll";
@@ -152,12 +152,12 @@ function ApplyPanel({ doc, inputs, terms, units, leaseAbs, onApplyDeal, onApplyF
     );
   }
 
-  const gaps = type === "insurance_cert" ? insuranceGaps(doc.abstract, { leaseAbs }) : null;
+  const gaps = type === "insurance_cert" ? insuranceGaps(doc.abstract, { leaseAbs }) : type === "rate_cap" ? capChecks(capFromDoc(doc, inputs ?? {}), inputs ?? {}) : null;
   return (
     <div className="mt-2 space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/40 p-3 text-xs" data-testid="doc-apply">
       {gaps && (
         <div className="space-y-1">
-          <p className="font-medium">{leaseAbs ? "Checked against the tenant's lease requirements and policy dates" : "Policy dates checked (owner policies; loan requirements come with phase F)"}</p>
+          <p className="font-medium">{type === "rate_cap" ? "Checked against the loan agreement's cap requirement and the loan" : leaseAbs ? "Checked against the tenant's lease requirements and policy dates" : "Policy dates checked (owner policies)"}</p>
           {gaps.length ? gaps.map((g, i) => <p key={i} className={`rounded border px-2 py-1 ${g.severity === "high" ? "border-red-200 bg-red-50 text-red-800" : g.severity === "medium" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-gray-200 bg-white"}`} data-testid="insurance-gap">⚠ {g.text}</p>) : <p className="text-emerald-700" data-testid="insurance-gap">✓ No gaps found</p>}
         </div>
       )}

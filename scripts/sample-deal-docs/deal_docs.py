@@ -296,4 +296,75 @@ build("model-fund-i-ppm", "Private Placement Memorandum – Model Fund I, L.P. (
     "limits": [L("state_pct", "Single state, % of gross asset value", 35, "%", pp["conc"], "Strategy and limits")],
     "critical_dates": [],
 })
+# ── Loan agreements and rate cap confirmations (phase F) ────────────────────
+def loan_doc(name, prop, amount, spread, ext_fee, date_long, date_iso, maturity_long, maturity_iso, notice_iso, notice_calc):
+    q = {
+        "parties": f"This Loan Agreement is made as of {date_long} between Fictional Bank, N.A. (Lender) and the Borrower, the owner of {prop}.",
+        "amt": f"The Loan is in the principal amount of ${amount:,}.",
+        "rate": f"Interest accrues at Term SOFR plus {spread:.2f}% per year, with Term SOFR not less than 0.50%.",
+        "mat": f"The Initial Maturity Date is {maturity_long}, three years after closing.",
+        "ext": f"Borrower may extend the Maturity Date by two successive extensions of 1 year each, each on payment of an extension fee of ${ext_fee:,}.",
+        "extc": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
+        "io": "Payments are interest only for 4 years, then principal is amortized on a 25-year schedule.",
+        "cap": "Borrower shall maintain an interest rate cap with a strike not greater than 4.00% on Term SOFR, a notional amount not less than the outstanding principal, and a term of at least 1 year.",
+        "capr": "The cap provider must be rated A or better by S&P, and Borrower shall deliver a replacement cap at least 30 days before the existing cap expires.",
+        "dscr": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
+        "dy": "Borrower shall maintain a debt yield of not less than 8.50%.",
+        "ltv": "The loan-to-value ratio shall not exceed 70%.",
+        "cure": "Borrower may cure a covenant failure within 10 business days by a principal paydown or a cash collateral deposit.",
+        "prep": "The Loan may be prepaid in whole after 12 months; before then a 1% exit fee applies.",
+        "res": "Borrower shall fund monthly tax and insurance escrows and a $50,000 tenant improvement and leasing reserve at closing.",
+        "rep": "Borrower shall deliver quarterly operating statements within 45 days after each quarter and annual statements within 120 days after each year.",
+    }
+    build(name, f"Loan Agreement – {prop} (excerpt)", [
+        ("1. The loan", [q["parties"], q["amt"], q["rate"]]), ("2. Term", [q["mat"], q["ext"], q["extc"], q["io"]]), ("3. Rate cap", [q["cap"], q["capr"]]),
+        ("4. Financial covenants", [q["dscr"], q["dy"], q["ltv"], q["cure"]]), ("5. Other", [q["prep"], q["res"], q["rep"]]),
+    ], {
+        "doc_type": "loan", "title": f"{prop} loan agreement", "summary": f"${amount:,} floating-rate loan from Fictional Bank at Term SOFR + {spread:.2f}% (0.50% floor), maturing {maturity_long} with two 1-year extensions; rate cap, DSCR 1.30x, debt yield 8.50% and 70% LTV covenants.",
+        "fields": [F("lender", "Fictional Bank, N.A.", q["parties"], "1"), F("loan_date", date_long, q["parties"], "1"), F("loan_amount", f"${amount:,}", q["amt"], "1"),
+                   F("index", "Term SOFR", q["rate"], "1"), F("spread_pct", f"{spread:.2f}%", q["rate"], "1"), F("floor_pct", "0.50%", q["rate"], "1"),
+                   F("maturity_date", maturity_long, q["mat"], "2"), F("initial_term_years", "3 years", q["mat"], "2"), F("extension_count", "2", q["ext"], "2"),
+                   F("extension_term_years", "1 year", q["ext"], "2"), F("extension_fee", f"${ext_fee:,}", q["ext"], "2"),
+                   F("extension_conditions", "Notice at least 60 days before maturity, DSCR of at least 1.30x and a replacement rate cap", q["extc"], "2"),
+                   F("io_years", "4 years", q["io"], "2"), F("amortization_years", "25 years", q["io"], "2"),
+                   F("cap_strike_pct", "4.00%", q["cap"], "3"), F("cap_term", "At least 1 year", q["cap"], "3"), F("cap_min_rating", "A", q["capr"], "3"),
+                   F("cap_replacement_days", "30 days", q["capr"], "3"), F("dscr_covenant", "1.30x", q["dscr"], "4"), F("debt_yield_covenant", "8.50%", q["dy"], "4"),
+                   F("ltv_covenant", "70%", q["ltv"], "4"), F("covenant_testing", "Quarterly on the trailing three months annualized", q["dscr"], "4"),
+                   F("cure", "Within 10 business days by a principal paydown or a cash collateral deposit", q["cure"], "4"),
+                   F("prepayment", "In whole after 12 months; 1% exit fee before then", q["prep"], "5"),
+                   F("reserves", "Monthly tax and insurance escrows; $50,000 TI and leasing reserve at closing", q["res"], "5"),
+                   F("reporting", "Quarterly within 45 days; annual within 120 days", q["rep"], "5")],
+        "critical_dates": [D(maturity_iso, "Initial maturity", q["mat"], "Repay or extend", "2"),
+                           {"date": notice_iso, "kind": "deadline", "label": "First extension notice deadline", "action": "Give written notice to extend", "clause": "2", "status": "calculated", "calculation": notice_calc, "evidence": [{"quote": q["extc"], "page": 1}]}],
+    })
+
+
+loan_doc("airport-flex-loan", "Airport Flex Park", 4980000, 2.00, 62000, "January 30, 2026", "2026-01-30", "January 30, 2029", "2029-01-30", "2028-12-01", "January 30, 2029 − 60 days = December 1, 2028")
+loan_doc("route9-loan", "Route 9 Small Bay", 9125000, 1.75, 114000, "March 16, 2026", "2026-03-16", "March 16, 2029", "2029-03-16", "2029-01-15", "March 16, 2029 − 60 days = January 15, 2029")
+
+
+def cap_doc(name, prop, cp, rating, trade_long, eff_long, term_long, notional, strike, premium, ref):
+    q = {
+        "cp": f"This Confirmation sets out the terms of the interest rate cap entered into between {cp} (Party A) and the owner of {prop} (Party B), reference {ref}.",
+        "rt": f"Party A is rated {rating} by S&P.",
+        "trade": f"Trade Date: {trade_long}.", "eff": f"Effective Date: {eff_long}.", "term": f"Termination Date: {term_long}.",
+        "notional": f"Notional Amount: ${notional:,}.", "index": "Floating Rate Option: USD Term SOFR, 1 month.",
+        "strike": f"Cap Rate: {strike:.2f}%.", "prem": f"Fixed Amount (premium): ${premium:,}, payable by Party B on the Effective Date.",
+        "dc": "Floating Rate Day Count Fraction: Actual/360.", "agent": f"Calculation Agent: {cp}.",
+        "assign": "Party B has collaterally assigned its rights under this Transaction to Fictional Bank, N.A., as Lender.",
+    }
+    build(name, f"Interest Rate Cap Confirmation – {prop}", [("General terms", [q["cp"], q["rt"], q["trade"], q["eff"], q["term"], q["notional"]]),
+                                                            ("Floating amounts", [q["index"], q["strike"], q["dc"]]), ("Premium and other", [q["prem"], q["agent"], q["assign"]])], {
+        "doc_type": "rate_cap", "title": f"{prop} cap {eff_long[-4:]}", "summary": f"Executed {strike:.2f}% Term SOFR cap from {cp} ({rating}) on ${notional:,}, {eff_long} to {term_long}, premium ${premium:,}.",
+        "fields": [F("counterparty", cp, q["cp"]), F("counterparty_rating", rating, q["rt"]), F("trade_date", trade_long, q["trade"]), F("effective_date", eff_long, q["eff"]),
+                   F("termination_date", term_long, q["term"]), F("notional", f"${notional:,}", q["notional"]), F("index", "1-month Term SOFR", q["index"]),
+                   F("strike_pct", f"{strike:.2f}%", q["strike"]), F("premium", f"${premium:,}", q["prem"]), {**F("payment_date", eff_long, q["prem"]), "evidence": [{"quote": q["prem"], "page": 1}, {"quote": q["eff"], "page": 1}]},
+                   F("day_count", "Actual/360", q["dc"]), F("calculation_agent", cp, q["agent"]), F("assigned_to", "Fictional Bank, N.A.", q["assign"])],
+        "critical_dates": [],
+    })
+
+
+cap_doc("airport-flex-cap-2026", "Airport Flex Park", "Fictional Capital Markets LLC", "A+", "January 26, 2026", "January 30, 2026", "January 30, 2027", 4980000, 3.91, 27858, "FCM-26-0131")
+cap_doc("route9-cap-2026", "Route 9 Small Bay", "Example Derivatives Corp", "BBB+", "March 12, 2026", "March 16, 2026", "March 16, 2027", 9000000, 3.91, 51045, "EDC-26-0316")
+print("phase F docs ok")
 print("ok", len(list((OUT / "abstracts").glob("*.json"))))
