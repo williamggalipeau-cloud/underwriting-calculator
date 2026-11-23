@@ -749,11 +749,12 @@ A new **Fund Summary** tab: one page of key facts about the selected fund.
 - **Capital** (user): raised (commitments), deployed (capital called and
   invested in assets) and available (dry powder); suggested: % called,
   dry powder after reserves, sub line drawn vs capacity.
-- Suggested, to confirm with the user: performance as of the last valued
-  quarter (NAV, distributions, DPI, TVPI, gross and net IRR); a portfolio
-  snapshot (assets owned / sold / pipeline, SF, occupancy, WALT,
-  leverage); actual vs the LPA's investment limits (phase E); the next 90
-  days of critical dates and open IC conditions; PDF and Excel export.
+- Not repeated here (user, 11/23): performance (Valuations, Portfolio
+  Return), the portfolio snapshot (Asset Summary) and upcoming dates
+  (Leases → Critical dates); the page links to those tabs instead.
+- Kept (not shown elsewhere yet): end of term and outside date with
+  extensions; % of commitments called; sub line drawn vs capacity.
+  Optional: a one-page PDF.
 
 ## Order and review
 

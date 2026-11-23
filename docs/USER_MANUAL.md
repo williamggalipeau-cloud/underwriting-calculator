@@ -2804,7 +2804,7 @@ each phase and the decisions behind it are in
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
 | L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
 | M. Fund impact modeling | Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
-| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (suggested additions to confirm: performance, portfolio snapshot, limits check, next 90 days, exports) | ⛓ After M (added 11/23) |
+| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
 
 **How phases are delivered.** Each phase starts as soon as the previous one
 is complete. Each comes with this manual updated and Node and Playwright
