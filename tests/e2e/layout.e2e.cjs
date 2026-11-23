@@ -38,9 +38,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const tab = (name) => p.getByRole("button", { name: new RegExp(`^${name.replace("/", "\\/")}`) }).first();
 
   // Name and title
-  check((await p.title()) === "Baywise · Industrial Fund & Asset Management", `browser tab title: ${await p.title()}`);
+  check((await p.title()) === "Baywise · Industrial Real Estate Management", `browser tab title: ${await p.title()}`);
   check((await p.locator("header h1").innerText()).trim() === "Baywise", "header: Baywise");
-  check((await p.locator("header").innerText()).includes("Industrial Fund & Asset Management"), "header: tagline");
+  check((await p.locator("header").innerText()).includes("Industrial Real Estate Management"), "header: tagline");
 
   // Tab groups, in order, with the renamed tabs
   const groups = await p.getByTestId("tab-group").allInnerTexts();
@@ -50,6 +50,20 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const pos = order.map((t) => nav.indexOf(t));
   check(pos.every((x) => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "tabs in the agreed order with the new names");
   check(!/Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
+
+  // Backup buttons (11/23): no Reset; Download backup; owner-only Restore
+  check((await p.getByRole("button", { name: /Reset workspace|Export workspace|Import workspace/ }).count()) === 0, "workspace buttons removed");
+  check((await p.getByRole("button", { name: "Download backup" }).count()) === 1 && (await p.getByRole("button", { name: "Restore from backup" }).count()) === 1, "Download backup, and Restore from backup for an owner");
+
+  // Sample data menu (11/23): one owner-only menu with a warning, not three loose buttons
+  check((await p.getByRole("button", { name: /^(Load test scenario|Load Model Fund I|Clear test data)$/ }).count()) === 0, "sample-data buttons not loose in the header");
+  const sm = p.getByTestId("sample-data-menu");
+  await sm.getByRole("button", { name: /Sample data/ }).click();
+  await p.waitForTimeout(300);
+  const items = await sm.getByRole("menuitem").allInnerTexts();
+  check(items.length === 3 && /Load Model Fund I/.test(items[0]) && /Load test scenario/.test(items[1]) && /Clear test data/.test(items[2]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
+  check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
+  await sm.getByRole("button", { name: /Sample data/ }).click();
 
   // Firm-wide strip
   const figs = p.getByTestId("firm-figure");

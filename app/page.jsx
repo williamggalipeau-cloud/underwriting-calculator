@@ -824,7 +824,7 @@ export default function Home() {
     const at = new Date().toISOString();
     const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog };
     downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `baywise-data-${at.slice(0, 10)}.json`);
-    setImportMsg({ ok: true, text: `Exported ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
+    setImportMsg({ ok: true, text: `Backup downloaded: ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
 
   async function handleImportWorkspace(file) {
@@ -840,9 +840,14 @@ export default function Home() {
       setImportMsg({ ok: false, text: "That file isn't a workspace export (no deals found)." });
       return;
     }
-    if (!window.confirm(`Replace the open workspace${dbLink?.name ? ` (${dbLink.name})` : ""} with the file (${saved.deals.length} deals)? It saves to the database as a new version; the current one stays in the version history.`)) return;
-    applyWorkspace(saved, `Imported workspace file ${file.name}`);
-    setImportMsg({ ok: true, text: `Imported ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")}.` });
+    if (session && dbLink?.role !== "owner") {
+      setImportMsg({ ok: false, text: "Only an owner can restore from a backup." });
+      return;
+    }
+    if (!window.confirm(`Restore from ${file.name}? This replaces ALL of the firm's data, for everyone, with the backup (${plural(saved.deals.length, "deal")}). Anything not in the backup is removed from the app. A backup of the current data downloads first.`)) return;
+    handleExportWorkspace(); // safety copy of what's there now
+    applyWorkspace(saved, `Restored from backup ${file.name}`);
+    setImportMsg({ ok: true, text: `Restored ${plural(saved.deals.length, "deal")}, ${plural(Object.keys(saved.funds ?? {}).length, "fund")} and ${plural(saved.comps?.comps?.length ?? 0, "comp")} from ${file.name}. The data from before is in the backup that just downloaded.` });
   }
 
   // Loads a saved workspace (database row or export) into the app.
@@ -1076,23 +1081,7 @@ export default function Home() {
 
   const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, valuations, auditLog });
 
-  function handleResetWorkspace() {
-    if (!requireEdit()) return;
-    if (!window.confirm(`Reset ${dbLink?.name ? `"${dbLink.name}"` : "the workspace"} to the starting deals? Your deals, funds and imported curve are replaced; the current version stays in the database's version history.`)) return;
-    const fresh = initialDeals();
-    noteAudit("Reset the workspace");
-    setSavedDeals([]);
-    setComps(DEFAULT_COMPS_STATE);
-    setValuations({});
-    setFunds(initialFunds());
-    setBaseCurve(DEFAULT_CURVE);
-    setAnchorToLive(true);
-    setActiveDealId(fresh[0].id);
-    setDeals(live?.avg30 ? fresh.map((d) => {
-      const quick = { ...d.quick, forwardCurve: anchorCurveToLive(DEFAULT_CURVE, live.avg30.rate).curve };
-      return { ...d, quick, inputs: toMainInputs(quick, d.inputs) };
-    }) : fresh);
-  }
+
 
   // ── Fund terms ──
   function handleFundTermsChange(name, patch) {
@@ -1309,6 +1298,7 @@ export default function Home() {
     setSavedDeals((prev) => prev.filter((d) => d.id !== id));
   }
 
+  const [sampleOpen, setSampleOpen] = useState(false);
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
 
   function handleLoadTest() {
@@ -1436,7 +1426,7 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-sm font-bold text-gray-900 leading-tight">Baywise</h1>
-              <p className="text-xs text-gray-400 leading-tight">Industrial Fund &amp; Asset Management</p>
+              <p className="text-xs text-gray-400 leading-tight">Industrial Real Estate Management</p>
             </div>
           </div>
 
@@ -1487,29 +1477,48 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Test scenario buttons */}
+      {/* Sample data menu (11/23): owners only, since it changes everyone's data. */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={handleLoadTest}
-          className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
-        >
-          Load test scenario
-        </button>
-        <button
-          type="button"
-          onClick={handleLoadSamplePortfolio}
-          className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-white rounded-lg px-3 py-1.5 transition-colors font-medium"
-        >
-          Load Model Fund I
-        </button>
-        <button
-          type="button"
-          onClick={handleClearTest}
-          className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Clear test data
-        </button>
+        {(!session || dbLink?.role === "owner") && (
+          <div className="relative" data-testid="sample-data-menu">
+            <button
+              type="button"
+              aria-expanded={sampleOpen}
+              aria-haspopup="menu"
+              onClick={() => setSampleOpen((o) => !o)}
+              title="Owners only: load or remove the fictional sample fund and test deals"
+              className="text-xs text-gray-500 hover:text-amber-700 border border-gray-200 hover:border-amber-300 bg-white rounded-lg px-3 py-1.5 transition-colors"
+            >
+              Sample data ▾
+            </button>
+            {sampleOpen && (
+              <div role="menu" className="absolute left-0 z-30 mt-1 w-80 rounded-lg border border-amber-200 bg-white p-2 shadow-lg">
+                <p className="mb-2 rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-900">
+                  For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
+                </p>
+                {[
+                  { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
+                  { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
+                  { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
+                ].map((a) => (
+                  <button
+                    key={a.label}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setSampleOpen(false);
+                      if (window.confirm(a.ask)) a.run();
+                    }}
+                    className="block w-full rounded px-2 py-1.5 text-left hover:bg-gray-50"
+                  >
+                    <span className={`block text-xs font-medium ${a.label.startsWith("Clear") ? "text-red-600" : "text-gray-800"}`}>{a.label}</span>
+                    <span className="block text-[11px] text-gray-500">{a.sub}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <span className="ml-auto text-[11px] text-gray-400">
           {!session ? "Not saved. Sign in to save to the database" : !dbLink ? "Opening the firm's data…" : null}
         </span>
@@ -1586,26 +1595,21 @@ export default function Home() {
         <button
           type="button"
           onClick={handleExportWorkspace}
-          title="Download your deals, funds, comps and curve as a file"
+          title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep"
           className="text-xs text-gray-600 hover:text-blue-700 border border-gray-200 hover:border-blue-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
         >
-          Export workspace
+          Download backup
         </button>
-        <button
-          type="button"
-          onClick={() => importRef.current?.click()}
-          title="Load a workspace file exported from another browser or computer"
-          className="text-xs text-gray-600 hover:text-blue-700 border border-gray-200 hover:border-blue-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Import workspace
-        </button>
-        <button
-          type="button"
-          onClick={handleResetWorkspace}
-          className="text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Reset workspace
-        </button>
+        {(!session || dbLink?.role === "owner") && (
+          <button
+            type="button"
+            onClick={() => importRef.current?.click()}
+            title="Owners only: replace all of the firm's data with a backup file (a backup of the current data downloads first)"
+            className="text-xs text-gray-400 hover:text-red-600 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
+          >
+            Restore from backup
+          </button>
+        )}
         {importMsg && (
           <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
             {importMsg.text}

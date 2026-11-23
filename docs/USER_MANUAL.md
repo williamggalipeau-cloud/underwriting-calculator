@@ -1,4 +1,4 @@
-# Baywise · Industrial Fund & Asset Management — User Manual
+# Baywise · Industrial Real Estate Management — User Manual
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
@@ -188,11 +188,16 @@ automatically.
   the signed-in email and the server's time, and no one can edit or delete
   those entries.
 
-**Backups and copies (optional, by hand):**
-- **Export workspace** downloads a `.json` copy of the firm's data you keep.
-- **Import workspace** loads a `.json` copy, replacing what's on screen;
-  every record it changes is saved (and logged) as usual.
-- **Reset workspace** puts the firm's data back to the starting deals.
+**Backups (optional, by hand; 11/23: the "workspace" buttons are gone):**
+- **Download backup** saves a `.json` copy of all the firm's data (deals,
+  funds, capital activity, valuations, comps, curve and change log) for you
+  to keep. You never need it to save: every change is saved automatically.
+- **Restore from backup** (owners only) replaces **all** of the firm's data,
+  for everyone, with a backup file. A backup of the current data downloads
+  first; anything not in the file is removed from the app; every record it
+  changes is saved and logged as usual. Only for recovering from a mistake.
+- There is no Reset button any more; **Sample data → Load Model Fund I**
+  still loads the sample deals.
 
 **What the browser still keeps:** only your sign-in, so you don't have to
 sign in on every visit (`sb-nydqmigxorahfkfpkjnq-auth-token`). It holds no
@@ -214,7 +219,7 @@ One-time setup (full detail, table layout and admin queries in §12):
 
 ## 2. Using the app, tab by tab
 
-**Header.** **Baywise**, *Industrial Fund & Asset Management*, then a
+**Header.** **Baywise**, *Industrial Real Estate Management*, then a
 firm-wide strip that is the same on every tab. It covers every fund in the
 workspace and owned assets only (no sold, pipeline, Deal Screener or
 unassigned deals). Hover over a figure for its definition:
@@ -335,9 +340,11 @@ field.
   every other property in the workspace.
 
 **Sample portfolio.** The app opens with "Model Fund I": nine
-illustrative light-industrial assets (§7.13). **Load Model Fund I**
-restores them and **Clear test data** removes them. **Load test scenario**
-adds three more saved deals to Model Fund I, all closed after the fund's
+illustrative light-industrial assets (§7.13). The **Sample data ▾** menu
+(left, under the header; owners only, 11/23) holds three actions, each with
+a warning and a confirm because they change the firm's data for everyone:
+**Load Model Fund I** restores them and **Clear test data** removes them.
+**Load test scenario** adds three more saved deals to Model Fund I, all closed after the fund's
 final close: Eastside Distribution Hub (5/29/26), Northgate Flex Center
 (8/31/26) and Riverside Commerce Park (10/30/26), for twelve assets.
 (The former opening deal "Light Industrial (30k SF)" and the test deal
@@ -1327,7 +1334,10 @@ the database, so it also goes with exports. Nothing is kept in the browser.
   - Rent roll: vacancy % + x, renewal probability − 2x, downtime + 0.15x
     months.
   - Direct NOI: year-1 NOI × (1 − x%).
-- **Rent / NOI growth −x pts.**
+- **Rent / NOI growth −x pts** (Lower Rent Increases, 0–15%): cuts market
+  rent growth (or NOI growth on direct-NOI deals); a cut larger than the base
+  growth means rents fall. Rent bumps written into existing leases are
+  unchanged.
 - **Rate +x bp:** added to the spread (floating) or the fixed rate.
 - **Exit cap +x pts.**
 - **Opex +x%:** scales each expense line and the management %.
@@ -2203,7 +2213,7 @@ stored in the database; the only other copies are exports you download:
 | Location | What it holds | When it's written |
 |---|---|---|
 | **Supabase database** (project `nydqmigxorahfkfpkjnq`) | `workspaces.data`: the current workspace JSON. `workspace_versions.data`: every earlier version. `audit_log`: the verified change log. Members and invites (§11.13). | About 20 seconds after the last change, on **Save now**, and on leaving the page |
-| **Export workspace** file | A copy of the workspace JSON | When you click Export |
+| **Download backup** file | A copy of all the firm's data (JSON) | When you click Download backup (and automatically before a restore) |
 | **Browser storage** | Only the sign-in session (`sb-nydqmigxorahfkfpkjnq-auth-token`). No workspace data. Data saved there by earlier versions of the app is moved to the database on sign-in and then deleted. | On sign-in; removed on sign-out |
 | **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once; contents copied into the workspace | — |
 | **Not stored anywhere** | Live NY Fed rates, calculated results (§11.12), snapshots of open deals | Recalculated on every load or change |
@@ -2990,9 +3000,9 @@ order by version desc;
 
 **Restoring an earlier version.** The usual way:
 1. Open the workspace in the app.
-2. Export it (a safety copy).
+2. Download a backup (a safety copy; the restore also makes one).
 3. In the SQL Editor, copy the old `data` from `workspace_versions`.
-4. Paste it into a `.json` file and **Import workspace**, then **Save now**.
+4. Paste it into a `.json` file and **Restore from backup** (owners only).
 
 Doing it this way records the restore in the audit log. Editing
 `workspaces.data` directly in the SQL Editor works too, but it isn't logged
@@ -3001,7 +3011,7 @@ and doesn't bump the version.
 ### 12.7 Backups, limits and costs
 
 - **Backups:** the free plan has no automatic backups you can restore
-  yourself. Paid plans keep daily backups. Use **Export workspace** now and
+  yourself. Paid plans keep daily backups. Use **Download backup** now and
   then as your own copy.
 - **Free plan pause:** free projects pause after about a week without
   activity. Open the dashboard and click **Restore** to wake one up.
@@ -3066,18 +3076,25 @@ each phase and the decisions behind it are in
 | I. Asset business plan and budget vs. plan | Business plan per asset (strategy, leasing, capex, financing, exit, milestones, KPIs, photos, map, floor plan by unit) with revisions and PDF export; budget locked at closing; plan vs. budget vs. actual by line | ✅ Part 1 live (PR #73): plan, revisions, budget, actuals, variance, PDF / Excel, fund card. Part 2 built 11/23: photos, Google map, floor plan, demising / combining, actual NOI in Valuation and Sell/Hold |
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
-| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns | ⛓ After J |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency) | ⛓ After K |
-| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; the Deal Screener tab is then retired | ⛓ After L |
-| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates) | ⛓ After M (added 11/23) |
+| K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ⛓ After J |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | ⛓ After K |
+| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ⛓ After L |
+| N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ⛓ After M (added 11/23) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ⛓ After N |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ⛓ After Q |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ⛓ After P |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
-| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager | ⛓ After S |
-| U. Market | Market Data tab: submarket statistics with sources | ⛓ After T |
+| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
+| U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
+| X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ⛓ Right after K, before L |
+| Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ⛓ After Z |
+| Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ⛓ After O |
+| Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ⛓ With Z |
+| Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
+| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
+| W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
 
 **How phases are delivered.**
 - **Scheduling:** phases I–O run in scheduled 5-hour windows (from 11/22, 8:40

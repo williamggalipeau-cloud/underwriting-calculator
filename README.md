@@ -1,6 +1,6 @@
 # Baywise
 
-*Industrial Fund & Asset Management* — an internal app for underwriting, asset management and fund reporting. (The repository keeps its original name, `underwriting-calculator`.)
+*Industrial Real Estate Management* — an internal app for underwriting, asset management and fund reporting. (The repository keeps its original name, `underwriting-calculator`.)
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 
