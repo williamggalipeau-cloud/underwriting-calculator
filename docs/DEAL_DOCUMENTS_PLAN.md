@@ -903,8 +903,9 @@ calculation): each fund is tagged **Fund**, **Separate Account** or **Joint
 Venture**. The tag is chosen in New fund and editable in the fund's terms
 (`funds[name].type`), and existing funds default to Fund. It shows as a
 small badge next to the fund's name in the fund pickers, Asset Summary, Fund
-Return, Valuation and report covers. Fund lists can be filtered by it, and
-the header strip's "across N funds" shows the split by type on hover.
+Return, Valuation and report covers. Fund lists can be filtered by it. The
+header strip shows consolidated figures only, with no split by type (user,
+11/23).
 
 **Renames:** Sensitivity → Return Sensitivity; Sell / Hold → Sell/Hold
 Analysis; Valuations → Valuation; Portfolio Return → Fund Return; Return
