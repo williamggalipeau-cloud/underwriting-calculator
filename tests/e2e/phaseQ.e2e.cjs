@@ -133,6 +133,10 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   check(body.includes("Route 9 (live update)"), "a remote change appears on screen (live update)");
   check(saves.slice(before).every((s) => !s.items.some((i) => i.key === "sample-deal-2")), "the remote change isn't saved back");
 
+  // Close the asset slide-over (phase O) before using the page behind it.
+  await p.getByRole("button", { name: "Done" }).click();
+  await p.waitForTimeout(300);
+
   // One-time import of the old app's later save (owner).
   const imp = p.getByTestId("import-old-app");
   check((await imp.count()) === 1, "the owner is offered: Import changes made in the old app");
