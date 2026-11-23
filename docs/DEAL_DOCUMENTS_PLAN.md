@@ -33,6 +33,7 @@ changes the model without the user clicking to apply it.
 | T | Property Management group: Property Taxes, Insurance, Property Condition, Service Contracts; linked to Yardi Construction Manager; TI spend by unit with mock TI actuals (added 11/23) | ⛓ After S |
 | U | Market group: Market Data tab, submarket statistics (added 11/23) | ⛓ After T |
 | V | Automated workflow: approvals and reminders (added 11/23) | ⏸ Later, to be scoped |
+| W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
@@ -628,12 +629,13 @@ against what the fund actually does, using phases I and J for each asset.
   Example: GP 10% of equity ($1.0M), deal distributes $20M, GP receives
   $2.6M → GP profit $1.6M, GP promote $0.6M.
 - **Projected fee revenue** section: the firm's fee income from the asset
-  over the hold, by year and in total: asset management fees (the AM fee
-  items), property management fee (the PM fee, % of revenue) and
-  construction management fee (the CM fee, % of price), with a total and
-  its present value. Promote and the fund-level management fee are shown
-  separately below it, never in the fee revenue total (user, 11/23).
-  Excel export.
+  over the hold, by year and in total: property management fee (the PM fee,
+  % of revenue) and construction management fee (the CM fee, % of price),
+  with a total and its present value. The asset management fee is the
+  fund's management fee (one fund-level fee, not per-asset fees; user,
+  11/23), so it is not repeated per asset here; it is on Fund Return and
+  GP Economics. Promote is shown separately below, never in the fee
+  revenue total (user, 11/23). Excel export.
 
 **Also in L (user, 11/23): the full Asset Business Plan PDF.** The
 business plan's PDF button prints the whole plan in one file: everything it
@@ -1161,6 +1163,27 @@ A **Market** header before Library, with a **Market Data** tab:
 - **Exports:** Excel and PDF market summaries.
 Sales Comps stays in Asset Management, and the live SOFR panel is on the
 Debt tab.
+
+## Phase W: GP Economics (added 11/23, after L)
+
+A **GP Economics** tab in Portfolio Management, right after Fund Return: what
+the firm makes, in one place. Projected, with actuals where the app has them.
+- **Fee revenue by year:** the **asset management fee**, which is the fund's
+  management fee (one fund-level fee, e.g. 1.5%; there are no separate
+  per-asset AM fees; user, 11/23), plus property management and construction
+  management fees from each asset. Total and present value.
+- **Promote**, by fund and by asset, projected and realized (sold assets);
+  kept separate from fee revenue, never in its total (user, 11/23). Uses
+  phase L's definitions: GP promote = GP distributions − GP share of equity
+  × total distributions.
+- **GP co-invest:** equity in, GP profit, GP ROE, GP IRR and multiple.
+- **Totals:** total GP income by year and life of fund (fees, promote,
+  co-invest profit shown side by side, with each as a share of the total).
+- **Views:** firm-wide across all funds, then by fund and by asset, with the
+  fund-type filter.
+- **Report:** internal PDF and Excel.
+Builds on phase L's Asset Return additions (GP ROE, GP profit / promote,
+projected fee revenue), which roll up here.
 
 ## Phase V: automated workflow (added 11/23; later, to be scoped)
 
