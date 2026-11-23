@@ -1,0 +1,12 @@
+Aged Receivables Report as of 9/30/2026
+"SAMPLE – FICTIONAL – FOR TESTING ONLY (generic layout, not a Yardi template)"
+
+Property,Property Name,Tenant Code,Tenant,Unit,Charge Code,Current,0-30,31-60,61-90,91-180,Over 180,Prepayments,Total
+mf1-01,Airport Flex Park,t0001003,Desert Sky Fitness Studio,003,rent,0,3145,0,0,0,0,0,3145
+mf1-02,Route 9 Small Bay,t0002005,Sierra Coffee Roasters,005,rent,0,3310.08,3310.08,0,0,0,0,6620.16
+mf1-03,Harbor Light Industrial,t0003002,Summit Equipment Rental,002,rent,0,3303.75,3303.75,3303.75,0,0,0,9911.25
+mf1-04,Ridgeway Trade Center,t0004004,Desert Sky Tool & Die,004,rent,0,0,0,0,8364.99,5576.66,0,13941.65
+mf1-05,Canal Street Workshops,t0005001,Lone Pine Builders,001,rent,0,1503.34,0,0,0,0,0,1503.34
+mf1-06,Mill Creek Business Park,t0006003,Summit Signs & Graphics,003,rent,0,0,0,0,0,0,-3230.63,-3230.63
+mf1-07,Southpoint Flex,t0007002,Cedar Ridge Plumbing Supply,002,cam,0,718.38,718.38,0,0,0,0,1436.76
+mf1-09,Lakeshore Service Center,t0009001,Blue Mesa Collision Center,001,rent,2869.17,0,0,0,0,0,0,2869.17

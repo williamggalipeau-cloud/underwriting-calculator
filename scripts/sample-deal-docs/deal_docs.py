@@ -391,4 +391,59 @@ def appraisal_doc(name, prop, firm, eff_long, rep_long, value, cap, noi, vi, vs,
 
 appraisal_doc("airport-flex-appraisal-2026q3", "Airport Flex Park", "Fictional Valuation Advisors, MAI", "September 30, 2026", "October 20, 2026", 7650000, 6.25, 478000, 7650000, 7700000, 6900000)
 appraisal_doc("route9-appraisal-2026q2", "Route 9 Small Bay", "Example Appraisal Group, MAI", "June 30, 2026", "July 22, 2026", 12800000, 6.00, 768000, 12800000, 12900000, 11800000)
+
+# ── Estoppel, CAM reconciliation and billing (phase H) ──────────────────────
+e = {
+    "who": "The undersigned, Desert Aero Parts LLC (Tenant), certifies to Model Fund I and its lender as of November 16, 2026 as follows.",
+    "prem": "Tenant leases Building B, Suite 104 at Airport Flex Park containing 2,000 rentable square feet.",
+    "lease": "The Lease is dated January 1, 2025 and has not been amended; there are no amendments.",
+    "com": "The term commenced on March 1, 2025.", "exp": "The term expires on February 28, 2028.",
+    "rent": "Current monthly base rent is $2,583.33.", "paid": "Rent has been paid through November 30, 2026.",
+    "dep": "Tenant has deposited a security deposit of $2,500.00 with Landlord.",
+    "ren": "Tenant has one (1) option to extend the term for three (3) years.",
+    "tdef": "Tenant is not in default under the Lease. There are no tenant defaults.",
+    "ldef": "Tenant claims a credit of $1,200 against rent for HVAC repairs Tenant paid in August 2026 that Landlord was required to make.",
+    "pre": "No rent has been paid more than one month in advance; prepaid rent is $0.",
+}
+build("airport-flex-estoppel-desert-aero", "Tenant Estoppel Certificate – Desert Aero Parts LLC", [
+    ("Certification", [e["who"], e["prem"], e["lease"], e["com"], e["exp"]]), ("Rent and deposit", [e["rent"], e["paid"], e["dep"], e["pre"]]),
+    ("Options", [e["ren"]]), ("Defaults and claims", [e["tdef"], e["ldef"]])], {
+    "doc_type": "estoppel", "title": "Desert Aero Parts estoppel", "summary": "Estoppel dated November 16, 2026: expiration stated as February 28, 2028 (the lease says February 29) and a $1,200 HVAC credit claimed against Landlord.",
+    "fields": [F("tenant", "Desert Aero Parts LLC", e["who"]), F("estoppel_date", "November 16, 2026", e["who"]), F("premises", "Building B, Suite 104", e["prem"]),
+               F("lease_date", "January 1, 2025", e["lease"]), F("amendments", "None", e["lease"]), F("commencement_date", "March 1, 2025", e["com"]),
+               F("expiration_date", "February 28, 2028", e["exp"]), F("monthly_rent", "$2,583.33", e["rent"]), F("rent_paid_through", "November 30, 2026", e["paid"]),
+               F("security_deposit", "$2,500.00", e["dep"]), F("renewal_options", "One (1) option of three (3) years", e["ren"]), F("tenant_defaults", "None", e["tdef"]),
+               F("landlord_defaults", "Claims a $1,200 credit for HVAC repairs Landlord was required to make", e["ldef"]), F("prepaid_rent", "$0", e["pre"])],
+    "critical_dates": [],
+})
+
+c = {
+    "yr": "This statement reconciles Operating Expenses at Lakeshore Service Center for calendar year 2025.",
+    "opex": "Total Operating Expenses for 2025 were $180,000.", "ctl": "Controllable Operating Expenses were $96,000.",
+    "fee": "The management fee charged was $10,800 on gross revenues of $240,000.",
+    "t1": "North Texas Fleet Service LLC: share 6.00%, share of expenses $10,800, estimates paid $10,200, balance due $600.",
+    "t2": "Prairie Auto Glass Inc.: share 7.50%, share of expenses $13,500, estimates paid $13,500, balance due $0.",
+}
+build("lakeshore-cam-2025", "2025 Operating Expense Reconciliation – Lakeshore Service Center", [
+    ("Summary", [c["yr"], c["opex"], c["ctl"], c["fee"]]), ("Tenant shares", [c["t1"], c["t2"]])], {
+    "doc_type": "cam", "title": "Lakeshore 2025 CAM reconciliation", "summary": "2025 CAM reconciliation: $180,000 of expenses; North Texas Fleet billed at a 6.00% share (lease 5.50%) and a management fee of 4.5% of revenue (lease cap 4%).",
+    "fields": [F("year", "2025", c["yr"]), F("total_opex", "$180,000", c["opex"]), F("controllable_opex", "$96,000", c["ctl"]),
+               F("management_fee", "$10,800", c["fee"]), F("gross_revenue", "$240,000", c["fee"])],
+    "tenants": [{"tenant": "North Texas Fleet Service LLC", "share_pct": 6.0, "billed": 10800, "base_year_amount": 0, "estimates_paid": 10200, "balance_due": 600, "evidence": [{"quote": c["t1"], "page": 1}]},
+                {"tenant": "Prairie Auto Glass Inc.", "share_pct": 7.5, "billed": 13500, "base_year_amount": 0, "estimates_paid": 13500, "balance_due": 0, "evidence": [{"quote": c["t2"], "page": 1}]}],
+    "critical_dates": [],
+})
+
+b = {
+    "per": "Tenant invoices for November and December 2026 at Riverside Commerce Park.",
+    "nov": "Citrus Belt Logistics, LLC, November 2026: base rent $4,713.33, CAM estimate $1,250.00, total $5,963.33.",
+    "dec": "Citrus Belt Logistics, LLC, December 2026: base rent $4,713.33, CAM estimate $1,250.00, total $5,963.33.",
+}
+build("riverside-billing-2026-12", "Tenant Billing – Riverside Commerce Park", [("Period", [b["per"]]), ("Charges", [b["nov"], b["dec"]])], {
+    "doc_type": "billing", "title": "Riverside billing Nov–Dec 2026", "summary": "November and December 2026 invoices for Citrus Belt Logistics; December still bills the Lease Year 3 rent.",
+    "fields": [F("period", "November and December 2026", b["per"])],
+    "charges": [{"tenant": "Citrus Belt Logistics, LLC", "month": "2026-11", "base_rent": 4713.33, "cam_estimate": 1250, "total": 5963.33, "evidence": [{"quote": b["nov"], "page": 1}]},
+                {"tenant": "Citrus Belt Logistics, LLC", "month": "2026-12", "base_rent": 4713.33, "cam_estimate": 1250, "total": 5963.33, "evidence": [{"quote": b["dec"], "page": 1}]}],
+    "critical_dates": [],
+})
 print("ok", len(list((OUT / "abstracts").glob("*.json"))))

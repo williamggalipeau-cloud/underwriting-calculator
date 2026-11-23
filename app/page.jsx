@@ -32,6 +32,8 @@ import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/a
 import { applyExecutedCap } from "@/lib/dealDocApply";
 import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
 import LoanAgreementPanel from "@/components/LoanAgreement";
+import Delinquency, { DelinquencySummary } from "@/components/Delinquency";
+import { aggregate as aggregateDelinquency } from "@/lib/delinquency";
 import CloudPanel from "@/components/CloudPanel";
 import {
   REQUIRE_SIGN_IN,
@@ -1026,6 +1028,16 @@ export default function Home() {
     setValuations((prev) => ({ ...prev, [dealId]: { ...(prev[dealId] ?? {}), [quarter]: { ...((prev[dealId] ?? {})[quarter] ?? {}), ...mark } } }));
     return true;
   }
+  // Unit Roll → rent delinquency (Yardi) stored with the fund. An import is
+  // logged as one note; per-tenant notes as normal changes.
+  function setDelinquency(fundName, updater, note) {
+    if (!requireEdit()) return;
+    if (note) noteAudit(note);
+    setFunds((prev) => {
+      const cur = prev[fundName] ?? { ...DEFAULT_FUND_TERMS, name: fundName };
+      return { ...prev, [fundName]: { ...cur, delinquency: updater(cur.delinquency) } };
+    });
+  }
   // Documents tab → fund terms and limits from the LPA / PPM.
   function applyToFund(fundName, nextTerms, entries, label) {
     if (!requireEdit()) return false;
@@ -1067,22 +1079,6 @@ export default function Home() {
     setDeals((prev) => (prev.some((d) => d.id === id) ? prev : [...prev, { id, inputs: snap.inputs }]));
     setSavedDeals((prev) => prev.filter((d) => d.id !== id));
     setActiveDealId(id);
-  }
-
-  function handleCloseDeal(id) {
-    if (!requireEdit()) return;
-    setDeals((prev) => {
-      const next = prev.filter((d) => d.id !== id);
-      if (next.length === 0) {
-        const fresh = newDeal({ propertyName: "Small Bay Industrial" });
-        setActiveDealId(fresh.id);
-        return [fresh];
-      }
-      if (id === activeDealId) {
-        setActiveDealId(next[next.length - 1].id);
-      }
-      return next;
-    });
   }
 
   const results = useMemo(() => underwrite(inputs), [inputs]);
@@ -1478,18 +1474,6 @@ export default function Home() {
                     <span className="text-xs font-medium max-w-[100px] truncate">
                       {deal.inputs.propertyName || "Unnamed"}
                     </span>
-                    {deals.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleCloseDeal(deal.id); }}
-                        className={`ml-0.5 rounded-full w-4 h-4 flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition-colors ${isActive ? "text-blue-400" : "text-gray-300"}`}
-                        title="Close deal"
-                      >
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
                 );
               })}
@@ -1598,7 +1582,26 @@ export default function Home() {
                 onChange={(units) => setInputs((prev) => ({ ...prev, units }))}
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
                 dealId={activeDeal.id}
+                delinquencyByUnit={(() => {
+                  const dq = funds[resolveFund(inputs.fundName)]?.delinquency;
+                  const ms = Object.keys(dq?.months ?? {}).sort();
+                  if (!ms.length) return null;
+                  const a = aggregateDelinquency(dq.months[ms.at(-1)], dq.mapping, [{ id: activeDeal.id, inputs }]);
+                  return { month: ms.at(-1), byUnit: Object.fromEntries(a.tenants.filter((t) => t.unitId).map((t) => [t.unitId, t])) };
+                })()}
               />
+            )}
+            {activeTab === "units" && inputs.fundName?.trim() && (
+              <div className="mt-4">
+                <Delinquency
+                  fundName={resolveFund(inputs.fundName)}
+                  deals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName)).map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))}
+                  dealId={activeDeal.id}
+                  delinq={funds[resolveFund(inputs.fundName)]?.delinquency ?? {}}
+                  canEdit={!locked}
+                  onChange={(updater, note) => setDelinquency(resolveFund(inputs.fundName), updater, note)}
+                />
+              </div>
             )}
             {activeTab === "quick" && (
               <QuickUnderwrite
@@ -1648,6 +1651,17 @@ export default function Home() {
               />
             )}
             {activeTab === "fund" && (
+              <>
+              {Object.entries(funds).filter(([, f]) => Object.keys(f?.delinquency?.months ?? {}).length).map(([name, f]) => (
+                <div key={name} className="mb-4">
+                  <DelinquencySummary
+                    delinq={f.delinquency}
+                    deals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === name).map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))}
+                    title={`${name} rent delinquency`}
+                    onOpen={() => setActiveTab("units")}
+                  />
+                </div>
+              ))}
               <FundAnalysis
                 savedDeals={fundDeals}
                 unassigned={unassignedDeals.map((d) => ({ id: d.id, name: d.inputs.propertyName || "Unnamed deal" }))}
@@ -1666,6 +1680,7 @@ export default function Home() {
                 onDeleteFund={handleDeleteFund}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
+              </>
             )}
             {activeTab === "assets" && (
               <AssetSummary

@@ -15,11 +15,11 @@ changes the model without the user clicking to apply it.
 | B | Lease abstraction with Claude: prompt, save, viewer | ✅ Done, live (PR #53); sample abstracts PRs #54–#57 |
 | C | Review and apply abstracts to the rent roll; rent steps; renewal options; mismatch flags | ✅ Live (PR #69); 24 Node + 18 Playwright checks |
 | D | Fund lease views: critical dates, risk flags, exports, Asset Summary; tenant credit documents | ✅ Live (PR #70); 34 Node + 25 Playwright checks |
-| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ✅ Built 11/23 (PR); 45 Node + 22 Playwright checks |
-| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Built 11/23 (PR); 27 Node + 12 Playwright checks |
-| G | Appraisal → Valuations tab | ✅ Built 11/23 (PR); 14 Node + 8 Playwright checks |
-| H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi) | ⛓ Starts when G is complete |
-| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ⛓ Starts when H is complete |
+| E | Documents tab: OM, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates; fund LPA and PPM (terms and limits, also from New fund) | ✅ Live (PR #71); 45 Node + 22 Playwright checks |
+| F | Loan agreement → Debt tab; executed rate cap confirmations → cap schedule | ✅ Live (PR #71); 27 Node + 12 Playwright checks |
+| G | Appraisal → Valuations tab | ✅ Live (PR #71); 14 Node + 8 Playwright checks |
+| H | Estoppels, CAM reconciliation, billing and rent delinquency (Yardi); LPA/PPM fund picker | ✅ Built 11/23 (PR); 32 Node + 23 Playwright checks |
+| I | Asset business plan (revisions, PDF, photos, map, floor plan, demising) and budget vs. plan | ⛓ Next (after H) |
 | J | Underwritten vs. actual performance | ⛓ Starts when I is complete |
 | K | Fund plan vs. actual | ⛓ Starts when J is complete |
 | L | Performance reporting (shareable and internal) and internal risk report (concentration by SIC, geography, lender and cap counterparty; LPA limits; TI funding heat map; insurance; delinquency) | ⛓ Starts when K is complete |
@@ -290,6 +290,28 @@ Scope as planned:
 - Compares the appraisal's NOI and cap rate with the underwriting.
 
 ### Phase H: estoppels, CAM reconciliation, billing and rent delinquency
+
+**Built 11/23.** Estoppel, CAM reconciliation and billing are document types on
+the Documents tab with a **Check** panel (nothing to apply): the estoppel is
+compared row by row with the lease abstract and the rent roll unit (expiration,
+commencement, monthly rent on the estoppel date from the rent schedule,
+deposit, renewal options, amendments, tenant and landlord defaults, prepaid
+rent), and a difference shows as **⚠ Estoppel differs** on the lease card and
+**⚠ estoppel** on the unit in the Unit Roll. CAM: recoverable = lease share ×
+(expenses − management fee above the lease's cap) − base year amount, vs billed,
+flagging a wrong share or a fee over the cap. Billing: billed base rent vs the
+lease's rent for that month. Rent delinquency: **Upload aged report** (Yardi
+aged receivables, CSV or Excel) on the Unit Roll tab, one per month-end, with
+property and tenant codes mapped to assets and units (kept for later months);
+asset and fund totals by bucket, % of monthly rent, trend, tenants with default
+and cure terms from the lease and deposit cover, a red **$ late** badge on the
+unit, a fund card on Portfolio Return, and collections from a tenant ledger vs
+each asset's credit-loss assumption. Stored on the fund
+(`funds[name].delinquency`). Also: the LPA and PPM upload has an **Assign to
+fund** picker, and each LPA/PPM card can be moved to another fund (logged).
+Samples: `docs/sample-yardi/` (three month-ends, ledger, income statement for
+phase I) and the Desert Aero estoppel, Lakeshore 2025 CAM reconciliation and
+Riverside billing in `docs/sample-deal-docs/deals/`.
 
 - **Estoppel** (`estoppel_validate` / `estoppel_show`) compared with the lease
   abstract and the rent roll unit: rent, dates, deposit, options, defaults,

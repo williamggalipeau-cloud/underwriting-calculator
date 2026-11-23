@@ -80,11 +80,12 @@ begin
       insert into public.audit_log (workspace_id, area, item, field, note)
       values (r.workspace_id, 'Documents', item, 'Abstract', case when new.abstract is null then 'Abstract removed' else 'Abstract saved' end);
     end if;
-    if new.title is distinct from old.title or new.deal_id is distinct from old.deal_id or new.lease_id is distinct from old.lease_id then
+    if new.title is distinct from old.title or new.deal_id is distinct from old.deal_id or new.lease_id is distinct from old.lease_id
+       or new.fund_name is distinct from old.fund_name then
       insert into public.audit_log (workspace_id, area, item, field, from_value, to_value)
       values (r.workspace_id, 'Documents', item, 'Document details',
-              jsonb_build_object('title', old.title, 'deal', old.deal_id, 'lease', old.lease_id),
-              jsonb_build_object('title', new.title, 'deal', new.deal_id, 'lease', new.lease_id));
+              jsonb_build_object('title', old.title, 'deal', old.deal_id, 'fund', old.fund_name, 'lease', old.lease_id),
+              jsonb_build_object('title', new.title, 'deal', new.deal_id, 'fund', new.fund_name, 'lease', new.lease_id));
     end if;
   end if;
   return null;

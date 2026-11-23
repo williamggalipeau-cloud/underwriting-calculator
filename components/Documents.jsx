@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DOC_TYPES, TYPE, BLOCKS, FIELDS, checkLocally, dealDocPrompt, parseDealAbstract } from "@/lib/dealDocTypes";
-import { applyDoc, applyRentRoll, appraisalMark, capChecks, capFromDoc, compareDoc, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
+import { applyDoc, applyRentRoll, appraisalMark, billingCheck, camCheck, capChecks, capFromDoc, compareDoc, estoppelChecks, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
 import { createDealDoc, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
 import { listLeases, PROJECT_REF, fmtBytes, MAX_FILE_MB } from "@/lib/leaseDocs";
 import { newUnit } from "@/components/UnitRoll";
@@ -148,7 +148,45 @@ function AppraisalApply({ doc, inputs, marks, onApplyMark, onDone, onError, emai
   );
 }
 
-function ApplyPanel({ doc, inputs, terms, units, leaseAbs, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onDone, onError, email }) {
+// Estoppel, CAM reconciliation and billing: checks only (nothing to apply).
+function CheckPanel({ doc, leases, units }) {
+  const t = doc.doc_type;
+  const cell = (v) => (typeof v === "number" ? show("money", v) : v == null || v === "" ? "—" : String(v));
+  if (t === "estoppel") {
+    const lease = leases.find((l) => l.id === doc.lease_id);
+    const unit = lease ? (units ?? []).find((u) => (lease.unit_ids ?? []).includes(u.id)) : null;
+    const rows = estoppelChecks(doc, lease?.abstract ?? null, unit);
+    return (
+      <div className="mt-2 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50/40 p-3 text-xs" data-testid="doc-apply">
+        <p className="font-medium">{lease ? `Checked against ${lease.tenant || "the lease"}'s abstract${unit ? ` and unit ${unit.name}` : " (no rent roll unit linked)"}` : "Link this estoppel to its lease (upload it with the tenant chosen) to check it"}</p>
+        <table className="w-full rounded bg-white"><thead className="text-gray-500"><tr>{["", "Estoppel", "Lease abstract", "Rent roll"].map((h) => <th key={h} className="px-2 py-1 text-left font-medium">{h}</th>)}</tr></thead>
+          <tbody>{rows.map((r) => <tr key={r.label} className={`border-t border-gray-100 ${r.ok ? "text-gray-500" : r.severity === "high" ? "bg-red-50 text-red-800" : "bg-amber-50 text-amber-800"}`} data-testid="estoppel-row"><td className="px-2 py-1 font-medium">{r.ok ? "✓" : "⚠"} {r.label}</td><td className="px-2 py-1">{cell(r.estoppel)}</td><td className="px-2 py-1">{cell(r.lease)}</td><td className="px-2 py-1">{cell(r.unit)}</td></tr>)}</tbody></table>
+      </div>
+    );
+  }
+  if (t === "cam") {
+    const c = camCheck(doc, leases);
+    return (
+      <div className="mt-2 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50/40 p-3 text-xs" data-testid="doc-apply">
+        <p className="font-medium">Recoverable under each lease vs billed{isFinite(c.fee.pct) ? ` · management fee ${c.fee.pct.toFixed(2)}% of revenue` : ""}</p>
+        <table className="w-full rounded bg-white tabular-nums"><thead className="text-gray-500"><tr>{["Tenant", "Lease share", "Billed share", "Recoverable", "Billed", "Over (+) / under (−)", "Issues"].map((h) => <th key={h} className="px-2 py-1 text-left font-medium">{h}</th>)}</tr></thead>
+          <tbody>{c.tenants.map((r) => <tr key={r.tenant} className="border-t border-gray-100 align-top" data-testid="cam-row"><td className="px-2 py-1">{r.tenant}</td>{r.noLease ? <td colSpan={6} className="px-2 py-1 text-gray-500">No abstracted lease to check against</td> : <><td className="px-2 py-1">{r.share}%</td><td className="px-2 py-1">{isFinite(r.billedShare) ? `${r.billedShare}%` : "—"}</td><td className="px-2 py-1">{show("money", r.recoverable)}</td><td className="px-2 py-1">{show("money", r.billed)}</td><td className={`px-2 py-1 font-medium ${Math.abs(r.diff) > 1 ? (r.diff > 0 ? "text-red-700" : "text-amber-700") : "text-emerald-700"}`}>{isFinite(r.diff) ? `${r.diff > 0 ? "+" : r.diff < 0 ? "−" : ""}${show("money", Math.abs(r.diff))}` : "—"}</td><td className="px-2 py-1">{r.issues.join("; ") || "—"}</td></>}</tr>)}</tbody></table>
+        <p className="text-[11px] text-gray-500">Recoverable = lease share × (expenses − management fee over the lease cap) − base year amount. Over-recovery (+) is owed back to the tenant; under-recovery (−) can be billed.</p>
+      </div>
+    );
+  }
+  const rows = billingCheck(doc, leases);
+  return (
+    <div className="mt-2 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50/40 p-3 text-xs" data-testid="doc-apply">
+      <p className="font-medium">Billed base rent vs the lease&apos;s rent schedule</p>
+      <table className="w-full rounded bg-white tabular-nums"><thead className="text-gray-500"><tr>{["Tenant", "Month", "Billed", "Per the lease", "Difference"].map((h) => <th key={h} className="px-2 py-1 text-left font-medium">{h}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => <tr key={i} className="border-t border-gray-100" data-testid="billing-row"><td className="px-2 py-1">{r.tenant}</td><td className="px-2 py-1">{r.month}</td><td className="px-2 py-1">{show("money", r.billed)}</td><td className="px-2 py-1">{r.noLease ? "no lease" : show("money", r.due)}</td><td className={`px-2 py-1 font-medium ${Math.abs(r.diff) > 0.5 ? "text-red-700" : "text-emerald-700"}`}>{isFinite(r.diff) ? (Math.abs(r.diff) > 0.5 ? `${r.diff > 0 ? "over-billed" : "under-billed"} ${show("money", Math.abs(r.diff))}` : "✓") : "—"}</td></tr>)}</tbody></table>
+    </div>
+  );
+}
+
+function ApplyPanel({ doc, inputs, terms, units, leaseAbs, leases, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onDone, onError, email }) {
+  if (["estoppel", "cam", "billing"].includes(doc.doc_type)) return <CheckPanel doc={doc} leases={leases ?? []} units={units} />;
   if (doc.doc_type === "appraisal") return <AppraisalApply doc={doc} inputs={inputs} marks={marks} onApplyMark={onApplyMark} onDone={onDone} onError={onError} email={email} />;
   return <ApplyPanelInner doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} onDone={onDone} onError={onError} email={email} />;
 }
@@ -288,19 +326,27 @@ export function IcVarianceTable({ ic, inputs }) {
   );
 }
 
-function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, marks, canEdit, userId, email, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onChanged, onError }) {
+function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks, canEdit, userId, email, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onChanged, onError, fundList }) {
   const [panel, setPanel] = useState(null);
   const [busy, setBusy] = useState(false);
   const t = TYPE[doc.doc_type] ?? TYPE.other;
   const open = async (path, page) => {
     try { const url = await dealFileLink(path); window.open(page ? `${url}#page=${page}` : url, "_blank", "noopener"); } catch (e) { onError(e.message || String(e)); }
   };
-  const pending = !doc.abstract ? [] : doc.doc_type === "appraisal" ? (appraisalMark(doc, inputs ?? {}, marks ?? {})?.rows ?? []).filter((r) => r.differs) : compareDoc(doc, { inputs: inputs ?? {}, terms: terms ?? {} }).filter((r) => r.differs);
+  const pending = !doc.abstract || ["estoppel", "cam", "billing"].includes(doc.doc_type) ? [] : doc.doc_type === "appraisal" ? (appraisalMark(doc, inputs ?? {}, marks ?? {})?.rows ?? []).filter((r) => r.differs) : compareDoc(doc, { inputs: inputs ?? {}, terms: terms ?? {} }).filter((r) => r.differs);
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid="doc-card">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold">{t.label}{doc.title ? ` · ${doc.title}` : ""}</h3>
+          {canEdit && !doc.deal_id && t.scope === "fund" && (fundList ?? []).length > 1 && (
+            <label className="mt-0.5 flex items-center gap-1 text-gray-600">Fund
+              <select value={doc.fund_name} disabled={busy} aria-label="Move to fund" data-testid="doc-card-fund" className="rounded border border-gray-300 bg-white px-1 py-0.5"
+                onChange={async (e) => { setBusy(true); try { await updateDealDoc(doc.id, { fund_name: e.target.value }); await onChanged(); } catch (err) { onError(err.message || String(err)); } finally { setBusy(false); } }}>
+                {[...new Set([doc.fund_name, ...fundList])].filter(Boolean).map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </label>
+          )}
           <p className="text-gray-500">{assetName} · added {fmtWhen(doc.created_at)}{doc.created_by_email ? ` by ${doc.created_by_email}` : ""} · applies to: {t.applies}</p>
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -319,10 +365,10 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, marks, canEdi
       </ol>
       {panel === "view" && doc.abstract && <DocViewer doc={doc} onOpen={open} />}
       {panel === "review" && canEdit && <ReviewPanel doc={doc} assetName={assetName} userId={userId} email={email} onError={onError} onSaved={async () => { setPanel("view"); await onChanged(); }} />}
-      {panel === "apply" && canEdit && doc.abstract && <ApplyPanel doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} marks={marks} onApplyMark={onApplyMark} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} email={email} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />}
+      {panel === "apply" && canEdit && doc.abstract && <ApplyPanel doc={doc} inputs={inputs} terms={terms} units={units} leaseAbs={leaseAbs} leases={leases} marks={marks} onApplyMark={onApplyMark} onApplyDeal={onApplyDeal} onApplyFund={onApplyFund} onNewDeal={onNewDeal} email={email} onError={onError} onDone={async () => { setPanel(null); await onChanged(); }} />}
       <div className="mt-2 flex flex-wrap gap-2">
         {doc.abstract && <button type="button" onClick={() => setPanel(panel === "view" ? null : "view")} className={`${btn} border-emerald-200 bg-emerald-50 text-emerald-800`}>{panel === "view" ? "Hide abstract" : "View abstract"}</button>}
-        {canEdit && doc.abstract && doc.doc_type !== "other" && <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className={`${btn} border-emerald-300 bg-white text-emerald-800`}>{panel === "apply" ? "Close" : doc.doc_type === "insurance_cert" ? "Check coverage" : "Apply"}</button>}
+        {canEdit && doc.abstract && doc.doc_type !== "other" && <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className={`${btn} border-emerald-300 bg-white text-emerald-800`}>{panel === "apply" ? "Close" : doc.doc_type === "insurance_cert" ? "Check coverage" : ["estoppel", "cam", "billing"].includes(doc.doc_type) ? "Check" : "Apply"}</button>}
         {canEdit && <button type="button" onClick={() => setPanel(panel === "review" ? null : "review")} className={`${btn} border-blue-200 bg-blue-50 text-blue-700`}>{doc.abstract ? "Re-review with Claude" : "Review with Claude"}</button>}
         {canEdit && <button type="button" disabled={busy} onClick={async () => { if (!window.confirm(`Delete this ${t.label.toLowerCase()} and its files?`)) return; setBusy(true); try { await deleteDealDoc(doc); await onChanged(); } catch (e) { onError(e.message || String(e)); } finally { setBusy(false); } }} className={`${btn} ml-auto border-transparent text-gray-400 hover:text-red-600`}>Delete</button>}
       </div>
@@ -338,6 +384,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
   const [type, setType] = useState("om");
   const [title, setTitle] = useState("");
   const [leaseId, setLeaseId] = useState("");
+  const [fundSel, setFundSel] = useState("");
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef(null);
@@ -362,7 +409,10 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
   const shown = (docs ?? []).filter((d) => (scope === "asset" ? d.deal_id === deal?.id : (d.deal_id && fundIds.has(d.deal_id)) || (!d.deal_id && d.fund_name === fundName)));
   const fundDocs = shown.filter((d) => !d.deal_id);
   const assetDocs = shown.filter((d) => d.deal_id);
-  const t = TYPE[type];
+  const fundList = [...new Set([fundName, ...Object.keys(funds ?? {})].filter(Boolean))].sort();
+  const types = deal ? DOC_TYPES : DOC_TYPES.filter((x) => x.scope === "fund");
+  const t = TYPE[types.some((x) => x.id === type) ? type : types[0]?.id] ?? TYPE[type];
+  const toFund = fundSel && fundList.includes(fundSel) ? fundSel : fundName || fundList[0] || "";
   const assetLeases = leases.filter((l) => l.deal_id === deal?.id);
   const icDeals = scope === "fund" ? fundDeals.filter((d) => inputsOf(d.id)?.icApproved) : deal?.inputs?.icApproved ? [deal] : [];
 
@@ -371,7 +421,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
     if (!files.length) return;
     setBusy(true);
     try {
-      await createDealDoc(wsId, { dealId: t.scope === "fund" ? null : deal.id, fundName: fundName ?? "", docType: type, title: title.trim(), leaseId: type === "insurance_cert" && leaseId ? leaseId : null, files }, email);
+      await createDealDoc(wsId, { dealId: t.scope === "fund" ? null : deal.id, fundName: t.scope === "fund" ? toFund : fundName ?? "", docType: t.id, title: title.trim(), leaseId: (type === "insurance_cert" || type === "estoppel") && leaseId ? leaseId : null, files }, email);
       setFiles([]); setTitle(""); setLeaseId("");
       await refresh();
     } catch (err) { setError(err.message || String(err)); } finally { setBusy(false); }
@@ -387,6 +437,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
       units={d.deal_id ? inputsOf(d.deal_id)?.units ?? [] : []}
       leaseAbs={d.lease_id ? leases.find((l) => l.id === d.lease_id)?.abstract ?? null : null}
       marks={d.deal_id ? marks?.[d.deal_id] ?? {} : {}}
+      leases={leases}
       onApplyMark={onApplyMark}
       canEdit={canEdit}
       userId={userId}
@@ -396,6 +447,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
       onNewDeal={onNewDeal}
       onChanged={refresh}
       onError={setError}
+      fundList={fundList}
     />
   );
 
@@ -417,25 +469,32 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
       ) : (
         <>
           {error && <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800"><span className="flex-1">{error}</span><button type="button" onClick={() => setError(null)} aria-label="Dismiss">✕</button></p>}
-          {canEdit && deal && (
+          {canEdit && (deal || fundList.length > 0) && (
             <form onSubmit={upload} className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3 text-xs" data-testid="doc-upload">
               <h3 className="text-sm font-semibold">Add a document</h3>
               <div className="flex flex-wrap items-end gap-3">
                 <label className="flex flex-col gap-0.5"><span className="text-gray-600">Type</span>
-                  <select value={type} onChange={(e) => setType(e.target.value)} className="rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Document type">
-                    {DOC_TYPES.map((x) => <option key={x.id} value={x.id}>{x.label}{x.scope === "fund" ? " (fund)" : ""}</option>)}
+                  <select value={t.id} onChange={(e) => setType(e.target.value)} className="rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Document type">
+                    {types.map((x) => <option key={x.id} value={x.id}>{x.label}{x.scope === "fund" ? " (fund)" : ""}</option>)}
                   </select>
                 </label>
                 <label className="flex flex-col gap-0.5"><span className="text-gray-600">Title (optional)</span><input value={title} onChange={(e) => setTitle(e.target.value)} className="w-56 rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Document title" /></label>
-                {type === "insurance_cert" && (
-                  <label className="flex flex-col gap-0.5"><span className="text-gray-600">Whose policies</span>
+                {(type === "insurance_cert" || type === "estoppel") && (
+                  <label className="flex flex-col gap-0.5"><span className="text-gray-600">{type === "estoppel" ? "Tenant (lease)" : "Whose policies"}</span>
                     <select value={leaseId} onChange={(e) => setLeaseId(e.target.value)} className="w-64 rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Insured">
-                      <option value="">Owner (the asset&apos;s policies)</option>
+                      <option value="">{type === "estoppel" ? "Choose the lease…" : "Owner (the asset's policies)"}</option>
                       {assetLeases.map((l) => <option key={l.id} value={l.id}>Tenant: {l.tenant || "lease"}</option>)}
                     </select>
                   </label>
                 )}
-                <span className="pb-1.5 text-gray-500">{t.scope === "fund" ? `Stored with the fund ${fundName || ""}` : `For ${deal.inputs.propertyName}`} · applies to {t.applies}</span>
+                {t.scope === "fund" && (
+                  <label className="flex flex-col gap-0.5"><span className="text-gray-600">Assign to fund</span>
+                    <select value={toFund} onChange={(e) => setFundSel(e.target.value)} className="w-56 rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Assign to fund" data-testid="doc-fund-select">
+                      {fundList.map((f) => <option key={f} value={f}>{f}</option>)}
+                    </select>
+                  </label>
+                )}
+                <span className="pb-1.5 text-gray-500">{t.scope === "fund" ? `Stored with the fund ${toFund}` : `For ${deal.inputs.propertyName}`} · applies to {t.applies}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <input ref={fileRef} type="file" accept="application/pdf,.pdf" multiple className="sr-only" aria-label="Choose document PDFs" onChange={(e) => { setFiles([...(e.target.files ?? [])]); e.target.value = ""; }} />
