@@ -59,7 +59,8 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1500);
   await FX.docAsset(main, "Airport Flex Park");
-  check((await main.getByTestId("doc-row").count()) === 5, `asset filter: 5 Airport Flex documents (${await main.getByTestId("doc-row").count()})`);
+  const afRows = main.getByTestId("doc-row").filter({ hasNotText: "Lease –" });
+  check((await afRows.count()) === 5, `asset filter: 5 Airport Flex documents besides its leases (${await afRows.count()}: ${(await main.getByTestId("doc-row").allInnerTexts()).map((x) => x.split("\n")[0]).join(" | ")})`);
 
   // Upload a document
   await main.getByLabel("Document type").selectOption("loi");

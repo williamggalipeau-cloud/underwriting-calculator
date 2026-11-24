@@ -111,7 +111,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // Critical dates: cap expiry and replacement deadline
   await FX.openTab(p, "Leases");
   await p.waitForTimeout(1200);
-  await FX.docAsset(main, "");
+  await main.getByRole("button", { name: /Whole fund/ }).click();
   await main.getByRole("tab", { name: "Critical dates" }).click();
   const cdt = await main.getByTestId("critical-dates").innerText();
   check(cdt.includes("Replacement rate cap due to the lender") && cdt.includes("12/31/26") && cdt.includes("Rate cap (Fictional Capital Markets LLC) expires"), "cap replacement deadline (12/31/26) and expiry on Critical dates");
