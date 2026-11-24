@@ -49,10 +49,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // ── Options ──
   const opts = await pick.locator("option").allInnerTexts();
-  check(opts[0] === "All funds" && opts.includes("Model Fund I") && opts.includes(`${JV} · Joint Venture`), `picker: ${opts.join(" | ")}`);
+  check(opts[0] === "All portfolios" && opts.includes("Model Fund I") && opts.includes(`${JV} · Joint Venture`), `picker: ${opts.join(" | ")}`);
   check((await pick.inputValue()) === "", "opens on All funds");
   const firmAssets = await assetsFig();
-  check(/across 2 funds/.test(firmAssets), `firm strip (All funds): ${firmAssets}`);
+  check(/across 2 portfolios/.test(firmAssets), `firm strip (All funds): ${firmAssets}`);
   check((await p.getByTestId("firm-scope").count()) === 0, "no scope label under All funds");
   const savesBefore = saves;
 
@@ -60,16 +60,16 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await pick.selectOption(JV);
   await p.waitForTimeout(800);
   const jvAssets = await assetsFig();
-  check(/^Assets 1 across 1 fund$/.test(jvAssets), `firm strip follows the picker: ${jvAssets}`);
+  check(/^Assets 1 across 1 portfolio$/.test(jvAssets), `firm strip follows the picker: ${jvAssets}`);
   check(/Example JV II \(Joint Venture\)/.test(await p.getByTestId("firm-scope").innerText()), "the strip is labelled with the fund");
   await FX.openTab(p, /^Asset Summary/);
   await p.waitForTimeout(800);
   let t = await main.innerText();
   check(t.includes("Harbor Light Industrial") && !t.includes("Airport Flex Park") && !t.includes("Route 9 Small Bay"), "Asset Summary shows only the JV's asset");
-  await FX.openTab(p, /^Fund Return/);
+  await FX.openTab(p, /^Portfolio Return/);
   await p.waitForTimeout(800);
   t = await main.innerText();
-  check(t.includes(JV) && !/Airport Flex Park/.test(t), "Fund Return shows only the JV");
+  check(t.includes(JV) && !/Airport Flex Park/.test(t), "Portfolio Return shows only the JV");
   await FX.openTab(p, /^Valuation/);
   await p.waitForTimeout(800);
   t = await main.innerText();
@@ -90,7 +90,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await pick.selectOption("Model Fund I");
   await p.waitForTimeout(800);
   const mfAssets = await assetsFig();
-  check(/across 1 fund$/.test(mfAssets) && !/^Assets 1 /.test(mfAssets), `Model Fund I strip: ${mfAssets}`);
+  check(/across 1 portfolio$/.test(mfAssets) && !/^Assets 1 /.test(mfAssets), `Model Fund I strip: ${mfAssets}`);
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(800);
   check(!(await main.innerText()).includes("Fictional Pipeline Dock"), "a deal screened for another fund is hidden");

@@ -1,4 +1,4 @@
-// Phase W Playwright: GP Economics tab, last in Portfolio Management: fee revenue,
+// Phase W Playwright: GP Economics tab, in the Finance area (11/24): fee revenue,
 // promote and co-invest with shares, by year / fund / asset, the discount
 // rate, the fund-type filter, Excel and an internal PDF. Fictional fixture
 // (with the sample 1.5% fund fee); Supabase mocked.
@@ -34,10 +34,13 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   p.on("pageerror", (e) => errs.push(e.message));
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
-  await FX.openArea(p, "Fund Debt");
-  const pm = p.getByRole("group", { name: "Portfolio Management" });
-  const tabs = await pm.getByRole("button").allInnerTexts();
-  check(/^GP Economics/.test(tabs.at(-1)), "GP Economics is the last Portfolio Management tab (user, 11/24)");
+  const areas = await FX.areas(p);
+  check(areas.indexOf("Finance") === areas.indexOf("Portfolio Management") + 1, `a Finance area after Portfolio Management: ${areas.join(", ")}`);
+  await FX.openArea(p, "GP Economics");
+  const tabs = await p.getByRole("group", { name: "Finance" }).getByRole("button").allInnerTexts();
+  check(tabs.length === 1 && /^GP Economics/.test(tabs[0]), "GP Economics is under Finance (user, 11/24)");
+  await FX.openArea(p, "Portfolio Debt");
+  check(!(await p.getByRole("group", { name: "Portfolio Management" }).innerText()).includes("GP Economics"), "and no longer under Portfolio Management");
   await FX.openTab(p, "GP Economics");
   await p.waitForTimeout(2500);
   const g = p.getByTestId("gp-economics");
@@ -47,9 +50,14 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   check(fees > 0 && promote > 0 && Math.abs(fees + promote + co - total) < 0.03, `fees ${fees}M + promote ${promote}M + co-invest ${co}M = total ${total}M`);
   check(/% of GP income/.test(await p.getByTestId("gp-fees").innerText()) && /PV \$[\d.]+M at 8%/.test(await p.getByTestId("gp-fees").innerText()), "shares and the fees' present value");
   check((await p.getByTestId("gp-share-bar").locator("div").count()) === 3, "share bar: fees, promote, co-invest");
+  // Consolidated by portfolio type (11/24): the default view
+  const con = p.getByTestId("gp-by-type");
+  check((await con.count()) === 1 && /Fund/.test(await con.innerText()) && /All portfolios/.test(await con.locator("tfoot").innerText()) && (await p.getByTestId("gp-type-years").count()) === 1, "Consolidated: subtotals by portfolio type, all portfolios, income by year and type");
   // By year
+  await p.getByRole("tab", { name: "By year" }).click();
+  await p.waitForTimeout(300);
   const yrs = p.getByTestId("gp-years");
-  check((await yrs.locator("tbody tr").count()) >= 5 && /Life of fund/.test(await yrs.locator("tfoot").innerText()), "by year, with life-of-fund totals");
+  check((await yrs.locator("tbody tr").count()) >= 5 && /Life of portfolios/.test(await yrs.locator("tfoot").innerText()), "by year, with life-of-portfolio totals");
   // Discount rate changes the PV only
   const pv8 = await p.getByTestId("gp-fees").innerText();
   await g.getByLabel("Discount rate").fill("12");
@@ -57,7 +65,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   const pv12 = await p.getByTestId("gp-fees").innerText();
   check(pv8 !== pv12 && /at 12%/.test(pv12) && (await money("gp-fees")) === fees, "a higher discount rate lowers the PV, not the total");
   // By fund, by asset
-  await g.getByRole("tab", { name: "By fund" }).click();
+  await g.getByRole("tab", { name: "By portfolio" }).click();
   await p.waitForTimeout(300);
   const fr = await p.getByTestId("gp-funds").locator("tbody tr").first().innerText();
   check(/Model Fund I/.test(fr) && /x/.test(fr), `by fund: ${fr.replace(/\s+/g, " ").slice(0, 90)}`);

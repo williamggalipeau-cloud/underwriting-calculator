@@ -77,11 +77,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/fee-revenue\.xlsx$/.test(x1.suggestedFilename()), `Excel: ${x1.suggestedFilename()}`);
   await p.screenshot({ path: S + "/phaseL_returns.png", fullPage: true });
 
-  // Fund Return carries the same labels
-  await FX.openTab(p, /^Fund Return/);
+  // Portfolio Return carries the same labels
+  await FX.openTab(p, /^Portfolio Return/);
   await p.waitForTimeout(1500);
   const ft = await main.innerText();
-  check(/GP profit/.test(ft) && /GP promote/.test(ft) && !/GP Promote/.test(ft), "Fund Return: GP profit and GP promote");
+  check(/GP profit/.test(ft) && /GP promote/.test(ft) && !/GP Promote/.test(ft), "Portfolio Return: GP profit and GP promote");
 
   // Asset Business Plan: drawn photos show; the full PDF
   await FX.openTab(p, "Asset Business Plan");

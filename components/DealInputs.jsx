@@ -752,7 +752,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           <Field label="Property Name" value={inputs.propertyName} field="propertyName" onChange={set} />
           <Field label="Asset Manager" value={inputs.assetManager ?? ""} field="assetManager" onChange={set} />
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fund</label>
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Portfolio (fund, JV or SMA)</label>
             <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden">
               <input
                 type="text"

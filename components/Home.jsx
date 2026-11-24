@@ -1,6 +1,6 @@
 "use client";
 
-// Phase Z: the landing page, the Operational Dashboard (opened by Home), for
+// Phase Z: the landing page, the Dashboard (opened by Home), for
 // the portfolio chosen in the "Working on" picker. Sections (user, 11/24):
 // Actions Needed (urgent: overdue, due within 30 days, or an issue now),
 // Upcoming Events (critical action and milestone dates, a year back and a
@@ -97,13 +97,13 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
   // never disagrees with today's (no hydration mismatch).
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return <div className="text-xs text-gray-400" data-testid="home-loading">Loading the Operational Dashboard…</div>;
+  if (!mounted) return <div className="text-xs text-gray-400" data-testid="home-loading">Loading the Dashboard…</div>;
 
   return (
     <div className="space-y-5 text-gray-900" data-testid="home">
       <div>
-        <h2 className="text-lg font-bold">Operational Dashboard</h2>
-        <p className="text-xs text-gray-500">{scopeName ? `${scopeName}: ` : "All funds: "}what needs doing now, the events coming up and the assets on watch. Every function, and Setup &amp; Maintenance, is one click away above.</p>
+        <h2 className="text-lg font-bold">Dashboard</h2>
+        <p className="text-xs text-gray-500">{scopeName ? `${scopeName}: ` : "All portfolios: "}what needs doing now, the events coming up and the assets on watch. Every function, and Setup &amp; Maintenance, is one click away above.</p>
       </div>
 
       {/* 1. Actions Needed (was "Today · needs attention"; user, 11/24) */}
@@ -232,7 +232,7 @@ export function SetupMaintenance({ actions = [] }) {
   return (
     <section className="mt-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm" data-testid="setup-maintenance">
       <div className="flex flex-wrap items-center gap-1.5" data-testid="setup-buttons">
-        <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Setup &amp; Maintenance</span>
+        <span className="mr-2 text-lg font-bold text-gray-900">Setup &amp; Maintenance</span>
         <div className="contents" data-testid="quick-actions">
           {actions.map((a) => a.kind === "select" ? (
             <select key={a.label} aria-label={a.label} value="" onChange={(e) => e.target.value && a.run(e.target.value)} className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700">

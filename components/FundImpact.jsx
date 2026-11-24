@@ -1,6 +1,6 @@
 "use client";
 
-// Phase M: Fund Impact tab (Acquisitions, last). Candidates from the
+// Phase M: Portfolio Impact tab (Acquisitions, last). Candidates from the
 // pipeline modeled into a fund, never changing it until "Add to fund".
 import { useMemo, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
@@ -40,7 +40,7 @@ export default function FundImpact({ deals, funds, curve, canEdit, email, presel
   const scenarios = terms?.impactScenarios ?? [];
   const shown = view ? scenarios.find((s) => s.id === view.sid)?.versions.find((x) => x.v === view.v) : null;
 
-  if (!names.length) return <p className="text-sm text-gray-500">Set up a fund first (Fund Return → New fund).</p>;
+  if (!names.length) return <p className="text-sm text-gray-500">Set up a fund first (Portfolio Return → New fund).</p>;
   const toggle = (id) => setSel((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const run = (id, kind) => {
     const c = cands.find((x) => x.id === id);
@@ -60,7 +60,7 @@ export default function FundImpact({ deals, funds, curve, canEdit, email, presel
     <section className="space-y-3" data-testid="fund-impact-tab">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">Fund Impact <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[11px] font-medium text-indigo-800">Scenario — not actual</span></h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">Portfolio Impact <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[11px] font-medium text-indigo-800">Scenario — not actual</span></h2>
           <p className="text-xs text-gray-500">Model pipeline deals into a fund before buying them. Nothing changes the fund until you press Add to fund.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">

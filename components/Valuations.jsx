@@ -291,7 +291,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
           <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">Valuation <FundTypeBadge type={funds[fundName]?.type} /></h2>
           <p className="text-xs text-gray-500">
             Quarterly fair value by asset. Q2 and Q4 are independent appraisals; Q1 and Q3 roll the last mark forward (plus capex). Fund NAV
-            and interim returns are on Fund Return.
+            and interim returns are on Portfolio Return.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -384,7 +384,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
         <>
           <p className="rounded-xl border border-blue-100 bg-blue-50/50 px-4 py-2 text-xs text-gray-600" data-testid="fund-nav-moved">
             Fund NAV, gross and net LP interim returns and the fund&apos;s quarter-by-quarter totals are on{" "}
-            {onOpenFundReturn ? <button type="button" onClick={onOpenFundReturn} className="font-semibold text-blue-600 hover:underline">Fund Return →</button> : <span className="font-semibold">Fund Return</span>}
+            {onOpenFundReturn ? <button type="button" onClick={onOpenFundReturn} className="font-semibold text-blue-600 hover:underline">Portfolio Return →</button> : <span className="font-semibold">Portfolio Return</span>}
           </p>
 
           {/* Assets */}
@@ -461,7 +461,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
             Each later quarter uses the entered mark if there is one, otherwise the last mark plus capex since. Equity NAV = fair value − loan
             balance + the asset&apos;s cash reserve. Interim returns use actual cash flows to date plus NAV as the ending value; IRRs under one year
             show n/m. Net LP assumes the fund sells everything at NAV on the quarter end, repays the sub line, and runs the proceeds through the
-            fund waterfall. LP calls and the sub line balance are your actual capital activity when it&apos;s entered (Fund Return),
+            fund waterfall. LP calls and the sub line balance are your actual capital activity when it&apos;s entered (Portfolio Return),
             otherwise the model. Closing costs and cap premiums are not in fair value, so TVPI starts below 1.0x.
           </p>
         </>

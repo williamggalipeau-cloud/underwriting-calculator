@@ -47,7 +47,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const home = p.getByTestId("home");
 
   check((await home.count()) === 1, "the app opens on Home");
-  check((await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0 && /^Operational Dashboard/.test(await p.getByTestId("home").locator("h2").innerText()), "Home is in the header (not in Functions); the landing page is the Operational Dashboard");
+  check((await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0 && /^Dashboard/.test(await p.getByTestId("home").locator("h2").innerText()), "Home is in the header (not in Functions); the landing page is the Dashboard");
 
   // ── Actions Needed (urgent) and Calendar (upcoming), user 11/24 ──
   const att = p.getByTestId("attention");
@@ -148,9 +148,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // The Baywise logo returns to the landing page too
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(400);
-  await p.getByRole("button", { name: "Baywise: go to the Operational Dashboard" }).click();
+  await p.getByRole("button", { name: "Baywise: go to the Dashboard" }).click();
   await p.waitForTimeout(600);
-  check((await p.getByTestId("home").count()) === 1, "the Baywise logo returns to the Operational Dashboard");
+  check((await p.getByTestId("home").count()) === 1, "the Baywise logo returns to the Dashboard");
   await p.screenshot({ path: `${S}/home.png`, fullPage: true });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();

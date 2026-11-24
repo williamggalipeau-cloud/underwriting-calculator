@@ -1,6 +1,6 @@
 "use client";
 
-// Phase S: Fund Debt tab (Portfolio Management, after Fund Return). Every
+// Phase S: Portfolio Debt tab (Portfolio Management, after Portfolio Return). Every
 // loan in the fund: maturity ladder, extension tests, refinance planner,
 // rate exposure and caps, lender concentration. Read-only.
 import { useMemo, useState } from "react";
@@ -41,7 +41,7 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
   return (
     <div className="space-y-4 text-gray-900" data-testid="fund-debt">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <div><h2 className="text-lg font-bold">Fund Debt</h2><p className="text-xs text-gray-500">Every loan in the fund from each asset&apos;s debt inputs and model (the Debt tab stays for one asset&apos;s loan). As of {usDate(todayISO)}.</p></div>
+        <div><h2 className="text-lg font-bold">Portfolio Debt</h2><p className="text-xs text-gray-500">Every loan in the fund from each asset&apos;s debt inputs and model (the Debt tab stays for one asset&apos;s loan). As of {usDate(todayISO)}.</p></div>
         <div className="flex items-center gap-2 text-xs">
           {names.length > 1 && <select aria-label="Fund" value={fund} onChange={(e) => setFund(e.target.value)} className={inp}>{names.map((n) => <option key={n}>{n}</option>)}</select>}
           <button type="button" disabled={!loans.length} onClick={async () => { const { fundDebtPdf } = await import("@/lib/fundDebtPdf"); downloadBlob(await fundDebtPdf(fund, loans, todayISO), `${fund.replace(/[^\w-]+/g, "-")}-fund-debt-${todayISO}.pdf`); }} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">PDF</button>

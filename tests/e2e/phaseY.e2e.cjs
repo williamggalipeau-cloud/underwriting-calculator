@@ -50,7 +50,7 @@ let saved = null;
   p.on("dialog", (d) => d.accept());
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
-  await FX.openArea(p, "Fund Debt");
+  await FX.openArea(p, "Portfolio Debt");
   const pm = p.getByRole("group", { name: "Portfolio Management" });
   const tabs = await pm.getByRole("button").allInnerTexts();
   check(tabs.findIndex((t) => /^Benchmarking/.test(t)) === tabs.findIndex((t) => /^Stress Testing/.test(t)) + 1, "a Benchmarking tab after Stress Testing");

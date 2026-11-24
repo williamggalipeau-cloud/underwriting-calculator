@@ -118,7 +118,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const [dl] = await Promise.all([p.waitForEvent("download"), p.getByTestId("track-record").getByRole("button", { name: "Excel" }).click()]);
   check(/track-record-.*\.xlsx$/.test(dl.suggestedFilename()), "Track Record Excel");
 
-  // ── Operational Dashboard: the sale's contract dates on the Calendar (11/24) ──
+  // ── Dashboard: the sale's contract dates on the Calendar (11/24) ──
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
   const pastBtn = p.getByTestId("calendar").getByRole("button", { name: /Show the past 12 months/ });

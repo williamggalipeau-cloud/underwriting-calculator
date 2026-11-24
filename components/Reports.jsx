@@ -6,7 +6,7 @@
 // anything: download and upload to the investor portal.
 import { useMemo, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
-import { fundOptionLabel } from "@/lib/fundTypes";
+import { fundOptionLabel, fundType } from "@/lib/fundTypes";
 import { lastCompletedQuarterEnd, quarterLabel } from "@/lib/valuations";
 import { writeXlsx } from "@/lib/xlsx";
 import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, quarterSummary, reportXlsx, summaryChange, summaryValue } from "@/lib/quarterlyReport";
@@ -198,13 +198,17 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           <p className="text-xs text-gray-500">Quarterly performance report from the app&apos;s figures. Issue it to freeze the figures; the app never sends anything.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          {fundNames.length > 1 && (
-            <select aria-label="Fund" value={fundName} onChange={(e) => setFundPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">
-              {fundNames.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}
+          {/* Portfolio (user, 11/24): the fund, joint venture or separate account reported on. */}
+          <label className="flex items-center gap-1 text-gray-600">Portfolio
+            <select aria-label="Portfolio" value={fundName} onChange={(e) => { setFundPick(e.target.value); setAssetPick(""); }} className="rounded-lg border border-gray-300 px-2 py-1.5 text-gray-900">
+              {["Fund", "Joint Venture", "Separate Account"].map((ty) => {
+                const ns = fundNames.filter((n) => fundType(funds[n]?.type) === ty).sort();
+                return ns.length ? <optgroup key={ty} label={ty === "Fund" ? "Funds" : `${ty}s`}>{ns.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}</optgroup> : null;
+              })}
             </select>
-          )}
+          </label>
           <select aria-label="Report on" value={assetId} onChange={(e) => setAssetPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5" title="The portfolio (the whole fund) or one asset in it">
-            <option value="">Portfolio: whole fund</option>
+            <option value="">Whole portfolio</option>
             <optgroup label="Asset">{report.portfolio.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</optgroup>
           </select>
           <select aria-label="Quarter" value={qEnd} onChange={(e) => setQPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">

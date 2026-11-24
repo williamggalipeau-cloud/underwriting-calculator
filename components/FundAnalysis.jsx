@@ -1165,7 +1165,7 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-base font-semibold text-gray-900">Fund Return</h2>
+          <h2 className="text-base font-semibold text-gray-900">Portfolio Return</h2>
           <p className="text-xs text-gray-400 mt-0.5">
             Open deals with a Fund name are included live. Add to Fund saves a fixed snapshot.
           </p>

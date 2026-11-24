@@ -1,6 +1,6 @@
 "use client";
 
-// Phase N: Fund Summary tab (Portfolio Management, first). One page of key
+// Phase N: Portfolio Summary tab (Portfolio Management, first). One page of key
 // facts about a fund, with links to the tabs that hold performance, the
 // portfolio and upcoming dates.
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -79,7 +79,7 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
   const fundDeals = useMemo(() => deals.filter((d) => d.inputs.fundName?.trim() === fund), [deals, fund]);
   const dates = useMemo(() => (terms ? keyDates(terms, today) : null), [terms, today]);
   const cap = useMemo(() => (terms ? capitalSummary(terms, fundDeals, today) : null), [terms, fundDeals, today]);
-  if (!terms) return <p className="text-sm text-gray-500">Set up a fund first (Fund Return → New fund).</p>;
+  if (!terms) return <p className="text-sm text-gray-500">Set up a fund first (Portfolio Return → New fund).</p>;
   const entities = terms.entities ?? [];
   const setT = (patch) => canEdit && onFundTermsChange(fund, patch);
   const setEnt = (id, patch) => setT({ entities: entities.map((e) => (e.id === id ? { ...e, ...patch } : e)) });
@@ -89,7 +89,7 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
   return (
     <section className="space-y-3" data-testid="fund-summary">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">Fund Summary <span className="text-sm font-normal text-gray-500">· {fund}</span><FundTypeBadge type={terms.type} /></h2>
+        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">Portfolio Summary <span className="text-sm font-normal text-gray-500">· {fund}</span><FundTypeBadge type={terms.type} /></h2>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {names.length > 1 && <select aria-label="Fund" value={fund} onChange={(e) => setPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">{names.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}</select>}
           <button type="button" onClick={async () => { const { fundFactSheetPdf } = await import("@/lib/fundSummaryPdf"); downloadBlob(await fundFactSheetPdf(fund, terms, dates, cap, entities), `${safeFileName(fund)}-fact-sheet.pdf`); }} className={`${btn} border-gray-300 bg-white text-gray-700`}>Fact sheet (PDF)</button>
@@ -119,7 +119,7 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
         </Box>
       </div>
 
-      <Box title="Key terms" testId="fs-terms" right={<span className="text-[11px] text-gray-500">From the fund&apos;s terms (Fund Return → Edit fund; the LPA / PPM on the Documents tab)</span>}>
+      <Box title="Key terms" testId="fs-terms" right={<span className="text-[11px] text-gray-500">From the fund&apos;s terms (Portfolio Return → Edit fund; the LPA / PPM on the Documents tab)</span>}>
         <table className="w-full text-xs"><tbody>
           {keyTerms(terms).filter(([k]) => k !== "Key person" && k !== "GP removal").map(([k, v]) => <tr key={k} className="border-t border-gray-100 first:border-0"><td className="w-48 py-1 align-top text-gray-500">{k}</td><td className="py-1">{v}</td></tr>)}
           {[["keyPerson", "Key person"], ["removal", "GP removal"]].map(([k, l]) => (
@@ -169,7 +169,7 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
 
       <Box title="Elsewhere" testId="fs-links">
         <div className="flex flex-wrap gap-2 text-xs">
-          {[["fund", "Performance: Fund Return"], ["valuations", "Valuation and NAV"], ["assets", "Portfolio: Asset Summary"], ["leases", "Upcoming dates: Leases → Critical dates"], ["reports", "Reports"]].map(([tab, l]) => (
+          {[["fund", "Performance: Portfolio Return"], ["valuations", "Valuation and NAV"], ["assets", "Portfolio: Asset Summary"], ["leases", "Upcoming dates: Leases → Critical dates"], ["reports", "Reports"]].map(([tab, l]) => (
             <button key={tab} type="button" onClick={() => onOpenTab?.(tab)} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-blue-700 hover:bg-gray-50">{l} →</button>
           ))}
         </div>

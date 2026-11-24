@@ -352,7 +352,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-gray-400">None. Tag the call or line draw that funded this asset under Fund Return → Capital activity.</p>
+            <p className="text-xs text-gray-400">None. Tag the call or line draw that funded this asset under Portfolio Return → Capital activity.</p>
           )}
         </div>
       </div>
@@ -569,7 +569,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
         exit caps are weighted (total ÷ total). IRR is pooled across every asset&apos;s dated equity cash flows; the multiple is total
         distributions ÷ total equity. Underwriting figures are each asset&apos;s current model (gross, before fund fees and promote). Fair
         value, NAV and TVPI are from the Valuation tab as of the last completed quarter. Funding comes from the fund&apos;s capital activity
-        tags (Fund Return).
+        tags (Portfolio Return).
       </p>
     </div>
   );

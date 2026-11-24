@@ -1,5 +1,5 @@
 // 11/23 layout release: Baywise header, grouped tabs, firm-wide strip, SOFR
-// panel on Debt, fund NAV on Fund Return, Asset Return targets, fund type tag.
+// panel on Debt, fund NAV on Portfolio Return, Asset Return targets, fund type tag.
 // Fictional fixture; Supabase mocked (JSON workspace path).
 const { chromium } = require("playwright");
 const FX = require("./fixture.cjs");
@@ -44,7 +44,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // Function areas (11/24), in order; each opens its tabs, with the renamed tabs
   const areas = (await p.getByTestId("function-area").allInnerTexts()).map((t) => t.replace(/[▾▴\d\s]+$/u, "").trim());
-  check(areas.join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PROPERTY MANAGEMENT | PORTFOLIO MANAGEMENT | MARKET | LIBRARY", `function areas: ${areas.join(" | ")}`);
+  check(areas.join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PROPERTY MANAGEMENT | PORTFOLIO MANAGEMENT | FINANCE | RESEARCH | LIBRARY", `function areas: ${areas.join(" | ")}`);
   check((await p.getByTestId("tab-group").count()) === 0, "on the landing page no area is open");
   let nav = "";
   for (const a of await p.getByTestId("function-area").all()) {
@@ -55,12 +55,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   }
   await p.getByTestId("function-area").last().click();
   check((await p.getByTestId("home-button").count()) === 1 && (await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0, "Home is in the header, not in Functions");
-  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Research", "Sell/Hold Analysis", "Assets for Sale", "Offers", "Track Record", "Disposition Documents", "Asset Summary", "Asset Business Plan", "Rent Roll", "Leases", "Active Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Return", "Fund Debt", "Distribution Analysis", "Stress Testing", "Benchmarking", "GP Economics", "Market Data", "Documents", "Reports"];
+  const order = ["Pipeline", "Deal Screener", "Portfolio Impact", "Comps", "Sell/Hold Analysis", "Assets for Sale", "Offers", "Track Record", "Disposition Documents", "Asset Summary", "Asset Business Plan", "Rent Roll", "Leases", "Active Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Portfolio Summary", "Portfolio Return", "Portfolio Debt", "Distribution Analysis", "Stress Testing", "Benchmarking", "GP Economics", "Market Data", "Documents", "Reports"];
   // Each tab found after the previous one (names can contain earlier ones, e.g. "Disposition Documents").
   const pos = [];
   for (const t of order) pos.push(nav.indexOf(t, pos.length ? pos[pos.length - 1] + 1 : 0));
   check(pos.every((x) => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "tabs in the agreed order with the new names");
-  check(!/Fund Plan|Unit Roll|Sales Comps|Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
+  check(!/Fund Plan|Unit Roll|Sales Comps|Fund Return|Fund Summary|Fund Debt|Fund Impact|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
 
   // Backup buttons (11/23): no Reset; Download backup; owner-only Restore
   check((await p.getByRole("button", { name: /Reset workspace|Export workspace|Import workspace/ }).count()) === 0, "workspace buttons removed");
@@ -76,7 +76,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(300);
   const items = await sm.getByRole("menuitem").allInnerTexts();
-  check(items.length === 6 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add construction test data/.test(items[3]) && /Load test scenario/.test(items[4]) && /Clear test data/.test(items[5]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
+  check(items.length === 7 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add sample pipeline deals/.test(items[3]) && /Add construction test data/.test(items[4]) && /Load test scenario/.test(items[5]) && /Clear test data/.test(items[6]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
   check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.getByRole("button", { name: "More", exact: true }).click();
@@ -85,7 +85,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const figs = p.getByTestId("firm-figure");
   check((await figs.count()) === 5, `firm strip: ${await figs.count()} figures`);
   const strip = (await figs.allInnerTexts()).join(" | ");
-  check(/AUM/.test(strip) && /Square feet/.test(strip) && /Assets/.test(strip) && /across \d+ funds?/.test(strip) && /Tenants/.test(strip) && /Occupancy/.test(strip), `firm strip figures: ${strip.replace(/\s+/g, " ")}`);
+  check(/AUM/.test(strip) && /Square feet/.test(strip) && /Assets/.test(strip) && /across \d+ portfolios?/.test(strip) && /Tenants/.test(strip) && /Occupancy/.test(strip), `firm strip figures: ${strip.replace(/\s+/g, " ")}`);
   const titles = await figs.evaluateAll((els) => els.map((e) => e.getAttribute("title") || ""));
   check(titles.every((t) => t.length > 10), "each figure has a hover definition");
   check(!/Committed|IRR|DSCR/.test(strip), "no committed capital or per-asset metrics in the strip");
@@ -109,21 +109,21 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(wt.every((t) => /^Below target: .* under \d/.test(t)), `below-target warnings carry their threshold: ${JSON.stringify(wt)}`);
   await p.screenshot({ path: S + "/layout_returns.png" });
 
-  // Fund NAV moved to Fund Return; link both ways
+  // Fund NAV moved to Portfolio Return; link both ways
   await tab("Valuation").click();
   await p.waitForTimeout(1200);
-  check((await main.getByText("Fund NAV ·").count()) === 0 && (await main.getByTestId("fund-nav-moved").count()) === 1, "Valuation: no fund NAV, a pointer to Fund Return");
+  check((await main.getByText("Fund NAV ·").count()) === 0 && (await main.getByTestId("fund-nav-moved").count()) === 1, "Valuation: no fund NAV, a pointer to Portfolio Return");
   check((await main.getByRole("button", { name: "Export PDF" }).count()) === 1, "Valuation keeps the valuation PDF");
-  await main.getByTestId("fund-nav-moved").getByRole("button", { name: /Fund Return/ }).click();
+  await main.getByTestId("fund-nav-moved").getByRole("button", { name: /Portfolio Return/ }).click();
   await p.waitForTimeout(1500);
   const fn = main.getByTestId("fund-nav");
-  check((await fn.count()) === 1 && /Fund NAV ·/.test(await fn.innerText()) && /Net LP/.test(await fn.innerText()) && /Net LP TVPI/.test(await fn.innerText()), "Fund Return: fund NAV, net LP interim returns and the quarter-by-quarter table");
+  check((await fn.count()) === 1 && /Fund NAV ·/.test(await fn.innerText()) && /Net LP/.test(await fn.innerText()) && /Net LP TVPI/.test(await fn.innerText()), "Portfolio Return: fund NAV, net LP interim returns and the quarter-by-quarter table");
   await fn.getByRole("button", { name: /Valuation PDF and marks/ }).click();
   await p.waitForTimeout(800);
-  check((await main.getByTestId("fund-nav-moved").count()) === 1, "Fund Return links back to Valuation");
+  check((await main.getByTestId("fund-nav-moved").count()) === 1, "Portfolio Return links back to Valuation");
 
   // Fund type tag
-  await tab("Fund Return").click();
+  await tab("Portfolio Return").click();
   await p.waitForTimeout(1200);
   check((await main.getByTestId("fund-type-badge").first().innerText()) === "Fund", "existing fund reads as type Fund");
   await main.getByRole("button", { name: "New fund", exact: true }).click();
@@ -133,7 +133,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await dlg.getByLabel("Fund type").selectOption("Separate Account");
   const addCur = dlg.getByRole("checkbox", { name: /Add the current deal/ });
   if (await addCur.count()) await addCur.uncheck();
-  await dlg.getByRole("button", { name: "Create fund", exact: true }).click();
+  await dlg.getByRole("button", { name: /^Create (fund|JV|SMA)$/ }).click();
   await p.waitForTimeout(1200);
   const badges = await main.getByTestId("fund-type-badge").allInnerTexts();
   check(badges.includes("Separate Account"), `new fund tagged Separate Account: ${badges.join(", ")}`);

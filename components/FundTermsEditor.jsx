@@ -3,7 +3,7 @@
 import { FUND_TYPES, fundType } from "@/lib/fundTypes";
 import { useEffect, useState } from "react";
 import { compareDoc } from "@/lib/dealDocApply";
-import { createDealDoc, listDealDocs } from "@/lib/dealDocs";
+import { createDealDocWithFallback, listDealDocs } from "@/lib/dealDocs";
 import {
   DEFAULT_FUND_TERMS,
   MAX_TIERS,
@@ -47,15 +47,21 @@ function Num({ label, value, onChange, suffix, prefix, step = 1, min = 0, hint }
 // and Excel / CSV upload.
 // The fund's LPA / PPM (Documents tab, fund-level): each term and limit read
 // from them, beside the form, to use one by one. Upload here too.
+// The governing document by portfolio type (user, 11/24): a fund's LPA / PPM,
+// a joint venture's JVA, a separate account's SMA.
+const GOV_DOCS = { Fund: [["lpa", "LPA"], ["ppm", "PPM"]], "Joint Venture": [["jva", "JVA"]], "Separate Account": [["sma", "SMA / IMA"]] };
 function LpaPanel({ workspaceId, email, fundName, terms, onUse, onUseLimit }) {
+  const kinds = GOV_DOCS[fundType(terms.type)] ?? GOV_DOCS.Fund;
+  const docLabel = kinds.map(([, l]) => l).join(" / ");
   const [docs, setDocs] = useState(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
-  const [kind, setKind] = useState("lpa");
+  const [kindPick, setKind] = useState("");
+  const kind = kinds.some(([k]) => k === kindPick) ? kindPick : kinds[0][0];
   useEffect(() => {
     if (!workspaceId) return;
     let alive = true;
-    listDealDocs(workspaceId).then((d) => alive && setDocs(d.filter((x) => !x.deal_id && (x.doc_type === "lpa" || x.doc_type === "ppm")))).catch(() => {});
+    listDealDocs(workspaceId).then((d) => alive && setDocs(d.filter((x) => !x.deal_id && ["lpa", "ppm", "jva", "sma"].includes(x.doc_type)))).catch(() => {});
     return () => {
       alive = false;
     };
@@ -63,11 +69,11 @@ function LpaPanel({ workspaceId, email, fundName, terms, onUse, onUseLimit }) {
   if (!workspaceId) return null;
   const mine = (docs ?? []).filter((d) => d.fund_name.toLowerCase() === String(fundName ?? "").trim().toLowerCase());
   const upload = async (file) => {
-    if (!file || !String(fundName ?? "").trim()) return setMsg("Enter the fund name first.");
+    if (!file || !String(fundName ?? "").trim()) return setMsg("Enter the name first.");
     setBusy(true);
     try {
-      await createDealDoc(workspaceId, { dealId: null, fundName: String(fundName).trim(), docType: kind, title: file.name.replace(/\.pdf$/i, ""), files: [file] }, email);
-      setMsg(`Uploaded ${file.name}. Review it with Claude on the Documents tab (Whole fund); its terms then show here.`);
+      await createDealDocWithFallback(workspaceId, { dealId: null, fundName: String(fundName).trim(), docType: kind, title: file.name.replace(/\.pdf$/i, ""), files: [file] }, email);
+      setMsg(`Uploaded ${file.name}. Review it with Claude on the Documents tab; its terms then show here.`);
     } catch (e) {
       setMsg(e.message || String(e));
     } finally {
@@ -77,19 +83,18 @@ function LpaPanel({ workspaceId, email, fundName, terms, onUse, onUseLimit }) {
   return (
     <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-3 text-xs" data-testid="lpa-panel">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="font-semibold text-gray-800">LPA / PPM</p>
-        <select value={kind} onChange={(e) => setKind(e.target.value)} className="rounded border border-gray-300 bg-white px-1.5 py-1" aria-label="LPA or PPM">
-          <option value="lpa">LPA</option>
-          <option value="ppm">PPM</option>
-        </select>
+        <p className="font-semibold text-gray-800">{docLabel}</p>
+        {kinds.length > 1 && <select value={kind} onChange={(e) => setKind(e.target.value)} className="rounded border border-gray-300 bg-white px-1.5 py-1" aria-label="LPA or PPM">
+          {kinds.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+        </select>}
         <label className="cursor-pointer rounded-lg border border-violet-300 bg-white px-2.5 py-1 font-medium text-violet-800">
-          {busy ? "Uploading…" : "Upload LPA / PPM"}
-          <input type="file" accept="application/pdf,.pdf" className="sr-only" aria-label="Upload LPA or PPM" onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ""; }} />
+          {busy ? "Uploading…" : `Upload ${docLabel}`}
+          <input type="file" accept="application/pdf,.pdf" className="sr-only" aria-label={`Upload ${docLabel}`} onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ""; }} />
         </label>
         {msg && <span className="text-gray-600">{msg}</span>}
       </div>
       {mine.length === 0 ? (
-        <p className="mt-1 text-gray-500">No LPA or PPM for this fund yet. Upload one, review it with Claude on the Documents tab, and its terms and investment limits appear here to use one by one.</p>
+        <p className="mt-1 text-gray-500">No {docLabel} for this {({ "Joint Venture": "JV", "Separate Account": "SMA" })[fundType(terms.type)] ?? "fund"} yet. Upload one, review it with Claude on the Documents tab, and its terms{fundType(terms.type) === "Fund" ? " and investment limits" : ""} appear here to use one by one.</p>
       ) : (
         mine.map((d) => {
           if (!d.abstract) return <p key={d.id} className="mt-1 text-gray-500">{d.doc_type.toUpperCase()} {d.title}: not reviewed yet (Documents tab → Review with Claude).</p>;
@@ -134,9 +139,12 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
       return { ...p, tiers };
     });
 
+  // What to call it (user, 11/24): a fund, a JV or an SMA, never "fund" for the others.
+  const unit = { "Joint Venture": "JV", "Separate Account": "SMA" }[fundType(t.type)] ?? "Fund";
+  const unitLc = unit === "Fund" ? "fund" : unit;
   const name = String(t.name ?? "").trim();
   const duplicate = mode === "new" && existingNames.some((n) => n.toLowerCase() === name.toLowerCase());
-  const issues = [...validateTerms(t), ...(duplicate ? [`A fund named “${name}” already exists.`] : [])];
+  const issues = [...validateTerms(t), ...(duplicate ? [`A portfolio named “${name}” already exists.`] : [])];
   const blocking = !name || duplicate || !(t.termYears > 0);
   const fd = t.finalClose ? fundDates(t) : null;
 
@@ -161,7 +169,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/30 p-4" role="dialog" aria-modal="true" aria-label={mode === "new" ? "New fund" : "Edit fund terms"}>
       <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-gray-200 my-8">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-900">{mode === "new" ? "New fund" : `Edit terms · ${initial?.name}`}</h2>
+          <h2 className="text-base font-semibold text-gray-900">{mode === "new" ? `New ${unitLc}` : `Edit terms · ${initial?.name}`}</h2>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-700" aria-label="Close">✕</button>
         </div>
 
@@ -206,10 +214,10 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
 
           {/* Fund */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-900">Fund</h3>
+            <h3 className="text-sm font-semibold text-gray-900" data-testid="terms-unit">{unit}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <label className="flex flex-col gap-1 col-span-2">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fund name</span>
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{unit} name</span>
                 <input
                   type="text"
                   value={t.name}
@@ -226,7 +234,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                   aria-label="Portfolio manager"
                   value={t.portfolioManager ?? ""}
                   onChange={(e) => set("portfolioManager")(e.target.value)}
-                  placeholder="Owner of fund-level actions"
+                  placeholder={`Owner of ${unitLc}-level actions`}
                   className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900"
                 />
               </label>
@@ -236,13 +244,13 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                   value={fundType(t.type)}
                   onChange={(e) => set("type")(e.target.value)}
                   aria-label="Fund type"
-                  title="A label only: every type uses the same fund model"
+                  title="Fund, JV or SMA: each uses its own terms (from its LPA, JVA or SMA)"
                   className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 bg-white"
                 >
                   {FUND_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
                 </select>
               </label>
-              <Num label="Total commitments" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint="Fund size; drives dry powder" />
+              <Num label="Total commitments" prefix="$" step={1_000_000} value={t.targetEquity} onChange={set("targetEquity")} hint={`${unit} size; drives dry powder`} />
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Hurdle rate</span>
                 <div className="flex items-center rounded-lg border border-gray-200 bg-white">
@@ -268,8 +276,23 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 </select>
                 <span className="text-[10px] text-gray-400">Commitments during the investment period, then invested capital in assets held</span>
               </label>
-              <Num label="Fund cash reserve" suffix="qtrs" step={1} value={t.cashReserveQuarters ?? 2} onChange={set("cashReserveQuarters")} hint="Quarters of projected fund expenses" />
+              <Num label={`${unit} cash reserve`} suffix="qtrs" step={1} value={t.cashReserveQuarters ?? 2} onChange={set("cashReserveQuarters")} hint="Quarters of projected fund expenses" />
+              <Num label="Acquisition fee" suffix="% of price" step={0.25} value={t.acqFeePct ?? 0} onChange={set("acqFeePct")} hint="Paid to the sponsor when an asset is bought" />
+              <Num label="Disposition fee" suffix="% of sale" step={0.25} value={t.dispFeePct ?? 0} onChange={set("dispFeePct")} hint="Paid to the sponsor when an asset is sold" />
             </div>
+            {fundType(t.type) === "Joint Venture" && (
+              <div className="grid grid-cols-2 gap-3" data-testid="jv-terms">
+                <label className="flex flex-col gap-1"><span className="text-xs font-medium text-gray-500 uppercase tracking-wide">JV partner</span><input aria-label="JV partner" value={t.partnerName ?? ""} onChange={(e) => set("partnerName")(e.target.value)} placeholder="From the JVA" className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900" /></label>
+                <p className="self-end text-[11px] text-gray-500">The partner&apos;s promote structure is the waterfall below (preferred return and tiers); the sponsor co-invest is the GP commitment.</p>
+              </div>
+            )}
+            {fundType(t.type) === "Separate Account" && (
+              <div className="grid grid-cols-3 gap-3" data-testid="sma-terms">
+                <label className="flex flex-col gap-1"><span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Client</span><input aria-label="Client" value={t.clientName ?? ""} onChange={(e) => set("clientName")(e.target.value)} placeholder="From the SMA" className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900" /></label>
+                <Num label="Incentive fee" suffix="% of profit" step={1} value={t.incentiveFeePct ?? 0} onChange={(v) => set("incentiveFeePct")(v || null)} hint="Above the hurdle; replaces the promote tiers" />
+                <Num label="Incentive hurdle" suffix="% IRR" step={0.5} value={t.incentiveHurdlePct ?? t.prefPct ?? 0} onChange={set("incentiveHurdlePct")} hint="Client IRR before the incentive fee" />
+              </div>
+            )}
           </section>
 
           {/* Timeline */}
@@ -295,6 +318,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
           {/* Waterfall */}
           <section className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-900">Waterfall</h3>
+            {fundType(t.type) === "Separate Account" && Number(t.incentiveFeePct) > 0 && <p className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs text-amber-800" data-testid="incentive-note">This separate account uses its incentive fee ({t.incentiveFeePct}% of profit above a {t.incentiveHurdlePct ?? t.prefPct}% IRR hurdle, no catch-up) in place of the preferred return, catch-up and promote tiers below.</p>}
             <div className="grid grid-cols-3 gap-3">
               <Num label="GP commitment" suffix="% of equity" step={0.5} value={t.gpCommitPct} onChange={set("gpCommitPct")} />
               <Num label="Preferred return" suffix="%/yr" step={0.25} value={t.prefPct} onChange={set("prefPct")} />
@@ -380,7 +404,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
               )}
             </div>
             <p className="text-[11px] text-gray-400">
-              Distributions: pref → return of capital → GP catch-up → split by the tier the fund&apos;s IRR falls in. Leave the top tier&apos;s hurdle blank.
+              Distributions: pref → return of capital → GP catch-up → split by the tier the {unitLc}&apos;s IRR falls in. Leave the top tier&apos;s hurdle blank.
             </p>
           </section>
 
@@ -399,7 +423,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 <Num label="Spread over SOFR" suffix="%" step={0.05} value={t.subLineSpreadPct} onChange={set("subLineSpreadPct")} hint="30-day average SOFR" />
                 <Num label="Unused fee" suffix="%/yr" step={0.05} value={t.subLineUnusedFeePct} onChange={set("subLineUnusedFeePct")} />
                 <Num label="Max days outstanding" suffix="days" step={30} value={t.subLineMaxDays} onChange={set("subLineMaxDays")} hint="Then repaid by an LP call" />
-                <label className="flex flex-col gap-0.5 text-xs text-gray-600">Facility maturity<input aria-label="Sub line maturity" type="date" value={t.subLineMaturity ?? ""} onChange={(e) => set("subLineMaturity")(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /><span className="text-[11px] text-gray-400">Shown on the Operational Dashboard&apos;s Calendar</span></label>
+                <label className="flex flex-col gap-0.5 text-xs text-gray-600">Facility maturity<input aria-label="Sub line maturity" type="date" value={t.subLineMaturity ?? ""} onChange={(e) => set("subLineMaturity")(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /><span className="text-[11px] text-gray-400">Shown on the Dashboard&apos;s Calendar</span></label>
               </div>
             )}
           </section>
@@ -415,7 +439,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
           {mode === "new" && currentDealName ? (
             <label className="flex items-center gap-2 text-xs text-gray-700">
               <input type="checkbox" checked={addCurrent} onChange={(e) => setAddCurrent(e.target.checked)} />
-              Add the current deal ({currentDealName}) to this fund
+              Add the current deal ({currentDealName}) to this {unitLc}
             </label>
           ) : (
             <span />
@@ -435,7 +459,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
               onClick={() => onSave(normalizeTerms({ ...t, type: fundType(t.type), name }), { addCurrentDeal: addCurrent })}
               className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 disabled:opacity-40"
             >
-              {mode === "new" ? "Create fund" : "Save terms"}
+              {mode === "new" ? `Create ${unitLc}` : "Save terms"}
             </button>
           </div>
         </div>
