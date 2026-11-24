@@ -66,14 +66,14 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // Documents: apply the loan agreement (all differing fields)
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
-  const loan = main.getByTestId("doc-card").filter({ hasText: "Loan agreement" }).first();
+  const loan = await FX.docCard(main, "Loan agreement");
   await loan.getByRole("button", { name: "Apply", exact: true }).click();
   const la = loan.getByTestId("doc-apply");
   check(!(await la.getByTestId("doc-row-spread_pct→spreadPct").getByRole("checkbox").isEnabled()), "spread matches the model (2.00%): nothing to apply");
   await la.getByRole("button", { name: /^Apply \d+ field/ }).click();
   await p.waitForTimeout(1200);
   // Apply the executed cap
-  const cap = main.getByTestId("doc-card").filter({ hasText: "Rate cap confirmation" }).filter({ hasText: "Airport Flex Park cap" }).first();
+  const cap = await FX.docCard(main, "Airport Flex Park cap");
   await cap.getByRole("button", { name: "Apply", exact: true }).click();
   const ca = cap.getByTestId("doc-apply");
   const checks = await ca.getByTestId("insurance-gap").allInnerTexts();
@@ -97,13 +97,13 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await main.getByRole("combobox").first().selectOption({ label: "Route 9 Small Bay" }).catch(() => {});
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(800);
-  await main.getByRole("button", { name: /Whole fund/ }).click();
+  await FX.docAsset(main, "");
   await p.waitForTimeout(800);
-  const r9loan = main.getByTestId("doc-card").filter({ hasText: "Route 9 Small Bay loan agreement" }).first();
+  const r9loan = await FX.docCard(main, "Route 9 Small Bay loan agreement");
   await r9loan.getByRole("button", { name: "Apply", exact: true }).click();
   await r9loan.getByTestId("doc-apply").getByRole("button", { name: /^Apply \d+ field/ }).click();
   await p.waitForTimeout(1200);
-  const r9cap = main.getByTestId("doc-card").filter({ hasText: "Route 9 Small Bay cap" }).first();
+  const r9cap = await FX.docCard(main, "Route 9 Small Bay cap");
   await r9cap.getByRole("button", { name: "Apply", exact: true }).click();
   const r9checks = await r9cap.getByTestId("doc-apply").getByTestId("insurance-gap").allInnerTexts();
   check(r9checks.some((t) => /BBB\+, below the loan's minimum A/.test(t)) && r9checks.some((t) => /Notional \$9,000,000 is below/.test(t)), `Route 9 cap flagged: ${r9checks.join(" | ")}`);
@@ -111,7 +111,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // Critical dates: cap expiry and replacement deadline
   await FX.openTab(p, "Leases");
   await p.waitForTimeout(1200);
-  await main.getByRole("button", { name: /Whole fund/ }).click();
+  await FX.docAsset(main, "");
   await main.getByRole("tab", { name: "Critical dates" }).click();
   const cdt = await main.getByTestId("critical-dates").innerText();
   check(cdt.includes("Replacement rate cap due to the lender") && cdt.includes("12/31/26") && cdt.includes("Rate cap (Fictional Capital Markets LLC) expires"), "cap replacement deadline (12/31/26) and expiry on Critical dates");

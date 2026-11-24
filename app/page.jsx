@@ -84,6 +84,7 @@ import {
 } from "@/lib/cloud";
 import ChangeLog from "@/components/ChangeLog";
 import FundTermsEditor from "@/components/FundTermsEditor";
+import WorkflowDocs from "@/components/WorkflowDocs";
 import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
 import { FIGURE_DEFS, firmSummary, fmtAum } from "@/lib/enterprise";
 import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
@@ -493,7 +494,7 @@ const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 const TAB_COUNT_TITLES = { pipeline: "Active pipeline deals", forsale: "Sales in progress", offers: "Offers on sales in progress" };
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
 
 
 export default function Home() {
@@ -1395,6 +1396,8 @@ export default function Home() {
   const fundDeals = useMemo(() => scopeDeals(firmFundDeals, scope, resolveFund), [firmFundDeals, scope, resolveFund]);
   const viewFunds = useMemo(() => scopeFunds(funds, scope), [funds, scope]);
   const viewDeals = useMemo(() => scopeOpenDeals(deals, scope, resolveFund, pipeline), [deals, scope, resolveFund, pipeline]);
+  // Document Library (user, 11/24): every deal, open or saved, firm-wide.
+  const libraryDeals = useMemo(() => { const seen = new Set(); return [...deals, ...savedDeals].filter((d) => d?.id && !seen.has(d.id) && seen.add(d.id)); }, [deals, savedDeals]);
   // Tab count badges (11/24): active pipeline deals, sales in progress, offers on them.
   const tabCounts = useMemo(() => {
     const pl = (pipeline?.deals ?? []).filter((d) => PIPELINE_ACTIVE.includes(d.stage) && (!scope || d.targetFund === scope));
@@ -2491,6 +2494,24 @@ export default function Home() {
                 />
               </div>
             )}
+            {/* Documents panels in workflow tabs (user, 11/24): the library's documents of each tab's types. */}
+            {session && dbLink?.id && ["funddebt", "valuations", "leases", "insurance", "fundsummary", "assets"].includes(activeTab) && (
+              <div className="mt-4">
+                <WorkflowDocs
+                  key={activeTab + (DEAL_TABS.has(activeTab) ? activeDealId : "")}
+                  label={{ funddebt: "Debt documents", valuations: "Appraisals", leases: "Estoppels, CAM and billing", insurance: "Insurance certificates", fundsummary: "Governing documents", assets: "Asset documents" }[activeTab]}
+                  workspaceId={dbLink.id}
+                  canEdit={dbLink.role !== "viewer"}
+                  email={session?.user?.email ?? null}
+                  types={{ funddebt: ["loan", "rate_cap", "loan_term_sheet"], valuations: ["appraisal"], leases: ["estoppel", "cam", "billing"], insurance: ["insurance_cert"], fundsummary: ["lpa", "ppm", "jva", "sma"], assets: null }[activeTab]}
+                  uploadTypes={{ funddebt: ["loan", "rate_cap"], valuations: ["appraisal"], leases: ["estoppel", "cam", "billing"], insurance: ["insurance_cert"], fundsummary: ["lpa", "ppm", "jva", "sma"], assets: [] }[activeTab]}
+                  deals={DEAL_TABS.has(activeTab) ? [activeDeal] : activeTab === "funddebt" ? viewDeals.filter((d) => d.inputs.fundName?.trim()) : activeTab === "fundsummary" ? [] : fundDeals}
+                  portfolios={activeTab === "fundsummary" ? Object.keys(viewFunds) : []}
+                  funds={funds}
+                  onOpenLibrary={() => goTab("documents")}
+                />
+              </div>
+            )}
             {activeTab === "documents" && (
               <Documents
                 workspace={session && dbLink?.id ? dbLink : null}
@@ -2499,8 +2520,9 @@ export default function Home() {
                 userId={session?.user?.id ?? null}
                 canEdit={!!(session && dbLink?.id && dbLink.role !== "viewer")}
                 deal={activeDeal}
-                fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName))}
-                fundName={resolveFund(inputs.fundName)}
+                allDeals={libraryDeals}
+                resolve={resolveFund}
+                scopePortfolio={scope || ""}
                 funds={funds}
                 dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
                 onApplyDeal={applyToDeal}
@@ -2509,6 +2531,11 @@ export default function Home() {
                 onAddPipeline={handleAddPipelineFromOM}
                 marks={valuations}
                 onApplyMark={applyToMark}
+                onOpenTab={async (tab, dealId) => {
+                  if (!(await confirmLeave())) return;
+                  if (dealId && deals.some((d) => d.id === dealId)) setActiveDealId(dealId);
+                  setActiveTab(tab);
+                }}
               />
             )}
             {activeTab === "acqdocs" && (
