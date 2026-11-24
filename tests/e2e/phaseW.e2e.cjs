@@ -49,7 +49,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   const money = async (id) => Number((await p.getByTestId(id).locator("p").nth(1).innerText()).replace(/[$M,]/g, ""));
   const fees = await money("gp-fees"), promote = await money("gp-promote"), co = await money("gp-coinvest"), total = await money("gp-total");
   check(fees > 0 && promote > 0 && Math.abs(fees + promote + co - total) < 0.03, `fees ${fees}M + promote ${promote}M + co-invest ${co}M = total ${total}M`);
-  check(/% of GP income/.test(await p.getByTestId("gp-fees").innerText()) && /PV \$[\d.]+M at 8%/.test(await p.getByTestId("gp-fees").innerText()), "shares and the fees' present value");
+  check(/% of GP income/.test(await p.getByTestId("gp-fees").innerText()) && !/PV/.test(await p.getByTestId("gp-fees").innerText()) && (await g.getByLabel("Discount rate").count()) === 0, "shares; no discount rate or present value (user, 11/24)");
   check((await p.getByTestId("gp-share-bar").locator("div").count()) === 3, "share bar: fees, promote, co-invest");
   // Consolidated by portfolio type (11/24): the default view
   const con = p.getByTestId("gp-by-type");
@@ -59,12 +59,6 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await p.waitForTimeout(300);
   const yrs = p.getByTestId("gp-years");
   check((await yrs.locator("tbody tr").count()) >= 5 && /Life of portfolios/.test(await yrs.locator("tfoot").innerText()), "by year, with life-of-portfolio totals");
-  // Discount rate changes the PV only
-  const pv8 = await p.getByTestId("gp-fees").innerText();
-  await g.getByLabel("Discount rate").fill("12");
-  await p.waitForTimeout(400);
-  const pv12 = await p.getByTestId("gp-fees").innerText();
-  check(pv8 !== pv12 && /at 12%/.test(pv12) && (await money("gp-fees")) === fees, "a higher discount rate lowers the PV, not the total");
   // By fund, by asset
   await g.getByRole("tab", { name: "By portfolio" }).click();
   await p.waitForTimeout(300);

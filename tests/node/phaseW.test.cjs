@@ -41,7 +41,7 @@ const firm = W.firmGpEconomics([f, half], { todayISO: TODAY, discountPct: 8 });
 const t = firm.totals;
 ok(close(t.fees, f.fees.total + half.fees.total) && close(t.promote, f.promote.total + half.promote.total) && close(t.coinvest, f.coinvest.profit + half.coinvest.profit, 2), "firm totals sum the funds");
 ok(close(t.total, t.fees + t.promote + t.coinvest) && close(t.feesShare + t.promoteShare + t.coinvestShare, 100, 1e-6), "shares of GP income add to 100%");
-ok(t.feesPv > 0 && t.feesPv < t.fees, `fees PV at 8% ${(t.feesPv / 1e6).toFixed(2)}M below the total`);
+ok(t.feesPv === undefined && t.discountPct === undefined, "no discount rate or fee present value (removed, user 11/24)");
 ok(firm.assets.length === deals.length + 2 && firm.funds[1].type === "Separate Account", "assets of every fund, with types");
 const x = W.gpEconomicsXlsx("All funds", firm);
 ok(/GP economics \(internal\)/.test(x[0][0]) && x[3][0] === "Life of fund" && x.some((r) => r[0] === "Total GP income") && x.some((r) => r[0] === "Asset" && r[1] === "Fund"), "Excel: life of fund, years, funds, assets");

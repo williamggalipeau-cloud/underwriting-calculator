@@ -55,6 +55,7 @@ import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImp
 import { revertRoot, revertCheck, applyRevert, restoreAsOf, recentlyDeleted } from "@/lib/revert";
 import { ALL_FUNDS, workingOnOptions, validWorkingOn, scopeDeals, scopeFunds, scopeOpenDeals, scopeLabel } from "@/lib/workingOn";
 import { isPipeline } from "@/lib/fundImpact";
+import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -1586,6 +1587,17 @@ export default function Home() {
     setDeals((prev) => prev.map(withRiskTestData));
   }
 
+  // Mock comps (user, 11/24): fictional sales comps (Comps) and rent comps
+  // (Active Leasing) for each sample asset that has none.
+  function handleAddSampleComps() {
+    if (!requireEdit()) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const n = deals.filter((d) => withSampleComps(d, today) !== d).length;
+    if (!n) { window.alert("Every sample asset already has sales and rent comps."); return; }
+    noteAudit(`Added fictional sales and rent comps to ${n} sample asset${n === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map((d) => withSampleComps(d, today)));
+  }
+
   // Sample data menu: the fictional construction jobs and invoices (mock TI actuals) for Model Fund I.
   // Fictional pipeline deals (user, 11/24): added once; existing rows untouched.
   function handleAddSamplePipeline() {
@@ -1876,6 +1888,7 @@ export default function Home() {
                             { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
+                            { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
                             { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
                             { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
                             { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },

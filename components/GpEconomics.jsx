@@ -39,7 +39,6 @@ function T({ head, rows, right = [], testId, foot }) {
 export default function GpEconomics({ deals = [], funds = {}, curve, scopeName = "" }) {
   const [view, setView] = useState("consolidated");
   const [typeFilter, setTypeFilter] = useState("");
-  const [rate, setRate] = useState(8);
   const todayISO = new Date().toISOString().slice(0, 10);
   const names = useMemo(() => [...new Set(deals.map((d) => d.inputs?.fundName?.trim()).filter(Boolean))].sort(), [deals]);
   const shown = filterFundsByType(names, funds, typeFilter);
@@ -50,7 +49,7 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
       return null;
     }
   }).filter(Boolean), [shown.join("|"), deals, funds, todayISO, curve]); // eslint-disable-line react-hooks/exhaustive-deps
-  const firm = useMemo(() => firmGpEconomics(perFund, { todayISO, discountPct: rate }), [perFund, todayISO, rate]);
+  const firm = useMemo(() => firmGpEconomics(perFund), [perFund]);
   const t = firm.totals;
   const title = scopeName || (typeFilter ? `${typeFilter} portfolios` : "All portfolios");
 
@@ -71,7 +70,6 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <select aria-label="Fund type" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5"><option value="">All portfolio types</option>{FUND_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}</select>
-          <label className="flex items-center gap-1">Discount rate<input aria-label="Discount rate" type="number" value={rate} onChange={(e) => setRate(e.target.value === "" ? 0 : Number(e.target.value))} className="w-14 rounded border border-gray-300 px-1.5 py-1" />%</label>
           <button type="button" onClick={async () => downloadBlob(await writeXlsx(gpEconomicsXlsx(title, firm), { sheetName: "GP economics", title: `Baywise · ${title} GP economics (internal)` }), `gp-economics-${todayISO}.xlsx`)} className={`${btn} border-gray-300 bg-white text-gray-700`}>Excel</button>
           <button type="button" onClick={exportPdf} className={`${btn} border-gray-300 bg-white text-gray-700`}>PDF</button>
         </div>
@@ -79,7 +77,7 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
       <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">Internal: GP income is not for distribution. Promote is kept apart from fee revenue and never counted in it.</p>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="gp-totals">
-        <Card testId="gp-fees" label="Fee revenue (life of portfolios)" value={fmtM(t.fees)} sub={`${pct(t.feesShare, 0)} of GP income · PV ${fmtM(t.feesPv)} at ${t.discountPct}%`} />
+        <Card testId="gp-fees" label="Fee revenue (life of portfolios)" value={fmtM(t.fees)} sub={`${pct(t.feesShare, 0)} of GP income`} />
         <Card testId="gp-promote" label="Promote" value={fmtM(t.promote)} sub={`${pct(t.promoteShare, 0)} of GP income · ${fmtM(t.promoteRealized)} realized`} />
         <Card testId="gp-coinvest" label="Co-invest profit" value={fmtM(t.coinvest)} sub={`${pct(t.coinvestShare, 0)} of GP income · on ${fmtM(t.gpEquity)} GP equity`} />
         <Card testId="gp-total" label="Total GP income" value={fmtM(t.total)} sub={`${perFund.length} portfolio${perFund.length === 1 ? "" : "s"} · ${firm.assets.length} assets`} />

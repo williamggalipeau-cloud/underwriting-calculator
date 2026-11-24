@@ -324,7 +324,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Documents** | Deal and fund documents (§7.28), for this asset or the whole fund: offering memo, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant) and the fund's LPA and PPM. **Review with Claude** makes a prompt for a Claude session with the CREparser Deal Review connector (validators for OM, rent roll, T-12 and LOI; the others are read and checked locally); **Save abstract**; **View abstract** shows each value with its quote, page link and status; **Apply** compares the model with the document field by field (tick and apply; each change logged as from the document; a badge stays on fields not taken). Rent roll: merge or replace units. OM: **New deal from this OM**. IC memo: approved vs current and a conditions checklist. Insurance: **Check coverage** against the tenant's lease. LPA / PPM: fund terms and investment limits. Estoppel, CAM reconciliation and billing: **Check** against the leases and the rent roll (§7.29). The LPA and PPM upload has an **Assign to fund** picker, and each LPA/PPM card can be moved to another fund. Deadlines go to Leases → Critical dates. Owners and editors change; viewers read. |
+| **Documents** | **Document Library** (user, 11/24; §7.53): every portfolio- and asset-level document and lease across the firm, grouped by portfolio, with filters, counts, upload by type and a **Workflow tab** column (last) linking to where each document is used. **Open** on a row shows its card. Deal and fund documents (§7.28): offering memo, rent roll, T-12, LOI, PSA, final IC memo, acquisition and disposition closing statements, insurance certificates (owner and tenant) and the fund's LPA and PPM. **Review with Claude** makes a prompt for a Claude session with the CREparser Deal Review connector (validators for OM, rent roll, T-12 and LOI; the others are read and checked locally); **Save abstract**; **View abstract** shows each value with its quote, page link and status; **Apply** compares the model with the document field by field (tick and apply; each change logged as from the document; a badge stays on fields not taken). Rent roll: merge or replace units. OM: **New deal from this OM**. IC memo: approved vs current and a conditions checklist. Insurance: **Check coverage** against the tenant's lease. LPA / PPM: fund terms and investment limits. Estoppel, CAM reconciliation and billing: **Check** against the leases and the rent roll (§7.29). The LPA and PPM upload has an **Assign to fund** picker, and each LPA/PPM card can be moved to another fund. Deadlines go to Leases → Critical dates. Owners and editors change; viewers read. |
 | **Change log** (header button, next to User manual) | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
 
 
@@ -3004,8 +3004,8 @@ fund** (with the fund type tag) and **By asset**. The waterfall runs on the
 whole fund, so an asset's promote is the fund's promote **allocated by its
 share of gross profit**; the asset's own fees are its PM and CM fees.
 **Fund type** limits the page to Funds, Separate Accounts or Joint Ventures.
-**Discount rate** (default 8%) sets the present value of fee revenue from
-this year on; it doesn't change the totals. **Excel** and **PDF** export
+There is no discount rate or present value on this page (removed at the
+user's request, 11/24). **Excel** and **PDF** export
 everything on the page.
 
 ### 7.50 Benchmarking (`lib/benchmarks.js`, phase Y)
@@ -3162,6 +3162,67 @@ assets.
 (under contract, LOI and screening) in Acquisitions → Pipeline, their
 contract dates set from the day they are added so they show on the
 Dashboard; added once.
+
+### 7.53 Document Library (`lib/docLibrary.js`, 11/24)
+
+**Library → Documents** lists every document in the firm: what's stored on
+the documents table (whichever tab it was uploaded from: Acquisition and
+Disposition Documents, Active Leasing, Comps research, Property Management
+sections, Portfolio Summary legal documents, the Debt tab) and every lease
+from Leases. Photos aren't documents and aren't listed.
+- **Attached to:** each document is attached to a **portfolio** (LPA, PPM,
+  JVA, SMA and Portfolio Summary legal documents) or an **asset** (all other
+  types), shown as a badge with the portfolio or asset name. The type decides
+  which; an asset's portfolio is its fund, JV or SMA, and pipeline deals not
+  yet in one are grouped as "Not yet in a portfolio".
+- **Grouped by portfolio** by default (A–Z, then not-yet-in-a-portfolio),
+  newest first in each group; **Group by** also offers asset, workflow or
+  none.
+- **Filters:** Portfolio (starts on the header's Select Portfolio), Asset,
+  Attached to (portfolio or asset only), Workflow, Type and Search (name,
+  type, asset, portfolio and file names). The counts (documents,
+  portfolio-level, asset-level, leases, awaiting review) filter when clicked.
+- **Columns:** Document (name and files), Type, Attached to, Uploaded (date
+  and who), Status (Uploaded, Abstracted – review, Applied), Open, and last
+  **Workflow tab**, which opens the tab the document is used on (with the
+  asset selected).
+- **Open** shows the document's card under its row (review with Claude,
+  view abstract, apply, check, delete, as in §7.28); several can be open. A
+  lease opens its files with a link to Leases to abstract and apply.
+- **Upload document:** choose the type; a portfolio type asks for the
+  portfolio, an asset type for the portfolio and the asset (defaults to the
+  asset you're on). The form says what it's attached to and which tab it
+  also appears in. Leases are still uploaded on Leases.
+- With one asset selected and an IC approval on it, the IC variance table
+  and conditions show above the list.
+
+**Documents panels in workflow tabs** (collapsed until opened): **Portfolio
+Debt** (loan agreements, rate cap confirmations and loan term sheets for the
+portfolio's assets), **Valuation** (appraisals), **Leases** (estoppels, CAM
+reconciliations and billing for the asset), **Insurance** (insurance
+certificates), **Portfolio Summary** (LPA, PPM, JVA, SMA) and **Asset
+Summary** (every document of the portfolio's assets). Each lists its
+documents (Open shows the first file), uploads its own types (owners and
+editors) and links to the library.
+
+### 7.54 Mock comps for the sample assets (`lib/sampleComps.js`, 11/24)
+
+Each of the nine Model Fund I assets loads with **six fictional sales
+comps** (Acquisitions → Comps, the asset's own list) and **six fictional
+rent comps** (Asset Management → Active Leasing):
+- **Sales comps:** in the asset's city and state, light industrial, sized
+  60–150% of the asset, priced within ±12% of its purchase price per SF,
+  cap rates within ±0.45 points of its entry cap, sold over the last 24
+  months, with year built, clear height, occupancy and made-up buyers and
+  sellers. Marked as examples and "(fictional)" in the name.
+- **Rent comps:** in the asset's city, 1,800–9,000 SF, rents within about
+  ±9% of the asset's market rent, signed over the last 18 months, NNN,
+  36–84 month terms with free rent and TI; source "Sample (fictional)".
+- Generated from the asset's name, so the same asset always gets the same
+  comps; dates count back from the day they're added.
+- **Sample data → Add sample comps** (owners) adds them to sample assets
+  that have none; an asset with comps of its own, and every non-sample
+  asset, is left alone.
 
 ## 8. Worked example: the default deal
 
@@ -4171,13 +4232,14 @@ each phase and the decisions behind it are in
 | S. Portfolio Debt | Portfolio Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ✅ Built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Yardi construction upload and TI spend by unit with overrun flags, construction test data, Home items (§7.46) |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ✅ Built 11/23: Market group, Market Data tab (submarket statistics by quarter with sources, uploads with remembered columns, trends, asset vs. market, Excel and PDF), Home lane, stress tests in standard deviations with a correlated simulation (§7.47) |
-| V. Automated workflow | Approvals and reminders | ⏸ Later |
+| V. Automated workflow | Approvals and reminders | 🟡 Scoping (11/24): questions on what needs approval, approvers, thresholds, reminders and gating |
 | X. Distribution Analysis | New tab, last in Portfolio Management: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
 | Z. Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions; follows Select Portfolio (§7.42) |
 | Fund picker | "Select Portfolio" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Select Portfolio dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
-| Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
-| Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Research → Comps, valuations and reports show a full set | ⛓ Future release |
+| Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⏸ Skipped for now (user, 11/24) |
+| Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Comps, valuations and reports show a full set | ✅ Built 11/24 (§7.54) |
+| Document Library (11/24) | Library → Documents as a firm-wide library; Documents panels in the workflow tabs (§7.53) | ✅ Built 11/24 |
 | Quarterly report summary (11/24) | Watch list (internal version only), change vs. last quarter and issued reports on top of the quarterly report, on screen, in the PDF and in the Excel (§7.32b) | ✅ Built 11/24 |
 | Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
