@@ -46,12 +46,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const groups = await p.getByTestId("tab-group").allInnerTexts();
   check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PROPERTY MANAGEMENT | PORTFOLIO MANAGEMENT | MARKET | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
   const nav = await p.locator("nav").first().innerText();
-  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Leasing", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Plan", "Fund Return", "Fund Debt", "Distribution Analysis", "Stress Testing", "Market Data", "Documents", "Reports"];
+  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Research", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Plan", "Fund Return", "Fund Debt", "Distribution Analysis", "Stress Testing", "Market Data", "Documents", "Reports"];
   // Each tab found after the previous one (names can contain earlier ones, e.g. "Sale Documents").
   const pos = [];
   for (const t of order) pos.push(nav.indexOf(t, pos.length ? pos[pos.length - 1] + 1 : 0));
   check(pos.every((x) => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "tabs in the agreed order with the new names");
-  check(!/Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
+  check(!/Sales Comps|Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
 
   // Backup buttons (11/23): no Reset; Download backup; owner-only Restore
   check((await p.getByRole("button", { name: /Reset workspace|Export workspace|Import workspace/ }).count()) === 0, "workspace buttons removed");

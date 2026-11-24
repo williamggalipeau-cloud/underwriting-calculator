@@ -38,7 +38,7 @@ changes the model without the user clicking to apply it.
 | Z | Home page: today's attention list, workflow lanes matching the tab headers, fund cards, quick actions (incl. New fund setup), recent activity (added 11/23) | ✅ Built 11/23 (window 3): lib/home.js, components/Home.jsx; the app opens on Home; attention (leases ≤ 90 d from the unit roll, loans ≤ 18 mo, caps ≤ 12 mo, missing last-quarter marks, rent 60+ days late, NOI red vs. budget) each opening its tab on the asset; recent activity (last 10); fund cards with type badge; lanes for Acquisitions, Asset Management, Portfolio Management, Library; 7 quick actions; follows Working on. Later: option deadlines from lease abstracts (Leases tab has them), Dispositions / Property Management / Market lanes when those headers exist, lane order by role. Tests: 17 Node + 17 browser checks |
 | Picker | "Working on" fund picker in the header (All funds / each Fund, SMA, JV): filters every tab, remembered per person; also on the Home page (added 11/23) | ✅ Built 11/23 (window 3, ahead of Z): lib/workingOn.js; header Working on dropdown (All funds, each fund / SMA / JV with its type); header figures labelled with the fund; every tab gets the fund's assets and terms; asset list = the fund's assets + pipeline deals screened for it + drafts; Pipeline tab starts filtered to it; remembered in the person's sign-in metadata (browser when signed out); nothing saved to the firm. Edit asset / Edit fund / Documents still list everything. Home page lanes wait for Z. Tests: 13 Node + 20 browser checks |
 | Demo | Separate Demo firm for the sample fund and test deals, so the real firm holds only real assets (added 11/23) | ⛓ After Picker |
-| Comps | Mock comps for each Model Fund I asset: fictional sales comps on the Sales Comps tab and lease (rent) comps for phase R's Leasing tab, near each sample address (added 11/23) | ⛓ Future release (with the next sample-data update) |
+| Comps | Mock comps for each Model Fund I asset: fictional sales comps on Research → Comps and lease (rent) comps for phase R's Leasing tab, near each sample address (added 11/23) | ⛓ Future release (with the next sample-data update) |
 | External reports | A few more external (LP-facing) reports, to choose: e.g. LP capital account statements, an ILPA-template quarterly report, an annual report with audited figures, property-level investor updates, ESG / GRESB data (added 11/24) | ⛓ Future release: pick which, then plan |
 | Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
@@ -1011,7 +1011,8 @@ the README. The repository name and site URL stay as they are.
 Group order (user, 11/23): Acquisitions · Dispositions · Asset Management ·
 Property Management · Portfolio Management · Market · Library. A header
 shows only once its group has tabs. Sales Comps stays in Asset Management;
-rent comps live on the Leasing tab. The live SOFR panel moves from the top of
+rent comps live on the Leasing tab. (11/24: Sales Comps moved to
+Acquisitions → Research, see "Research tab" below.) The live SOFR panel moves from the top of
 the page to the top of the Debt tab (user, 11/23; built with phase I part 2).
 Tab names keep "Fund" (Fund Return, Fund Summary, Fund Plan,
 Fund Impact); only the group header says Portfolio Management.
@@ -1345,6 +1346,27 @@ saved record by record), so this is a **filter**, not a load:
   reopens on the portfolio they last worked on.
 - Pipeline deals with no fund show under All funds and under the fund they
   are being screened for (phase M).
+
+## Research tab (added 11/24, built 11/24)
+
+User, 11/24: "Create a new tab under acquisitions called Research. Move
+Comps under that section. Add a new section called Third-Party. Allow the
+team to be able to upload or link, and summarize any third-party research
+that was used. All of this should be tied to the asset, not a fund."
+
+- **Tab:** Acquisitions → Research, after Fund Impact, with the Asset
+  dropdown. Two sections: **Comps** and **Third-Party**. Sales Comps leaves
+  Asset Management.
+- **Comps per asset** (`inputs.salesComps`): an asset with none starts from
+  the firm comps list (shown with a note); its first edit saves a copy to
+  the asset. The firm list and the firm market data are unchanged.
+- **Third-Party** (`inputs.research`): type, title, provider, date, link
+  (http/https only), PDF (deal_documents, type "other", title
+  "[research:<id>] <file>"; no new database type), assumptions supported,
+  key figures and summary. Summary cards (count, assumptions with and
+  without support), this asset or all assets in view, Excel and PDF.
+- **Tests:** `tests/node/research.test.cjs`, `tests/e2e/research.e2e.cjs`;
+  layout order updated. Manual §7.48.
 
 ## More external reports (added 11/24, future release)
 
