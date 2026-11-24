@@ -20,7 +20,7 @@ const SAVED_IDS = ["test-fx-eastside", "test-fx-northgate", "test-fx-riverside"]
 function workspaceData() {
   const testRoll = generateTestScenario().savedDeals[0].inputs.units.map((u, i) => ({ ...u, id: `fx-unit-${i + 1}` }));
   // Sample deals start without the drawn photos and plan (phase L tests add them).
-  const sample = sp.buildSampleDeals(TEST_INPUTS).map((d) => ({ id: d.id, inputs: { ...d.inputs, units: [], fundName: FUND, assetMedia: undefined } }));
+  const sample = sp.buildSampleDeals(TEST_INPUTS).map((d) => ({ id: d.id, inputs: { ...d.inputs, units: [], fundName: FUND, assetMedia: undefined, salesComps: undefined, leasing: undefined } }));
   return {
     v: 1,
     savedAt: "2026-11-22T00:00:00.000Z",

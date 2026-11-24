@@ -51,6 +51,10 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   check(fees > 0 && promote > 0 && Math.abs(fees + promote + co - total) < 0.03, `fees ${fees}M + promote ${promote}M + co-invest ${co}M = total ${total}M`);
   check(/% of GP income/.test(await p.getByTestId("gp-fees").innerText()) && !/PV/.test(await p.getByTestId("gp-fees").innerText()) && (await g.getByLabel("Discount rate").count()) === 0, "shares; no discount rate or present value (user, 11/24)");
   check((await p.getByTestId("gp-share-bar").locator("div").count()) === 3, "share bar: fees, promote, co-invest");
+  // Revenue Yield (user, 11/24): the fifth card
+  const ryc = await p.getByTestId("gp-revenue-yield").innerText();
+  check(/Revenue Yield/i.test(ryc) && /\d+\.\d\d%/.test(ryc) && /a year/.test(ryc) && /To date:/.test(ryc) && /committed/.test(ryc), `Revenue Yield card: ${ryc.replace(/\s+/g, " ")}`);
+  check(/Committed capital/i.test(await p.getByTestId("gp-by-type").locator("thead").innerText()) && /never promote or co-invest profit/.test(await p.getByTestId("gp-ry-note").innerText()), "Consolidated: Revenue Yield columns and the definition");
   // Consolidated by portfolio type (11/24): the default view
   const con = p.getByTestId("gp-by-type");
   check((await con.count()) === 1 && /Fund/.test(await con.innerText()) && /All portfolios/.test(await con.locator("tfoot").innerText()) && (await p.getByTestId("gp-type-years").count()) === 1, "Consolidated: subtotals by portfolio type, all portfolios, income by year and type");
@@ -59,10 +63,12 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await p.waitForTimeout(300);
   const yrs = p.getByTestId("gp-years");
   check((await yrs.locator("tbody tr").count()) >= 5 && /Life of portfolios/.test(await yrs.locator("tfoot").innerText()), "by year, with life-of-portfolio totals");
+  check(!/Co-invest/i.test(await yrs.locator("thead").innerText()) && /GP income/i.test(await yrs.locator("thead").innerText()) && /not income/.test(await p.getByTestId("gp-years-note").innerText()), "by year: income only, no co-invest profit (user, 11/24)");
   // By fund, by asset
   await g.getByRole("tab", { name: "By portfolio" }).click();
   await p.waitForTimeout(300);
   const fr = await p.getByTestId("gp-funds").locator("tbody tr").first().innerText();
+  check(/LP \+ GP \(default\)/.test(fr) && /\d+\.\d\d%/.test(fr), `by portfolio: Revenue Yield and its basis (${fr.replace(/\s+/g, " ").slice(-60)})`);
   check(/Model Fund I/.test(fr) && /x/.test(fr), `by fund: ${fr.replace(/\s+/g, " ").slice(0, 90)}`);
   await g.getByRole("tab", { name: "By asset" }).click();
   await p.waitForTimeout(300);

@@ -35,5 +35,14 @@ ok(M.assetVsMarket({ submarketId: "nope" }, r.market) === null, "untagged asset:
 const x = M.marketXlsx(r.market);
 ok(x.filter((row) => row[0] === "Example Airport Industrial").length === 6 && x.some((row) => row[0] === "Submarket" && row[1] === "Latest quarter"), "Excel: every quarter and a summary per submarket");
 
+// CSV upload (user, 11/24): the template's columns are all recognized and import.
+{
+  const tg = parseCSV(M.marketCsvTemplate());
+  const td = M.detectMarketMapping(tg);
+  ok(td.ok && Object.keys(td.mapping).length === 2 + M.STAT_FIELDS.length, "CSV template: submarket, quarter and every statistic recognized");
+  const ti = M.importMarket(M.EMPTY_MARKET, tg, td, { source: "template.csv" });
+  ok(ti.added === 1 && ti.market.stats[0].quarter === "2026-Q3" && ti.market.stats[0].capRatePct === 6.1 && ti.market.stats[0].salesVolume === 62000000, "CSV template example row imports");
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

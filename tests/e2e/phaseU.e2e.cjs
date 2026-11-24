@@ -51,6 +51,15 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByTestId("market-mapping").getByRole("button", { name: "Import" }).click();
   await p.waitForTimeout(500);
   check(/7 quarters added/.test(await p.getByTestId("market-msg").innerText()), "seven quarters imported");
+  // CSV upload (user, 11/24): its own button and a template
+  const [tpl] = await Promise.all([p.waitForEvent("download"), p.getByTestId("market-csv-template").click()]);
+  const tplText = fs.readFileSync(await tpl.path(), "utf8");
+  check(tpl.suggestedFilename() === "market-data-template.csv" && /^Submarket,Quarter,Inventory/.test(tplText), "CSV template downloads");
+  await p.getByTestId("market-csv").setInputFiles({ name: "my-market-data.csv", mimeType: "text/csv", buffer: Buffer.from(tplText) });
+  await p.waitForTimeout(500);
+  await p.getByTestId("market-mapping").getByRole("button", { name: "Import" }).click();
+  await p.waitForTimeout(500);
+  check(/my-market-data\.csv: 1 quarters added/.test(await p.getByTestId("market-msg").innerText()), `Upload CSV imports the template's row (${await p.getByTestId("market-msg").innerText()})`);
   const subs = await p.getByTestId("submarkets").getByRole("button").allInnerTexts();
   check(subs.includes("Example Airport Industrial") && subs.includes("Example Riverside Flex"), "two submarkets created");
   await p.getByTestId("submarkets").getByRole("button", { name: "Example Airport Industrial" }).click();
@@ -101,7 +110,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── Saved ──
   await p.waitForTimeout(22000);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.comps?.market?.stats?.length === 7 && sd.comps.market.submarkets.length === 2 && sd.comps.market.mapping?.vacancyPct === "Vacancy Rate", "saved with the firm's comps settings: statistics, submarkets, remembered columns");
+  check(sd?.comps?.market?.stats?.length === 8 && sd.comps.market.submarkets.length === 3 && sd.comps.market.mapping?.vacancyPct === "Vacancy (%)", "saved with the firm's comps settings: statistics (7 + the CSV row), submarkets, the last upload's remembered columns");
   const smId = sd?.comps?.market?.submarkets?.find((s) => s.name === "Example Airport Industrial")?.id;
   check(sd?.deals?.find((d) => d.id === "sample-deal-1")?.inputs?.submarketId === smId, "saved: the asset's submarket tag");
   await p.screenshot({ path: `${S}/market.png` });

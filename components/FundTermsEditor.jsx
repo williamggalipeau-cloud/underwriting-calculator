@@ -279,6 +279,14 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
               <Num label={`${unit} cash reserve`} suffix="qtrs" step={1} value={t.cashReserveQuarters ?? 2} onChange={set("cashReserveQuarters")} hint="Quarters of projected fund expenses" />
               <Num label="Acquisition fee" suffix="% of price" step={0.25} value={t.acqFeePct ?? 0} onChange={set("acqFeePct")} hint="Paid to the sponsor when an asset is bought" />
               <Num label="Disposition fee" suffix="% of sale" step={0.25} value={t.dispFeePct ?? 0} onChange={set("dispFeePct")} hint="Paid to the sponsor when an asset is sold" />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Revenue Yield basis</span>
+                <select aria-label="Revenue Yield basis" value={t.revenueYieldBasis === "lp" ? "lp" : "lp+gp"} onChange={(e) => setT((p) => ({ ...p, revenueYieldBasis: e.target.value, revenueYieldBasisSource: "user" }))} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900">
+                  <option value="lp+gp">LP + GP commitments (default)</option>
+                  <option value="lp">LP commitments only</option>
+                </select>
+                <span className="text-[10px] text-gray-400">{t.revenueYieldBasisSource === "doc" ? `Read in from the ${unit === "Fund" ? "LPA" : unit === "JV" ? "JVA" : "SMA"}` : t.revenueYieldBasisSource === "user" ? "Set by you" : "Default"}: the commitments GP fees are measured against on GP Economics</span>
+              </label>
             </div>
             {fundType(t.type) === "Joint Venture" && (
               <div className="grid grid-cols-2 gap-3" data-testid="jv-terms">

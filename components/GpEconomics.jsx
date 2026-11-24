@@ -8,16 +8,18 @@ import { useMemo, useState } from "react";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import { FUND_TYPES, filterFundsByType } from "@/lib/fundTypes";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
-import { firmGpEconomics, fundGpEconomics, gpEconomicsXlsx } from "@/lib/gpEconomics";
+import { firmGpEconomics, fundGpEconomics, gpEconomicsXlsx, ryBasisLabel } from "@/lib/gpEconomics";
 import { writeXlsx } from "@/lib/xlsx";
 
 const fmtM = (v) => (v == null || !isFinite(v) ? "—" : `${v < 0 ? "-" : ""}$${(Math.abs(v) / 1e6).toFixed(2)}M`);
 const pct = (v, d = 1) => (v == null || !isFinite(v) ? "—" : `${v.toFixed(d)}%`);
 const btn = "rounded-lg border px-3 py-1.5 text-xs font-medium";
 
-function Card({ label, value, sub, testId }) {
+// Committed capital, with * when no commitments are entered (total equity used).
+const fmtC = (ry) => (ry ? `${fmtM(ry.committed)}${ry.fromCommitments === false || ry.anyFallback ? "*" : ""}` : "—");
+function Card({ label, value, sub, testId, accent = false }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3" data-testid={testId}>
+    <div className={`rounded-xl border px-4 py-3 ${accent ? "border-blue-300 bg-blue-50/60" : "border-gray-200 bg-white"}`} data-testid={testId}>
       <p className="text-xs text-gray-500">{label}</p>
       <p className="text-lg font-bold tabular-nums text-gray-900">{value}</p>
       {sub && <p className="text-[11px] text-gray-400">{sub}</p>}
@@ -76,11 +78,13 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
       </div>
       <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">Internal: GP income is not for distribution. Promote is kept apart from fee revenue and never counted in it.</p>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="gp-totals">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" data-testid="gp-totals">
         <Card testId="gp-fees" label="Fee revenue (life of portfolios)" value={fmtM(t.fees)} sub={`${pct(t.feesShare, 0)} of GP income`} />
         <Card testId="gp-promote" label="Promote" value={fmtM(t.promote)} sub={`${pct(t.promoteShare, 0)} of GP income · ${fmtM(t.promoteRealized)} realized`} />
         <Card testId="gp-coinvest" label="Co-invest profit" value={fmtM(t.coinvest)} sub={`${pct(t.coinvestShare, 0)} of GP income · on ${fmtM(t.gpEquity)} GP equity`} />
         <Card testId="gp-total" label="Total GP income" value={fmtM(t.total)} sub={`${perFund.length} portfolio${perFund.length === 1 ? "" : "s"} · ${firm.assets.length} assets`} />
+        <Card testId="gp-revenue-yield" accent label="Revenue Yield" value={pct(t.revenueYield?.pct, 2)}
+          sub={<>{pct(t.revenueYield?.perYearPct, 2)} a year{t.revenueYield?.lifeYears ? ` over ${t.revenueYield.lifeYears.toFixed(1)} years` : ""} · {fmtM(t.fees)} fees ÷ {fmtC(t.revenueYield)} committed<br /><b>To date:</b> {pct(t.revenueYield?.toDatePct, 2)} ({fmtM(t.revenueYield?.feesToDate)} earned)</>} />
       </div>
       {t.total > 0 && (
         <div className="flex h-3 overflow-hidden rounded-full bg-gray-100" aria-label="Share of GP income" data-testid="gp-share-bar">
@@ -95,12 +99,13 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
 
       {view === "consolidated" && (
         <div className="space-y-3" data-testid="gp-consolidated">
-          <T testId="gp-by-type" right={[1, 2, 3, 4, 5, 6, 7, 8]} head={["Portfolio type", "Portfolios", "Assets", "Fee revenue", "of which acq. / disp. fees", "Promote / incentive fee", "Co-invest profit", "Total GP income", "Share"]}
-            rows={firm.byType.map((b) => [<span key="n" className="flex items-center gap-1.5"><FundTypeBadge type={b.type} /></span>, b.portfolios, b.assets, fmtM(b.fees), fmtM(b.txFees), fmtM(b.promote), fmtM(b.coinvest), fmtM(b.total), pct(b.share, 0)])}
-            foot={["All portfolios", perFund.length, firm.assets.length, fmtM(t.fees), fmtM((t.acqFee ?? 0) + (t.dispFee ?? 0)), fmtM(t.promote), fmtM(t.coinvest), fmtM(t.total), "100%"]} />
+          <T testId="gp-by-type" right={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]} head={["Portfolio type", "Portfolios", "Assets", "Fee revenue", "of which acq. / disp. fees", "Promote / incentive fee", "Co-invest profit", "Total GP income", "Share", "Committed capital", "Revenue Yield", "Per year", "To date"]}
+            rows={firm.byType.map((b) => [<span key="n" className="flex items-center gap-1.5"><FundTypeBadge type={b.type} /></span>, b.portfolios, b.assets, fmtM(b.fees), fmtM(b.txFees), fmtM(b.promote), fmtM(b.coinvest), fmtM(b.total), pct(b.share, 0), fmtC(b.revenueYield), pct(b.revenueYield?.pct, 2), pct(b.revenueYield?.perYearPct, 2), pct(b.revenueYield?.toDatePct, 2)])}
+            foot={["All portfolios", perFund.length, firm.assets.length, fmtM(t.fees), fmtM((t.acqFee ?? 0) + (t.dispFee ?? 0)), fmtM(t.promote), fmtM(t.coinvest), fmtM(t.total), "100%", fmtC(t.revenueYield), pct(t.revenueYield?.pct, 2), pct(t.revenueYield?.perYearPct, 2), pct(t.revenueYield?.toDatePct, 2)]} />
+          <p className="text-[11px] text-gray-500" data-testid="gp-ry-note">Revenue Yield = GP fees (asset management, property management, construction management, acquisition and disposition fees; never promote or co-invest profit) over the portfolio&apos;s life ÷ committed capital. <b>Per year</b> divides by the life in years (first acquisition to last projected sale). <b>To date</b> uses fees earned through today. Combined rows: total fees ÷ total committed. Each portfolio measures against LP + GP or LP-only commitments as its LPA, JVA or SMA says (or as set on its terms; LP + GP by default).{t.revenueYield?.anyFallback ? " *No commitments entered: total equity is used instead." : ""}</p>
           {firm.yearsByType.length > 0 && (
             <div className="rounded-xl border border-gray-200 p-3" data-testid="gp-type-years">
-              <p className="mb-2 text-xs font-semibold text-gray-700">Total GP income by year and portfolio type</p>
+              <p className="mb-2 text-xs font-semibold text-gray-700">GP income (fees and promote) by year and portfolio type</p>
               <div className="flex h-36 items-end gap-1">
                 {(() => { const max = Math.max(1, ...firm.yearsByType.map((y) => firm.byType.reduce((a, b) => a + Math.max(0, y[b.type] ?? 0), 0))); const col = { Fund: "bg-blue-500", "Joint Venture": "bg-violet-500", "Separate Account": "bg-amber-500" }; return firm.yearsByType.map((y) => (
                   <div key={y.year} className="flex flex-1 flex-col items-center gap-1" title={firm.byType.map((b) => `${b.type}: ${fmtM(y[b.type])}`).join(" · ")}>
@@ -118,13 +123,19 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
         </div>
       )}
       {view === "firm" && (
-        <T testId="gp-years" right={[1, 2, 3, 4, 5, 6, 7, 8]} head={["Year", "Asset management", "Property management", "Construction management", "Acquisition / disposition fees", "Fee revenue", "Promote", "Co-invest profit", "Total GP income"]}
-          rows={firm.years.map((y) => [y.year, fmtM(y.mgmtFee), fmtM(y.pm), fmtM(y.cm), fmtM((y.acqFee ?? 0) + (y.dispFee ?? 0)), fmtM(y.fees), fmtM(y.promote), fmtM(y.coinvest), fmtM(y.total)])}
-          foot={["Life of portfolios", fmtM(t.mgmtFee), fmtM(t.pm), fmtM(t.cm), fmtM((t.acqFee ?? 0) + (t.dispFee ?? 0)), fmtM(t.fees), fmtM(t.promote), fmtM(t.coinvest), fmtM(t.total)]} />
+        <>
+        <T testId="gp-years" right={[1, 2, 3, 4, 5, 6, 7]} head={["Year", "Asset management", "Property management", "Construction management", "Acquisition / disposition fees", "Fee revenue", "Promote", "GP income"]}
+          rows={firm.years.map((y) => [y.year, fmtM(y.mgmtFee), fmtM(y.pm), fmtM(y.cm), fmtM((y.acqFee ?? 0) + (y.dispFee ?? 0)), fmtM(y.fees), fmtM(y.promote), fmtM(y.income ?? y.total)])}
+          foot={["Life of portfolios", fmtM(t.mgmtFee), fmtM(t.pm), fmtM(t.cm), fmtM((t.acqFee ?? 0) + (t.dispFee ?? 0)), fmtM(t.fees), fmtM(t.promote), fmtM(t.fees + t.promote)]} />
+        <p className="text-[11px] text-gray-500" data-testid="gp-years-note">Income only: fees and promote. Co-invest profit is capital appreciation on the GP&apos;s own investment, not income, so it isn&apos;t shown by year; it counts only when an asset is sold (in the Co-invest profit card and the life-of-portfolio totals).</p>
+        </>
       )}
       {view === "fund" && (
-        <T testId="gp-funds" right={[1, 2, 3, 4, 5, 6, 7, 8]} head={["Portfolio", "Fee revenue", "Promote / incentive", "Realized", "GP equity", "GP distributions", "Co-invest profit", "GP ROE", "GP IRR / multiple"]}
-          rows={perFund.map((f) => [<span key="n" className="flex items-center gap-1.5">{f.fund}<FundTypeBadge type={f.type} />{f.counterparty ? <span className="text-[10px] text-gray-400">{f.counterparty}</span> : null}</span>, fmtM(f.fees.total), fmtM(f.promote.total), fmtM(f.promote.realized), fmtM(f.coinvest.equity), fmtM(f.coinvest.distributions), fmtM(f.coinvest.profit), pct(f.coinvest.roe, 0), `${pct(f.coinvest.irr)} / ${f.coinvest.multiple != null ? `${f.coinvest.multiple.toFixed(2)}x` : "—"}`])} />
+        <>
+        <T testId="gp-funds" right={[1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13]} head={["Portfolio", "Fee revenue", "Promote / incentive", "Realized", "GP equity", "GP distributions", "Co-invest profit", "GP ROE", "GP IRR / multiple", "Committed capital", "Basis", "Revenue Yield", "Per year", "To date"]}
+          rows={perFund.map((f) => [<span key="n" className="flex items-center gap-1.5">{f.fund}<FundTypeBadge type={f.type} />{f.counterparty ? <span className="text-[10px] text-gray-400">{f.counterparty}</span> : null}</span>, fmtM(f.fees.total), fmtM(f.promote.total), fmtM(f.promote.realized), fmtM(f.coinvest.equity), fmtM(f.coinvest.distributions), fmtM(f.coinvest.profit), pct(f.coinvest.roe, 0), `${pct(f.coinvest.irr)} / ${f.coinvest.multiple != null ? `${f.coinvest.multiple.toFixed(2)}x` : "—"}`, fmtC(f.revenueYield), <span key="b" className="whitespace-nowrap text-[11px]" data-testid="gp-ry-basis">{ryBasisLabel(f.revenueYield, f.type).replace(" · total equity, no commitments entered", "")}</span>, pct(f.revenueYield?.pct, 2), pct(f.revenueYield?.perYearPct, 2), pct(f.revenueYield?.toDatePct, 2)])} />
+        {perFund.some((f) => f.revenueYield && !f.revenueYield.fromCommitments) && <p className="text-[11px] text-gray-500">*No commitments entered: total equity is used instead. Enter Total commitments on the portfolio&apos;s terms (Edit fund), or read them in from its LPA, JVA or SMA.</p>}
+        </>
       )}
       {view === "asset" && (
         <>
