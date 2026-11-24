@@ -95,7 +95,7 @@ const RECORD_SAVE_SECONDS = 1;
 const ACTIVE_DEAL_KEY = "baywise:activeDealId";
 
 // Workspaces are saved only in the database, never in the browser. Changes
-// save this many seconds after the last edit, on Save now, and when you leave.
+// save this many seconds after the last edit, on Save changes, and when you leave.
 const DB_SAVE_SECONDS = 20;
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const MANUAL_URL = "https://github.com/williamggalipeau-cloud/underwriting-calculator/blob/main/docs/USER_MANUAL.md";
@@ -800,7 +800,7 @@ export default function Home() {
   }, [activeTab, dbLink?.id, dbLink?.version, session]);
 
   // Save to the database DB_SAVE_SECONDS after the last change (scheduled in
-  // the effect below), on Save now, and when the tab is hidden or closed.
+  // the effect below), on Save changes, and when the tab is hidden or closed.
   // Leaving with unsaved changes asks first, because nothing is kept in the
   // browser.
   const saveRef = useRef(null);
@@ -1700,23 +1700,64 @@ export default function Home() {
   // Home (user, 11/24): save any unsaved edits, then go to the landing page.
   // If the save doesn't go through, ask before leaving (the edits stay in
   // this window either way and save when the database is reachable).
+  // Leaving a page with unsaved changes (user, 11/24): ask first. OK saves,
+  // then goes on; Cancel stays. If the save fails, ask again before leaving.
+  async function confirmLeave(where = "this page") {
+    const l = dbLinkRef.current;
+    if (!(l && session && l.role !== "viewer" && (l.dirty || dbSaving.current))) return true;
+    if (!window.confirm(`You have unsaved changes. Save them before you leave ${where}?\n\nOK saves and continues. Cancel stays here.`)) return false;
+    try { await saveToDbNow(true); } catch { /* checked below */ }
+    const after = dbLinkRef.current;
+    if (after?.dirty || after?.conflict || after?.error) {
+      return window.confirm(`Your changes ${after?.conflict ? "conflict with a newer version someone else saved" : after?.error ? `couldn't be saved (${after.error})` : "aren't saved yet"}. Leave anyway? They stay in this window; use Save changes to try again.`);
+    }
+    return true;
+  }
+  async function goTab(id) {
+    if (id === activeTab) return;
+    if (!(await confirmLeave())) return;
+    setActiveTab(id);
+  }
   async function goHome() {
     setPanelOpen(false);
     setMoreOpen(false);
-    const l = dbLinkRef.current;
-    if (l && session && l.role !== "viewer" && (l.dirty || dbSaving.current)) {
-      try { await saveToDbNow(); } catch { /* checked below */ }
-      const after = dbLinkRef.current;
-      if ((after?.dirty || after?.conflict || after?.error) && !window.confirm(`Your latest edits ${after?.conflict ? "conflict with a newer version someone else saved" : after?.error ? `couldn't be saved (${after.error})` : "aren't saved yet"}. Go to the Dashboard anyway? They stay in this window and are saved when you use Save now.`)) return;
-    }
+    if (!(await confirmLeave())) return;
     setOpenArea("");
     setActiveTab("home");
   }
+  // "Saved ✓" for a few seconds after each save.
+  const [justSaved, setJustSaved] = useState(false);
+  const lastSavedAt = dbLink?.savedAt ?? null;
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    setJustSaved(true);
+    const t = setTimeout(() => setJustSaved(false), 3000);
+    return () => clearTimeout(t);
+  }, [lastSavedAt]);
   const areaOf = (id) => TAB_GROUPS.find((g) => g.tabs.some((t) => t.id === id))?.label ?? "";
   const shownArea = openArea ?? areaOf(activeTab);
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Save bar (user, 11/24): appears whenever there are unsaved changes. */}
+      {session && dbLink?.id && dbLink.role !== "viewer" && (dbLink.dirty || dbLink.conflict || dbLink.error || justSaved) && (
+        <div role="status" data-testid="save-bar" className={`fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-xl border px-4 py-2.5 text-sm shadow-lg ${dbLink.conflict || dbLink.error ? "border-red-200 bg-red-50 text-red-800" : dbLink.dirty ? "border-amber-300 bg-white text-gray-900" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
+          {dbLink.conflict ? (
+            <>
+              <span>Someone else saved a newer version.</span>
+              <button type="button" onClick={() => openDbWorkspace(dbLink).catch((e) => setDbLink((l) => ({ ...l, error: e.message })))} className="rounded-lg border border-red-300 bg-white px-3 py-1 font-medium">Open latest</button>
+              <button type="button" onClick={() => window.confirm("Save your version over the newer one? The newer one stays in the database's version history.") && overwriteDb().catch(() => {})} className="rounded-lg border border-red-300 bg-white px-3 py-1 font-medium">Keep mine</button>
+            </>
+          ) : dbLink.dirty || dbLink.error ? (
+            <>
+              <span className="font-medium">{dbLink.error ? `Couldn't save: ${dbLink.error}` : "Unsaved changes"}</span>
+              <button type="button" data-testid="save-button" onClick={() => saveToDbNow(true).catch(() => {})} className="rounded-lg bg-blue-600 px-4 py-1.5 font-semibold text-white hover:bg-blue-700">Save changes</button>
+            </>
+          ) : (
+            <span className="font-medium">✓ Saved</span>
+          )}
+        </div>
+      )}
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-4">
@@ -1766,7 +1807,7 @@ export default function Home() {
           <div className="flex flex-wrap items-center gap-1">
             <label className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-800" title="Choose the portfolio (fund, joint venture or separate account). Every tab shows only that portfolio; All portfolios shows the whole firm.">
               <span className="font-semibold">Select Portfolio</span>
-              <select aria-label="Select Portfolio" data-testid="working-on" value={scope} onChange={(e) => setWorkingOn(e.target.value)} className="rounded border border-blue-200 bg-white px-1.5 py-0.5 text-xs text-gray-800">
+              <select aria-label="Select Portfolio" data-testid="working-on" value={scope} onChange={async (e) => { const v = e.target.value; if (await confirmLeave("this portfolio")) setWorkingOn(v); }} className="rounded border border-blue-200 bg-white px-1.5 py-0.5 text-xs text-gray-800">
                 {workingOptions.map((o) => <option key={o.value || "all"} value={o.value}>{o.label}</option>)}
               </select>
             </label>
@@ -1777,32 +1818,8 @@ export default function Home() {
                 <span className="text-xs font-bold tabular-nums text-gray-900">{value}</span>
               </div>
             ))}
-            {/* Save status (11/24: moved up from the toolbar row). */}
-            {session && dbLink?.id ? (
-              <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs ${dbLink.conflict || dbLink.error ? "border-red-200 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-900"}`}>
-                <span aria-hidden="true">☁</span>
-                <button type="button" onClick={() => setCloudOpen(true)} className="font-semibold hover:underline" title="Database">{dbLink.name}</button>
-                {dbLink.mode !== "records" && <span className="text-sky-700">v{dbLink.version}</span>}
-                {dbLink.conflict ? (
-                  <>
-                    <span>· someone else saved a newer version</span>
-                    <button type="button" onClick={() => openDbWorkspace(dbLink).catch((e) => setDbLink((l) => ({ ...l, error: e.message })))} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Open latest</button>
-                    <button type="button" onClick={() => window.confirm("Save your version over the newer one? The newer one stays in the database's version history.") && overwriteDb().catch(() => {})} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Keep mine</button>
-                  </>
-                ) : dbLink.error ? (
-                  <span>· {dbLink.error}</span>
-                ) : dbLink.role === "viewer" ? (
-                  <span className="text-sky-700">· view only</span>
-                ) : dbLink.dirty ? (
-                  <span className="text-amber-700">· unsaved changes</span>
-                ) : (
-                  dbLink.savedAt && <span className="text-sky-700">· saved {new Date(dbLink.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
-                )}
-                {dbLink.role !== "viewer" && !dbLink.conflict && (
-                  <button type="button" onClick={() => saveToDbNow(true).catch(() => {})} className="ml-1 rounded border border-sky-300 bg-white px-1.5 py-0.5 font-medium text-sky-800 hover:bg-sky-100">Save now</button>
-                )}
-              </span>
-            ) : session && dbLink?.error ? (
+            {/* Save status moved to the Save bar (user, 11/24). */}
+            {session && !dbLink?.id && dbLink?.error ? (
               <span className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-800">
                 <span aria-hidden="true">☁</span> Couldn&apos;t open the firm&apos;s data: {dbLink.error}
                 <button type="button" onClick={() => setCloudOpen(true)} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Database…</button>
@@ -1828,6 +1845,7 @@ export default function Home() {
               <button type="button" aria-label="More" aria-expanded={moreOpen} aria-haspopup="menu" onClick={() => setMoreOpen((o) => !o)} title="Backup, restore and sample data" className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">⋯</button>
               {moreOpen && (
                 <div className="absolute right-0 z-30 mt-1 w-80 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                  {session && dbLink?.id && <button type="button" onClick={() => { setMoreOpen(false); setCloudOpen(true); }} title="The firm's database: people with access, sign out" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Database and people…</button>}
                   <button type="button" onClick={() => { setMoreOpen(false); handleExportWorkspace(); }} title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Download backup</button>
                   {(!session || dbLink?.role === "owner") && (
                     <button type="button" onClick={() => { setMoreOpen(false); importRef.current?.click(); }} title="Owners only: replace all of the firm's data with a backup file (a backup of the current data downloads first)" className="block w-full rounded px-2 py-1.5 text-left text-xs text-red-600 hover:bg-red-50">Restore from backup</button>
@@ -2025,7 +2043,7 @@ export default function Home() {
                     <button
                       key={tab.id}
                       type="button"
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => goTab(tab.id)}
                       className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
                         activeTab === tab.id
                           ? "bg-blue-600 text-white shadow-sm"

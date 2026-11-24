@@ -88,7 +88,9 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   // Opens the firm directly; no workspace picker anywhere.
   const head = await p.locator("header").innerText();
   check(/Baywise/.test(await p.locator("body").innerText()) && (await p.getByText("Your workspaces").count()) === 0, "opens the firm (Baywise) with no workspace list");
-  await p.getByRole("button", { name: "Baywise", exact: true }).first().click().catch(() => {});
+  // The Database panel is under ⋯ More since 11/24 (the header save pill was removed).
+  await p.getByRole("button", { name: "More", exact: true }).click();
+  await p.getByRole("button", { name: /Database and people/ }).click().catch(() => {});
   await p.waitForTimeout(500);
   const panel = await p.locator("body").innerText();
   check(!/Your workspaces|Create a workspace|Save to database/.test(panel) && /Saving to Baywise/.test(panel) && /People with access/.test(panel), "Database panel: no workspace list, create or delete; members stay");

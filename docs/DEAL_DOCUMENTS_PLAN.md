@@ -1534,6 +1534,23 @@ From tonight's build on, every phase commits its tests:
 - **Each phase** adds its tests in its own PR, and a PR isn't ready until CI
   is green.
 
+## Save bar and leave prompt (user, 11/24; built)
+
+User: "A save button should appear every time a user makes a change. If
+they attempt to leave without saving their changes, it should prompt them.
+… remove the header button." Autosave stays as a safety net (user's choice).
+Built in `app/page.jsx`: a bottom save bar (Unsaved changes / Save changes,
+✓ Saved, conflict and error states); switching tab, Home or portfolio asks
+first; the header save label is removed and **Database and people…** moved
+to ⋯ More. Tests: phaseZ, phaseQ.
+
+## Next: firm-wide Document Library (user, 11/24; agreed, not built)
+
+Library → Documents lists every fund- and asset-level document firm-wide,
+with upload. Each document type attaches to a fund or an asset; documents
+are viewable and uploadable in each related workflow tab. Leases included,
+photos excluded. Mockup first.
+
 ## Order and review
 
 A → B → C → D → E → F → G → H → I → J → K → L → M. Each phase starts as soon as the
