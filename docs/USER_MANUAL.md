@@ -261,7 +261,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
 | **Portfolio Management** | Portfolio Summary (with Plan vs. actual) · Portfolio Return · Portfolio Debt · Distribution Analysis · Stress Testing · Benchmarking | |
-| **Finance** | GP Economics | |
+| **Finance** | GP Economics, Sponsor Economics (11/24; §7.55) | |
 | **Research** | Market Data | |
 | **Library** | Documents · Reports | |
 
@@ -2988,6 +2988,8 @@ Library → Documents). **Excel** and **PDF** export the list shown.
 
 ### 7.49 GP Economics (`lib/gpEconomics.js`, phase W)
 
+> **Since 11/24 (later):** Finance has two tabs, **GP Economics** (the GP side: return on invested capital and promote share, split by GP party) and **Sponsor Economics** (the operator: fees, promote share, Revenue Yield), driven by each portfolio's **Parties and economics** setup. See §7.55; the figures below (fee income, capital gains, Revenue Yield) are now shown on whichever tab owns them.
+
 **Finance → GP Economics** (its own Finance area since 11/24) shows
 what the firm makes, for the funds in the "Select Portfolio" scope, projected over
 each fund's life. Where a fund has actual capital activity, the same mix of
@@ -3257,6 +3259,66 @@ rent comps** (Asset Management → Active Leasing):
 - **Sample data → Add sample comps** (owners) adds them to sample assets
   that have none; an asset with comps of its own, and every non-sample
   asset, is left alone.
+
+### 7.55 GP Economics and Sponsor Economics; portfolio parties (`lib/gpEconomics.js`, 11/24)
+
+In CRE the **GP** (capital partner) and the **sponsor / operator** are
+sometimes different companies. The GP makes money on its invested capital and
+its share of the promote; the sponsor manages the assets and earns fees (and
+its own share of the promote).
+
+**Setup: Edit fund / JV / SMA → Parties and economics** (entered by whoever
+sets up the portfolio):
+- **Sponsor / operator:** this firm or an outside operator (named), and its
+  co-invest (% of equity, usually 0; it earns at the LPs' net multiple).
+- **GP parties:** one or more, each this firm or an outside GP provider
+  (named), with its **share of the GP capital** (the GP commitment) and its
+  **share of the promote**. **+ Add a GP party**. The sponsor has whatever
+  promote the GP parties don't. A warning shows if the capital shares don't
+  add to 100%.
+- **This firm's role:** GP, sponsor, both or neither, from the above.
+- **Who is paid each fee:** asset management (sponsor by default, or GP),
+  property and construction management (sponsor, GP or **third party
+  (outsourced)**, with the provider's name), acquisition and disposition fees
+  (sponsor or GP). If the sponsor is this firm, every sponsor fee is the
+  firm's.
+- **Outsourced fees** stay an expense of the asset (NOI, returns and the
+  investor waterfall don't change) but are nobody's revenue: not counted for
+  the sponsor, the GP or Revenue Yield.
+- **Promote split per asset:** an asset can have its own GP-side share; the
+  GP parties split it in proportion to their promote shares.
+- **From documents:** the sponsor's name and who is paid each fee can be read
+  in from the LPA, JVA or SMA and applied like other terms. The GP parties,
+  their capital shares and the promote split are entered by hand (they're
+  often in a separate agreement between the GP provider and the sponsor).
+- **Existing portfolios** read as this firm being the sponsor and the only
+  GP, with all of the promote and every fee: their figures don't change until
+  the parties are set.
+
+**GP Economics** (portfolios where this firm is a GP; **Show portfolios with
+an outside GP** lists the others greyed, never in the totals):
+- Cards: GP equity invested, co-invest profit and promote share (capital
+  gains), **Total GP economics** (+ any fee paid to the GP) and **return on
+  invested capital** (with the multiple).
+- **Total GP economics, split by GP party:** this firm first, then each
+  outside GP: equity (capital share), co-invest profit, promote share, fees
+  paid to the GP, total and return on invested capital; this firm's share.
+- Views: Consolidated (by portfolio type), By year (capital gains in the year
+  each asset sells), By portfolio (this firm's role, the GP, GP side of the
+  promote, ROE · IRR / multiple; IRR only when the GP has all of the promote
+  and no fees), By asset (promote allocated, GP side, co-invest).
+
+**Sponsor Economics** (portfolios where this firm is the sponsor; **Show
+portfolios with an outside sponsor** lists the others greyed):
+- Cards: fee income (outsourced fees noted, not counted), promote share,
+  sponsor co-invest profit, total sponsor economics and **Revenue Yield** (the
+  sponsor's fees ÷ committed capital; per year and to date; §7.49).
+- Views: Consolidated (with Revenue Yield columns), By year (fees by type and
+  the promote share on sale), By portfolio (fees by type, outsourced, promote
+  share, Revenue Yield and its basis), By asset.
+
+When this firm is both GP and sponsor, the two tabs add up to its total (a
+line on each tab says so). Both tabs export **Excel** and **PDF** (internal).
 
 ## 8. Worked example: the default deal
 
@@ -4279,6 +4341,7 @@ each phase and the decisions behind it are in
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) (§7.50) | ✅ Built 11/24; in the quarterly report (internal always, shareable when ticked) 11/24 |
 | Acquisition Documents | Acquisitions tab: every acquisition document by deal stage, with a per-deal checklist; loan, rate cap and insurance read-only (§7.51) | ✅ Built 11/24; needs supabase/acquisition_doc_types.sql for the new types (works before it) |
+| GP / Sponsor Economics (11/24) | Finance split into GP Economics and Sponsor Economics; parties set per portfolio (sponsor, one or more GP parties with capital and promote shares, who is paid each fee, outsourced fees) (§7.55) | ✅ Built 11/24 |
 | W. GP Economics | New tab, in the Finance area (11/24): fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel (§7.49) | ✅ Built 11/24 |
 
 **How phases are delivered.**

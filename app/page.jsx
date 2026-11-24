@@ -481,6 +481,7 @@ const TAB_GROUPS = [
   // Finance (user, 11/24): the firm's own economics.
   { label: "Finance", tabs: [
     { id: "gpecon",      label: "GP Economics" },
+    { id: "sponsorecon", label: "Sponsor Economics" },
   ] },
   { label: "Research", tabs: [
     { id: "market",      label: "Market Data" },
@@ -2345,7 +2346,10 @@ export default function Home() {
               <Benchmarking deals={fundDeals} funds={viewFunds} marks={valuations} curve={effectiveCurve(baseCurve, anchorToLive, live)} comps={comps} onChange={setComps} canEdit={!locked} email={session?.user?.email ?? null} />
             )}
             {activeTab === "gpecon" && (
-              <GpEconomics deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
+              <GpEconomics role="gp" deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
+            )}
+            {activeTab === "sponsorecon" && (
+              <GpEconomics key="sponsor" role="sponsor" deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
             )}
             {activeTab === "fund" && (
               <>
@@ -2597,6 +2601,7 @@ export default function Home() {
                 onClose={() => setFundEditor(null)}
                 workspaceId={session && dbLink?.id && dbLink.role !== "viewer" ? dbLink.id : null}
                 email={session?.user?.email ?? null}
+                portfolioAssets={fundEditor.mode === "edit" ? libraryDeals.filter((d) => resolveFund(d.inputs?.fundName) === fundEditor.name).map((d) => ({ id: d.id, name: d.inputs?.propertyName || d.id })) : []}
               />
             )}
           </div>
