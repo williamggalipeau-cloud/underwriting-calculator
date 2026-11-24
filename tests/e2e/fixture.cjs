@@ -50,3 +50,29 @@ const outDir = () => {
 const BASE_URL = process.env.BASE_URL || "http://localhost:8765/underwriting-calculator/";
 
 module.exports = { workspaceData, outDir, BASE_URL, R, SAVED_IDS };
+
+// Functions bar (11/24): one button per function area; a tab shows once its
+// area is open. openTab(p, "Debt") opens the area holding the tab (each area
+// button's title lists its tabs), then clicks the tab.
+async function openArea(p, tabName) {
+  const want = typeof tabName === "string" ? (t) => t === tabName : (t) => tabName.test(t);
+  for (const b of await p.getByTestId("function-area").all()) {
+    const title = (await b.getAttribute("title")) ?? "";
+    const [, list = ""] = title.split(": ");
+    if (list.split(", ").some(want)) {
+      if ((await b.getAttribute("aria-expanded")) !== "true") { await b.click(); await p.waitForTimeout(150); }
+      return title.split(": ")[0];
+    }
+  }
+  return null;
+}
+async function openTab(p, tabName) {
+  const area = await openArea(p, tabName);
+  const g = area ? p.getByRole("group", { name: area }) : p;
+  const re = typeof tabName === "string" ? new RegExp(`^${tabName.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}(\\s*\\d+)?$`) : tabName;
+  await g.getByRole("button", { name: re }).first().click();
+}
+module.exports.openArea = openArea;
+module.exports.openTab = openTab;
+// The function areas in order (the old tab-group headers).
+module.exports.areas = async (p) => (await p.getByTestId("function-area").evaluateAll((els) => els.map((e) => (e.getAttribute("title") ?? "").split(": ")[0])));

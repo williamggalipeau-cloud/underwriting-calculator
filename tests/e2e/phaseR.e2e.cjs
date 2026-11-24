@@ -54,10 +54,11 @@ const CSV = [
   p.on("dialog", (d) => d.accept());
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
+  await FX.openArea(p, "Debt");
   const am = p.getByRole("group", { name: "Asset Management" });
   const tabs = await am.getByRole("button").allInnerTexts();
-  check(tabs.indexOf("Leasing") === tabs.indexOf("Leases") + 1, "a Leasing tab right after Leases");
-  await am.getByRole("button", { name: "Leasing", exact: true }).click();
+  check(tabs.indexOf("Active Leasing") === tabs.indexOf("Leases") + 1, "an Active Leasing tab right after Leases");
+  await FX.openTab(p, "Active Leasing");
   await p.waitForTimeout(800);
   const lp = p.getByTestId("leasing-pipeline");
 

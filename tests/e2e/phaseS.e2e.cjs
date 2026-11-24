@@ -34,11 +34,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   p.on("pageerror", (e) => errs.push(e.message));
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
+  await FX.openArea(p, "Fund Debt");
   const pm = p.getByRole("group", { name: "Portfolio Management" });
   const tabs = await pm.getByRole("button").allInnerTexts();
-  check(tabs.findIndex((t) => /^Fund Debt/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "a Fund Debt tab right after Fund Return");
+  check(tabs.findIndex((t) => /^Fund Debt/.test(t)) === tabs.findIndex((t) => /^GP Economics/.test(t)) + 1 && tabs.findIndex((t) => /^GP Economics/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "Fund Debt after Fund Return and GP Economics");
   const before = saves;
-  await pm.getByRole("button", { name: "Fund Debt" }).click();
+  await FX.openTab(p, "Fund Debt");
   await p.waitForTimeout(1500);
   const fdv = p.getByTestId("fund-debt");
   const sum = await p.getByTestId("debt-summary").innerText();
@@ -81,12 +82,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(300);
   check((await p.getByTestId("cert-row").count()) >= 1, "an earlier quarter");
 
+  check(saves === before, "read-only: browsing Fund Debt saves nothing");
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
-  check((await p.getByTestId("lane").filter({ hasText: "Portfolio Management" }).getByRole("button", { name: "Open Fund Debt" }).count()) === 1, "Home's Portfolio Management lane links to Fund Debt");
-  check(/Covenant breach: DSCR [\d.]+x < 9\.00x \(Ridgeway Trade Center\)/.test(await p.getByTestId("attention").innerText()), "Home: the covenant breach is on the attention list");
-  await p.waitForTimeout(500);
-  check(saves === before, "read-only: nothing saved");
+  await FX.openArea(p, "Fund Debt");
+  check((await p.getByRole("group", { name: "Portfolio Management" }).getByRole("button", { name: /^Fund Debt/ }).count()) === 1, "Functions: Portfolio Management links to Fund Debt (the Workflows lanes were removed, 11/24)");
+  check(/Ridgeway Trade Center/.test(await p.getByTestId("attention").getByTestId("action-row").filter({ hasText: /Covenant breach: DSCR [\d.]+x < 9\.00x/ }).getByTestId("cell-asset").innerText().catch(() => "")), "Home: the covenant breach is on the attention list");
   await p.screenshot({ path: `${S}/fund-debt.png` });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();

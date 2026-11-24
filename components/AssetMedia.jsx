@@ -313,7 +313,7 @@ function FloorPlan({ name, units, media, planUrl, canEdit, canUpload, busy, onUp
       )}
     >
       {!units.length ? (
-        <p className="text-xs text-gray-500">No rent roll units for {name}. Add units on the Unit Roll to see them here.</p>
+        <p className="text-xs text-gray-500">No rent roll units for {name}. Add units on the Rent Roll to see them here.</p>
       ) : (
         <>
           <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px] text-gray-600">

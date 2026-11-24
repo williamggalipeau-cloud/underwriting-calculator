@@ -47,11 +47,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
 
   // ── Sample data menu ──
+  await p.getByRole("button", { name: "More", exact: true }).click();
   await p.getByTestId("sample-data-menu").getByRole("button", { name: /Sample data/ }).click();
   await p.getByRole("menuitem", { name: /Add construction test data/ }).click();
   await p.waitForTimeout(800);
   const pm = p.getByRole("group", { name: "Property Management" });
-  await pm.getByRole("button", { name: "Property Condition" }).click();
+  await FX.openTab(p, "Property Condition");
   await p.waitForTimeout(800);
   const con = p.getByTestId("construction");
   const rows = con.getByTestId("ti-row");
@@ -70,21 +71,19 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/Finding: Roof/.test(await p.getByTestId("capital-jobs").innerText()), "a finding with the job code links to the job");
 
   // ── Ridgeway: red ──
-  await p.getByLabel("Edit asset").selectOption("sample-deal-4");
-  await p.getByRole("button", { name: "Done" }).click();
+  await p.locator("#asset-picker").selectOption("sample-deal-4");
   await p.waitForTimeout(800);
   const rr = p.getByTestId("construction").getByTestId("ti-row").first();
   check(/\+34\.4%/.test(await rr.innerText()) && /red/.test(await rr.getByTestId("ti-flag").getAttribute("class")), "Ridgeway unit 014: +34.4%, red");
 
   // ── Business plan shows it ──
-  await p.getByLabel("Edit asset").selectOption("sample-deal-1");
-  await p.getByRole("button", { name: "Done" }).click();
-  await p.getByRole("button", { name: "Asset Business Plan" }).click();
+  await p.locator("#asset-picker").selectOption("sample-deal-1");
+  await FX.openTab(p, "Asset Business Plan");
   await p.waitForTimeout(1200);
   check(/TI spend by unit/.test(await p.locator("main").innerText()) && (await p.locator("main").getByTestId("ti-row").count()) === 3, "the business plan shows TI spend by unit");
 
   // ── Upload the exports again (updates, no duplicates) ──
-  await pm.getByRole("button", { name: "Property Condition" }).click();
+  await FX.openTab(p, "Property Condition");
   await p.waitForTimeout(800);
   await p.getByTestId("construction-file").setInputFiles([
     { name: "construction-jobs-2026-10.csv", mimeType: "text/csv", buffer: fs.readFileSync(R + "/docs/sample-yardi/construction-jobs-2026-10.csv") },

@@ -219,6 +219,17 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                   className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </label>
+              <label className="flex flex-col gap-1 col-span-2">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Portfolio manager</span>
+                <input
+                  type="text"
+                  aria-label="Portfolio manager"
+                  value={t.portfolioManager ?? ""}
+                  onChange={(e) => set("portfolioManager")(e.target.value)}
+                  placeholder="Owner of fund-level actions"
+                  className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900"
+                />
+              </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Type</span>
                 <select
@@ -388,6 +399,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 <Num label="Spread over SOFR" suffix="%" step={0.05} value={t.subLineSpreadPct} onChange={set("subLineSpreadPct")} hint="30-day average SOFR" />
                 <Num label="Unused fee" suffix="%/yr" step={0.05} value={t.subLineUnusedFeePct} onChange={set("subLineUnusedFeePct")} />
                 <Num label="Max days outstanding" suffix="days" step={30} value={t.subLineMaxDays} onChange={set("subLineMaxDays")} hint="Then repaid by an LP call" />
+                <label className="flex flex-col gap-0.5 text-xs text-gray-600">Facility maturity<input aria-label="Sub line maturity" type="date" value={t.subLineMaturity ?? ""} onChange={(e) => set("subLineMaturity")(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /><span className="text-[11px] text-gray-400">Shown on the Operational Dashboard&apos;s Calendar</span></label>
               </div>
             )}
           </section>

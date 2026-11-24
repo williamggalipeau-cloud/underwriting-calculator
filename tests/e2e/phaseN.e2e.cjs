@@ -37,9 +37,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const main = p.locator("main");
 
+  await FX.openArea(p, "Fund Summary");
   const nav = await p.locator("nav").first().innerText();
-  check(nav.indexOf("Fund Summary") > 0 && nav.indexOf("Fund Summary") < nav.indexOf("Fund Plan"), "Fund Summary is first in Portfolio Management");
-  await p.getByRole("button", { name: /^Fund Summary/ }).first().click();
+  check(nav.indexOf("Fund Summary") > 0 && nav.indexOf("Fund Summary") < nav.indexOf("Fund Return"), "Fund Summary is first in Portfolio Management");
+  await FX.openTab(p, /^Fund Summary/);
   await p.waitForTimeout(1200);
   const fs = main.getByTestId("fund-summary");
   check((await fs.count()) === 1 && /Model Fund I/.test(await fs.locator("h2").innerText()), "Fund Summary for Model Fund I");
@@ -89,7 +90,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(1200);
   check((await main.getByTestId("fund-nav").count()) === 1, "link opens Fund Return");
   // Annual-report date on Leases → Critical dates (fund scope)
-  await p.getByRole("button", { name: /^Leases/ }).first().click();
+  await FX.openTab(p, /^Leases/);
   await p.waitForTimeout(1500);
   await main.getByRole("button", { name: /^Whole fund/ }).click();
   await p.waitForTimeout(800);

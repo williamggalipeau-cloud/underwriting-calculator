@@ -68,7 +68,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(400);
   await p.getByRole("button", { name: "Done", exact: true }).click();
   await p.waitForTimeout(800);
-  await p.getByRole("button", { name: /^Asset Business Plan/ }).first().click();
+  await FX.openTab(p, /^Asset Business Plan/);
   await p.waitForTimeout(1200);
   const media = main.getByTestId("asset-media");
   check((await media.count()) === 1, "Asset Business Plan: photos, location and floor plan sections");
@@ -155,11 +155,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.screenshot({ path: S + "/i2_media.png", fullPage: true });
 
   // Actual NOI in Valuation and Sell/Hold
-  await p.getByRole("button", { name: "Valuation", exact: true }).click();
+  await FX.openTab(p, "Valuation");
   await p.waitForTimeout(1500);
   const capCell = main.locator("tr", { hasText: "Route 9 Small Bay" }).getByTestId("actual-noi-cap");
   check((await capCell.count()) === 1 && /% on actual/.test(await capCell.innerText()), `Valuation: cap on actual NOI (${(await capCell.innerText().catch(() => "")).trim()})`);
-  await p.getByRole("button", { name: /^Sell\/Hold Analysis/ }).first().click();
+  await FX.openTab(p, /^Sell\/Hold Analysis/);
   await p.waitForTimeout(1500);
   const sh = await main.innerText();
   check(/Actual NOI/.test(sh) && /6 mo annualized/.test(sh), "Sell/Hold: actual NOI tile (6 months annualized)");

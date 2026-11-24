@@ -64,7 +64,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   const main = p.locator("main");
 
   // ── Delinquency: upload three months of aged receivables ──
-  await p.getByRole("button", { name: /^Unit Roll/ }).first().click();
+  await FX.openTab(p, /^Rent Roll/);
   await p.waitForTimeout(1200);
   const dq = main.getByTestId("delinquency");
   for (const m of ["08", "09", "10"]) {
@@ -92,19 +92,19 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await main.getByTestId("unit-estoppel-flag").count()) >= 1, "Unit Roll: estoppel flag on Desert Aero's unit");
 
   // Fund Return card
-  await p.getByRole("button", { name: "Fund Return", exact: true }).click().catch(() => {});
+  await FX.openTab(p, "Fund Return").catch(() => {});
   await p.waitForTimeout(1200);
   const sum = main.getByTestId("delinquency-summary");
   check((await sum.count()) > 0 && (await sum.first().innerText()).includes("42,685"), "Fund Return: delinquency card");
 
   // ── Leases: estoppel flag on the lease card ──
-  await p.getByRole("button", { name: "Leases", exact: true }).click();
+  await FX.openTab(p, "Leases");
   await p.waitForTimeout(1500);
   const ef = main.getByTestId("estoppel-flag");
   check((await ef.count()) > 0 && /Expiration/.test(await ef.first().innerText()) && /Landlord/.test(await ef.first().innerText()), "lease card: estoppel differs (expiration, landlord claim)");
 
   // ── Documents: checks ──
-  await p.getByRole("button", { name: "Documents", exact: true }).click();
+  await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
   await main.getByRole("button", { name: /Whole fund/ }).click();
   await p.waitForTimeout(600);

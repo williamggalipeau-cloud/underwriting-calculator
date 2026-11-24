@@ -66,7 +66,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   const main = p.locator("main");
 
   // Documents: issue badges on estoppel, CAM and billing cards (from phase H)
-  await p.getByRole("button", { name: "Documents", exact: true }).click();
+  await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
   await main.getByRole("button", { name: /Whole fund/ }).click();
   await p.waitForTimeout(600);
@@ -75,7 +75,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(/2 issues: Expiration; Landlord/.test(be) && /over-billed \$966/.test(bc) && /under-billed \$166\.67/.test(bb), `issue badges on the cards: ${be} | ${bc} | ${bb}`);
 
   // Business Plan: create revision 1
-  await p.getByRole("button", { name: "Asset Business Plan", exact: true }).click();
+  await FX.openTab(p, "Asset Business Plan");
   await p.waitForTimeout(1000);
   const bpEl = main.getByTestId("business-plan");
   await bpEl.getByRole("button", { name: "Create business plan (revision 1)" }).click();
@@ -127,15 +127,15 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(xl.suggestedFilename().endsWith("-budget.xlsx"), "Excel budget export");
   await p.screenshot({ path: S + "/i_plan.png", fullPage: true });
   // Model change banner
-  await p.getByRole("button", { name: /^Unit Roll/ }).first().click();
+  await FX.openTab(p, /^Rent Roll/);
   await p.waitForTimeout(600);
   // Fund Return roll-up
-  await p.getByRole("button", { name: /^Fund Return/ }).first().click();
+  await FX.openTab(p, /^Fund Return/);
   await p.waitForTimeout(1000);
   const sum = await main.getByTestId("budget-summary").innerText().catch(() => "");
   check(sum.includes("Airport Flex Park") && sum.includes("Route 9 Small Bay") && sum.includes("Fund"), "Fund Return: NOI vs budget by asset");
   // Critical dates: the milestone
-  await p.getByRole("button", { name: "Leases", exact: true }).click();
+  await FX.openTab(p, "Leases");
   await p.waitForTimeout(1200);
   await main.getByRole("tab", { name: "Critical dates", exact: true }).first().click();
   await p.waitForTimeout(600);

@@ -750,6 +750,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
         <SectionHeader title="Property" />
         <div className="grid grid-cols-1 gap-3">
           <Field label="Property Name" value={inputs.propertyName} field="propertyName" onChange={set} />
+          <Field label="Asset Manager" value={inputs.assetManager ?? ""} field="assetManager" onChange={set} />
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fund</label>
             <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden">
@@ -815,14 +816,14 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           {(inputs.units ?? []).length > 0 ? (
             <p className="text-xs text-gray-500">
               <span className="font-medium uppercase tracking-wide">Units:</span>{" "}
-              <span className="font-semibold text-gray-900">{inputs.units.length}</span> from the rent roll (Unit Roll tab) ·{" "}
+              <span className="font-semibold text-gray-900">{inputs.units.length}</span> from the rent roll (Rent Roll tab) ·{" "}
               {inputs.units.filter((u) => u.leaseStatus === "occupied").length} leased
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <Field label="Units" value={inputs.unitCount ?? 0} field="unitCount" step={1} onChange={set} />
               <p className="self-end pb-2 text-xs text-gray-400">
-                {avgUnitSize > 0 ? `≈ ${avgUnitSize.toLocaleString()} SF per unit. ` : ""}Add a rent roll on the Unit Roll tab for leases.
+                {avgUnitSize > 0 ? `≈ ${avgUnitSize.toLocaleString()} SF per unit. ` : ""}Add a rent roll on the Rent Roll tab for leases.
               </p>
             </div>
           )}
@@ -1223,7 +1224,10 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
             {(inputs.extensionFeeAmount ?? 0) > 0 ? (
               <Field label="Ext. Fee ($, 0 = use %)" value={inputs.extensionFeeAmount} field="extensionFeeAmount" prefix="$" step={10000} onChange={set} />
             ) : (
-              <Field label="Ext. Fee" value={inputs.extensionFeePct} field="extensionFeePct" suffix="% / ext" step={0.05} onChange={set} />
+              <>
+                <Field label="Ext. Fee" value={inputs.extensionFeePct} field="extensionFeePct" suffix="% / ext" step={0.05} onChange={set} />
+                <Field label="Ext. Notice" value={inputs.extensionNoticeDays} field="extensionNoticeDays" suffix="days before maturity" step={15} onChange={set} />
+              </>
             )}
           </div>
         </div>

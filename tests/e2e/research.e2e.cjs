@@ -46,11 +46,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   p.on("dialog", (d) => d.accept());
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
+  await FX.openArea(p, "Pipeline");
   const acq = p.getByRole("group", { name: "Acquisitions" });
   const tabs = await acq.getByRole("button").allInnerTexts();
   check(tabs.indexOf("Research") === tabs.indexOf("Fund Impact") + 1, `Research under Acquisitions: ${tabs.join(", ")}`);
   check((await p.getByRole("group", { name: "Asset Management" }).getByRole("button", { name: "Sales Comps" }).count()) === 0, "Sales Comps is no longer under Asset Management");
-  await acq.getByRole("button", { name: "Research", exact: true }).click();
+  await FX.openTab(p, "Research");
   await p.waitForTimeout(800);
   const rs = p.getByTestId("research");
   check((await p.locator("#asset-picker").count()) === 1, "Research has the Asset dropdown");

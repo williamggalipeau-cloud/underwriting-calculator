@@ -56,7 +56,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   const main = p.locator("main");
-  await p.getByRole("button", { name: "Documents", exact: true }).click();
+  await FX.openTab(p, "Documents");
   await p.waitForTimeout(1500);
   check((await main.getByTestId("doc-card").count()) === 5, `asset view: 5 Airport Flex documents (${await main.getByTestId("doc-card").count()})`);
 
@@ -124,7 +124,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.waitForTimeout(1200);
 
   // Leases → Critical dates include document deadlines
-  await p.getByRole("button", { name: "Leases", exact: true }).click();
+  await FX.openTab(p, "Leases");
   await p.waitForTimeout(1200);
   await main.getByRole("tab", { name: "Critical dates" }).click();
   await main.getByTestId("critical-dates").getByLabel("Show").selectOption("all");
@@ -132,7 +132,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(cdt.includes("Due diligence expires; deposits go hard") && cdt.includes("IC condition: asset management plan due"), "PSA and IC deadlines on Critical dates");
 
   // Edit fund terms: LPA panel shows limits now applied
-  await p.getByRole("button", { name: /^Fund Return/ }).click();
+  await FX.openTab(p, /^Fund Return/);
   await p.waitForTimeout(1500);
   await main.getByRole("button", { name: "Edit all terms" }).first().click();
   await p.waitForTimeout(800);

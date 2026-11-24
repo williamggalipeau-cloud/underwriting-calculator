@@ -35,27 +35,40 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   const main = p.locator("main");
-  const tab = (name) => p.getByRole("button", { name: new RegExp(`^${name.replace("/", "\\/")}`) }).first();
+  const tab = (name) => ({ click: () => FX.openTab(p, name) });
 
   // Name and title
   check((await p.title()) === "Baywise · Industrial Real Estate Management", `browser tab title: ${await p.title()}`);
   check((await p.locator("header h1").innerText()).trim() === "Baywise", "header: Baywise");
   check((await p.locator("header").innerText()).includes("Industrial Real Estate Management"), "header: tagline");
 
-  // Tab groups, in order, with the renamed tabs
-  const groups = await p.getByTestId("tab-group").allInnerTexts();
-  check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PROPERTY MANAGEMENT | PORTFOLIO MANAGEMENT | MARKET | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
-  const nav = await p.locator("nav").first().innerText();
-  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Research", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Plan", "Fund Return", "Fund Debt", "Distribution Analysis", "Stress Testing", "Market Data", "Documents", "Reports"];
+  // Function areas (11/24), in order; each opens its tabs, with the renamed tabs
+  const areas = (await p.getByTestId("function-area").allInnerTexts()).map((t) => t.replace(/[▾▴\d\s]+$/u, "").trim());
+  check(areas.join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PROPERTY MANAGEMENT | PORTFOLIO MANAGEMENT | MARKET | LIBRARY", `function areas: ${areas.join(" | ")}`);
+  check((await p.getByTestId("tab-group").count()) === 0, "on the landing page no area is open");
+  let nav = "";
+  for (const a of await p.getByTestId("function-area").all()) {
+    await a.click();
+    await p.waitForTimeout(150);
+    nav += " " + (await p.getByTestId("tab-group").innerText()).replace(/\n/g, " ");
+    check((await p.getByTestId("tab-group").count()) === 1, "one area's tabs at a time");
+  }
+  await p.getByTestId("function-area").last().click();
+  check((await p.getByTestId("home-button").count()) === 1 && (await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0, "Home is in the header, not in Functions");
+  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Research", "Sell/Hold Analysis", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Summary", "Asset Business Plan", "Rent Roll", "Leases", "Active Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Return", "GP Economics", "Fund Debt", "Distribution Analysis", "Stress Testing", "Benchmarking", "Market Data", "Documents", "Reports"];
   // Each tab found after the previous one (names can contain earlier ones, e.g. "Sale Documents").
   const pos = [];
   for (const t of order) pos.push(nav.indexOf(t, pos.length ? pos[pos.length - 1] + 1 : 0));
   check(pos.every((x) => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "tabs in the agreed order with the new names");
-  check(!/Sales Comps|Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
+  check(!/Fund Plan|Unit Roll|Sales Comps|Portfolio Return|Valuations|Sell \/ Hold|Return Stress Testing|Quick Underwrite/.test(nav), "no old tab names");
 
   // Backup buttons (11/23): no Reset; Download backup; owner-only Restore
   check((await p.getByRole("button", { name: /Reset workspace|Export workspace|Import workspace/ }).count()) === 0, "workspace buttons removed");
-  check((await p.getByRole("button", { name: "Download backup" }).count()) === 1 && (await p.getByRole("button", { name: "Restore from backup" }).count()) === 1, "Download backup, and Restore from backup for an owner");
+  check((await p.getByTestId("setup-buttons").count()) === 1 && (await p.getByTestId("setup-maintenance").getByTestId("setup-buttons").count()) === 1, "no toolbar row: setup lives in Setup & Maintenance (11/24)");
+  check((await p.getByRole("button", { name: "Download backup" }).count()) === 0, "backup is off the main view");
+  await p.getByRole("button", { name: "More", exact: true }).click();
+  await p.waitForTimeout(200);
+  check((await p.getByRole("button", { name: "Download backup" }).count()) === 1 && (await p.getByRole("button", { name: "Restore from backup" }).count()) === 1, "⋯ More: Download backup, and Restore from backup for an owner");
 
   // Sample data menu (11/23): one owner-only menu with a warning, not three loose buttons
   check((await p.getByRole("button", { name: /^(Load test scenario|Load Model Fund I|Clear test data)$/ }).count()) === 0, "sample-data buttons not loose in the header");
@@ -66,6 +79,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(items.length === 6 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add construction test data/.test(items[3]) && /Load test scenario/.test(items[4]) && /Clear test data/.test(items[5]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
   check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
   await sm.getByRole("button", { name: /Sample data/ }).click();
+  await p.getByRole("button", { name: "More", exact: true }).click();
 
   // Firm-wide strip
   const figs = p.getByTestId("firm-figure");

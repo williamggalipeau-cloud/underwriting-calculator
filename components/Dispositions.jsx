@@ -3,6 +3,7 @@
 // Phase P: Dispositions group. view: "forsale" | "offers" | "trackrecord".
 // Sales live on each asset (inputs.dispositions); onUpdate(dealId, fn) edits
 // one asset's inputs (saved and logged like any edit).
+import { CONTRACT_DATES } from "@/lib/contractDates";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ACTIVE_SALE_STAGES, BUYER_TYPES, ROUNDS, SALE_REASONS, SALE_STAGES, activeSales, allSales, changeContractPrice, closeSale, makeBov, makeOffer, makeSale,
@@ -125,7 +126,7 @@ function SaleCard({ x, sales, canEdit, onUpdateSale, onClose, todayISO, docs = [
       {/* Contract */}
       <div className="flex flex-wrap items-end gap-2">
         <p className="w-full font-semibold">Under contract</p>
-        {[["psaDate", "PSA date"], ["hardDate", "Deposit goes hard"], ["ddDeadline", "Due diligence ends"], ["closingDate", "Closing date"]].map(([k, l]) => (
+        {CONTRACT_DATES.map(([k, l]) => (
           <Field key={k} label={l}><input aria-label={l} type="date" value={s.contract?.[k] ?? ""} disabled={!canEdit} onChange={(e) => setIn("contract", { [k]: e.target.value })} className={inp} /></Field>
         ))}
         <Field label="Deposit"><input aria-label="Deposit" type="number" value={s.contract?.deposit ?? ""} disabled={!canEdit} onChange={(e) => setIn("contract", { deposit: num(e.target.value) })} className={`${inp} w-24`} /></Field>

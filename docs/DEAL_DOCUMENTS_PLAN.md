@@ -40,8 +40,8 @@ changes the model without the user clicking to apply it.
 | Demo | Separate Demo firm for the sample fund and test deals, so the real firm holds only real assets (added 11/23) | ⛓ After Picker |
 | Comps | Mock comps for each Model Fund I asset: fictional sales comps on Research → Comps and lease (rent) comps for phase R's Leasing tab, near each sample address (added 11/23) | ⛓ Future release (with the next sample-data update) |
 | External reports | A few more external (LP-facing) reports, to choose: e.g. LP capital account statements, an ILPA-template quarterly report, an annual report with audited figures, property-level investor updates, ESG / GRESB data (added 11/24) | ⛓ Future release: pick which, then plan |
-| Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
-| W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
+| Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ✅ Built 11/24 (manual §7.50); feeding the quarterly report is next |
+| W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ✅ Built 11/24 (manual §7.49) |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
@@ -1289,6 +1289,27 @@ LP reports).
 - Views: since inception and trailing 1 / 3 / 5 years; charts; Excel and
   PDF; feeds phase L's reports (internal by default because of licensing).
 
+**Built 11/24** (`lib/benchmarks.js`, `components/Benchmarking.jsx`,
+`lib/benchmarkPdf.js`; the tab sits after Stress Testing):
+- Uploads (quarterly index, vintage quartiles, monthly returns) with the
+  columns found shown before import; kept in `comps.benchmarks` with source,
+  file, who and when; one summary line per benchmark in the change log.
+- Unlevered NCREIF-style TWR for each asset and the fund from the
+  quarterly values, NOI and capex; chain-linked since inception and trailing
+  1/3/5 years against NPI, NPI Industrial and ODCE; growth-of-100 chart;
+  assets vs. NPI Industrial.
+- Net IRR / TVPI / DPI quartiles for the vintage (year of first
+  acquisition), with a strategy filter.
+- PME: KS-PME and fund IRR vs. index-equivalent (Long-Nickels) IRR, since
+  inception and trailing (NAV at the window start as the opening flow),
+  against Nareit Industrial, the equal-weight peer basket, All Equity REITs
+  and the S&P 500. The LP flows are the same as the quarterly report's net
+  IRR (lib/valuations now keeps the last quarter's dated LP flows).
+- Fictional sample files in `docs/sample-benchmarks/`. Tests:
+  `tests/node/phaseY.test.cjs`, `tests/e2e/phaseY.e2e.cjs`.
+- **Not yet:** feeding the quarterly report (internal version) with the
+  benchmark comparison.
+
 ## Revert from the change log (added 11/23; with the backups item, after Z)
 
 Revision control the user can use (user, 11/23: "everything saves to the
@@ -1305,6 +1326,19 @@ Export is **Download backup**, Import is owner-only **Restore from backup**
 with an automatic backup first.
 
 ## Phase Z: Home page (added 11/23, after O)
+
+**Reworked 11/24 (user) into the Operational Dashboard (USER_MANUAL §7.42):**
+Actions Needed (urgent: overdue, due within 30 days or an issue now; Done
+tracking), Upcoming Events (a rolling year back and ahead: leases and lease
+abstract dates, debt, appraisals, property management, construction, plan
+milestones, purchase and sale contract dates, fund dates), and the Asset
+Watch List (plan performance only: NOI or IRR under plan, At Risk over 10%
+under, Off Plan up to 10%). Both lists show Asset name, Due date, Action
+type, Owner (asset manager or portfolio manager) and Status (Past Due, Due
+now, Upcoming, Completed). Home moved to the header and saves edits before
+leaving; Functions became one button per area, showing that area's tabs;
+Setup & Maintenance sits under Functions. The Workflows lanes, fund cards and
+recent activity below were removed. The original 11/23 plan follows.
 
 A **Home** page the app opens on, organised by workflow (user, 11/23):
 - **Today:** the firm-wide figures, and an attention list (lease
@@ -1449,6 +1483,15 @@ the firm makes, in one place. Projected, with actuals where the app has them.
 - **Report:** internal PDF and Excel.
 Builds on phase L's Asset Return additions (GP ROE, GP profit / promote,
 projected fee revenue), which roll up here.
+
+**Built 11/24** (`lib/gpEconomics.js`, `components/GpEconomics.jsx`,
+`lib/gpEconomicsPdf.js`): the fund fee comes from the fund expense engine
+(the same quarterly charges as Fund Return), promote and co-invest from the
+fund waterfall's distribution rows by year; co-invest profit = GP profit −
+promote, so the three parts never double count. Asset promote is the fund's
+promote allocated by share of gross profit (the waterfall is fund-level).
+Tests: `tests/node/phaseW.test.cjs` (promote matches Fund Return's,
+by-year sums, shares add to 100%), `tests/e2e/phaseW.e2e.cjs`.
 
 ## Phase V: automated workflow (added 11/23; later, to be scoped)
 

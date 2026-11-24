@@ -244,21 +244,31 @@ The tabs have no ✕: an asset can't be deleted from here (to take one out of
 a fund, use Remove on the Fund Return tab, which keeps the deal). Phase O
 replaces this with New / Edit asset and New / Edit fund buttons.
 
-**Tab bar.** Tabs are grouped, with a small header over each group:
+**Functions** (the tab bar). One button per function area; choosing an area shows its tabs (11/24, §7.42). **Home**, in the header, returns to the Operational Dashboard after saving your edits.
 
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
 | **Acquisitions** | Pipeline · Deal Screener · Fund Impact · Research | |
-| **Dispositions** | Assets for Sale · Offers · Track Record · Sale Documents | |
-| **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
+| **Dispositions** | Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Sale Documents | |
+| **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
-| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · Fund Debt · Distribution Analysis · Stress Testing | |
+| **Portfolio Management** | Fund Summary (with Plan vs. actual) · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing · Benchmarking | |
 | **Market** | Market Data | |
 | **Library** | Documents · Reports | |
 
 **Research** (11/24) holds the asset's **Comps** (moved here from Asset
 Management, where it was "Sales Comps") and its **Third-Party** research
 (§7.48). Both belong to the asset, not the fund.
+
+**11/24 changes:** Sell/Hold Analysis moved to Dispositions (first, since
+it leads to Start sale); Asset Summary is the first Asset Management tab;
+**Unit Roll** is now **Rent Roll** and **Leasing** is now **Active
+Leasing**; the Fund Plan tab is now **Plan vs. actual** on Fund Summary. New
+fields: **Asset Manager** (Edit asset) and **Portfolio manager** (Edit fund)
+name the Owner on the dashboard; **Ext. Notice** (Debt) and **Sub line
+maturity** (Edit fund) feed Upcoming Events; sale contracts and pipeline
+deals carry P&S, deposit, hard money, due diligence, loan closing and
+closing dates. Older sections of this manual may still use the old names.
 
 A group's header appears once it has tabs. Each fund carries a **type tag**
 (Fund, Separate Account or Joint Venture), chosen in **New fund** and
@@ -2325,7 +2335,7 @@ date added.
 bought after today. A row of **Pipeline deals** at the top switches between
 them. With an owned asset selected, the tab says so and points to the Asset
 Management tabs instead of showing the screener. The app opens on
-**Home** (§7.42); opening an asset from Asset Summary goes to its business
+the **Operational Dashboard** (§7.42); opening an asset from Asset Summary goes to its business
 plan.
 
 **Model in fund** (above the screener inputs, labelled "Scenario — not
@@ -2458,33 +2468,74 @@ On the **Change log** tab (working log or the database's verified log):
   (they are kept in the database, marked deleted), with when and by whom.
   **Restore** brings one back exactly as it was when deleted.
 
-### 7.42 Home page (`lib/home.js`, phase Z)
+### 7.42 Operational Dashboard (`lib/home.js`, `components/Home.jsx`, phase Z)
 
-The app opens on **Home** (the first button in the tab bar). It shows the
+The app opens on the **Operational Dashboard**, the landing page. It shows the
 portfolio chosen in **Working on** (§7.40) and is computed from data already
-loaded; nothing on it is saved.
-- **Today · needs attention:** leases expiring in the next 90 days (unit
-  roll), loans maturing within 18 months, rate caps expiring within 12
-  months, assets with no valuation mark for the last quarter end, rent 60+
-  days late (each fund's latest delinquency report) and assets whose NOI is
-  in the red against budget year to date. Dated items come first, soonest
-  first; each opens the tab that handles it on that asset.
-- **Recent activity:** the last 10 changes from the change log (the
-  database's log when signed in).
-- **Funds:** a card per fund, separate account or joint venture with its
-  type badge: NAV, net IRR (against the target when one is set in Fund
-  Plan), % called, dry powder, assets and the next key date, with links to
-  Fund Summary and Fund Return.
-- **Workflows:** one lane per tab header in the tab bar's order
-  (Acquisitions, Asset Management, Portfolio Management, Library), each with
-  a few live numbers (active pipeline by stage and dry powder; occupancy,
-  leases expiring this year, NOI vs. budget and appraisals due; NAV, loans
-  maturing, sub line drawn and caps expiring) and links to its tabs. Lanes
-  for Dispositions, Property Management and Market appear once those tab
-  headers exist.
-- **Quick actions:** New asset, New fund setup, Upload rent roll, Upload
-  Yardi actuals, Import marks, Record capital activity and New report, each
-  opening the screen that does it.
+loaded; the only thing it saves is which actions were marked done.
+
+**Getting around (user, 11/24).**
+- **Home** sits in the header next to the Baywise logo (the logo works too).
+  It always returns to the dashboard. Before it leaves it saves any unsaved
+  edits; if the save doesn't go through (a newer version saved by someone
+  else, or the database unreachable) it asks before leaving. The edits stay
+  in the window either way and are saved with **Save now**.
+- **Functions:** one button per function area (Acquisitions, Dispositions,
+  Asset Management, Property Management, Portfolio Management, Market,
+  Library), each with a count badge where there's work. Choosing an area
+  shows its tabs on a second row; choosing it again closes it. The area of
+  the tab you're on is highlighted and opens by itself when a dashboard link
+  takes you to one of its tabs.
+- **Setup & Maintenance**, under Functions on every page: New asset, New fund
+  setup, Edit asset…, Edit fund…, Upload rent roll, Upload Yardi actuals,
+  Import marks, Record capital activity and New report.
+- Download backup, Restore from backup and the owner-only Sample data menu are
+  under **⋯ More** in the header.
+
+**Sections, top to bottom:**
+1. **Actions Needed:** urgent items: undated issues to fix now (a covenant
+   breach, an immediate repair, rent 60+ days late, NOI in the red against
+   budget), anything due within 30 days and anything overdue. Overdue items
+   are in red, the rest in black. An item stays until its **Status** is set
+   to **Completed** (who and when are kept for two years, logged in the change log
+   under "Actions Needed") or until the data shows it handled (a mark
+   entered, a milestone done, a job completed, a sale closed).
+2. **Upcoming Events:** critical action and milestone dates by month: the
+   next three months by default, **Show all** for a year ahead, and **Show
+   the past 12 months** for history (user, 11/24). It covers lease expirations (rent roll) and the
+   lease abstracts' critical dates (signed in), loan maturities, extension
+   notices (the loan's notice period, **Ext. Notice** on Debt; 60 days when
+   not set), quarterly covenant tests, rate caps expiring (one line, saying
+   when a replacement is needed because the loan runs past the cap), each
+   fund's sub line maturity (Edit fund), appraisals due, property management
+   dates, construction jobs' scheduled completion, business plan milestones,
+   purchase and sale contract dates (P&S signed, deposit due, hard money due,
+   due diligence start and end, loan closing, deal closing) and fund dates.
+   Setting a completed item's Status back reopens it.
+3. **Asset Watch List:** plan performance only. An asset is listed when its
+   NOI or IRR is under its business plan:
+   - NOI: actual year to date against the original plan (revision 1's
+     budget), when monthly actuals are in (Asset Business Plan).
+   - IRR: the to-date IRR at the last quarter end's appraisal or internal
+     mark against the plan's underwritten IRR, once the asset has been held a
+     year.
+   - **At Risk:** more than 10% under on either (relative to the plan);
+     **Off Plan:** up to 10% under. Worst first.
+   - Columns: Asset name, Owner, Plan status, NOI vs. plan, IRR vs. plan,
+     Other goals missed (occupancy, rent, WALT below target; late milestones;
+     capital over budget), Next event (from Upcoming Events) and a link to the
+     asset's business plan. The risk report's other flags stay in Reports.
+
+**Columns of Actions Needed and Upcoming Events:** Asset name, Due date,
+Action type, Owner, Status and **Details** (opens the tab where the item is
+handled, on that asset).
+- **Owner:** the item's own owner (a plan milestone's or a pipeline deal's),
+  else the asset's **Asset Manager** (Edit asset), else the fund's
+  **Portfolio manager** (Edit fund); "Unassigned" when none is set.
+- **Status:** **Past Due**, **Due now** (within 30 days, or an issue to fix
+  now), **Upcoming** (more than 30 days out; Upcoming Events only) or
+  **Completed** (marked done, cleared by the data, or a past event). Status
+  is a dropdown on open items: choose Completed to mark one done.
 
 ### 7.43 Dispositions (`lib/dispositions.js`, phase P)
 
@@ -2893,6 +2944,85 @@ assumptions have support and which have **no research yet**. **This asset /
 All assets in view** switches to every asset in the "Working on" scope.
 **Edit** and **Remove** are on each row (removing an item leaves its PDF in
 Library → Documents). **Excel** and **PDF** export the list shown.
+
+### 7.49 GP Economics (`lib/gpEconomics.js`, phase W)
+
+**Portfolio Management → GP Economics** (right after Fund Return) shows
+what the firm makes, for the funds in the "Working on" scope, projected over
+each fund's life. Where a fund has actual capital activity, the same mix of
+actuals and model as Fund Return is used. It is internal: a banner says so,
+and the PDF is marked on every page.
+
+| Part | What it is |
+|---|---|
+| **Fee revenue** | The **asset management fee**, which is the fund's management fee (one fund-level fee, charged quarterly by the fund expense engine; there is no separate per-asset AM fee), plus **property management** and **construction management** fees from each asset's cash flow |
+| **Promote** | GP distributions − the GP's share of equity × all distributions, from the fund waterfall (the definition on Asset Return). Kept apart from fee revenue and never counted in it. **Realized** = distributions dated on or before today |
+| **Co-invest profit** | The GP's return on its own capital at its pro-rata share: GP profit − promote. With promote it adds up to GP profit. The fund view shows GP equity, distributions, ROE, IRR and multiple |
+| **Total GP income** | Fees + promote + co-invest profit, with each part's share (the cards and the colored bar) |
+
+**Views:** **By year** (each calendar year, with life-of-fund totals), **By
+fund** (with the fund type tag) and **By asset**. The waterfall runs on the
+whole fund, so an asset's promote is the fund's promote **allocated by its
+share of gross profit**; the asset's own fees are its PM and CM fees.
+**Fund type** limits the page to Funds, Separate Accounts or Joint Ventures.
+**Discount rate** (default 8%) sets the present value of fee revenue from
+this year on; it doesn't change the totals. **Excel** and **PDF** export
+everything on the page.
+
+### 7.50 Benchmarking (`lib/benchmarks.js`, phase Y)
+
+**Portfolio Management → Benchmarking** compares a fund (pick it at the
+top when there are several) and its assets with outside benchmarks.
+Benchmark data is **licensed**, so the app never fetches it. Owners and
+editors upload the exports from the firm's own subscriptions with **Upload
+benchmark**. Each upload keeps its source note, file, who and when. The
+figures are internal by default: check each license before using them in an
+LP report. Uploads are saved with the firm's settings, and the change log
+records one summary line per benchmark (rows, file and source).
+
+| Kind | Benchmarks | The file |
+|---|---|---|
+| Quarterly index | NCREIF NPI, NPI Industrial, ODCE | Quarter, Total (or Income + Appreciation), optional Income and Appreciation, in % or decimals |
+| Vintage quartiles | Preqin, Cambridge Associates | Vintage, Strategy, and for IRR / TVPI / DPI the top (upper) quartile, median and bottom (lower) quartile, either as columns ("Net IRR Median"…) or with a Metric column |
+| Monthly returns | FTSE Nareit Industrial (main), EastGroup, Rexford, Terreno, STAG (the small-bay peer basket), FTSE Nareit All Equity REITs, S&P 500 | Date, then one column per series, named after it (matched automatically) |
+
+The columns found are shown before **Import**. Uploading the same benchmark
+again replaces it. Fictional sample files to try the tab are in
+`docs/sample-benchmarks/`.
+
+**Time-weighted return vs. NCREIF.** The app adds the fund's and each
+asset's **unlevered quarterly time-weighted return**, NCREIF style, from the
+quarterly values (Valuation tab), NOI and capital spent:
+income = NOI ÷ (value at start + ½ capex − ⅓ NOI); appreciation = (value at
+end − value at start − capex) over the same base. The acquisition quarter
+(held at cost) starts each asset's series. The fund adds up its assets each
+quarter. Quarters are chain-linked: since inception and trailing 1, 3 and 5
+years, annualized over a year, each next to NPI, NPI Industrial and ODCE for
+the same quarters, with the spread. A period without enough history says so.
+The chart shows the growth of 100 for the fund and the indexes. **Assets vs.
+NCREIF** compares each asset since its first quarter with NPI Industrial (or
+NPI).
+
+**Net returns vs. vintage peers.** The fund's net LP IRR, TVPI and DPI at the
+last quarter end (as on the quarterly report), against the uploaded
+quartiles for its **vintage**: the year of its first acquisition. Each shows
+its quartile, top to bottom. **Strategy** picks which row to compare with
+when a source lists several (a source with one strategy uses it).
+
+**Public market equivalent.** The fund's dated LP cash flows invested in a
+listed index instead:
+- **KS-PME** (Kaplan-Schoar): (distributions + NAV) ÷ contributions, each
+  grown by the index to the quarter end. Above 1.00 the fund beat the index.
+- The fund's **net LP IRR** vs. the **index-equivalent IRR**: the same cash
+  flows with the index's ending value in place of the NAV.
+
+These are shown since inception, and over the trailing 1, 3 and 5 years,
+starting from the LP NAV at the window's start. The peer basket is the equal
+weight of the four REITs each month. Listed REITs carry less leverage (about
+25–35%) than a value-add fund (about 60%), so part of any gap is leverage.
+
+**Excel** and **PDF** (internal, licensed data) export every table with its
+sources. Not yet in the quarterly report.
 
 ## 8. Worked example: the default deal
 
@@ -3905,15 +4035,15 @@ each phase and the decisions behind it are in
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
-| Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ✅ Built 11/23: attention list, recent activity, fund cards, lanes for the tab headers that exist, quick actions; follows Working on (§7.42) |
+| Z. Operational Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions; follows Working on (§7.42) |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Research → Comps, valuations and reports show a full set | ⛓ Future release |
 | Quarterly report summary (11/24) | Watch list (internal version only), change vs. last quarter and issued reports on top of the quarterly report, on screen, in the PDF and in the Excel (§7.32b) | ✅ Built 11/24 |
 | Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
-| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
-| W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
+| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) (§7.50) | ✅ Built 11/24. Not yet in the quarterly report |
+| W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel (§7.49) | ✅ Built 11/24 |
 
 **How phases are delivered.**
 - **Scheduling:** phases I–O run in scheduled 5-hour windows (from 11/22, 8:40

@@ -41,9 +41,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const R = require("path").resolve(__dirname, "..", "..");
   const num = (s) => Number(String(s).replace(/[^\d.-]/g, "")) * (/^\(/.test(String(s).trim()) ? -1 : 1) * (/M$/.test(String(s).trim()) ? 1e6 : 1);
 
+  await FX.openArea(p, "Distribution Analysis");
   const nav = await p.locator("nav").first().innerText();
   check(nav.indexOf("Distribution Analysis") > nav.indexOf("Fund Return") && nav.indexOf("Distribution Analysis") < nav.indexOf("Stress Testing"), "Distribution Analysis sits after Fund Return");
-  await p.getByRole("button", { name: /^Distribution Analysis/ }).first().click();
+  await FX.openTab(p, /^Distribution Analysis/);
   await p.waitForTimeout(1500);
   const da = main.getByTestId("distribution-analysis");
   check((await da.count()) === 1 && /Model Fund I/.test(await da.locator("h2").innerText()), "Distribution Analysis for Model Fund I");

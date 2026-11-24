@@ -1,6 +1,7 @@
 "use client";
 
 // Phase M: Pipeline tab (Acquisitions, first). Every deal being watched.
+import { CONTRACT_DATES } from "@/lib/contractDates";
 import { useMemo, useRef, useState } from "react";
 import { gridFromFile } from "@/lib/comps";
 import { downloadBlob } from "@/lib/fundTerms";
@@ -22,6 +23,9 @@ import {
   templateRows,
   totalsByStage,
 } from "@/lib/pipeline";
+
+// Purchase contract dates (11/24); the deal closing is Expected close.
+const PURCHASE_DATES = CONTRACT_DATES.filter(([k]) => k !== "closingDate");
 
 const fmtM = (n) => {
   if (n == null || !isFinite(n)) return "—";
@@ -200,7 +204,17 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
                       <input aria-label={`Next step ${d.name}`} disabled={!canEdit} defaultValue={d.nextStep} placeholder="Next step" onBlur={(e) => e.target.value !== d.nextStep && update(d.id, { nextStep: e.target.value })} className={inp} />
                       <input aria-label={`Next date ${d.name}`} type="date" disabled={!canEdit} value={d.nextDate || ""} onChange={(e) => update(d.id, { nextDate: e.target.value })} className={`${inp} mt-0.5`} />
                     </td>
-                    <td className={td}><input aria-label={`Expected close ${d.name}`} type="date" disabled={!canEdit} value={d.expectedClose || ""} onChange={(e) => update(d.id, { expectedClose: e.target.value })} className={inp} /></td>
+                    <td className={td}>
+                      <input aria-label={`Expected close ${d.name}`} type="date" disabled={!canEdit} value={d.expectedClose || ""} onChange={(e) => update(d.id, { expectedClose: e.target.value })} className={inp} title="Deal closing" />
+                      <details className="mt-0.5" data-testid="pipeline-contract-dates">
+                        <summary className="cursor-pointer text-[10px] text-blue-700">Contract dates{PURCHASE_DATES.some(([k]) => d[k]) ? ` (${PURCHASE_DATES.filter(([k]) => d[k]).length})` : ""}</summary>
+                        <div className="mt-1 space-y-0.5">
+                          {PURCHASE_DATES.map(([k, l]) => (
+                            <label key={k} className="flex items-center justify-between gap-1 text-[10px] text-gray-500">{l}<input aria-label={`${l} ${d.name}`} type="date" disabled={!canEdit} value={d[k] || ""} onChange={(e) => update(d.id, { [k]: e.target.value })} className={`${inp} w-28`} /></label>
+                          ))}
+                        </div>
+                      </details>
+                    </td>
                     <td className={`${td} whitespace-nowrap`}>
                       {canEdit && (
                         <div className="flex flex-col items-start gap-0.5">

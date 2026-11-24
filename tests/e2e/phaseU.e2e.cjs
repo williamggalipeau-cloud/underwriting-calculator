@@ -39,9 +39,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
 
-  const groups = await p.getByRole("group").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")).filter(Boolean));
+  const groups = await FX.areas(p);
   check(groups.indexOf("Market") === groups.indexOf("Library") - 1, "a Market group right before Library");
-  await p.getByRole("group", { name: "Market" }).getByRole("button", { name: "Market Data" }).click();
+  await FX.openTab(p, "Market Data");
   await p.waitForTimeout(600);
 
   // ── Upload ──
@@ -80,7 +80,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/market-summary\.pdf$/.test(pdf.suggestedFilename()), "market summary PDF");
 
   // ── Part 2: Stress Testing in standard deviations, and the simulation ──
-  await p.getByRole("group", { name: "Portfolio Management" }).getByRole("button", { name: "Stress Testing" }).click();
+  await FX.openTab(p, "Stress Testing");
   await p.waitForTimeout(1000);
   const sig = p.getByTestId("stress-sigma");
   check((await sig.getByTestId("vol-row").count()) === 6 && /SOFR history not loaded/.test(await sig.innerText()), "a volatility per factor, with its source");
@@ -97,12 +97,6 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const head = await p.getByTestId("sim-headline").innerText();
   check(/Stressed IRR -?[\d.]+%: (this outcome or worse ≈ 1 year in \d+|about as likely as not|worse than every one)/.test(head), `simulation: ${head}`);
   check(/5th percentile/.test(await p.getByTestId("sim-result").innerText()) && (await p.getByTestId("sim-result").getByRole("img").count()) === 1, "the distribution, with percentiles");
-
-  // ── Home lane ──
-  await p.getByRole("button", { name: "Home", exact: true }).click();
-  await p.waitForTimeout(800);
-  const lane = (await p.getByTestId("lane").filter({ hasText: "Submarkets tracked" }).innerText()).replace(/\n/g, " ");
-  check(/Submarkets tracked\s*2/.test(lane) && /Assets tagged to a submarket\s*1 of/.test(lane), "Home: a Market lane");
 
   // ── Saved ──
   await p.waitForTimeout(22000);

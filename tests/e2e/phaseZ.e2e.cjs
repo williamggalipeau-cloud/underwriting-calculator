@@ -21,6 +21,7 @@ const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com",
 const sess = { access_token: jwt, token_type: "bearer", expires_in: 3600, expires_at: now + 3600, refresh_token: "r", user: { id: "u1", email: "t@example.com", user_metadata: {} } };
 const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new Date().toISOString(), updated_by_email: "t@example.com" };
 let fails = 0;
+let saves = 0;
 const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
   const b = await chromium.launch();
@@ -31,7 +32,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
     const req = r.request(); const u = req.url(); const acc = req.headers()["accept"] || "";
     let body = "[]";
     if (u.includes("/rpc/claim_invites")) body = "0";
-    else if (u.includes("/rpc/save_workspace")) body = String(++ws.version);
+    else if (u.includes("/rpc/save_workspace")) { saves++; body = String(++ws.version); }
     else if (u.includes("/auth/v1/user")) body = JSON.stringify(sess.user);
     else if (u.includes("/workspace_members")) body = JSON.stringify([{ workspace_id: "w1", role: "owner", email: "t@example.com" }]);
     else if (u.includes("/workspaces")) body = acc.includes("vnd.pgrst.object") ? JSON.stringify(ws) : JSON.stringify([ws]);
@@ -46,42 +47,78 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const home = p.getByTestId("home");
 
   check((await home.count()) === 1, "the app opens on Home");
-  check((await p.getByRole("group", { name: "Home" }).getByRole("button", { name: "Home" }).count()) === 1, "a Home button leads the tab bar");
+  check((await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0 && /^Operational Dashboard/.test(await p.getByTestId("home").locator("h2").innerText()), "Home is in the header (not in Functions); the landing page is the Operational Dashboard");
 
-  // ── Today ──
+  // ── Actions Needed (urgent) and Calendar (upcoming), user 11/24 ──
   const att = p.getByTestId("attention");
   const at = await att.innerText();
-  check(/Example Tenant Co expires \(Airport Flex Park\)/.test(at) && /30 d/.test(at), "attention: the lease expiring in 30 days");
-  check(/without a \d{4}-\d{2}-\d{2} mark/.test(at) && /Rate cap expires/.test(at), "attention: missing marks and rate caps expiring");
+  const leaseRow = att.getByTestId("action-row").filter({ hasText: "Example Tenant Co expires" });
+  check((await leaseRow.count()) === 1 && (await leaseRow.getByTestId("cell-asset").innerText()) === "Airport Flex Park" && /30 d/.test(await leaseRow.innerText()), "Actions Needed: the lease expiring in 30 days, its asset in the first column");
+  // Columns (user, 11/24): Asset name, Due date, Action type, Owner, Status
+  const heads = (await att.locator("thead th").allInnerTexts()).map((t) => t.trim().toUpperCase()).filter(Boolean);
+  check(heads.join("|") === "ASSET NAME|DUE DATE|ACTION TYPE|OWNER|STATUS|DETAILS", `Actions Needed headers: ${heads.join(", ")}`);
+  const calHeads = (await p.getByTestId("calendar").locator("thead th").allInnerTexts()).map((t) => t.trim().toUpperCase()).filter(Boolean);
+  check(calHeads.join("|") === "ASSET NAME|DUE DATE|ACTION TYPE|OWNER|STATUS|DETAILS", "Upcoming Events: the same headers");
+  check((await leaseRow.getByTestId("status").inputValue()) === "Due now" && (await leaseRow.getByTestId("cell-owner").innerText()).trim().length > 0, `the lease row: Due now, owner ${await leaseRow.getByTestId("cell-owner").innerText()}`);
+  const stats = new Set(await att.getByTestId("status").evaluateAll((els) => els.map((e) => e.value ?? e.textContent)));
+  check([...stats].every((x) => ["Due now", "Past Due"].includes(x)) && stats.has("Past Due"), `Actions Needed statuses: ${[...stats].join(", ")}`);
+  check(/without a \d{4}-\d{2}-\d{2} mark/.test(at) && !/Rate cap expires/.test(at), "Actions Needed: missing marks (overdue); rate caps months away are not urgent");
+  const color = async (re) => att.getByTestId("action-row").filter({ hasText: re }).locator("[data-overdue]").evaluate((e) => [e.dataset.overdue, e.className]);
+  const [od, odCls] = await color(/without a \d{4}-\d{2}-\d{2} mark/);
+  const [soon, soonCls] = await color(/Example Tenant Co expires/);
+  check(od === "yes" && /text-red-700/.test(odCls) && soon === "no" && /text-gray-900/.test(soonCls) && !/red/.test(soonCls), "overdue in red, due within 30 days in black");
+  // Done: the overdue item leaves Actions Needed and shows done on the Calendar
+  const nAct = await att.getByTestId("action-row").count();
+  check((await att.getByRole("button", { name: /^Done/ }).count()) === 0, "no Done button: Status marks it");
+  await att.getByRole("combobox", { name: /^Status: .*without a \d{4}-\d{2}-\d{2} mark/ }).selectOption("Completed");
+  await p.waitForTimeout(500);
+  check((await att.getByTestId("action-row").count()) === nAct - 1 && !/without a \d{4}-\d{2}-\d{2} mark/.test(await att.innerText()), "Status set to Completed: it leaves Actions Needed");
+  await p.getByTestId("calendar").getByRole("button", { name: /Show the past 12 months/ }).click();
+  await p.waitForTimeout(300);
+  const doneRow = p.getByTestId("calendar-item").filter({ hasText: /without a \d{4}-\d{2}-\d{2} mark/ });
+  check((await doneRow.getAttribute("data-state")) === "done" && (await doneRow.getByTestId("status").inputValue()) === "Completed" && /✓ done \d+\/\d+\/\d{4} by t@example\.com/.test(await doneRow.innerText()), "and shows done (who and when) in Upcoming Events' past 12 months");
+  await doneRow.getByRole("combobox", { name: /^Status: / }).selectOption("Past Due");
+  await p.waitForTimeout(400);
+  check(/without a \d{4}-\d{2}-\d{2} mark/.test(await att.innerText()), "setting Status back to Past Due puts it back");
+  await p.getByTestId("calendar").getByRole("button", { name: /Hide the past 12 months/ }).click();
+  await p.waitForTimeout(300);
+  const cal = p.getByTestId("calendar");
+  const ct = await cal.innerText();
+  check(/^Upcoming Events/.test(ct) && /Rate cap expires/.test(ct) && (await p.getByTestId("calendar-month").count()) >= 2, "Calendar: upcoming dates by month, incl. rate caps expiring");
+  check(/Quarterly covenant tests/.test(ct) || /Appraisal due/.test(ct) || /Extension notice due/.test(ct) || (await p.getByTestId("calendar-item").count()) >= 10, "Calendar: debt and appraisal dates");
+  const calDays = await p.getByTestId("calendar-item").evaluateAll((els) => els.map((e) => Number(e.dataset.days)));
+  const calStats = new Set(await cal.getByTestId("status").evaluateAll((els) => els.map((e) => e.value || e.textContent)));
+  check([...calStats].every((x) => ["Due now", "Past Due", "Upcoming", "Completed"].includes(x)) && calStats.has("Upcoming"), `Upcoming Events statuses: ${[...calStats].join(", ")}`);
+  check(calDays.length > 0 && calDays.every((d) => d >= 0 && d <= 92), `Upcoming Events (default view): the next three months (${Math.min(...calDays)}–${Math.max(...calDays)} d)`);
+  await cal.getByRole("button", { name: /^Show all \d+, a year out/ }).click();
+  await p.waitForTimeout(300);
+  const allDays = await p.getByTestId("calendar-item").evaluateAll((els) => els.map((e) => Number(e.dataset.days)));
+  check(allDays.length > calDays.length && Math.max(...allDays) > 92 && allDays.every((d) => d >= 0 && d <= 366), `Show all: a year out (${allDays.length} items, to ${Math.max(...allDays)} d)`);
+  await cal.getByRole("button", { name: "Show the next three months only" }).click();
+  await p.waitForTimeout(200);
 
-  // ── Recent activity ──
-  const ra = await p.getByTestId("recent-activity").innerText();
-  check(/colleague@example\.com/.test(ra) && /Preferred return/.test(ra), "recent activity from the change log");
+  // ── Removed (user 11/24): Funds, Workflows, Recent activity ──
+  check((await p.getByTestId("fund-card").count()) === 0 && (await p.getByTestId("lanes").count()) === 0 && (await p.getByTestId("recent-activity").count()) === 0, "no Funds, Workflows or Recent activity sections");
+  check((await p.getByTestId("functions-title").innerText()) === "Functions" && (await p.getByRole("navigation", { name: "Functions" }).count()) === 1, "the tab bar is titled Functions");
 
-  // ── Fund cards ──
-  const cards = p.getByTestId("fund-card");
-  check((await cards.count()) === 2, "a card per fund");
-  const jvCard = await cards.filter({ hasText: JV }).innerText();
-  check(/Joint Venture/.test(jvCard) && /NAV/.test(jvCard) && /Dry powder/.test(jvCard) && /Next key date/.test(jvCard), "the JV card: type badge, NAV, dry powder, next key date");
-
-  // ── Lanes ──
-  const lanes = p.getByTestId("lane");
-  const labels = await lanes.evaluateAll((els) => els.map((e) => e.querySelector("p")?.textContent));
-  check(labels.join() === "Acquisitions,Dispositions,Asset Management,Property Management,Portfolio Management,Market,Library", `lanes in tab-bar order: ${labels.join(", ")}`);
-  check(/Occupancy/.test(await lanes.filter({ hasText: "Asset Management" }).innerText()) && /NAV/.test(await lanes.filter({ hasText: "Portfolio Management" }).innerText()), "lanes carry live numbers");
+  // ── Order: Functions, Setup & Maintenance (under Functions, every page); then Actions Needed, Upcoming Events, Asset Watch List ──
+  await p.evaluate(() => window.scrollTo(0, 0));
+  await p.waitForTimeout(200);
+  const ys = [];
+  for (const id of ["functions-title", "setup-maintenance", "attention", "calendar", "assets-watch"]) ys.push((await p.getByTestId(id).boundingBox())?.y ?? -1);
+  check(ys.every((y, i) => y >= 0 && (i === 0 || y > ys[i - 1])), `order: Functions, Setup & Maintenance, Actions Needed, Upcoming Events, Asset Watch List (${ys.map(Math.round).join(", ")})`);
+  check((await p.getByTestId("home").getByTestId("setup-maintenance").count()) === 0, "Setup & Maintenance is under Functions, not inside the dashboard");
+  check(/^Actions Needed/.test(await p.getByTestId("attention").locator("h3").innerText()) && /Setup & Maintenance/i.test(await p.getByTestId("setup-maintenance").innerText()), "Actions Needed; Setup & Maintenance holds the quick actions");
+  const aw = await p.getByTestId("assets-watch").innerText();
+  check(/^Asset Watch List/.test(aw) && /business plan/.test(aw) && !/risk report/i.test(aw) && ((await p.getByTestId("watch-asset").count()) > 0 || /No assets under plan/.test(aw)), `Asset Watch List: plan performance only: ${aw.replace(/\s+/g, " ").slice(0, 140)}`);
 
   // ── The lease opens its asset on Leases ──
-  await att.locator("li", { hasText: "Example Tenant Co" }).getByRole("button").click();
+  await att.getByTestId("action-row").filter({ hasText: "Example Tenant Co" }).getByRole("button", { name: /^Open / }).click();
   await p.waitForTimeout(1000);
   const main = await p.locator("main").innerText();
   check((await p.getByTestId("home").count()) === 0 && /Airport Flex Park/.test(main), "an attention item opens its tab on that asset");
 
-  // ── Lane link and quick action ──
-  await p.getByRole("button", { name: "Home", exact: true }).click();
-  await p.waitForTimeout(800);
-  await lanes.first().getByRole("button", { name: "Open Pipeline" }).click();
-  await p.waitForTimeout(800);
-  check((await p.getByTestId("home").count()) === 0 && /pipeline/i.test(await p.locator("main").innerText()), "a lane link opens its tab");
+  // ── Home returns to the dashboard; quick action ──
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
   await p.getByTestId("quick-actions").getByRole("button", { name: "New fund setup" }).click();
@@ -95,9 +132,25 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── Working on: the JV only ──
   await p.getByTestId("working-on").selectOption(JV);
   await p.waitForTimeout(1000);
-  check((await p.getByTestId("fund-card").count()) === 1 && /Joint Venture/.test(await p.getByTestId("fund-card").innerText()), "Home follows the Working on picker: the JV's card only");
+  check(!/Model Fund I/.test(await p.getByTestId("assets-watch").innerText()), "Home follows the Working on picker: the JV's watch list only");
   check(!/Example Tenant Co/.test(await p.getByTestId("attention").innerText()), "and only the JV's attention items");
   check(/Example JV II \(Joint Venture\)/.test(await p.getByTestId("home").locator("p").first().innerText()), "the page says which portfolio it shows");
+  // Home saves unsaved edits before returning (user, 11/24)
+  const before = saves;
+  await p.getByTestId("attention").getByRole("combobox", { name: /^Status: / }).first().selectOption("Completed");
+  await p.waitForTimeout(900);
+  check(/unsaved changes/.test(await p.locator("header").innerText()), "an edit leaves unsaved changes");
+  await FX.openTab(p, /^Pipeline/);
+  await p.waitForTimeout(300);
+  await p.getByTestId("home-button").click();
+  await p.waitForTimeout(1200);
+  check(saves > before && !/unsaved changes/.test(await p.locator("header").innerText()) && (await p.getByTestId("home").count()) === 1, `Home saved the edit, then returned to the dashboard (${saves - before} save)`);
+  // The Baywise logo returns to the landing page too
+  await FX.openTab(p, /^Pipeline/);
+  await p.waitForTimeout(400);
+  await p.getByRole("button", { name: "Baywise: go to the Operational Dashboard" }).click();
+  await p.waitForTimeout(600);
+  check((await p.getByTestId("home").count()) === 1, "the Baywise logo returns to the Operational Dashboard");
   await p.screenshot({ path: `${S}/home.png`, fullPage: true });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();
