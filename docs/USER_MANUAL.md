@@ -252,7 +252,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Dispositions** | Assets for Sale · Offers · Track Record · Sale Documents | |
 | **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
-| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing | |
+| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing · Benchmarking | |
 | **Market** | Market Data | |
 | **Library** | Documents · Reports | |
 
@@ -2918,6 +2918,61 @@ share of gross profit**; the asset's own fees are its PM and CM fees.
 this year on; it doesn't change the totals. **Excel** and **PDF** export
 everything on the page.
 
+### 7.50 Benchmarking (`lib/benchmarks.js`, phase Y)
+
+**Portfolio Management → Benchmarking** compares a fund (pick it at the
+top when there are several) and its assets with outside benchmarks.
+Benchmark data is **licensed**, so the app never fetches it. Owners and
+editors upload the exports from the firm's own subscriptions with **Upload
+benchmark**. Each upload keeps its source note, file, who and when. The
+figures are internal by default: check each license before using them in an
+LP report. Uploads are saved with the firm's settings, and the change log
+records one summary line per benchmark (rows, file and source).
+
+| Kind | Benchmarks | The file |
+|---|---|---|
+| Quarterly index | NCREIF NPI, NPI Industrial, ODCE | Quarter, Total (or Income + Appreciation), optional Income and Appreciation, in % or decimals |
+| Vintage quartiles | Preqin, Cambridge Associates | Vintage, Strategy, and for IRR / TVPI / DPI the top (upper) quartile, median and bottom (lower) quartile, either as columns ("Net IRR Median"…) or with a Metric column |
+| Monthly returns | FTSE Nareit Industrial (main), EastGroup, Rexford, Terreno, STAG (the small-bay peer basket), FTSE Nareit All Equity REITs, S&P 500 | Date, then one column per series, named after it (matched automatically) |
+
+The columns found are shown before **Import**. Uploading the same benchmark
+again replaces it. Fictional sample files to try the tab are in
+`docs/sample-benchmarks/`.
+
+**Time-weighted return vs. NCREIF.** The app adds the fund's and each
+asset's **unlevered quarterly time-weighted return**, NCREIF style, from the
+quarterly values (Valuation tab), NOI and capital spent:
+income = NOI ÷ (value at start + ½ capex − ⅓ NOI); appreciation = (value at
+end − value at start − capex) over the same base. The acquisition quarter
+(held at cost) starts each asset's series. The fund adds up its assets each
+quarter. Quarters are chain-linked: since inception and trailing 1, 3 and 5
+years, annualized over a year, each next to NPI, NPI Industrial and ODCE for
+the same quarters, with the spread. A period without enough history says so.
+The chart shows the growth of 100 for the fund and the indexes. **Assets vs.
+NCREIF** compares each asset since its first quarter with NPI Industrial (or
+NPI).
+
+**Net returns vs. vintage peers.** The fund's net LP IRR, TVPI and DPI at the
+last quarter end (as on the quarterly report), against the uploaded
+quartiles for its **vintage**: the year of its first acquisition. Each shows
+its quartile, top to bottom. **Strategy** picks which row to compare with
+when a source lists several (a source with one strategy uses it).
+
+**Public market equivalent.** The fund's dated LP cash flows invested in a
+listed index instead:
+- **KS-PME** (Kaplan-Schoar): (distributions + NAV) ÷ contributions, each
+  grown by the index to the quarter end. Above 1.00 the fund beat the index.
+- The fund's **net LP IRR** vs. the **index-equivalent IRR**: the same cash
+  flows with the index's ending value in place of the NAV.
+
+These are shown since inception, and over the trailing 1, 3 and 5 years,
+starting from the LP NAV at the window's start. The peer basket is the equal
+weight of the four REITs each month. Listed REITs carry less leverage (about
+25–35%) than a value-add fund (about 60%), so part of any gap is leverage.
+
+**Excel** and **PDF** (internal, licensed data) export every table with its
+sources. Not yet in the quarterly report.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -3936,7 +3991,7 @@ each phase and the decisions behind it are in
 | Quarterly report summary (11/24) | Watch list (internal version only), change vs. last quarter and issued reports on top of the quarterly report, on screen, in the PDF and in the Excel (§7.32b) | ✅ Built 11/24 |
 | Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
-| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
+| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) (§7.50) | ✅ Built 11/24. Not yet in the quarterly report |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel (§7.49) | ✅ Built 11/24 |
 
 **How phases are delivered.**

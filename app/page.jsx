@@ -31,6 +31,7 @@ import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Research from "@/components/Research";
 import GpEconomics from "@/components/GpEconomics";
+import Benchmarking from "@/components/Benchmarking";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
 import DistributionAnalysis from "@/components/DistributionAnalysis";
@@ -471,6 +472,7 @@ const TAB_GROUPS = [
     { id: "funddebt",    label: "Fund Debt" },
     { id: "distributions", label: "Distribution Analysis" },
     { id: "stress",      label: "Stress Testing" },
+    { id: "benchmark",   label: "Benchmarking" },
   ] },
   { label: "Market", tabs: [
     { id: "market",      label: "Market Data" },
@@ -2232,6 +2234,9 @@ export default function Home() {
                 email={session?.user?.email ?? null}
                 onFundTermsChange={handleFundTermsChange}
               />
+            )}
+            {activeTab === "benchmark" && (
+              <Benchmarking deals={fundDeals} funds={viewFunds} marks={valuations} curve={effectiveCurve(baseCurve, anchorToLive, live)} comps={comps} onChange={setComps} canEdit={!locked} email={session?.user?.email ?? null} />
             )}
             {activeTab === "gpecon" && (
               <GpEconomics deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
