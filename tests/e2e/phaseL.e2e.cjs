@@ -114,6 +114,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await rp.count()) === 1 && /Model Fund I/.test(await rp.locator("h2").innerText()), "Reports tab for Model Fund I");
   check(/2026 Q3/.test(await rp.getByLabel("Quarter").locator("option:checked").innerText()), "defaults to the last completed quarter");
   check((await rp.getByTestId("report-portfolio").locator("tbody tr").count()) >= 7, "portfolio table: assets held at quarter end");
+  // Summary on top (11/24): watch list, change vs. last quarter, issued
+  const rsum = rp.getByTestId("report-summary");
+  check((await rsum.count()) === 1 && /Watch list/.test(await rsum.innerText()) && /not in the shareable report/.test(await rp.getByTestId("report-summary-watch").innerText()) && /asset/.test(await rp.getByTestId("report-summary-watch").innerText()), "quarterly summary: the watch list (internal, marked)");
+  check(/Change vs\. last quarter \(2026 Q2\)/.test(await rp.getByTestId("report-summary-change").innerText()), `quarterly summary: change vs. last quarter: ${(await rp.getByTestId("report-summary-change").innerText()).replace(/\s+/g, " ")}`);
+  check(/Draft \(not issued\)/.test(await rp.getByTestId("report-summary-issued").innerText()), "quarterly summary: nothing issued yet");
+  check((await rp.getByTestId("report-change-table").locator("tbody tr").count()) === 8, "every measure in the change table");
+  const sumBox = await rsum.boundingBox(), statBox = await rp.getByTestId("report-stats").boundingBox();
+  check(sumBox && statBox && sumBox.y < statBox.y, "the summary sits above the report");
   const letterBox = rp.getByLabel("Letter");
   check(/Dear Investors/.test(await letterBox.inputValue()) && /2026 Q3/.test(await letterBox.inputValue()), "letter drafted from the figures");
   await letterBox.fill("Dear Investors,\n\nRoute 9 leased two units this quarter (test letter).");
@@ -122,6 +130,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const shPath = S + "/l_report_shareable.pdf"; await sp1.saveAs(shPath);
   const shTxt = execFileSync("pdftotext", ["-layout", shPath, "-"]).toString();
   check(/Route 9 leased two units this quarter/.test(shTxt) && /Fund summary · 2026 Q3/.test(shTxt) && /Route 9 Small Bay/.test(shTxt) && !/INTERNAL/.test(shTxt), "shareable PDF: the letter, summary and asset pages; not marked internal");
+  check(/Summary/.test(shTxt) && /Change vs\. last quarter \(2026 Q2\)/.test(shTxt) && /Draft \(not issued\)/.test(shTxt) && !/Watch list/.test(shTxt) && shTxt.indexOf("Change vs. last quarter") < shTxt.indexOf("Route 9 leased two units"), "shareable PDF: the summary on top, with no watch list");
   const shImgs = execFileSync("pdfimages", ["-list", shPath]).toString().trim().split("\n").length - 2;
   check(shImgs >= 1, `shareable PDF: ${shImgs} asset cover photo(s)`);
   // Internal version
@@ -137,6 +146,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const inPath = S + "/l_report_internal.pdf"; await ip.saveAs(inPath);
   const inTxt = execFileSync("pdftotext", ["-layout", inPath, "-"]).toString();
   check(/INTERNAL - not for distribution/.test(inTxt) && /Watch Route 9 taxes/.test(inTxt) && /underwritten vs\. actual/i.test(inTxt) && /issued \d+\/\d+\/\d{4} by t@example\.com \(v1\)/.test(inTxt), "issued internal PDF: watermark, notes, underwritten vs. actual, who and when");
+  check(/Watch list \(internal\)/.test(inTxt) && /asset/.test(inTxt.slice(0, inTxt.indexOf("Dear Investors") > 0 ? inTxt.indexOf("Dear Investors") : 2000)), "issued internal PDF: the watch list in the summary on top");
+  check(/1 issued this quarter · latest v1 \(internal\)/.test(inTxt.replace(/\s+/g, " ")), "issued internal PDF: the summary names its own version");
+  check(/1 issued · latest v1 \(internal\)/.test(await rp.getByTestId("report-summary-issued").innerText()), "quarterly summary: the issued report");
   // Fund limits
   const fl = rp.getByTestId("fund-limits");
   check((await fl.getByTestId("limit-row").count()) === 3, "fund limits: the three LPA limits");

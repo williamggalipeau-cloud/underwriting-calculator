@@ -2140,6 +2140,21 @@ issued list. Before LPs have funded capital, net returns show as not yet
 meaningful and the letter describes gross asset value. The app never sends
 anything: download the PDF and upload it to the investor portal.
 
+**Summary on top** (11/24, like the risk report, §7.32d). Three cards open
+the report, and the same summary is on the first page of the PDF (above the
+letter) and at the top of the Excel:
+- **Watch list**: the risk report's flagged assets and their scores. It is
+  internal: owners and editors see the card on screen in both versions, but
+  it goes into the PDF and Excel of the **internal** version only, never the
+  shareable one.
+- **Change vs. last quarter**: LP NAV, net LP IRR, TVPI, DPI, LP capital
+  called (%), occupancy (weighted by SF), loan to value and the number of
+  assets, now against the previous quarter end, with the measures that
+  moved. Open **Change vs. last quarter: all measures** for the full table.
+- **Issued reports**: how many versions have been issued for the quarter
+  and the latest (version, shareable or internal, date and who). An issued
+  version keeps the summary as it was when issued.
+
 ### 7.32c Fund limits, actual vs. limit (phase L)
 
 On the Reports tab (owners and editors), **Fund limits** lists every
@@ -3894,6 +3909,7 @@ each phase and the decisions behind it are in
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Research → Comps, valuations and reports show a full set | ⛓ Future release |
+| Quarterly report summary (11/24) | Watch list (internal version only), change vs. last quarter and issued reports on top of the quarterly report, on screen, in the PDF and in the Excel (§7.32b) | ✅ Built 11/24 |
 | Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |

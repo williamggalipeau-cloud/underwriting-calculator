@@ -9,7 +9,8 @@ import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms"
 import { fundOptionLabel } from "@/lib/fundTypes";
 import { lastCompletedQuarterEnd, quarterLabel } from "@/lib/valuations";
 import { writeXlsx } from "@/lib/xlsx";
-import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, reportXlsx } from "@/lib/quarterlyReport";
+import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, quarterSummary, reportXlsx, summaryChange, summaryValue } from "@/lib/quarterlyReport";
+import { riskReport } from "@/lib/riskReport";
 import { assetFileLinks, imageDataUrl, isSamplePath } from "@/lib/assetPhotos";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import FundLimits from "@/components/FundLimits";
@@ -64,8 +65,15 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const [kind, setKind] = useState("shareable");
   const k = canEdit ? kind : "shareable"; // viewers see the shareable version only
   const prevQEnd = prevQ(qEnd);
-  const prevReport = useMemo(() => (fundName && canEdit ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd: prevQEnd, todayISO: t0, curve, kind: "shareable" }) : null), [fundName, canEdit, fundDeals, terms, marks, prevQEnd, t0, curve]);
+  const prevReport = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd: prevQEnd, todayISO: t0, curve, kind: "shareable" }) : null), [fundName, fundDeals, terms, marks, prevQEnd, t0, curve]);
   const report = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd, todayISO: t0, curve, kind: k }) : null), [fundName, fundDeals, terms, marks, qEnd, t0, curve, k]);
+  // The risk watch list for the summary (owners and editors only; internal).
+  const watch = useMemo(() => {
+    if (!canEdit || !report) return null;
+    try {
+      return riskReport(fundDeals.filter((d) => report.portfolio.some((x) => x.id === d.id)), terms, { asOf: report.qEnd, values: Object.fromEntries(report.portfolio.map((x) => [x.id, x.value])), curve, lineBalance: report.nav.lineBalance }).watch;
+    } catch { return null; }
+  }, [canEdit, report, fundDeals, terms, curve]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
 
@@ -79,6 +87,8 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const saveDraft = (patch) => canEdit && onFundTermsChange(fundName, { reports: { ...store, drafts: { ...(store.drafts ?? {}), [dk]: { letter, notes, ...patch } } } });
   const issued = (store.issued ?? []).filter((x) => x.quarter === dk && (canEdit || x.kind === "shareable"));
   const base = `${safeFileName(fundName)}-${dk}-${k}-report`;
+  const prevOk = prevReport && prevReport.qEnd === prevQEnd && prevReport.portfolio.length > 0 ? prevReport : null;
+  const summary = quarterSummary(report, prevOk, { issued, watch });
 
   async function pdf(r, opts, name) {
     setBusy(true);
@@ -95,7 +105,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const issue = () => {
     if (!canEdit) return;
     if (!window.confirm(`Issue the ${k} ${report.quarterLabel} report? Its figures are frozen as they are now (with you and today's date); later changes don't alter it. Nothing is sent: download it and upload it to the investor portal.`)) return;
-    onFundTermsChange(fundName, { reports: issueReport(store, report, { letter, notes, by: email ?? "" }) });
+    onFundTermsChange(fundName, { reports: issueReport(store, report, { letter, notes, by: email ?? "", summary }) });
     setMsg({ ok: true, text: `Issued the ${k} ${report.quarterLabel} report.` });
   };
 
@@ -124,8 +134,8 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
               {REPORT_KINDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           )}
-          <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(r, { letter, notes }, `${base}-draft.pdf`)}>{busy ? "Making PDF…" : "PDF (draft)"}</button>
-          <button type="button" className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => downloadBlob(writeXlsx(reportXlsx(r, { letter, notes }), { sheetName: "Quarterly report", title: `Baywise · ${fundName} ${r.quarterLabel} report` }), `${base}.xlsx`)}>Excel</button>
+          <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(r, { letter, notes, summary }, `${base}-draft.pdf`)}>{busy ? "Making PDF…" : "PDF (draft)"}</button>
+          <button type="button" className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => downloadBlob(writeXlsx(reportXlsx(r, { letter, notes, summary }), { sheetName: "Quarterly report", title: `Baywise · ${fundName} ${r.quarterLabel} report` }), `${base}.xlsx`)}>Excel</button>
           {canEdit && <button type="button" onClick={issue} className={`${btn} border-blue-600 bg-blue-600 text-white`}>Issue report</button>}
         </div>
       </div>
@@ -158,6 +168,40 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
       <>
       {msg && <p className={`rounded-lg border px-3 py-2 text-xs ${msg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`} data-testid="report-msg">{msg.text}</p>}
       {k === "internal" && <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="internal-banner">Internal version: adds underwritten vs. actual, budget variances and internal notes. Not for distribution.</p>}
+
+      {/* Summary on top (user, 11/24): watch list, change vs. last quarter, issued reports. */}
+      <div className="grid gap-2 sm:grid-cols-3" data-testid="report-summary">
+        {canEdit && (
+          <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs" data-testid="report-summary-watch">
+            <p className="text-[11px] text-gray-500">Watch list <span className="text-red-700">(internal{k === "shareable" ? "; not in the shareable report" : ""})</span></p>
+            <p className="text-sm font-semibold">{watch ? `${watch.length} asset${watch.length === 1 ? "" : "s"} flagged` : "—"}</p>
+            <p className="text-gray-600">{watch?.slice(0, 3).map((w) => `${w.name} (${w.score})`).join(", ") || "Nothing flagged"}</p>
+          </div>
+        )}
+        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs" data-testid="report-summary-change">
+          <p className="text-[11px] text-gray-500">Change vs. last quarter{summary.prevLabel ? ` (${summary.prevLabel})` : ""}</p>
+          {!summary.change ? <p className="text-gray-400">No prior quarter to compare with.</p> : (
+            <>
+              <p className="text-sm font-semibold">{summary.moved.length ? `${summary.moved.length} measure${summary.moved.length === 1 ? "" : "s"} moved` : "No change"}</p>
+              <p className="text-gray-600">{summary.moved.slice(0, 4).map((c) => `${c.label} ${summaryChange(c)}`).join(" · ")}</p>
+            </>
+          )}
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs" data-testid="report-summary-issued">
+          <p className="text-[11px] text-gray-500">Issued reports · {r.quarterLabel}</p>
+          <p className="text-sm font-semibold">{summary.issued.latest ? `${summary.issued.count} issued · latest v${summary.issued.latest.v} (${summary.issued.latest.kind})` : "Draft (not issued)"}</p>
+          <p className="text-gray-600">{summary.issued.latest ? `${usDate(String(summary.issued.latest.at).slice(0, 10))}${summary.issued.latest.by ? ` by ${summary.issued.latest.by}` : ""}` : "Issue it to freeze its figures."}</p>
+        </div>
+      </div>
+      {summary.change && (
+        <details className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs" data-testid="report-change-table">
+          <summary className="cursor-pointer font-medium text-gray-700">Change vs. last quarter: all measures</summary>
+          <table className="mt-2 w-full tabular-nums">
+            <thead className="text-gray-500"><tr><th className="text-left font-medium">Measure</th><th className="text-right font-medium">Now</th><th className="text-right font-medium">Last quarter</th><th className="text-right font-medium">Change</th></tr></thead>
+            <tbody>{summary.change.map((c) => <tr key={c.label} className="border-t border-gray-100"><td className="py-1">{c.label}</td><td className="text-right">{summaryValue(c.now, c.unit)}</td><td className="text-right">{summaryValue(c.prev, c.unit)}</td><td className={`text-right ${c.change == null || Math.abs(c.change) < 1e-9 ? "text-gray-400" : ""}`}>{summaryChange(c)}</td></tr>)}</tbody>
+          </table>
+        </details>
+      )}
 
       <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6" data-testid="report-stats">
         <Stat label="Net LP IRR" value={r.returns.note ? "n/m" : pct(r.returns.netIrr)} />
@@ -222,7 +266,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
             {issued.map((x) => (
               <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-100 px-2 py-1.5" data-testid="issued-report">
                 <span><span className="font-semibold">v{x.v} · {x.kind}</span> <span className="text-gray-500">· issued {usDate(String(x.at).slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · NAV {fmtM(x.report.nav.end)}</span></span>
-                <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(x.report, { letter: x.letter, notes: x.notes, issued: x }, `${safeFileName(fundName)}-${x.quarter}-${x.kind}-report-v${x.v}.pdf`)}>PDF</button>
+                <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(x.report, { letter: x.letter, notes: x.notes, issued: x, summary: x.summary ?? null }, `${safeFileName(fundName)}-${x.quarter}-${x.kind}-report-v${x.v}.pdf`)}>PDF</button>
               </li>
             ))}
           </ul>

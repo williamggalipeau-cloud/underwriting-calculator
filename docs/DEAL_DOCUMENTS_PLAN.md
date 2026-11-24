@@ -1347,6 +1347,21 @@ saved record by record), so this is a **filter**, not a load:
 - Pipeline deals with no fund show under All funds and under the fund they
   are being screened for (phase M).
 
+## Quarterly report summary (added 11/24, built 11/24)
+
+User, 11/24: "Watch lists, change, and reports should be summarized on top
+of every report" (done first for the risk report), then "Yes to the
+quarterly report as well."
+
+- Three cards above the quarterly report: **watch list** (from the risk
+  report; internal, so it appears in the internal PDF and Excel only),
+  **change vs. last quarter** (LP NAV, net LP IRR, TVPI, DPI, % called,
+  occupancy, LTV, assets) and **issued reports** for the quarter.
+- The same summary heads the PDF's first page and the Excel; an issued
+  version freezes its summary (`issueReport(..., { summary })`).
+- `quarterSummary` in `lib/quarterlyReport.js`; tests
+  `tests/node/quarterSummary.test.cjs` and `tests/e2e/phaseL.e2e.cjs`. Manual §7.32b.
+
 ## Research tab (added 11/24, built 11/24)
 
 User, 11/24: "Create a new tab under acquisitions called Research. Move
