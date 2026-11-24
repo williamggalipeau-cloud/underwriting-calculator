@@ -2164,7 +2164,24 @@ The internal quarterly report includes the limits table.
 ### 7.32d Risk report (internal, phase L)
 
 On the Reports tab, **Risk report (internal)** (owners and editors; never in
-the shareable report) shows, as of the quarter end:
+the shareable report) shows, as of the quarter end, grouped by similar risks
+(user, 11/24). The screen, the Excel and the PDF all use the same order:
+1. **Summary** (on top of every risk report). It starts with three cards:
+   the watch list (assets flagged and the top three), concentrations that
+   rose since last quarter, and whether the report has been issued for this
+   date (latest version, when and by whom). Then the full **Watch list**,
+   **Change vs. last quarter**, and **Issued risk reports**.
+2. **Tenant and Leasing:** lease expirations and rollover, and lease risk
+   flags.
+3. **Financial:** debt, TI funding coverage, stress tests, and valuation
+   (marks vs. cost).
+4. **Concentration:** fund limits, largest tenants, industry, geography,
+   debt by lender, rate cap counterparties, and the concentration limits
+   used.
+5. **Operational:** execution (the IRR gap, budget variances, the plan gap),
+   insurance certificates, and environmental and climate.
+
+Each section in detail:
 - **Watch list:** assets ranked by a risk score (each flag weighs 1–3), with
   the reasons; and **fund-level flags** (concentration limits, fund limit
   breaches).
@@ -2541,8 +2558,188 @@ asset, so its edits save and log like any other.
   from comps** sets the model's market rent to the comps' average (asked
   first); the returns update.
 - **Excel** exports the pipeline and the comps.
-- Still to come: uploads on each prospect (proposals, LOIs, lease drafts,
-  approval memos, broker reports) and on the comps section, and a PDF.
+- **Documents** (signed in): each prospect has an upload for proposals,
+  LOIs, lease drafts, lease approval memos and broker reports, and the Rent
+  Comps section takes rent comp and broker reports. They're kept in the same
+  store as Library → Documents (filed as "Other", the prospect and type in
+  the title; no database change needed).
+- **PDF** of the pipeline (with the plan comparison) and the rent comps with
+  their statistics, for the asset or the whole portfolio.
+- On **Home**, an active prospect's next step due within a week (or overdue)
+  is on the attention list, and the Asset Management lane counts active
+  prospects.
+
+### 7.45 Fund Debt (`lib/fundDebt.js`, phase S)
+
+**Fund Debt** (Portfolio Management, right after Fund Return) shows every
+loan in the fund. It's built from each asset's Debt inputs and model, and
+changes nothing. The Debt tab stays for one asset's loan.
+
+- **Summary:** total debt, number of loans, DSCR and LTV weighted by loan
+  balance, the share floating (including capped), and loans maturing within
+  18 months.
+- **Loans:** one row per owned asset with a loan:
+  - lender and balance;
+  - rate type (floating, capped, swapped or fixed) with the spread or fixed
+    rate;
+  - current maturity, fully extended date and extensions left;
+  - DSCR, debt yield and LTV in the current hold year (value from the latest
+    valuation mark, else cost);
+  - the **next extension test**: DSCR, debt yield and LTV projected at the
+    next maturity against the loan's tests. The tests are the asset's
+    sizing constraints unless covenants are entered.
+- **Maturity ladder:** balance maturing each year on current terms, and if
+  fully extended.
+- **Rate exposure and caps:** balance and share by rate type, and each cap's
+  notional, strike and expiry (soonest first; flagged when it expires before
+  the loan matures).
+- **Lender concentration:** balance and share by lender, with the HHI.
+- **Refinance planner:** pick a loan and set rate, maximum LTV, minimum
+  DSCR, amortization and an optional minimum debt yield. It shows the
+  proceeds each test allows, which test binds, the payoff, the cash out or
+  pay-down, and the new DSCR.
+- **Excel** of all of the above.
+- **Covenant compliance certificates:** choose a quarter end (the last eight)
+  and one loan or all. Each certificate tests that quarter's DSCR, debt yield
+  and LTV against the loan's covenants. It uses model NOI for that hold year
+  and the latest valuation mark at the quarter end, and shows each
+  calculation, overall compliance and a signature block. The table shows
+  compliance per loan; **Certificates PDF** gives one page per loan, and
+  **Certificates Excel** gives one block per loan. Review against the loan
+  agreement's definitions before signing.
+- **PDF** of the tab: loans, maturity ladder, rate exposure and lenders.
+- On **Home**, a covenant breach now, or an extension test that fails
+  within 18 months, is on the attention list and opens Fund Debt.
+
+### 7.46 Property Management (`lib/propertyMgmt.js`, phase T)
+
+A **Property Management** group sits after Asset Management, with four
+tabs. Each shows the open asset, with editable tables (**+ Add** a row; ✕
+removes one). **All assets** gives a read-only whole-fund view by asset.
+Each tab has a summary line, a **Coming up (120 days)** list and Excel.
+Everything is kept on the asset, so edits save and log like any other.
+
+- **Property Taxes:**
+  - **Parcels:** APN, address, assessed value, rate and year.
+  - **Tax bills:** parcel, tax year, installment, amount, due and paid
+    dates.
+  - **Appeals:** filed, hearing, outcome, savings and consultant.
+  - The summary gives, for the chosen tax year: billed, paid, unpaid, the
+    business plan's tax budget and the difference, assessed value, appeal
+    savings and pending appeals.
+- **Insurance:**
+  - **Policies:** coverage, carrier, number, limit, deductible, premium,
+    effective and renewal dates, and broker.
+  - **Claims log:** date of loss, cause, policy, amount, status and
+    recovery.
+  - The summary gives total premium, property limit, open claims, and
+    claimed vs. recovered.
+- **Property Condition:** findings from a PCA, Phase I/II, zoning or
+  inspection report. Each has the system, finding, cost, urgency
+  (Immediate, within 1 year, 1–5 years, 5+ years), status and Yardi job.
+  The summary gives open cost by urgency and the completed cost.
+- **Service Contracts:** vendor, service, start and end, annual cost,
+  auto-renewal, notice days and Yardi contract. The summary gives annual
+  cost and how many auto-renew.
+- **On Home**, these go on the attention list within 60 days:
+  - an unpaid tax bill coming due
+  - an appeal hearing
+  - a policy renewal
+  - a contract's notice deadline (end date less notice days) or end date
+
+  An open **Immediate** repair leads the list. The Property Management lane
+  shows the annual premium, open condition items and their cost, and the
+  dates coming up. When there are more than 12 items, **Show all** lists
+  every one.
+- **Documents** (signed in): each section takes PDF uploads (tax bills and
+  appeal filings, policies and certificates, PCA / Phase I / zoning reports,
+  contracts). They're kept in the same store as Library → Documents (filed
+  as "Other" with the section in the title; no database change).
+- **Add to capital plan** on a Property Condition finding adds it to the
+  asset's business plan as a capital project. This makes a new plan
+  revision, so the plan keeps its history. The project's budget is the cost
+  and its timing follows the urgency. The finding then shows **In the plan
+  ✓**. The asset needs a business plan first.
+- **PDF** of each tab (summary and every section, for the asset or the whole
+  portfolio).
+- **Construction (Yardi Construction Manager) and TI spend by unit** (on
+  Property Condition):
+  - **Upload jobs / invoices** takes the job summary and invoice detail
+    exports (CSV or Excel), with columns matched by name. Jobs are matched
+    to assets by property name or Yardi code, and to units by unit name.
+  - Uploading again updates jobs by job code, so nothing is duplicated, and
+    notes are kept.
+  - **TI by unit** compares, for each unit, the business plan's TI (TI/SF ×
+    SF, or the job budget when the unit isn't in the plan) with what has
+    been committed, spent (invoiced) and paid, and what remains. Overruns
+    over 5% are flagged amber, and over 20% red. A job not started isn't
+    flagged.
+  - **Capital jobs** that aren't tied to a unit are listed with budget,
+    committed, invoiced, paid and retainage. A job links to a condition
+    finding or service contract that carries its job code (Yardi job / Yardi
+    contract).
+  - The same TI-by-unit table appears under the leasing plan on **Asset
+    Business Plan**. **Excel** exports TI by unit and every job with its
+    invoices.
+  - The **Sample data** menu's **Add construction test data** loads the
+    fictional construction files (docs/sample-yardi/construction-*.csv) into
+    the sample assets. For example, Airport Flex unit 001 shows amber and
+    Ridgeway unit 014 shows red.
+  - A Yardi connection would pull these automatically later.
+
+### 7.47 Market Data (`lib/market.js`, phase U)
+
+A **Market** group sits before Library, with the **Market Data** tab. It's
+kept with the firm's sales-comps settings, so it saves and logs with the
+firm.
+
+- **Submarkets:** **+ Submarket** adds one (name, metro, property type), or
+  an upload creates them by name.
+- **Quarterly statistics** for the chosen submarket:
+  - inventory, vacancy, availability and net absorption
+  - asking rent, overall and small-bay
+  - deliveries and under construction
+  - sales volume and market cap rate
+
+  Each figure keeps its source and date; a figure edited by hand is marked
+  "(edited)". **+ Quarter** adds a quarter by hand.
+- **Upload CoStar / broker report** (CSV or Excel): columns are matched by
+  name, shown before importing, and remembered. Quarters can be written as
+  "2026 Q3", "Q3 2026", "3Q26" or a date. The same submarket and quarter
+  updates in place. A file without a submarket column goes to the chosen
+  submarket. A fictional example is in `docs/sample-market`.
+- **Summary tiles** with trend lines: latest vacancy and its change over
+  four quarters, asking rent and small-bay rent with growth per year, the
+  cap rate and its change in basis points, and net absorption over the last
+  four quarters.
+- **Assets and their market:** tag each asset to its submarket. Its model
+  market rent, rent growth, vacancy and exit cap then show next to the
+  market's: small-bay (else overall) asking rent and its trend, vacancy,
+  and the market cap rate.
+- **Excel** of every quarter and a summary per submarket.
+- On **Home**, the Market lane shows the submarkets tracked, the assets
+  tagged and the average submarket vacancy.
+- **PDF** market summary: each submarket's latest figures and trends, its
+  quarterly statistics, and the assets tagged to it against the market.
+- **Stress Testing in standard deviations** (`lib/stressSigma.js`): each
+  shock is labelled in σ, its size divided by that factor's volatility (one
+  standard deviation of a one-year move). For example, +120 bp on rates is
+  1.0σ at the default 120 bp.
+  - Vacancy, rent growth and cap rates take their volatility from the
+    asset's submarket when it has at least three years of history.
+  - The rest use editable defaults: rates 120 bp (the app reads only
+    today's SOFR, not its history), opex 5% and construction 8%.
+  - The table shows each volatility and its source; an edited value says
+    "edited".
+  - **All shocks together** gives the whole stress as one σ figure, taking
+    into account how the factors tend to move together.
+  - **Run simulation (2,000 years)** draws correlated one-year shocks and
+    runs the asset model for each. It shows the spread of IRRs (5th
+    percentile, median, 95th) and where the stressed case falls, worded as
+    "this outcome or worse ≈ 1 year in N". The bars as bad as the stressed
+    case or worse are red.
+- Still to come: showing the market next to the asset on Valuation and the
+  business plan.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3649,10 +3846,10 @@ each phase and the decisions behind it are in
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
 | Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
-| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | 🔨 Part 1 built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, Excel (§7.44); uploads and PDF next |
-| S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ⛓ After R |
-| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ⛓ After S |
-| U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ⛓ After T |
+| R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
+| S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
+| T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ✅ Built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Yardi construction upload and TI spend by unit with overrun flags, construction test data, Home items (§7.46) |
+| U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ✅ Built 11/23: Market group, Market Data tab (submarket statistics by quarter with sources, uploads with remembered columns, trends, asset vs. market, Excel and PDF), Home lane, stress tests in standard deviations with a correlated simulation (§7.47) |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
@@ -3660,6 +3857,7 @@ each phase and the decisions behind it are in
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so the Sales Comps tab, valuations and reports show a full set | ⛓ Future release |
+| More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
 

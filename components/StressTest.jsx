@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { applyStress } from "@/lib/stress";
 import { underwrite } from "@/lib/calculations";
 import { assetQuarterlyEvents, xirr } from "@/lib/fundTimeline";
+import { DEFAULT_CORR, FACTORS, FACTOR_LABELS, combinedSigma, oneInText, sigmas, simulate, volatility } from "@/lib/stressSigma";
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 function fmt(n, d = 0) {
@@ -22,7 +23,7 @@ function fmtM(n) {
 // Apply stress factors to a copy of inputs
 
 // ── Factor slider input ───────────────────────────────────────────────────────
-function FactorRow({ label, sublabel, value, onChange, min, max, step = 1, suffix }) {
+function FactorRow({ label, sublabel, value, onChange, min, max, step = 1, suffix, sigma = null }) {
   return (
     <div className="flex items-center gap-4">
       <div className="w-48 shrink-0">
@@ -62,6 +63,7 @@ function FactorRow({ label, sublabel, value, onChange, min, max, step = 1, suffi
         }`}>
           {value === 0 ? "Base" : value > 0 ? `+${value}${suffix}` : `${value}${suffix}`}
         </span>
+        {sigma != null && value !== 0 && <span className="mt-0.5 block text-[10px] font-semibold text-gray-500" data-testid="factor-sigma">= {sigma.toFixed(1)}σ</span>}
       </div>
     </div>
   );
@@ -116,11 +118,14 @@ const DEFAULT_FACTORS = {
   exitCapDelta: 0, opexDelta: 0, constructionDelta: 0,
 };
 
-export default function StressTest({ inputs, results, savedDeals, onStressedDealsChange }) {
+export default function StressTest({ inputs, results, savedDeals, onStressedDealsChange, market = null }) {
   const [selectedId, setSelectedId] = useState("active");
   const [factorsById, setFactorsById] = useState({});
 
   const currentFactors = factorsById[selectedId] ?? DEFAULT_FACTORS;
+  const [volEdits, setVolEdits] = useState({});
+  const [sim, setSim] = useState(null);
+  const [simBusy, setSimBusy] = useState(false);
   const setFactor = (key) => (val) => setFactorsById((prev) => ({
     ...prev,
     [selectedId]: { ...(prev[selectedId] ?? DEFAULT_FACTORS), [key]: val },
@@ -134,6 +139,10 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
     if (selectedId === "active") return inputs;
     return savedDeals.find((d) => d.id === selectedId)?.inputs ?? inputs;
   }, [selectedId, savedDeals, inputs]);
+  const volInfo = useMemo(() => volatility(market, selectedInputs?.submarketId), [market, selectedInputs]);
+  const vol = { ...volInfo.vol, ...volEdits };
+  const sig = sigmas(currentFactors, vol);
+  const combined = combinedSigma(currentFactors, vol, DEFAULT_CORR);
 
   const selectedBaseResults = useMemo(() => {
     if (selectedId === "active") return results;
@@ -235,6 +244,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           label="Higher Unit Vacancy"
           sublabel="Added to base vacancy rate"
           value={currentFactors.vacancyDelta}
+          sigma={sig.vacancyDelta}
           onChange={setFactor("vacancyDelta")}
           min={0} max={30} step={1} suffix="%"
         />
@@ -243,6 +253,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           label="Lower Rent Increases"
           sublabel="Subtracted from market rent growth (below 0 = rents fall)"
           value={currentFactors.rentEscDelta}
+          sigma={sig.rentEscDelta}
           onChange={setFactor("rentEscDelta")}
           min={0} max={15} step={0.25} suffix="%"
         />
@@ -251,6 +262,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           label="Interest Rate Rise"
           sublabel="Added to rate (floating spread or fixed rate)"
           value={currentFactors.rateDelta}
+          sigma={sig.rateDelta}
           onChange={setFactor("rateDelta")}
           min={0} max={300} step={25} suffix=" bps"
         />
@@ -259,6 +271,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           label="Exit Cap Rate Expansion"
           sublabel={`Base: ${baseExitCap.toFixed(2)}% → stressed: ${(baseExitCap + currentFactors.exitCapDelta).toFixed(2)}%`}
           value={currentFactors.exitCapDelta}
+          sigma={sig.exitCapDelta}
           onChange={setFactor("exitCapDelta")}
           min={0} max={3} step={0.25} suffix="%"
         />
@@ -267,6 +280,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           label="Operating Expense Overrun"
           sublabel="Applied to all opex line items"
           value={currentFactors.opexDelta}
+          sigma={sig.opexDelta}
           onChange={setFactor("opexDelta")}
           min={0} max={50} step={5} suffix="%"
         />
@@ -275,9 +289,43 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           label="Construction / TI Overrun"
           sublabel="Applied to construction and TI costs"
           value={currentFactors.constructionDelta}
+          sigma={sig.constructionDelta}
           onChange={setFactor("constructionDelta")}
           min={0} max={50} step={5} suffix="%"
         />
+      </div>
+
+      {/* ── In standard deviations, and a simulation (phase U) ───────────────── */}
+      <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5" data-testid="stress-sigma">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-gray-700">How unusual is this stress?</h3>
+          <span className="text-xs text-gray-600" data-testid="combined-sigma">{isBaseCase ? "Base case" : combined != null ? `All shocks together: ${combined.toFixed(1)}σ from the base case` : ""}</span>
+        </div>
+        <p className="text-[11px] text-gray-500">Each shock is a one-year move measured against that factor&apos;s volatility (one standard deviation of a year&apos;s move). Vacancy, rent growth and cap rates come from the asset&apos;s submarket on Market Data when it has at least three years of history; the rest are defaults you can edit.</p>
+        <div className="overflow-x-auto"><table className="w-full text-xs tabular-nums">
+          <thead className="text-gray-500"><tr><th className="text-left font-medium">Factor</th><th className="text-left font-medium">1σ (one year)</th><th className="text-left font-medium">Source</th><th className="text-left font-medium">This stress</th></tr></thead>
+          <tbody>{FACTORS.map((k) => (
+            <tr key={k} className="border-t border-gray-100" data-testid="vol-row">
+              <td className="py-1">{FACTOR_LABELS[k]}</td>
+              <td className="py-1"><input aria-label={`${FACTOR_LABELS[k]} volatility`} type="number" step="any" value={Math.round(vol[k] * 100) / 100} onChange={(e) => { const v = Number(e.target.value); if (v > 0) setVolEdits({ ...volEdits, [k]: v }); setSim(null); }} className="w-20 rounded border border-gray-200 px-1.5 py-0.5" /> <span className="text-gray-400">{k === "rateDelta" ? "bp" : "%"}</span></td>
+              <td className="py-1 text-gray-500">{volEdits[k] != null ? "edited" : volInfo.source[k]}</td>
+              <td className="py-1">{sig[k] ? `${sig[k] >= 0 ? "+" : ""}${sig[k].toFixed(1)}σ` : "—"}</td>
+            </tr>
+          ))}</tbody>
+        </table></div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" disabled={simBusy} onClick={() => { setSimBusy(true); setTimeout(() => { try { setSim(simulate(selectedInputs, currentFactors, { vol, corr: DEFAULT_CORR, paths: 2000, seed: 7 })); } catch (e) { setSim({ error: e.message }); } finally { setSimBusy(false); } }, 10); }} className="rounded-lg border border-blue-600 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">{simBusy ? "Simulating…" : "Run simulation (2,000 years)"}</button>
+          {sim && !sim.error && <span className="text-xs font-semibold text-gray-800" data-testid="sim-headline">Stressed IRR {fmtPct(sim.stressed)}: {isBaseCase ? "the base case" : oneInText(sim)}</span>}
+          {sim?.error && <span className="text-xs text-red-700">{sim.error}</span>}
+        </div>
+        {sim && !sim.error && (
+          <div className="space-y-1" data-testid="sim-result">
+            <div className="flex h-16 items-end gap-px" role="img" aria-label="Simulated IRR distribution">
+              {(() => { const mx = Math.max(...sim.histogram.map((h) => h.count), 1); return sim.histogram.map((h, i) => <div key={i} title={`${h.from.toFixed(1)}% to ${h.to.toFixed(1)}%: ${h.count}`} className={`flex-1 ${h.to <= sim.stressed ? "bg-red-400" : "bg-blue-300"}`} style={{ height: `${(h.count / mx) * 100}%` }} />); })()}
+            </div>
+            <p className="text-[11px] text-gray-500">Simulated IRR over {sim.paths.toLocaleString("en-US")} one-year shock draws (factors moving together as they have historically): 5th percentile {fmtPct(sim.p5)}, median {fmtPct(sim.p50)}, 95th {fmtPct(sim.p95)}; base {fmtPct(sim.base)}. Red bars are as bad as the stressed case or worse.</p>
+          </div>
+        )}
       </div>
 
       {/* ── Selected Asset: Base vs. Stressed ──────────────────────────────── */}

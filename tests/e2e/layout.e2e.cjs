@@ -44,9 +44,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // Tab groups, in order, with the renamed tabs
   const groups = await p.getByTestId("tab-group").allInnerTexts();
-  check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PORTFOLIO MANAGEMENT | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
+  check(groups.map((g) => g.trim().split("\n")[0].trim()).join(" | ").toUpperCase() === "ACQUISITIONS | DISPOSITIONS | ASSET MANAGEMENT | PROPERTY MANAGEMENT | PORTFOLIO MANAGEMENT | MARKET | LIBRARY", `tab groups: ${groups.map((g) => g.trim().split("\n")[0]).join(" | ")}`);
   const nav = await p.locator("nav").first().innerText();
-  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Leasing", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Fund Summary", "Fund Plan", "Fund Return", "Distribution Analysis", "Stress Testing", "Documents", "Reports"];
+  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Business Plan", "Asset Summary", "Unit Roll", "Leases", "Leasing", "Valuation", "Sales Comps", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Sell/Hold Analysis", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Plan", "Fund Return", "Fund Debt", "Distribution Analysis", "Stress Testing", "Market Data", "Documents", "Reports"];
   // Each tab found after the previous one (names can contain earlier ones, e.g. "Sale Documents").
   const pos = [];
   for (const t of order) pos.push(nav.indexOf(t, pos.length ? pos[pos.length - 1] + 1 : 0));
@@ -63,7 +63,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(300);
   const items = await sm.getByRole("menuitem").allInnerTexts();
-  check(items.length === 5 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Load test scenario/.test(items[3]) && /Clear test data/.test(items[4]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
+  check(items.length === 6 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add construction test data/.test(items[3]) && /Load test scenario/.test(items[4]) && /Clear test data/.test(items[5]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
   check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
   await sm.getByRole("button", { name: /Sample data/ }).click();
 

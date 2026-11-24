@@ -18,6 +18,7 @@ const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com",
 const sess = { access_token: jwt, token_type: "bearer", expires_in: 3600, expires_at: now + 3600, refresh_token: "r", user: { id: "u1", email: "t@example.com" } };
 const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new Date().toISOString(), updated_by_email: "t@example.com" };
 let saved = null;
+const docs = [];
 let fails = 0;
 const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
 const CSV = [
@@ -37,6 +38,12 @@ const CSV = [
     if (u.includes("/rpc/claim_invites")) body = "0";
     else if (u.includes("/rpc/save_workspace")) { saved = JSON.parse(req.postData()); body = String(++ws.version); }
     else if (u.includes("/auth/v1/user")) body = JSON.stringify(sess.user);
+    else if (u.includes("/storage/v1/object/sign/")) body = JSON.stringify({ signedURL: "/object/sign/x?token=t" });
+    else if (u.includes("/storage/v1/object/")) body = JSON.stringify({ Key: "x" });
+    else if (u.includes("/deal_documents")) {
+      if (req.method() === "POST") { const row = { created_at: new Date().toISOString(), status: "uploaded", ...JSON.parse(req.postData()) }; docs.push(row); body = acc.includes("vnd.pgrst.object") ? JSON.stringify(row) : JSON.stringify([row]); }
+      else body = JSON.stringify(docs);
+    }
     else if (u.includes("/workspace_members")) body = JSON.stringify([{ workspace_id: "w1", role: "owner", email: "t@example.com" }]);
     else if (u.includes("/workspaces")) body = acc.includes("vnd.pgrst.object") ? JSON.stringify(ws) : JSON.stringify([ws]);
     r.fulfill({ status: 200, contentType: "application/json", body });
@@ -115,6 +122,22 @@ const CSV = [
 
   const [dl] = await Promise.all([p.waitForEvent("download"), p.getByTestId("leasing").getByRole("button", { name: "Excel" }).click()]);
   check(/^leasing-.*\.xlsx$/.test(dl.suggestedFilename()), "Excel export");
+  const [dp] = await Promise.all([p.waitForEvent("download"), p.getByTestId("leasing").getByRole("button", { name: "PDF", exact: true }).click()]);
+  check(/^leasing-.*\.pdf$/.test(dp.suggestedFilename()), "PDF export");
+
+  // ── Uploads (part 2) ──
+  const pr = p.getByTestId("prospect-row").first();
+  await pr.getByLabel("Leasing document type").selectOption("proposal");
+  await pr.getByTestId("leasing-file").setInputFiles({ name: "Proposal.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 fictional") });
+  await p.waitForTimeout(1500);
+  const pid = (await (async () => { const sd0 = docs.at(-1); return sd0?.title ?? ""; })());
+  check(docs.length === 1 && docs[0].doc_type === "other" && /^\[leasing:lp-[^\]]+\] Proposal: Proposal\.pdf$/.test(pid) && docs[0].deal_id === "sample-deal-1", "a proposal on the prospect (filed as Other, prospect in the title)");
+  check(/Proposal: Proposal\.pdf/.test(await pr.innerText()), "and listed on the prospect");
+  const cbox = p.getByTestId("rent-comps").getByTestId("leasing-docs");
+  await cbox.getByLabel("Leasing document type").selectOption("comps");
+  await cbox.getByTestId("leasing-file").setInputFiles({ name: "Comp report.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 fictional") });
+  await p.waitForTimeout(1500);
+  check(docs.at(-1).title === "[leasing:comps] Rent comp report: Comp report.pdf" && /Rent comp report: Comp report\.pdf/.test(await cbox.innerText()), "a rent comp report on the comps section");
 
   // ── Saved ──
   await p.waitForTimeout(22000);
