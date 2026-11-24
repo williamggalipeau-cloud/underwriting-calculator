@@ -41,11 +41,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await FX.openArea(p, "Pipeline");
   const nav = await p.locator("nav").first().innerText();
   check(nav.indexOf("Pipeline") >= 0 && nav.indexOf("Pipeline") < nav.indexOf("Deal Screener"), "Pipeline is first in Acquisitions");
-  check((await main.getByTestId("home").count()) === 1, "the app opens on the Operational Dashboard (phase Z)");
+  check((await main.getByTestId("home").count()) === 1, "the app opens on the Dashboard (phase Z)");
   // Deal Screener with an owned asset: notice, no model
   await FX.openTab(p, /^Deal Screener/);
   await p.waitForTimeout(800);
   check((await main.getByTestId("screener-owned").count()) === 1 && (await main.getByTestId("screener-impact").count()) === 0, "Deal Screener: an owned asset gets a notice, not the screener");
+  // The picker lists pipeline deals only, never owned assets (user, 11/24)
+  const pickOpts = await p.locator("#asset-picker option").allInnerTexts();
+  check(/Pipeline Deal/i.test(await p.locator('label[for="asset-picker"]').innerText()) && !pickOpts.some((o) => /Airport Flex Park|Route 9 Small Bay/.test(o)) && pickOpts[0] === "Choose a Pipeline Deal…", `Deal Screener picker: pipeline deals only (${pickOpts.slice(0, 3).join(", ")})`);
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(1200);
   const pl = main.getByTestId("pipeline");
@@ -104,13 +107,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await pl.getByTestId("pipeline-row").filter({ hasText: "Riverbend Flex" }).getByRole("button", { name: "Convert to asset" }).click();
   await p.waitForTimeout(1500);
   check(/In Model Fund I/.test(await pl.getByTestId("pipeline-row").filter({ hasText: "Riverbend Flex" }).innerText()), "converted: Riverbend Flex is in Model Fund I");
-  // Send to Fund Impact
+  // Send to Portfolio Impact
   await pl.getByLabel("Filter stage").selectOption("active");
   await p.waitForTimeout(300);
-  await pl.getByTestId("pipeline-row").filter({ hasText: "Cascade Trade Park" }).getByRole("button", { name: "Send to Fund Impact" }).click();
+  await pl.getByTestId("pipeline-row").filter({ hasText: "Cascade Trade Park" }).getByRole("button", { name: "Send to Portfolio Impact" }).click();
   await p.waitForTimeout(2000);
   const fi = main.getByTestId("fund-impact-tab");
-  check((await fi.count()) === 1 && (await fi.getByLabel("Candidate Cascade Trade Park").isChecked()), "Send to Fund Impact: the deal is a candidate");
+  check((await fi.count()) === 1 && (await fi.getByLabel("Candidate Cascade Trade Park").isChecked()), "Send to Portfolio Impact: the deal is a candidate");
   check(/Net LP IRR/.test(await fi.getByTestId("impact-tab-returns").innerText()) && /Scenario — not actual/.test(await fi.innerText()), "fund with vs. without, labelled a scenario");
   await fi.getByLabel("Candidate Glendale Commerce Center").check();
   await p.waitForTimeout(2500);
@@ -124,7 +127,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await cascade.getByTestId("impact-sens").locator("tbody tr").count()) === 3, "sensitivity grid: 3 exit caps × 3 prices");
   const [ipdf] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), fi.getByRole("button", { name: "PDF" }).click()]);
   const ipPath = S + "/m_impact.pdf"; await ipdf.saveAs(ipPath);
-  check(/SCENARIO - NOT ACTUAL/.test(require("child_process").execFileSync("pdftotext", ["-layout", ipPath, "-"]).toString()), "Fund Impact PDF stamped Scenario - not actual");
+  check(/SCENARIO - NOT ACTUAL/.test(require("child_process").execFileSync("pdftotext", ["-layout", ipPath, "-"]).toString()), "Portfolio Impact PDF stamped Scenario - not actual");
   // Save v1, change, save v2, view v1
   await fi.getByLabel("Scenario name").fill("Q1 2027: Tacoma + Sparks");
   await fi.getByRole("button", { name: "Save as new scenario" }).click();
@@ -174,6 +177,16 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const scs = sd?.funds?.["Model Fund I"]?.impactScenarios;
   check(scs?.length === 1 && scs[0].versions.length === 2 && scs[0].versions[0].candidates.length === 2 && scs[0].versions[1].candidates.length === 1, "saved: the scenario with v1 (2 candidates) and v2 (1)");
   check(allChanges.some((c) => c.area === "Pipeline" || /Pipeline/.test(c.field ?? "") || /pipeline/i.test(JSON.stringify(c))), "pipeline changes in the change log");
+
+  // Sample data → Add sample pipeline deals (user, 11/24): three fictional deals, added once
+  await p.getByRole("button", { name: "More", exact: true }).click();
+  await p.getByTestId("sample-data-menu").getByRole("button", { name: /Sample data/ }).click();
+  await p.getByRole("menuitem", { name: /Add sample pipeline deals/ }).click();
+  await p.waitForTimeout(800);
+  await FX.openTab(p, /^Pipeline/);
+  await p.waitForTimeout(800);
+  const pt = await p.getByTestId("pipeline").innerText();
+  check(/Example Crossroads Logistics/.test(pt) && /Example Canyon Flex/.test(pt) && /Example Harbor Small Bay/.test(pt), "Sample data adds three fictional pipeline deals");
 
   console.log("errors", errs);
   if (errs.length) fails++;

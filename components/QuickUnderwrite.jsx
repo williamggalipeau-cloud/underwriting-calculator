@@ -321,7 +321,7 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
         >
           <span>
             {linked
-              ? "Linked: Debt, Stress Testing, Return Sensitivity, Asset Return and Fund Return all use this deal (direct NOI)."
+              ? "Linked: Debt, Stress Testing, Return Sensitivity, Asset Return and Portfolio Return all use this deal (direct NOI)."
               : "Not linked: the other tabs use this deal's rent-roll inputs from the left panel."}
           </span>
           <button

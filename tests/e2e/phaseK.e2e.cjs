@@ -37,14 +37,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const main = p.locator("main");
 
-  // Placement (11/24): no Fund Plan tab; Plan vs. actual is a section of Fund Summary
-  await FX.openArea(p, "Fund Summary");
+  // Placement (11/24): no Fund Plan tab; Plan vs. actual is a section of Portfolio Summary
+  await FX.openArea(p, "Portfolio Summary");
   const nav = await p.locator("nav").first().innerText();
   check(!nav.includes("Fund Plan"), "no Fund Plan tab");
-  await FX.openTab(p, /^Fund Summary/);
+  await FX.openTab(p, /^Portfolio Summary/);
   await p.waitForTimeout(1500);
   const fp = main.getByTestId("fs-plan").getByTestId("fund-plan");
-  check((await fp.count()) === 1 && /Plan vs\. actual/.test(await fp.locator("h3").first().innerText()) && (await fp.getByLabel("Fund", { exact: true }).count()) === 0, "Plan vs. actual inside Fund Summary (Fund Summary's fund, no second picker)");
+  check((await fp.count()) === 1 && /Plan vs\. actual/.test(await fp.locator("h3").first().innerText()) && (await fp.getByLabel("Fund", { exact: true }).count()) === 0, "Plan vs. actual inside Portfolio Summary (Portfolio Summary's fund, no second picker)");
   check((await fp.getByTestId("no-plan").count()) === 1 && /Today.s forecast: net LP IRR \d/.test(await fp.getByTestId("no-plan").innerText()), "no plan yet: shows today's forecast");
 
   // Freeze the original plan

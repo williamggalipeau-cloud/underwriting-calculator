@@ -219,7 +219,7 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
                       {canEdit && (
                         <div className="flex flex-col items-start gap-0.5">
                           {ACTIVE_STAGES.includes(d.stage) && <button type="button" onClick={() => onScreen?.(d)} className="text-blue-700 hover:underline">{d.dealId ? "Open in Screener" : "Screen"}</button>}
-                          {ACTIVE_STAGES.includes(d.stage) && onSendToFundImpact && <button type="button" onClick={() => onSendToFundImpact(d)} className="text-blue-700 hover:underline">Send to Fund Impact</button>}
+                          {ACTIVE_STAGES.includes(d.stage) && onSendToFundImpact && <button type="button" onClick={() => onSendToFundImpact(d)} className="text-blue-700 hover:underline">Send to Portfolio Impact</button>}
                           {d.stage === "closed" && !d.converted && <button type="button" onClick={() => onConvert?.(d)} className="font-medium text-emerald-700 hover:underline">Convert to asset</button>}
                           {d.converted && <span className="text-emerald-700">In {d.targetFund || "a fund"}</span>}
                         </div>

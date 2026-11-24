@@ -1,5 +1,5 @@
 // Phase J Playwright: underwritten vs. actual + projected (Asset Summary
-// Details and Fund Return). Fictional fixture; Supabase mocked.
+// Details and Portfolio Return). Fictional fixture; Supabase mocked.
 const { chromium } = require("playwright");
 const fs = require("fs");
 const FX = require("./fixture.cjs");
@@ -45,12 +45,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const main = p.locator("main");
 
-  // Fund Return: assets ranked by gap
-  await FX.openTab(p, /^Fund Return/);
+  // Portfolio Return: assets ranked by gap
+  await FX.openTab(p, /^Portfolio Return/);
   await p.waitForTimeout(1500);
   const fu = main.getByTestId("fund-uw");
   const rows = fu.getByTestId("fund-uw-row");
-  check((await rows.count()) === 1 && (await rows.first().innerText()).includes("Route 9 Small Bay"), "Fund Return: Route 9 has a baseline, listed");
+  check((await rows.count()) === 1 && (await rows.first().innerText()).includes("Route 9 Small Bay"), "Portfolio Return: Route 9 has a baseline, listed");
   const gapTxt = await rows.first().locator("td").nth(3).innerText();
   check(/^[−+]\d+\.\d\d pts$/.test(gapTxt.trim()), `Route 9 IRR gap shown: ${gapTxt}`);
   check((await fu.innerText()).includes("without a baseline"), "assets without a baseline counted");
@@ -92,9 +92,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const t2 = await main.getByTestId("uw-vs-actual").innerText();
   check(/Baseline frozen/.test(t2) && /by t@example\.com/.test(t2), "baseline frozen by the signed-in user");
   check(/Levered IRR[^\n]*\n?[^\n]*(0\.00 pts|—)/.test(await main.getByTestId("uw-returns").innerText()) || /gap: (0\.00 pts|—)/.test(await main.getByTestId("uw-attribution").innerText()), "fresh baseline: no gap");
-  await FX.openTab(p, /^Fund Return/);
+  await FX.openTab(p, /^Portfolio Return/);
   await p.waitForTimeout(1500);
-  check((await main.getByTestId("fund-uw-row").count()) === 2, "Fund Return now lists both assets");
+  check((await main.getByTestId("fund-uw-row").count()) === 2, "Portfolio Return now lists both assets");
 
   await p.waitForTimeout(22000);
   const sd = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.id === "sample-deal-1")?.inputs;

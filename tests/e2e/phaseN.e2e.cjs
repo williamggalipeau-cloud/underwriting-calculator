@@ -1,4 +1,4 @@
-// Phase N Playwright: Fund Summary (dates, capital, key terms, legal entities
+// Phase N Playwright: Portfolio Summary (dates, capital, key terms, legal entities
 // with the ownership chart, fact sheet PDF, Excel, links; annual-report dates
 // on Leases → Critical dates). Fictional fixture; Supabase mocked.
 const { chromium } = require("playwright");
@@ -37,13 +37,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const main = p.locator("main");
 
-  await FX.openArea(p, "Fund Summary");
+  await FX.openArea(p, "Portfolio Summary");
   const nav = await p.locator("nav").first().innerText();
-  check(nav.indexOf("Fund Summary") > 0 && nav.indexOf("Fund Summary") < nav.indexOf("Fund Return"), "Fund Summary is first in Portfolio Management");
-  await FX.openTab(p, /^Fund Summary/);
+  check(nav.indexOf("Portfolio Summary") > 0 && nav.indexOf("Portfolio Summary") < nav.indexOf("Portfolio Return"), "Portfolio Summary is first in Portfolio Management");
+  await FX.openTab(p, /^Portfolio Summary/);
   await p.waitForTimeout(1200);
   const fs = main.getByTestId("fund-summary");
-  check((await fs.count()) === 1 && /Model Fund I/.test(await fs.locator("h2").innerText()), "Fund Summary for Model Fund I");
+  check((await fs.count()) === 1 && /Model Fund I/.test(await fs.locator("h2").innerText()), "Portfolio Summary for Model Fund I");
   const dt = await fs.getByTestId("fs-dates").innerText();
   check(/12\/31\/2025/.test(dt) && /12\/31\/2027/.test(dt) && /12\/31\/2030/.test(dt) && /12\/31\/2032/.test(dt) && /months left/.test(dt), "key dates: final close, investment period, term, outside date");
   await fs.getByLabel("Launch date").fill("2025-06-01");
@@ -86,9 +86,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/fund-summary\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
   await p.screenshot({ path: S + "/phaseN_summary.png", fullPage: true });
   // Links
-  await fs.getByTestId("fs-links").getByRole("button", { name: /Performance: Fund Return/ }).click();
+  await fs.getByTestId("fs-links").getByRole("button", { name: /Performance: Portfolio Return/ }).click();
   await p.waitForTimeout(1200);
-  check((await main.getByTestId("fund-nav").count()) === 1, "link opens Fund Return");
+  check((await main.getByTestId("fund-nav").count()) === 1, "link opens Portfolio Return");
   // Annual-report date on Leases → Critical dates (fund scope)
   await FX.openTab(p, /^Leases/);
   await p.waitForTimeout(1500);

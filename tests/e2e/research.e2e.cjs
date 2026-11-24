@@ -1,4 +1,4 @@
-// Acquisitions → Research (11/24) Playwright: Research tab after Fund Impact;
+// Acquisitions → Research (11/24) Playwright: Research tab after Portfolio Impact;
 // Comps per asset (the firm list until the first edit); Third-Party research
 // by link and by PDF with a summary; all-assets view; Excel and PDF; saved on
 // the asset. Fictional fixture; Supabase mocked.
@@ -49,15 +49,15 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await FX.openArea(p, "Pipeline");
   const acq = p.getByRole("group", { name: "Acquisitions" });
   const tabs = await acq.getByRole("button").allInnerTexts();
-  check(tabs.indexOf("Research") === tabs.indexOf("Fund Impact") + 1, `Research under Acquisitions: ${tabs.join(", ")}`);
+  check(tabs.indexOf("Comps") === tabs.indexOf("Portfolio Impact") + 1, `Comps (was Research, 11/24) under Acquisitions: ${tabs.join(", ")}`);
   check((await p.getByRole("group", { name: "Asset Management" }).getByRole("button", { name: "Sales Comps" }).count()) === 0, "Sales Comps is no longer under Asset Management");
-  await FX.openTab(p, "Research");
+  await FX.openTab(p, "Comps");
   await p.waitForTimeout(800);
   const rs = p.getByTestId("research");
   check((await p.locator("#asset-picker").count()) === 1, "Research has the Asset dropdown");
 
   // ── Comps: the firm list until the asset's first edit ──
-  check((await rs.getByRole("tab", { name: "Comps" }).getAttribute("aria-selected")) === "true", "opens on Comps");
+  check((await rs.getByRole("tab", { name: "Sales Comps" }).getAttribute("aria-selected")) === "true", "opens on Sales Comps");
   check((await p.getByTestId("comps-firm-note").count()) === 1 && /Fictional Firm Comp/.test(await rs.innerText()), "an asset with no comps shows the firm list, with a note");
   await rs.getByRole("button", { name: "Clear" }).click();
   await p.waitForTimeout(300);

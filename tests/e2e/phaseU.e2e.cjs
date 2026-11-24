@@ -40,7 +40,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
 
   const groups = await FX.areas(p);
-  check(groups.indexOf("Market") === groups.indexOf("Library") - 1, "a Market group right before Library");
+  check(groups.indexOf("Research") === groups.indexOf("Library") - 1, "a Research area (was Market, 11/24) right before Library");
   await FX.openTab(p, "Market Data");
   await p.waitForTimeout(600);
 

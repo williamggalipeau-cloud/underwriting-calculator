@@ -10,6 +10,7 @@ import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import HomeView, { SetupMaintenance } from "@/components/Home";
 import AcquisitionDocs from "@/components/AcquisitionDocs";
+import { samplePipelineDeals } from "@/lib/samplePipeline";
 import { markDone } from "@/lib/home";
 import Dispositions from "@/components/Dispositions";
 import Leasing from "@/components/Leasing";
@@ -438,8 +439,8 @@ const TAB_GROUPS = [
   { label: "Acquisitions", tabs: [
     { id: "pipeline",    label: "Pipeline" },
     { id: "quick",       label: "Deal Screener" },
-    { id: "impact",      label: "Fund Impact" },
-    { id: "research",    label: "Research" },
+    { id: "impact",      label: "Portfolio Impact" },
+    { id: "research",    label: "Comps" },
     { id: "acqdocs",     label: "Acquisition Documents" },
   ] },
   { label: "Dispositions", tabs: [
@@ -468,16 +469,18 @@ const TAB_GROUPS = [
     { id: "contracts",   label: "Service Contracts" },
   ] },
   { label: "Portfolio Management", tabs: [
-    { id: "fundsummary", label: "Fund Summary" },
-    { id: "fund",        label: "Fund Return" },
-    { id: "funddebt",    label: "Fund Debt" },
+    { id: "fundsummary", label: "Portfolio Summary" },
+    { id: "fund",        label: "Portfolio Return" },
+    { id: "funddebt",    label: "Portfolio Debt" },
     { id: "distributions", label: "Distribution Analysis" },
     { id: "stress",      label: "Stress Testing" },
     { id: "benchmark",   label: "Benchmarking" },
-    // Last in the group (user, 11/24).
+  ] },
+  // Finance (user, 11/24): the firm's own economics.
+  { label: "Finance", tabs: [
     { id: "gpecon",      label: "GP Economics" },
   ] },
-  { label: "Market", tabs: [
+  { label: "Research", tabs: [
     { id: "market",      label: "Market Data" },
   ] },
   { label: "Library", tabs: [
@@ -1310,12 +1313,12 @@ export default function Home() {
     return true;
   }
 
-  // Fund Impact: the one deliberate step that puts a candidate in a fund.
+  // Portfolio Impact: the one deliberate step that puts a candidate in a fund.
   function handleAddToFund(dealId, fund) {
     if (!requireEdit()) return;
     const d = deals.find((x) => x.id === dealId);
     if (!d) return;
-    noteAudit(`Added ${d.inputs.propertyName} to ${fund} from Fund Impact`);
+    noteAudit(`Added ${d.inputs.propertyName} to ${fund} from Portfolio Impact`);
     setDeals((prev) => prev.map((x) => (x.id === dealId ? { ...x, inputs: { ...x.inputs, fundName: fund } } : x)));
     setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.dealId === dealId ? { ...x, targetFund: fund } : x)) }));
   }
@@ -1326,7 +1329,7 @@ export default function Home() {
     if (!id) {
       const d = pipelineToDeal(pl);
       id = d.id;
-      noteAudit(`Sent pipeline deal ${pl.name} to Fund Impact`);
+      noteAudit(`Sent pipeline deal ${pl.name} to Portfolio Impact`);
       setDeals((prev) => [...prev, d]);
       setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: d.id } : x)) }));
     }
@@ -1497,6 +1500,7 @@ export default function Home() {
         irrFlows: [...(irrFlows ?? [])],
         opFlows: annualCashFlows.map((cf) => cf.pretaxCashFlow),
         reversion: returns.equityReversion,
+        exitValue: returns.exitValue, // gross sale price, for the disposition fee (11/24)
         reserveBasis: annualCashFlows.map((cf) => (cf.debtService ?? 0) + (cf.tiAndLeasing ?? 0) + (cf.assetMgmtFees ?? cf.belowLineAMFees ?? 0) + (cf.managementFee ?? 0) + (cf.constructionMgmtFee ?? 0)),
         metrics: {
           irr: returns.irr,
@@ -1580,6 +1584,16 @@ export default function Home() {
   }
 
   // Sample data menu: the fictional construction jobs and invoices (mock TI actuals) for Model Fund I.
+  // Fictional pipeline deals (user, 11/24): added once; existing rows untouched.
+  function handleAddSamplePipeline() {
+    if (!requireEdit()) return;
+    const rows = samplePipelineDeals(new Date().toISOString().slice(0, 10), { by: session?.user?.email ?? "", targetFund: funds[SAMPLE_FUND_NAME] ? SAMPLE_FUND_NAME : "" });
+    const have = new Set((pipeline?.deals ?? []).map((d) => d.id));
+    const add = rows.filter((r) => !have.has(r.id));
+    if (!add.length) { window.alert("The sample pipeline deals are already in the pipeline."); return; }
+    noteAudit(`Added ${add.length} fictional sample pipeline deal${add.length === 1 ? "" : "s"}`);
+    setPipeline((p) => ({ ...p, deals: [...(p?.deals ?? []), ...add] }));
+  }
   function handleAddConstructionTestData() {
     if (!requireEdit()) return;
     const jobs = parseJobs(parseCSV(SAMPLE_CONSTRUCTION_JOBS_CSV));
@@ -1607,7 +1621,7 @@ export default function Home() {
   const firmItems = [
     { key: "aum", label: "AUM", value: fmtAum(firm.aum) },
     { key: "sf", label: "Square feet", value: Math.round(firm.sf).toLocaleString("en-US") },
-    { key: "assets", label: "Assets", value: `${firm.assets} across ${firm.funds} fund${firm.funds === 1 ? "" : "s"}` },
+    { key: "assets", label: "Assets", value: `${firm.assets} across ${firm.funds} portfolio${firm.funds === 1 ? "" : "s"}` },
     { key: "tenants", label: "Tenants", value: firm.tenants.toLocaleString("en-US") },
     { key: "occupancy", label: "Occupancy", value: isFinite(firm.occupancy) ? `${firm.occupancy.toFixed(1)}%` : "—" },
   ];
@@ -1679,7 +1693,7 @@ export default function Home() {
       { label: "Upload rent roll", title: "Rent Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
       { label: "Upload Yardi actuals", title: "Asset Business Plan tab: upload monthly actuals", run: () => setActiveTab("plan") },
       { label: "Import marks", title: "Valuation tab: import quarterly marks", run: () => setActiveTab("valuations") },
-      { label: "Record capital activity", title: "Fund Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },
+      { label: "Record capital activity", title: "Portfolio Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },
       { label: "New report", title: "Reports tab: quarterly and risk reports", run: () => setActiveTab("reports") },
     ];
 
@@ -1693,7 +1707,7 @@ export default function Home() {
     if (l && session && l.role !== "viewer" && (l.dirty || dbSaving.current)) {
       try { await saveToDbNow(); } catch { /* checked below */ }
       const after = dbLinkRef.current;
-      if ((after?.dirty || after?.conflict || after?.error) && !window.confirm(`Your latest edits ${after?.conflict ? "conflict with a newer version someone else saved" : after?.error ? `couldn't be saved (${after.error})` : "aren't saved yet"}. Go to the Operational Dashboard anyway? They stay in this window and are saved when you use Save now.`)) return;
+      if ((after?.dirty || after?.conflict || after?.error) && !window.confirm(`Your latest edits ${after?.conflict ? "conflict with a newer version someone else saved" : after?.error ? `couldn't be saved (${after.error})` : "aren't saved yet"}. Go to the Dashboard anyway? They stay in this window and are saved when you use Save now.`)) return;
     }
     setOpenArea("");
     setActiveTab("home");
@@ -1706,7 +1720,7 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-4">
-          <button type="button" onClick={goHome} aria-label="Baywise: go to the Operational Dashboard" className="flex items-center gap-3 mr-1 text-left">
+          <button type="button" onClick={goHome} aria-label="Baywise: go to the Dashboard" className="flex items-center gap-3 mr-1 text-left">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -1719,16 +1733,40 @@ export default function Home() {
           </button>
 
           {/* Home (user, 11/24): in the header; always returns to the landing page, saving edits first. */}
-          <button type="button" onClick={goHome} data-testid="home-button" title="Back to the Operational Dashboard (saves your edits first)" className={`mr-3 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium ${activeTab === "home" ? "border-blue-600 bg-blue-600 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"}`}>
+          <button type="button" onClick={goHome} data-testid="home-button" title="Back to the Dashboard (saves your edits first)" className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium ${activeTab === "home" ? "border-blue-600 bg-blue-600 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"}`}>
             <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10" /></svg>
             Home
+          </button>
+          {/* User manual and Change log next to Home (user, 11/24). */}
+          <a
+            href={MANUAL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+          >
+            <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+              <path d="M4 3.5A1.5 1.5 0 0 1 5.5 2H15a1 1 0 0 1 1 1v12.5a.5.5 0 0 1-.5.5H6a1 1 0 0 0 0 2h9.5a.5.5 0 0 1 0 1H6a2 2 0 0 1-2-2V3.5Z" />
+            </svg>
+            User manual
+          </a>
+          <button
+            type="button"
+            onClick={() => setActiveTab("changes")}
+            aria-pressed={activeTab === "changes"}
+            className={`mr-3 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${
+              activeTab === "changes" ? "border-gray-700 bg-gray-800 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+            title="What changed, when, and who changed it"
+          >
+            <span aria-hidden="true">↺</span>
+            Change log
           </button>
 
           {/* Summary bar */}
           <div className="flex flex-wrap items-center gap-1">
-            <label className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-800" title="Choose the portfolio to work on. Every tab shows only that fund; All funds shows the whole firm.">
-              <span className="font-semibold">Working on</span>
-              <select aria-label="Working on" data-testid="working-on" value={scope} onChange={(e) => setWorkingOn(e.target.value)} className="rounded border border-blue-200 bg-white px-1.5 py-0.5 text-xs text-gray-800">
+            <label className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-800" title="Choose the portfolio (fund, joint venture or separate account). Every tab shows only that portfolio; All portfolios shows the whole firm.">
+              <span className="font-semibold">Select Portfolio</span>
+              <select aria-label="Select Portfolio" data-testid="working-on" value={scope} onChange={(e) => setWorkingOn(e.target.value)} className="rounded border border-blue-200 bg-white px-1.5 py-0.5 text-xs text-gray-800">
                 {workingOptions.map((o) => <option key={o.value || "all"} value={o.value}>{o.label}</option>)}
               </select>
             </label>
@@ -1739,29 +1777,6 @@ export default function Home() {
                 <span className="text-xs font-bold tabular-nums text-gray-900">{value}</span>
               </div>
             ))}
-            <a
-              href={MANUAL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
-            >
-              <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
-                <path d="M4 3.5A1.5 1.5 0 0 1 5.5 2H15a1 1 0 0 1 1 1v12.5a.5.5 0 0 1-.5.5H6a1 1 0 0 0 0 2h9.5a.5.5 0 0 1 0 1H6a2 2 0 0 1-2-2V3.5Z" />
-              </svg>
-              User manual
-            </a>
-            <button
-              type="button"
-              onClick={() => setActiveTab("changes")}
-              aria-pressed={activeTab === "changes"}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${
-                activeTab === "changes" ? "border-gray-700 bg-gray-800 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-              title="What changed, when, and who changed it"
-            >
-              <span aria-hidden="true">↺</span>
-              Change log
-            </button>
             {/* Save status (11/24: moved up from the toolbar row). */}
             {session && dbLink?.id ? (
               <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs ${dbLink.conflict || dbLink.error ? "border-red-200 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-900"}`}>
@@ -1838,6 +1853,7 @@ export default function Home() {
                             { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
+                            { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
                             { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
                             { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
                             { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
@@ -1869,7 +1885,7 @@ export default function Home() {
       </header>
 
       {/* The toolbar row is gone (11/24): New / Edit asset and fund are in the
-          Operational Dashboard's Setup & Maintenance; save status is in the
+          Dashboard's Setup & Maintenance; save status is in the
           header; backup, restore and sample data are under ⋯ More. This row
           shows only notices. */}
         <input
@@ -1987,7 +2003,7 @@ export default function Home() {
           <nav className="rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm" aria-label="Functions">
             {/* Function areas (user, 11/24): one button per area; choosing one shows its tabs. */}
             <div className="flex flex-wrap items-center gap-1" data-testid="function-areas">
-              <span className="px-2 text-xs font-semibold text-gray-600" data-testid="functions-title">Functions</span>
+              <span className="px-2 text-lg font-bold text-gray-900" data-testid="functions-title">Functions</span>
               {TAB_GROUPS.filter((g) => g.tabs.length).map((g) => {
                 const on = shownArea === g.label;
                 const here = g.tabs.some((t) => t.id === activeTab);
@@ -2077,8 +2093,11 @@ export default function Home() {
             )}
             {DEAL_TABS.has(activeTab) && (
               <AssetPicker
-                deals={viewDeals}
-                snapshots={savedDeals.filter((s) => !deals.some((d) => d.id === s.id))}
+                // Deal Screener: pipeline deals only, never owned assets (user, 11/24).
+                deals={activeTab === "quick" ? viewDeals.filter((d) => isPipeline(d, new Date().toISOString().slice(0, 10))) : viewDeals}
+                pickLabel={activeTab === "quick" ? "Pipeline Deal" : "Asset"}
+                placeholder={activeTab === "quick" ? "Choose a Pipeline Deal…" : ""}
+                snapshots={activeTab === "quick" ? [] : savedDeals.filter((s) => !deals.some((d) => d.id === s.id))}
                 activeId={activeDealId}
                 onPick={setActiveDealId}
                 onOpenSnapshot={handleOpenSnapshot}

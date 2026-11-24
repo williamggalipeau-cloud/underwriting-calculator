@@ -43,7 +43,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   await FX.openArea(p, "Distribution Analysis");
   const nav = await p.locator("nav").first().innerText();
-  check(nav.indexOf("Distribution Analysis") > nav.indexOf("Fund Return") && nav.indexOf("Distribution Analysis") < nav.indexOf("Stress Testing"), "Distribution Analysis sits after Fund Return");
+  check(nav.indexOf("Distribution Analysis") > nav.indexOf("Portfolio Return") && nav.indexOf("Distribution Analysis") < nav.indexOf("Stress Testing"), "Distribution Analysis sits after Portfolio Return");
   await FX.openTab(p, /^Distribution Analysis/);
   await p.waitForTimeout(1500);
   const da = main.getByTestId("distribution-analysis");

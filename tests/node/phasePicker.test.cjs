@@ -6,8 +6,8 @@ let fail = 0; const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); i
 
 const funds = { "Model Fund I": { name: "Model Fund I" }, "Example JV II": { name: "Example JV II", type: "Joint Venture" }, "Example SMA": { type: "Separate Account" } };
 const opts = W.workingOnOptions(funds, ["Model Fund I", "Loose Fund"]);
-ok(opts[0].value === "" && opts[0].label === "All funds", "first option: All funds");
-ok(opts.map((o) => o.label).join("|") === "All funds|Example JV II · Joint Venture|Example SMA · Separate Account|Loose Fund|Model Fund I", "each fund, SMA and JV with its type, sorted, no duplicates");
+ok(opts[0].value === "" && opts[0].label === "All portfolios", "first option: All portfolios (Select Portfolio, 11/24)");
+ok(opts.map((o) => o.label).join("|") === "All portfolios|Example JV II · Joint Venture|Example SMA · Separate Account|Loose Fund|Model Fund I", "each fund, SMA and JV with its type, sorted, no duplicates");
 ok(W.validWorkingOn("Gone Fund", opts) === "" && W.validWorkingOn("Example SMA", opts) === "Example SMA", "a remembered fund that no longer exists falls back to All funds");
 
 const fd = [{ id: "a", inputs: { fundName: "Model Fund I" } }, { id: "b", inputs: { fundName: "model fund i " } }, { id: "c", inputs: { fundName: "Example JV II" } }];

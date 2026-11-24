@@ -174,10 +174,10 @@ export default function Research({ deal, deals = [], firmComps, subject, onSetEx
     <div className="space-y-4" data-testid="research">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Research</h2>
+          <h2 className="text-lg font-bold text-gray-900">Comps</h2>
           <p className="text-xs text-gray-500">Comps and third-party research for {deal.inputs.propertyName || "this asset"}. Everything here is saved with the asset.</p>
         </div>
-        <div role="tablist" aria-label="Research sections" className="flex gap-1 rounded-lg bg-gray-100 p-1">{tab("comps", "Comps")}{tab("thirdparty", "Third-Party")}</div>
+        <div role="tablist" aria-label="Comps sections" className="flex gap-1 rounded-lg bg-gray-100 p-1">{tab("comps", "Sales Comps")}{tab("thirdparty", "Third-Party")}</div>
       </div>
       {view === "comps" ? (
         <div className="space-y-2">

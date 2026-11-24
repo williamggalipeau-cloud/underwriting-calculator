@@ -146,7 +146,7 @@ function FeeRevenue({ cfs, wf, name }) {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h3 className="text-base font-semibold text-gray-900">Projected fee revenue</h3>
-          <p className="text-xs text-gray-500">The firm&apos;s fees from this asset over the hold: property management and construction management. The asset management fee is the fund&apos;s management fee (Fund Return), so it isn&apos;t repeated per asset; promote is shown in the waterfall, not here.</p>
+          <p className="text-xs text-gray-500">The firm&apos;s fees from this asset over the hold: property management and construction management. The asset management fee is the fund&apos;s management fee (Portfolio Return), so it isn&apos;t repeated per asset; promote is shown in the waterfall, not here.</p>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <label className="flex items-center gap-1.5 text-gray-600">Discount rate <input aria-label="Fee discount rate" type="number" step="0.5" value={rate} onChange={(e) => setRate(e.target.value)} className="w-16 rounded border border-gray-300 px-1.5 py-1 text-right" />%</label>

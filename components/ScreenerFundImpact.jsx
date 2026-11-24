@@ -41,7 +41,7 @@ export function ScreenerPicker({ activeDeal, deals, todayISO, onSelect, owned, p
         </p>
       )}
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="text-gray-500">Pipeline deals:</span>
+        <span className="text-gray-500">Pipeline Deals:</span>
         {pipe.length === 0 ? <span className="text-gray-400">none yet. Add them on the Pipeline tab and press Screen.</span> : pipe.map((d) => (
           <button key={d.id} type="button" onClick={() => onSelect(d.id)} className={`rounded-full border px-2.5 py-0.5 ${d.id === activeDeal.id ? "border-blue-600 bg-blue-600 text-white" : "border-gray-300 bg-white text-gray-700 hover:border-blue-300"}`} data-testid="screener-deal">
             {d.inputs.propertyName || "Unnamed deal"}

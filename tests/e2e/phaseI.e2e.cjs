@@ -129,11 +129,11 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // Model change banner
   await FX.openTab(p, /^Rent Roll/);
   await p.waitForTimeout(600);
-  // Fund Return roll-up
-  await FX.openTab(p, /^Fund Return/);
+  // Portfolio Return roll-up
+  await FX.openTab(p, /^Portfolio Return/);
   await p.waitForTimeout(1000);
   const sum = await main.getByTestId("budget-summary").innerText().catch(() => "");
-  check(sum.includes("Airport Flex Park") && sum.includes("Route 9 Small Bay") && sum.includes("Fund"), "Fund Return: NOI vs budget by asset");
+  check(sum.includes("Airport Flex Park") && sum.includes("Route 9 Small Bay") && sum.includes("Fund"), "Portfolio Return: NOI vs budget by asset");
   // Critical dates: the milestone
   await FX.openTab(p, "Leases");
   await p.waitForTimeout(1200);

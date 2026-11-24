@@ -1,7 +1,7 @@
 "use client";
 
 // Phase J: underwritten vs. actual + projected performance, per asset
-// (Asset Summary → Details) and for the whole fund (Fund Return).
+// (Asset Summary → Details) and for the whole fund (Portfolio Return).
 import { useMemo } from "react";
 import { RETURN_METRICS, YEAR_METRICS, attribution, compare, compareRows, freezeBaseline, fundRows, fundRowsXlsx } from "@/lib/uwActual";
 import { writeXlsx } from "@/lib/xlsx";

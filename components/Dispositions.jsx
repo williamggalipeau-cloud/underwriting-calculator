@@ -139,7 +139,7 @@ function SaleCard({ x, sales, canEdit, onUpdateSale, onClose, todayISO, docs = [
       {/* Closing */}
       {s.closing ? (
         <div className="space-y-1">
-          <p className="rounded bg-emerald-50 px-2 py-1.5 text-emerald-900" data-testid="sale-closed">Closed {usDate(s.closing.date)}: price {money(s.closing.price)}, costs {money(s.closing.costs)}, loan payoff {money(s.closing.loanPayoff)}, net proceeds {money(s.closing.net)}.{s.scope !== "partial" ? " The asset's model now uses this sale (Fund Return, valuations, header figures)." : ""}</p>
+          <p className="rounded bg-emerald-50 px-2 py-1.5 text-emerald-900" data-testid="sale-closed">Closed {usDate(s.closing.date)}: price {money(s.closing.price)}, costs {money(s.closing.costs)}, loan payoff {money(s.closing.loanPayoff)}, net proceeds {money(s.closing.net)}.{s.scope !== "partial" ? " The asset's model now uses this sale (Portfolio Return, valuations, header figures)." : ""}</p>
           {split && <p className="rounded bg-white px-2 py-1.5 text-gray-700" data-testid="sale-split">Through {x.fund}&apos;s waterfall: LPs {money(split.lp)}, GP {money(split.gp)} ({split.gpPct.toFixed(1)}% to the GP){split.held > 1 ? `, ${money(split.held)} held back` : ""}.</p>}
         </div>
       ) : canEdit && ACTIVE_SALE_STAGES.includes(s.stage) && (

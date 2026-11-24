@@ -41,7 +41,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const sb = p.getByTestId("setup-buttons");
   check((await sb.getByRole("button", { name: "New asset" }).count()) === 1 && (await sb.getByLabel("Edit asset").count()) === 1 && (await sb.getByRole("button", { name: "New fund" }).count()) === 1 && (await sb.getByLabel("Edit fund").count()) === 1, "Setup & Maintenance (under Functions): New asset, Edit asset, New fund, Edit fund");
   check((await p.getByTestId("setup-maintenance").getByTestId("setup-buttons").count()) === 1, "the setup controls live in Setup & Maintenance, not a toolbar row");
-  for (const t of ["Asset Summary", "Rent Roll", "Fund Return", "Deal Screener", "Documents"]) {
+  for (const t of ["Asset Summary", "Rent Roll", "Portfolio Return", "Deal Screener", "Documents"]) {
     await FX.openTab(p, new RegExp(`^${t}`));
     await p.waitForTimeout(400);
   }
@@ -49,7 +49,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const mainBox = await main.boundingBox();
   check(mainBox && mainBox.width > 1100, `results use the full width (${Math.round(mainBox?.width ?? 0)} px)`);
 
-  // Edit asset (from the Operational Dashboard)
+  // Edit asset (from the Dashboard)
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(500);
   await sb.getByLabel("Edit asset").selectOption("sample-deal-3");

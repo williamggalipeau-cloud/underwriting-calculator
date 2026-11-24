@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DOC_TYPES, TYPE, BLOCKS, FIELDS, checkLocally, dealDocPrompt, parseDealAbstract } from "@/lib/dealDocTypes";
 import { applyDoc, applyRentRoll, appraisalMark, billingCheck, camCheck, capChecks, capFromDoc, compareDoc, estoppelChecks, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
-import { createDealDoc, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
+import { fundType } from "@/lib/fundTypes";
+import { createDealDoc, createDealDocWithFallback, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
 import { listLeases, PROJECT_REF, fmtBytes, MAX_FILE_MB } from "@/lib/leaseDocs";
 import { newUnit } from "@/components/UnitRoll";
 import { underwrite } from "@/lib/calculations";
@@ -422,7 +423,9 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
   const fundDocs = shown.filter((d) => !d.deal_id);
   const assetDocs = shown.filter((d) => d.deal_id);
   const fundList = [...new Set([fundName, ...Object.keys(funds ?? {})].filter(Boolean))].sort();
-  const types = deal ? DOC_TYPES : DOC_TYPES.filter((x) => x.scope === "fund");
+  // A JVA only for a joint venture, an SMA only for a separate account (11/24).
+  const govOk = (x) => !x.fundType || fundType(funds?.[fundSel && fundList.includes(fundSel) ? fundSel : fundName || fundList[0]]?.type) === x.fundType;
+  const types = (deal ? DOC_TYPES : DOC_TYPES.filter((x) => x.scope === "fund")).filter(govOk);
   const t = TYPE[types.some((x) => x.id === type) ? type : types[0]?.id] ?? TYPE[type];
   const toFund = fundSel && fundList.includes(fundSel) ? fundSel : fundName || fundList[0] || "";
   const assetLeases = leases.filter((l) => l.deal_id === deal?.id);
@@ -433,7 +436,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
     if (!files.length) return;
     setBusy(true);
     try {
-      await createDealDoc(wsId, { dealId: t.scope === "fund" ? null : deal.id, fundName: t.scope === "fund" ? toFund : fundName ?? "", docType: t.id, title: title.trim(), leaseId: (type === "insurance_cert" || type === "estoppel") && leaseId ? leaseId : null, files }, email);
+      await createDealDocWithFallback(wsId, { dealId: t.scope === "fund" ? null : deal.id, fundName: t.scope === "fund" ? toFund : fundName ?? "", docType: t.id, title: title.trim(), leaseId: (type === "insurance_cert" || type === "estoppel") && leaseId ? leaseId : null, files }, email);
       setFiles([]); setTitle(""); setLeaseId("");
       await refresh();
     } catch (err) { setError(err.message || String(err)); } finally { setBusy(false); }

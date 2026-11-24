@@ -1,7 +1,7 @@
 "use client";
 
 // Fund NAV, gross and net LP interim returns, and the fund's quarter-by-quarter
-// totals. Moved from Valuation to Fund Return (11/23); the marks that drive
+// totals. Moved from Valuation to Portfolio Return (11/23); the marks that drive
 // them are still entered on Valuation, which keeps the valuation PDF.
 import { fundOptionLabel } from "@/lib/fundTypes";
 import { useMemo, useState } from "react";

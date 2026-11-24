@@ -1,6 +1,6 @@
 "use client";
 
-// Phase K: Fund Plan tab (Portfolio Management, before Fund Return). The
+// Phase K: Fund Plan tab (Portfolio Management, before Portfolio Return). The
 // fund's plan, frozen from the fund model, against what the fund has done
 // (LP capital called and distributed, assets bought, NAV from the Valuation
 // tab) and against the current forecast (the fund model as it stands now).
@@ -89,7 +89,7 @@ function PlanChart({ rows }) {
 export default function FundPlan({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, fixedFund = null }) {
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
-  // Inside Fund Summary (11/24) the fund is Fund Summary's pick.
+  // Inside Portfolio Summary (11/24) the fund is Portfolio Summary's pick.
   const fundName = fixedFund ?? (fundNames.includes(fundPick) ? fundPick : fundNames[0]);
   const fundDeals = useMemo(() => deals.filter((d) => d.inputs.fundName?.trim() === fundName), [deals, fundName]);
   const terms = useMemo(() => ({ ...DEFAULT_FUND_TERMS, ...(funds[fundName] ?? {}), name: fundName }), [funds, fundName]);
