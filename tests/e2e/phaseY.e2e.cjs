@@ -120,6 +120,25 @@ let saved = null;
   const logged = (sd?.auditLog ?? []).filter((e) => e.area === "Benchmarks");
   check(logged.length >= 11 && logged.every((e) => /rows from/.test(e.to)), `change log: ${logged.length} summary entries`);
   await p.screenshot({ path: `${S}/benchmarking.png`, fullPage: true });
+
+  // ── The quarterly report's Benchmarks section (plan: Y feeds the report) ──
+  await FX.openTab(p, "Reports");
+  await p.waitForTimeout(1500);
+  const rbm = p.getByTestId("report-benchmarks");
+  const rt = await rbm.innerText().catch(() => "");
+  check(/Benchmarks/.test(rt) && /as of 2026-Q3/.test(rt) && /not in the shareable version/.test(rt), "Reports (shareable): a Benchmarks section, marked not in the shareable version by default");
+  check((await p.getByTestId("report-bench-returns").locator("tbody tr").count()) === 3 && /NPI Industrial/.test(rt) && /(Top|2nd|3rd|Bottom) quartile/.test(rt) && /\d\.\d\dx/.test(await p.getByTestId("report-bench-pme").innerText()), "returns (since inception, 1 and 3 years), vintage quartiles and PME");
+  const [s1] = await Promise.all([p.waitForEvent("download"), p.getByRole("button", { name: "PDF (draft)" }).click()]);
+  await s1.saveAs(`${S}/report-shareable.pdf`);
+  check(!/Benchmarks ·/.test(require("child_process").execFileSync("pdftotext", ["-layout", `${S}/report-shareable.pdf`, "-"]).toString()), "shareable PDF: no benchmark page until included");
+  await rbm.getByLabel("Include benchmarks in the shareable version").check();
+  await p.waitForTimeout(600);
+  check(!/not in the shareable version/.test(await rbm.innerText()), "included in the shareable version");
+  const [s2] = await Promise.all([p.waitForEvent("download"), p.getByRole("button", { name: "PDF (draft)" }).click()]);
+  await s2.saveAs(`${S}/report-shareable2.pdf`);
+  const t2 = require("child_process").execFileSync("pdftotext", ["-layout", `${S}/report-shareable2.pdf`, "-"]).toString();
+  check(/Benchmarks · /.test(t2) && /Time-weighted return/.test(t2) && /Vintage 2022 peers/.test(t2) && /Public market equivalent/.test(t2) && /Sources: /.test(t2), "the report PDF gets a Benchmarks page with its sources");
+  await rbm.screenshot({ path: `${S}/report-benchmarks.png` });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();
   console.log(fails ? `${fails} FAILED` : "ALL PASS");

@@ -3022,7 +3022,25 @@ weight of the four REITs each month. Listed REITs carry less leverage (about
 25–35%) than a value-add fund (about 60%), so part of any gap is leverage.
 
 **Excel** and **PDF** (internal, licensed data) export every table with its
-sources. Not yet in the quarterly report.
+sources.
+
+**In the quarterly report (11/24).** Reports → Quarterly report has a
+**Benchmarks** section as of the report's quarter end, from whatever is
+loaded here (`reportBenchmarks`):
+- the fund's time-weighted return against each NCREIF index loaded, since
+  inception and over 1 and 3 years (annualized; under a year cumulative);
+- the vintage-year quartile of the net LP IRR, TVPI and DPI for each of
+  Preqin and Cambridge (n/m while net returns aren't meaningful);
+- the since-inception PME (KS-PME and the IRR spread) for each REIT series;
+- each benchmark's source note.
+
+It is always in the **internal** version. Benchmark licenses (NCREIF, Preqin,
+Cambridge) often limit redistribution, so it goes into the **shareable** (LP)
+version only when **Include in the shareable version** is ticked for the
+fund (saved with the fund's report settings). The PDF gets a Benchmarks page
+with a method note and the sources, and the Excel a Benchmarks block.
+Issuing a report freezes the benchmark figures with it. With nothing loaded,
+the report says where to upload them.
 
 ## 8. Worked example: the default deal
 
@@ -4042,7 +4060,7 @@ each phase and the decisions behind it are in
 | Quarterly report summary (11/24) | Watch list (internal version only), change vs. last quarter and issued reports on top of the quarterly report, on screen, in the PDF and in the Excel (§7.32b) | ✅ Built 11/24 |
 | Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
-| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) (§7.50) | ✅ Built 11/24. Not yet in the quarterly report |
+| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) (§7.50) | ✅ Built 11/24; in the quarterly report (internal always, shareable when ticked) 11/24 |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel (§7.49) | ✅ Built 11/24 |
 
 **How phases are delivered.**

@@ -2246,6 +2246,7 @@ export default function Home() {
                 canEdit={!locked}
                 email={session?.user?.email ?? null}
                 onFundTermsChange={handleFundTermsChange}
+                comps={comps}
               />
             )}
             {activeTab === "distributions" && (

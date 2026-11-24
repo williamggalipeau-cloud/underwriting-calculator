@@ -40,7 +40,7 @@ changes the model without the user clicking to apply it.
 | Demo | Separate Demo firm for the sample fund and test deals, so the real firm holds only real assets (added 11/23) | ⛓ After Picker |
 | Comps | Mock comps for each Model Fund I asset: fictional sales comps on Research → Comps and lease (rent) comps for phase R's Leasing tab, near each sample address (added 11/23) | ⛓ Future release (with the next sample-data update) |
 | External reports | A few more external (LP-facing) reports, to choose: e.g. LP capital account statements, an ILPA-template quarterly report, an annual report with audited figures, property-level investor updates, ESG / GRESB data (added 11/24) | ⛓ Future release: pick which, then plan |
-| Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ✅ Built 11/24 (manual §7.50); feeding the quarterly report is next |
+| Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ✅ Built 11/24 (manual §7.50); feeds the quarterly report since 11/24: Benchmarks section, PDF page and Excel rows, internal always, shareable when ticked (licensing) |
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ✅ Built 11/24 (manual §7.49) |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
