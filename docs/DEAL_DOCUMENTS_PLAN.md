@@ -46,6 +46,7 @@ changes the model without the user clicking to apply it.
 | W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ✅ Built 11/24 (manual §7.49). 11/24: discount rate and fee present value removed (user: "remove discount rate from GP economics"); Revenue Yield (fee income ÷ committed capital, LP + GP or LP only from the LPA / JVA / SMA or the user; per year, to date; mockup approved); fee income kept apart from capital gains (promote and co-invest profit, counted in the year each asset sells; By year shows them beside fee income) |
 | Save | Save bar (Save changes, Saved, conflict and error states), prompt before leaving tabs / Home / portfolio with unsaved changes, header save label removed; autosave kept as a safety net (added 11/24) | ✅ Built 11/24, merged (PR #98) |
 | Library | Firm-wide Document Library (Library → Documents): every portfolio- and asset-level document and lease, grouped by portfolio, filters and counts, upload by type (portfolio or asset), Workflow tab column last; Documents panels on Portfolio Debt, Valuation, Leases, Insurance, Portfolio Summary and Asset Summary (added 11/24) | ✅ Built 11/24 (manual §7.53; lib/docLibrary.js, components/Documents.jsx, components/WorkflowDocs.jsx) |
+| Sponsor | Finance area split into **GP Economics** (the capital partner: returns on invested capital, its promote share, fund-level fee) and **Sponsor Economics** (the operator: property-level fees and its promote share), with a combined view when they are the same company (added 11/24) | ⏸ Parked, to be scoped (questions below under "Sponsor Economics") |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
@@ -1552,6 +1553,30 @@ Library → Documents lists every fund- and asset-level document firm-wide,
 with upload. Each document type attaches to a fund or an asset; documents
 are viewable and uploadable in each related workflow tab. Leases included,
 photos excluded. Mockup approved 11/24 with: workflow-tab panels as recommended (Portfolio Debt, Valuation, Leases, Insurance, Portfolio Summary, Asset Summary), grouped by portfolio by default, the Workflow tab column moved last.
+
+## Sponsor Economics (user, 11/24; parked, to be scoped)
+
+User: "Under the finance functions, we should consider two tabs: one for GP
+Economics, and one for Sponsor Economics. In CRE, the GP is sometimes just a
+source of capital. The operator manages the assets and earns fees. The GP
+makes money on gains from invested capital. The sponsor, also called an
+operator, makes money off of fees. If the GP and sponsor are not the same
+company, they often split the promote."
+- **GP (capital partner):** returns on invested capital (co-invest profit,
+  its promote / carry share; a fund-level management fee when it runs a
+  fund). Mostly capital gains.
+- **Sponsor / operator:** property-level fees (PM, CM, acquisition,
+  disposition, leasing, development) and its promote share. Mostly fee income.
+- Different companies: the promote is split (a fixed share, or the operator's
+  own promoted interest at the JV level; fund carry on top = "double
+  promote"). Same company: the two tabs add up to today's GP Economics, so a
+  combined view stays.
+- To decide: who the sponsor is per portfolio (the firm or a named outside
+  operator, e.g. from the JVA); which fees go to which party (the asset
+  management fee is the grey area); how the promote is split (share vs.
+  tiers per layer); each party's co-invest; whether the firm is the GP, the
+  sponsor or both; Revenue Yield likely moves to Sponsor Economics, with a
+  capital-gains measure (e.g. GP ROE / multiple) on GP Economics.
 
 ## Order and review
 
