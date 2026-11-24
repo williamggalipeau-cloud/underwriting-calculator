@@ -1703,6 +1703,8 @@ export default function Home() {
   // Leaving a page with unsaved changes (user, 11/24): ask first. OK saves,
   // then goes on; Cancel stays. If the save fails, ask again before leaving.
   async function confirmLeave(where = "this page") {
+    // A save already under way isn't "unsaved": let it finish without asking.
+    for (let i = 0; i < 100 && dbSaving.current; i++) await new Promise((r) => setTimeout(r, 100));
     const l = dbLinkRef.current;
     if (!(l && session && l.role !== "viewer" && (l.dirty || dbSaving.current))) return true;
     if (!window.confirm(`You have unsaved changes. Save them before you leave ${where}?\n\nOK saves and continues. Cancel stays here.`)) return false;
