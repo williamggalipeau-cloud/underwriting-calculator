@@ -2165,6 +2165,29 @@ letter) and at the top of the Excel:
   and the latest (version, shareable or internal, date and who). An issued
   version keeps the summary as it was when issued.
 
+**Report on: the portfolio or one asset (user, 11/24).** The **Report on**
+picker chooses *Portfolio: whole fund* (the report above) or any one asset
+in the fund (`lib/assetReport.js`). An asset report, as of the quarter end:
+- **Value:** value and its basis (appraisal, internal, roll-forward or
+  cost), the change over the quarter, cost basis and unrealized gain,
+  implied cap rate and the last appraisal.
+- **Returns to date at the mark:** the asset's equity IRR and multiple (n/m
+  while it is held at cost after acquisition).
+- **Operations:** occupancy, average rent per SF and WALT against the
+  business plan's targets; NOI year to date against the plan; vacant SF;
+  leases expiring in the next 12 months; active leasing prospects.
+- **Business plan:** the latest revision's recommendation, milestones with
+  their status and capital projects; **debt:** loan, lender, rate, maturity
+  and LTV; **benchmark:** the asset's time-weighted return against NCREIF
+  NPI Industrial since it was bought (when benchmarks are loaded and allowed
+  in that version).
+- **Internal version** adds underwritten vs. actual IRR and the asset's
+  budget variances, with internal notes.
+It has its own editable letter (drafted from its figures), PDF and Excel,
+and is issued and versioned on its own (kept with the fund's issued reports,
+tagged with the asset); the portfolio report's issued list shows only the
+fund's own versions.
+
 ### 7.32c Fund limits, actual vs. limit (phase L)
 
 On the Reports tab (owners and editors), **Fund limits** lists every
@@ -2265,6 +2288,14 @@ Each section in detail:
   expiring (60 days) policies, no owner's certificate, leases with no tenant
   certificate, and tenant coverage below the lease's requirements; expired
   policies go on the watch list.
+  **Against the loan (11/24):** when a loan agreement has been read in, the
+  owner's certificate is also checked against the lender's insurance
+  requirements, now read from the loan (property limit and coverage basis,
+  maximum deductible, general liability, umbrella, loss of rents, flood,
+  minimum insurer rating, lender as mortgagee / loss payee). Gaps show as
+  "Lender: …"; high ones (a missing or short policy) go on the watch list.
+  Loans read in before 11/24 don't have these terms: read the loan in again
+  to check them.
 - **Lease risk flags** (abstracted leases): counts by type and the high ones,
   which go on the watch list.
 - **Change vs. last quarter:** the largest lender, cap counterparty, state,
@@ -4068,8 +4099,8 @@ each phase and the decisions behind it are in
 | Layout (11/23) | Baywise name and tagline, grouped tab bar and renamed tabs, firm-wide header strip, Asset Return target warnings and DSCR, SOFR panel on Debt, fund NAV and interim returns on Fund Return, fund type tag (Fund / Separate Account / Joint Venture) | ✅ Built 11/23 |
 | J. Underwritten vs. actual | Acquisition underwriting vs. actual and projected results, with the return gap by cause | ✅ Built 11/23: frozen baseline per asset, by-year and returns comparison, IRR gap by cause, fund ranking, Excel and PDF (§7.32) |
 | K. Fund plan vs. actual | Fund plan vs. actual capital, deployment, distributions, NAV and returns; on Sell/Hold, change the hold period and see the fund-level impact | ✅ Built 11/23: Fund Plan tab (frozen plan and re-forecasts, plan vs. actual vs. forecast vs. targets, chart, attribution by asset and cause, Excel and PDF); Sell/Hold all-asset hold change, past-term flags, TVPI, DPI by term end, GP promote (§7.33) |
-| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Remaining: insurance vs. loan requirements, an asset map sized by value |
-| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | 🔨 Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Fund Impact PDF; Update pipeline row from the screener; Add to pipeline from an OM (11/23) |
+| L. Performance and risk reporting | Quarterly performance report (shareable and internal versions) and an internal-only risk report (concentration by SIC, geography, lender and cap counterparty; fund limits; TI funding heat map; insurance; delinquency; environmental and climate risk); mock (drawn) photos and floor plans for the sample assets; the full Asset Business Plan PDF (photos, floor plan, location, actual NOI, underwritten vs. actual); Asset Return: GP ROE, "GP profit" relabel with a true GP promote row, and projected fee revenue (property and construction management fees by year; the AM fee is the fund management fee) | 🔨 Started 11/23: Asset Return GP rows and fee revenue; the full business plan PDF (§7.32a); drawn sample photos and floor plans; Reports tab with the quarterly report, shareable and internal, issued versions (§7.32b); fund limits with a pre-acquisition check (§7.32c); the internal risk report (§7.32d). TI funding heat map, stress tests, insurance and lease flags (§7.32d). TI actions and change vs. last quarter. Insurance vs. loan requirements (§7.32d) and per-asset investor reports (§7.32b) 11/24. ✅ Complete |
+| M. Fund impact modeling and Pipeline | Pipeline tab of deals being watched (manual entry or CoStar / spreadsheet upload, stages Watching to Closed). Add a candidate asset to a fund as a what-if and see the effect on fund returns, capital, mix and limits; Deal Screener and Full Underwrite are the two ways to add a candidate; pipeline report with the top 10 assets; Deal Screener gets a fund picker showing the impact of acquiring the asset, and lists pipeline assets only (Deal Screener is not retired) | ✅ Built 11/23 (complete): Started 11/23: Pipeline tab (§7.35); Deal Screener pipeline-only with Model in fund (§7.36). Fund Impact tab (§7.37); pipeline report (§7.35). Fund Impact PDF; Update pipeline row from the screener; Add to pipeline from an OM (11/23) |
 | N. Fund Summary | New Fund Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ✅ Built 11/23: Fund Summary tab (§7.38) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |

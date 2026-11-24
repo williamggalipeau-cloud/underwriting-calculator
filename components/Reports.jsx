@@ -12,6 +12,8 @@ import { writeXlsx } from "@/lib/xlsx";
 import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, quarterSummary, reportXlsx, summaryChange, summaryValue } from "@/lib/quarterlyReport";
 import { riskReport } from "@/lib/riskReport";
 import { benchmarksOf, fundBenchmarkBase, reportBenchmarks } from "@/lib/benchmarks";
+import { buildAssetReport } from "@/lib/assetReport";
+import AssetReportPanel from "@/components/AssetReportPanel";
 import { assetFileLinks, imageDataUrl, isSamplePath } from "@/lib/assetPhotos";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import FundLimits from "@/components/FundLimits";
@@ -131,6 +133,17 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   }, [fundName, baseReport, fundDeals, terms, marks, curve, bmb, bmStore.benchmarkStrategy]);
   const benchIn = !!bench && (k === "internal" || !!bmStore.benchmarksShareable);
   const report = useMemo(() => (baseReport && benchIn ? { ...baseReport, benchmarks: bench } : baseReport), [baseReport, bench, benchIn]);
+  // Report on the portfolio (the fund) or one asset in it (user, 11/24).
+  const [assetPick, setAssetPick] = useState("");
+  const assetId = baseReport?.portfolio.some((x) => x.id === assetPick) ? assetPick : "";
+  const assetReport = useMemo(() => {
+    if (!assetId) return null;
+    try {
+      const ar = buildAssetReport(fundDeals, terms, marks, { assetId, qEnd, todayISO: t0, curve, kind: k });
+      const ab = benchIn ? bench?.assets?.find((x) => x.id === assetId) ?? null : null;
+      return ar ? { ...ar, ...(ab ? { benchmark: ab } : {}) } : null;
+    } catch { return null; }
+  }, [assetId, fundDeals, terms, marks, qEnd, t0, curve, k, bench, benchIn]);
   // The risk watch list for the summary (owners and editors only; internal).
   const watch = useMemo(() => {
     if (!canEdit || !report) return null;
@@ -149,7 +162,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const letter = draft.letter ?? draftLetter(report);
   const notes = draft.notes ?? "";
   const saveDraft = (patch) => canEdit && onFundTermsChange(fundName, { reports: { ...store, drafts: { ...(store.drafts ?? {}), [dk]: { letter, notes, ...patch } } } });
-  const issued = (store.issued ?? []).filter((x) => x.quarter === dk && (canEdit || x.kind === "shareable"));
+  const issued = (store.issued ?? []).filter((x) => x.quarter === dk && !x.assetId && (canEdit || x.kind === "shareable"));
   const base = `${safeFileName(fundName)}-${dk}-${k}-report`;
   const prevOk = prevReport && prevReport.qEnd === prevQEnd && prevReport.portfolio.length > 0 ? prevReport : null;
   const summary = quarterSummary(report, prevOk, { issued, watch });
@@ -190,6 +203,10 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
               {fundNames.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}
             </select>
           )}
+          <select aria-label="Report on" value={assetId} onChange={(e) => setAssetPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5" title="The portfolio (the whole fund) or one asset in it">
+            <option value="">Portfolio: whole fund</option>
+            <optgroup label="Asset">{report.portfolio.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</optgroup>
+          </select>
           <select aria-label="Quarter" value={qEnd} onChange={(e) => setQPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">
             {qs.map((q) => <option key={q} value={q}>{quarterLabel(q)}</option>)}
           </select>
@@ -198,9 +215,9 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
               {REPORT_KINDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           )}
-          <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(r, { letter, notes, summary }, `${base}-draft.pdf`)}>{busy ? "Making PDF…" : "PDF (draft)"}</button>
-          <button type="button" className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => downloadBlob(writeXlsx(reportXlsx(r, { letter, notes, summary }), { sheetName: "Quarterly report", title: `Baywise · ${fundName} ${r.quarterLabel} report` }), `${base}.xlsx`)}>Excel</button>
-          {canEdit && <button type="button" onClick={issue} className={`${btn} border-blue-600 bg-blue-600 text-white`}>Issue report</button>}
+          {!assetId && <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(r, { letter, notes, summary }, `${base}-draft.pdf`)}>{busy ? "Making PDF…" : "PDF (draft)"}</button>}
+          {!assetId && <button type="button" className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => downloadBlob(writeXlsx(reportXlsx(r, { letter, notes, summary }), { sheetName: "Quarterly report", title: `Baywise · ${fundName} ${r.quarterLabel} report` }), `${base}.xlsx`)}>Excel</button>}
+          {canEdit && !assetId && <button type="button" onClick={issue} className={`${btn} border-blue-600 bg-blue-600 text-white`}>Issue report</button>}
         </div>
       </div>
 
@@ -228,6 +245,9 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           workspaceId={workspaceId}
           prev={prevReport && prevReport.qEnd === prevQEnd ? { asOf: prevQEnd, deals: fundDeals.filter((d) => prevReport.portfolio.some((x) => x.id === d.id)), values: Object.fromEntries(prevReport.portfolio.map((x) => [x.id, x.value])), lineBalance: prevReport.nav.lineBalance } : null}
         />
+      ) : assetId ? (
+        assetReport ? <AssetReportPanel r={assetReport} fundName={fundName} store={store} canEdit={canEdit} email={email} onFundTermsChange={onFundTermsChange} />
+          : <p className="text-xs text-gray-500">No figures for this asset at the {report.quarterLabel} quarter end (acquired later).</p>
       ) : (
       <>
       {msg && <p className={`rounded-lg border px-3 py-2 text-xs ${msg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`} data-testid="report-msg">{msg.text}</p>}
