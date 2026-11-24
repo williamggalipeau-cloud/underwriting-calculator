@@ -78,6 +78,7 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
       </div>
       <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">Internal: not for distribution. Fee income (fees for services) is kept apart from capital gains (promote and co-invest profit), which count only when realized, mostly on sale.</p>
 
+      <h3 className="text-sm font-bold text-gray-900" data-testid="gp-totals-label">Consolidated <span className="font-normal text-gray-500">· {title}{perFund.length ? ` (${perFund.length} portfolio${perFund.length === 1 ? "" : "s"})` : ""}</span></h3>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" data-testid="gp-totals">
         <Card testId="gp-fees" label="Fee income (life of portfolios)" value={fmtM(t.fees)} sub={`${pct(t.feesShare, 0)} of total GP economics`} />
         <Card testId="gp-promote" label="Promote · capital gain" value={fmtM(t.promote)} sub={`${pct(t.promoteShare, 0)} of total · ${fmtM(t.promoteRealized)} realized`} />

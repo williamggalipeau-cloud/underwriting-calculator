@@ -3002,6 +3002,8 @@ and the PDF is marked on every page.
 | **Total GP economics** | Fee income + capital gains (promote + co-invest profit), with each part's share (the cards and the colored bar) |
 | **Revenue Yield** | Fee income over the portfolio's life ÷ committed capital (see below) |
 
+The cards are headed **Consolidated** (the portfolios in scope; user, 11/24).
+
 **Fee income vs. capital gains (user, 11/24).** Fee income and capital gains
 are kept apart everywhere on the page. **By year** shows the fee income
 columns (asset management, property management, construction management,

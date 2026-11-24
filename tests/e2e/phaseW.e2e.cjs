@@ -51,6 +51,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   check(fees > 0 && promote > 0 && Math.abs(fees + promote + co - total) < 0.03, `fees ${fees}M + promote ${promote}M + co-invest ${co}M = total ${total}M`);
   check(/% of total GP economics/.test(await p.getByTestId("gp-fees").innerText()) && !/PV/.test(await p.getByTestId("gp-fees").innerText()) && (await g.getByLabel("Discount rate").count()) === 0, "shares; no discount rate or present value (user, 11/24)");
   check((await p.getByTestId("gp-share-bar").locator("div").count()) === 3, "share bar: fees, promote, co-invest");
+  check(/^Consolidated/.test(await p.getByTestId("gp-totals-label").innerText()), "the cards are labelled Consolidated (user, 11/24)");
   // Revenue Yield (user, 11/24): the fifth card
   const ryc = await p.getByTestId("gp-revenue-yield").innerText();
   check(/Revenue Yield/i.test(ryc) && /\d+\.\d\d%/.test(ryc) && /a year/.test(ryc) && /To date:/.test(ryc) && /committed/.test(ryc), `Revenue Yield card: ${ryc.replace(/\s+/g, " ")}`);
