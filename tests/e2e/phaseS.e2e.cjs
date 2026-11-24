@@ -34,6 +34,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   p.on("pageerror", (e) => errs.push(e.message));
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
+  await FX.saveLoadUpgrade(p);
   await FX.openArea(p, "Portfolio Debt");
   const pm = p.getByRole("group", { name: "Portfolio Management" });
   const tabs = await pm.getByRole("button").allInnerTexts();

@@ -34,6 +34,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   p.on("pageerror", (e) => errs.push(e.message));
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
+  await FX.saveLoadUpgrade(p);
   const areas = await FX.areas(p);
   check(areas.indexOf("Finance") === areas.indexOf("Portfolio Management") + 1, `a Finance area after Portfolio Management: ${areas.join(", ")}`);
   await FX.openArea(p, "GP Economics");

@@ -135,16 +135,42 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(!/Model Fund I/.test(await p.getByTestId("assets-watch").innerText()), "Home follows the Working on picker: the JV's watch list only");
   check(!/Example Tenant Co/.test(await p.getByTestId("attention").innerText()), "and only the JV's attention items");
   check(/Example JV II \(Joint Venture\)/.test(await p.getByTestId("home").locator("p").first().innerText()), "the page says which portfolio it shows");
-  // Home saves unsaved edits before returning (user, 11/24)
-  const before = saves;
+  // Save bar and leave prompt (user, 11/24): a Save button appears with each
+  // change; leaving with unsaved changes asks first (OK saves, Cancel stays).
+  check((await p.locator("header").getByText(/Save now/).count()) === 0, "no save button in the header");
+  let before = saves;
   await p.getByTestId("attention").getByRole("combobox", { name: /^Status: / }).first().selectOption("Completed");
   await p.waitForTimeout(900);
-  check(/unsaved changes/.test(await p.locator("header").innerText()), "an edit leaves unsaved changes");
-  await FX.openTab(p, /^Pipeline/);
+  check(/Unsaved changes/.test(await p.getByTestId("save-bar").innerText().catch(() => "")) && (await p.getByTestId("save-button").count()) === 1, "an edit shows the Save changes button");
+  await p.getByTestId("save-button").click();
+  await p.waitForTimeout(800);
+  check(saves === before + 1 && /Saved/.test(await p.getByTestId("save-bar").innerText().catch(() => "")), "Save changes saves; the bar says Saved");
+  await p.waitForTimeout(3300);
+  check((await p.getByTestId("save-bar").count()) === 0, "then the bar goes away");
+  // Leaving with unsaved changes: Cancel stays, OK saves and leaves.
+  // The edit: reopen the action just completed (its row in Upcoming Events).
+  before = saves;
+  const cal2 = p.getByTestId("calendar");
+  for (const re of [/^Show the past 12 months/, /^Show all/]) { const b = cal2.getByRole("button", { name: re }); if (await b.count()) await b.click(); }
   await p.waitForTimeout(300);
-  await p.getByTestId("home-button").click();
+  const reopen = cal2.locator('[data-state="done"]').getByRole("combobox").first();
+  await reopen.selectOption({ index: 0 });
+  await p.waitForTimeout(900);
+  check(/Unsaved changes/.test(await p.getByTestId("save-bar").innerText().catch(() => "")), "reopening it is an unsaved change");
+  const prompts = [];
+  p.removeAllListeners("dialog");
+  p.on("dialog", (d) => { prompts.push(d.message()); return prompts.length === 1 ? d.dismiss() : d.accept(); });
+  await FX.openTab(p, /^Pipeline/);
+  await p.waitForTimeout(500);
+  check(prompts.length === 1 && /unsaved changes/i.test(prompts[0]) && (await p.getByTestId("home").count()) === 1 && saves === before, "leaving with unsaved changes asks; Cancel stays on the page");
+  await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(1200);
-  check(saves > before && !/unsaved changes/.test(await p.locator("header").innerText()) && (await p.getByTestId("home").count()) === 1, `Home saved the edit, then returned to the dashboard (${saves - before} save)`);
+  check(prompts.length === 2 && saves === before + 1 && (await p.getByTestId("home").count()) === 0, "OK saves, then leaves");
+  p.removeAllListeners("dialog");
+  p.on("dialog", (d) => d.accept());
+  await p.getByTestId("home-button").click();
+  await p.waitForTimeout(800);
+  check((await p.getByTestId("home").count()) === 1, "nothing unsaved: Home goes straight back");
   // The Baywise logo returns to the landing page too
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(400);

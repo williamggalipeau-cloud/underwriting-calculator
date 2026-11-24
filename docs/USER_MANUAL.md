@@ -168,13 +168,21 @@ automatically.
   and the forward curve. There are no workspaces to open, create or delete.
 - **When it saves:** about **one second after each change**. Only what
   changed is saved: the deal, fund or setting you edited, each as its own
-  record. It also saves when you click **Save now** and when you switch away
+  record. It also saves when you click **Save changes** and when you switch away
   from or close the tab.
 - **Live updates:** when someone else saves, their change appears on your
   screen within a moment, without reloading.
-- **Status:** the ☁ label in the header shows **Baywise** and either "saved
-  *time*" or "unsaved changes".
-- **Leaving with unsaved changes:** the browser asks before closing the tab.
+- **Save bar (user, 11/24):** as soon as you change anything, a bar appears
+  at the bottom of the screen: "Unsaved changes" with a **Save changes**
+  button. After a save it shows "✓ Saved" for a few seconds, then hides.
+  If someone else saved the same record first it offers **Open latest** or
+  **Keep mine**; if the save fails it shows "Couldn't save: …". Autosave
+  still runs in the background as a safety net. The header save label is
+  gone; **Database and people…** is under **⋯ More**.
+- **Leaving with unsaved changes:** moving to another tab, Home, or another
+  portfolio in **Select Portfolio** asks first: **OK** saves and continues,
+  **Cancel** stays put. If the save doesn't go through it asks whether to
+  leave anyway. Closing the browser tab also asks.
 - **Two people editing the same thing:** nothing is overwritten. If someone
   saved that deal (or fund, or setting) after you opened it, your save of it
   is refused. The app reloads their version and shows "*Name* was changed by
@@ -232,7 +240,7 @@ unassigned deals). Hover over a figure for its definition:
 | **Tenants** | Occupied units on the rent rolls, each tenant counted once per asset |
 | **Occupancy** | Leased SF ÷ total SF |
 
-**Home**, **User manual** and **Change log** sit side by side next to the Baywise name (11/24); then the **Select Portfolio** picker, the figures, the save status and **Database / Sign in**. The live NY
+**Home**, **User manual** and **Change log** sit side by side next to the Baywise name (11/24); then the **Select Portfolio** picker, the figures and **Sign in**; **Database and people…** is under **⋯ More**, and unsaved changes show in the save bar at the bottom (§2). The live NY
 Fed SOFR and forward-curve panel is at the top of the **Debt** tab; **Shift
 curve to live rate** there moves the whole curve so it starts at today's
 30-day average SOFR.
@@ -2508,10 +2516,9 @@ loaded; the only thing it saves is which actions were marked done.
 
 **Getting around (user, 11/24).**
 - **Home** sits in the header next to the Baywise logo (the logo works too).
-  It always returns to the dashboard. Before it leaves it saves any unsaved
-  edits; if the save doesn't go through (a newer version saved by someone
-  else, or the database unreachable) it asks before leaving. The edits stay
-  in the window either way and are saved with **Save now**.
+  It always returns to the dashboard. With unsaved edits it asks first
+  (OK saves and continues, Cancel stays); if the save doesn't go through it
+  asks before leaving. Changing tab or portfolio asks the same way (§2).
 - **Functions:** one button per function area (Acquisitions, Dispositions,
   Asset Management, Property Management, Portfolio Management, Market,
   Library), each with a count badge where there's work. Choosing an area
@@ -3225,10 +3232,10 @@ The inputs are the Deal Screener defaults:
     real deals and comps.
 11. **You need to be online and signed in to save.** Nothing is kept in
     the browser, so changes made while the database can't be reached stay
-    on screen only until a save succeeds. The header shows "unsaved
+    on screen only until a save succeeds. The save bar shows "Unsaved
     changes" until then.
 12. **Saves happen about 20 seconds after the last change.** Closing the
-    tab sooner triggers a save and a "leave page?" prompt; use Save now if
+    tab sooner triggers a save and a "leave page?" prompt; use **Save changes** if
     in doubt.
 13. **The working change log is a working record.** It is part of the
     workspace data, so anyone who can edit the workspace (or an exported
@@ -3289,7 +3296,7 @@ stored in the database; the only other copies are exports you download:
 
 | Location | What it holds | When it's written |
 |---|---|---|
-| **Supabase database** (project `nydqmigxorahfkfpkjnq`) | `workspaces.data`: the current workspace JSON. `workspace_versions.data`: every earlier version. `audit_log`: the verified change log. Members and invites (§11.13). | About 20 seconds after the last change, on **Save now**, and on leaving the page |
+| **Supabase database** (project `nydqmigxorahfkfpkjnq`) | `workspaces.data`: the current workspace JSON. `workspace_versions.data`: every earlier version. `audit_log`: the verified change log. Members and invites (§11.13). | About 20 seconds after the last change, on **Save changes**, and on leaving the page |
 | **Download backup** file | A copy of all the firm's data (JSON) | When you click Download backup (and automatically before a restore) |
 | **Browser storage** | Only the sign-in session (`sb-nydqmigxorahfkfpkjnq-auth-token`). No workspace data. Data saved there by earlier versions of the app is moved to the database on sign-in and then deleted. | On sign-in; removed on sign-out |
 | **Import files** (rent roll, fund terms, comps, marks, capital activity, Pensford curve) | Read once; contents copied into the workspace | — |
@@ -3956,7 +3963,7 @@ and nothing is saved; nothing is ever saved in the browser.
 |---|---|
 | **☁ Sign in** (View only banner) | Email + password sign-in through Supabase Auth. **Create an account** sends a one-time confirmation email; **Forgot password?** sends a reset link that reopens the app to choose a new password. The session is kept in this browser. After sign-in the app calls `claim_invites()`. |
 | **☁ Database → Save to database** | `create_workspace(name, data)`: a new `workspaces` row (version 1). You become its owner, and a "Created workspace" audit row is written. |
-| Editing, then a save (about 20 seconds after the last change, on **Save now**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
+| Editing, then a save (about 20 seconds after the last change, on **Save changes**, or when you leave the page) | `save_workspace(id, expected version, data, changes)`. In one transaction it: (1) checks nobody saved since your version; (2) copies the old version to `workspace_versions`; (3) stores the new data with version + 1; (4) writes one `audit_log` row per changed field. |
 | Someone else saved first | The save is refused (conflict). The app offers **Open latest** (load theirs) or **Keep mine** (save over it; theirs stays in `workspace_versions`). |
 | **Open** a workspace | Reads `workspaces.data` and loads it into the app. On sign-in, the app opens your most recently saved workspace, or creates one if you have none. If opening applies updates (for example new fund terms, the fund-level fee, or new sample dates and holds), they are saved straight away as a new version, with the changes in the audit log. |
 | **People with access** | `add_member` / `remove_member`. If the person hasn't signed in yet, a `workspace_invites` row waits until they do. |

@@ -76,3 +76,15 @@ module.exports.openArea = openArea;
 module.exports.openTab = openTab;
 // The function areas in order (the old tab-group headers).
 module.exports.areas = async (p) => (await p.getByTestId("function-area").evaluateAll((els) => els.map((e) => (e.getAttribute("title") ?? "").split(": ")[0])));
+
+// The fixtures hold deals in an older format that the app upgrades on load,
+// which counts as an unsaved change. Save it so the leave prompt (user, 11/24)
+// doesn't stop the test's first tab change. Real workspaces are already saved
+// in the current format.
+module.exports.saveLoadUpgrade = async (p) => {
+  const btn = p.getByTestId("save-button");
+  if (await btn.isVisible().catch(() => false)) {
+    await btn.click();
+    await p.waitForTimeout(800);
+  }
+};
