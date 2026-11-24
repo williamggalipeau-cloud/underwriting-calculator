@@ -1,6 +1,6 @@
 // Phase P part 2 Playwright: Start sale from Sell/Hold, documents on a sale
 // and an offer (before the doc-type SQL: filed under Other with the type in
-// the title), Sale Documents tab, LP / GP split on closing, PDFs. Fictional
+// the title), Disposition Documents tab, LP / GP split on closing, PDFs. Fictional
 // fixture; Supabase mocked.
 const { chromium } = require("playwright");
 const FX = require("./fixture.cjs");
@@ -57,7 +57,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const dg = p.getByRole("group", { name: "Dispositions" });
   await FX.openArea(p, "Offers");
-  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Sale Documents", "Dispositions tabs: Sell/Hold Analysis first, incl. Sale Documents");
+  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Disposition Documents", "Dispositions tabs: Sell/Hold Analysis first, incl. Disposition Documents");
 
   // ── Start sale from Sell/Hold (Route 9, the open asset) ──
   await FX.openTab(p, "Sell/Hold Analysis");
@@ -95,10 +95,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(1500);
   check(docs.at(-1).title === "[sale:sale-fx1/offer:offer-fx1] Offer letter / LOI: LOI.pdf", "an offer letter on the offer");
 
-  // ── Sale Documents tab ──
-  await FX.openTab(p, "Sale Documents");
+  // ── Disposition Documents tab ──
+  await FX.openTab(p, "Disposition Documents");
   await p.waitForTimeout(1000);
-  check((await p.getByTestId("disp-doc-row").count()) === 3, "Sale Documents lists every disposition document");
+  check((await p.getByTestId("disp-doc-row").count()) === 3, "Disposition Documents lists every disposition document");
   await p.getByLabel("Filter type").selectOption("offer_letter");
   check((await p.getByTestId("disp-doc-row").count()) === 1 && /Fictional Fund/.test(await p.getByTestId("disp-doc-row").innerText()), "filter by type; the offer's buyer shown");
 

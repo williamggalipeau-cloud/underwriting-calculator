@@ -9,6 +9,7 @@ import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import HomeView, { SetupMaintenance } from "@/components/Home";
+import AcquisitionDocs from "@/components/AcquisitionDocs";
 import { markDone } from "@/lib/home";
 import Dispositions from "@/components/Dispositions";
 import Leasing from "@/components/Leasing";
@@ -439,13 +440,14 @@ const TAB_GROUPS = [
     { id: "quick",       label: "Deal Screener" },
     { id: "impact",      label: "Fund Impact" },
     { id: "research",    label: "Research" },
+    { id: "acqdocs",     label: "Acquisition Documents" },
   ] },
   { label: "Dispositions", tabs: [
     { id: "sellhold",    label: "Sell/Hold Analysis" },
     { id: "forsale",     label: "Assets for Sale" },
     { id: "offers",      label: "Offers" },
     { id: "trackrecord", label: "Track Record" },
-    { id: "dispdocs",    label: "Sale Documents" },
+    { id: "dispdocs",    label: "Disposition Documents" },
   ] },
   { label: "Asset Management", tabs: [
     { id: "assets",      label: "Asset Summary" },
@@ -468,11 +470,12 @@ const TAB_GROUPS = [
   { label: "Portfolio Management", tabs: [
     { id: "fundsummary", label: "Fund Summary" },
     { id: "fund",        label: "Fund Return" },
-    { id: "gpecon",      label: "GP Economics" },
     { id: "funddebt",    label: "Fund Debt" },
     { id: "distributions", label: "Distribution Analysis" },
     { id: "stress",      label: "Stress Testing" },
     { id: "benchmark",   label: "Benchmarking" },
+    // Last in the group (user, 11/24).
+    { id: "gpecon",      label: "GP Economics" },
   ] },
   { label: "Market", tabs: [
     { id: "market",      label: "Market Data" },
@@ -2246,6 +2249,7 @@ export default function Home() {
                 canEdit={!locked}
                 email={session?.user?.email ?? null}
                 onFundTermsChange={handleFundTermsChange}
+                comps={comps}
               />
             )}
             {activeTab === "distributions" && (
@@ -2466,6 +2470,17 @@ export default function Home() {
                 onAddPipeline={handleAddPipelineFromOM}
                 marks={valuations}
                 onApplyMark={applyToMark}
+              />
+            )}
+            {activeTab === "acqdocs" && (
+              <AcquisitionDocs
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                email={session?.user?.email ?? null}
+                deals={viewDeals}
+                pipeline={(pipeline?.deals ?? []).filter((d) => !scope || d.targetFund === scope)}
+                canEdit={!locked}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
+                onOpenLibrary={() => setActiveTab("documents")}
               />
             )}
             {activeTab === "research" && (

@@ -248,11 +248,11 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
-| **Acquisitions** | Pipeline · Deal Screener · Fund Impact · Research | |
-| **Dispositions** | Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Sale Documents | |
+| **Acquisitions** | Pipeline · Deal Screener · Fund Impact · Research · Acquisition Documents | |
+| **Dispositions** | Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Disposition Documents | |
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
-| **Portfolio Management** | Fund Summary (with Plan vs. actual) · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing · Benchmarking | |
+| **Portfolio Management** | Fund Summary (with Plan vs. actual) · Fund Return · Fund Debt · Distribution Analysis · Stress Testing · Benchmarking · GP Economics | |
 | **Market** | Market Data | |
 | **Library** | Documents · Reports | |
 
@@ -2583,7 +2583,7 @@ they follow the **Working on** picker.
   estoppels and the closing statement; each offer takes its offer letter or
   LOI (Offers tab); each closed sale takes the final closing statement,
   post-closing true-ups and the distribution notice (Track Record). The
-  **Sale Documents** tab lists them all, filterable by asset and type. They
+  **Disposition Documents** tab (was Sale Documents) lists them all, filterable by asset and type. They
   are kept in the same store as Library → Documents (each file once). Until
   `supabase/dispositions_doc_types.sql` is applied, the new types are filed
   as "Other" with the type in the title; nothing is blocked.
@@ -2947,7 +2947,7 @@ Library → Documents). **Excel** and **PDF** export the list shown.
 
 ### 7.49 GP Economics (`lib/gpEconomics.js`, phase W)
 
-**Portfolio Management → GP Economics** (right after Fund Return) shows
+**Portfolio Management → GP Economics** (the last Portfolio Management tab, 11/24) shows
 what the firm makes, for the funds in the "Working on" scope, projected over
 each fund's life. Where a fund has actual capital activity, the same mix of
 actuals and model as Fund Return is used. It is internal: a banner says so,
@@ -3022,7 +3022,53 @@ weight of the four REITs each month. Listed REITs carry less leverage (about
 25–35%) than a value-add fund (about 60%), so part of any gap is leverage.
 
 **Excel** and **PDF** (internal, licensed data) export every table with its
-sources. Not yet in the quarterly report.
+sources.
+
+**In the quarterly report (11/24).** Reports → Quarterly report has a
+**Benchmarks** section as of the report's quarter end, from whatever is
+loaded here (`reportBenchmarks`):
+- the fund's time-weighted return against each NCREIF index loaded, since
+  inception and over 1 and 3 years (annualized; under a year cumulative);
+- the vintage-year quartile of the net LP IRR, TVPI and DPI for each of
+  Preqin and Cambridge (n/m while net returns aren't meaningful);
+- the since-inception PME (KS-PME and the IRR spread) for each REIT series;
+- each benchmark's source note.
+
+It is always in the **internal** version. Benchmark licenses (NCREIF, Preqin,
+Cambridge) often limit redistribution, so it goes into the **shareable** (LP)
+version only when **Include in the shareable version** is ticked for the
+fund (saved with the fund's report settings). The PDF gets a Benchmarks page
+with a method note and the sources, and the Excel a Benchmarks block.
+Issuing a report freezes the benchmark figures with it. With nothing loaded,
+the report says where to upload them.
+
+### 7.51 Acquisition Documents (`lib/acquisitionDocs.js`, 11/24)
+
+**Acquisitions → Acquisition Documents** holds every document from buying an
+asset, for Deal Screener deals, pipeline deals (their OM) and owned assets,
+in the same store as Library → Documents (each file kept once; Claude reads
+the OM, rent roll, T-12, LOI, PSA, IC memo, closing statement and estoppels
+in there). Upload: choose the deal or asset and the document, then the PDF.
+
+| Stage | Documents |
+|---|---|
+| Screening | Offering memo · Rent roll · T-12 operating statement · Current leases · Broker listing agreement · Broker underwriting / model · Site and floor plans |
+| Under LOI or contract | Letter of intent · PSA and amendments · Title commitment and survey · Phase I environmental report · Property condition report · Zoning report · Lender appraisal · Tenant estoppel · SNDA |
+| Approval | Final IC memo · IC presentation |
+| Financing | Loan term sheet / commitment · Loan agreement and rate cap confirmation (read-only here: uploaded on Debt) |
+| Closing | Closing statement (acquisition) · Deed and title policy · Insurance certificate (read-only here: uploaded on Insurance) |
+
+The list shows each document's deal or asset (and fund), status (Deal
+Screener, Pipeline, Under contract, Owned), stage, file, whether it has been
+read in, and who uploaded it and when; filter by deal, stage and document.
+Choosing a deal shows its **checklist**: every document by stage, ✓ when it's
+in, ○ when it's missing.
+
+**Database:** the new types need `supabase/acquisition_doc_types.sql` (run
+once by the project owner in the Supabase SQL Editor; it keeps every earlier
+type). Until then an upload of a new type is filed as Other with
+"[acq] <document>:" in its title, so nothing is blocked, and it still lists
+under its real type here.
 
 ## 8. Worked example: the default deal
 
@@ -4033,7 +4079,7 @@ each phase and the decisions behind it are in
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ✅ Built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Yardi construction upload and TI spend by unit with overrun flags, construction test data, Home items (§7.46) |
 | U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ✅ Built 11/23: Market group, Market Data tab (submarket statistics by quarter with sources, uploads with remembered columns, trends, asset vs. market, Excel and PDF), Home lane, stress tests in standard deviations with a correlated simulation (§7.47) |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
-| X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
+| X. Distribution Analysis | New tab, last in Portfolio Management: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
 | Z. Operational Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions; follows Working on (§7.42) |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
@@ -4042,8 +4088,9 @@ each phase and the decisions behind it are in
 | Quarterly report summary (11/24) | Watch list (internal version only), change vs. last quarter and issued reports on top of the quarterly report, on screen, in the PDF and in the Excel (§7.32b) | ✅ Built 11/24 |
 | Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
-| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) (§7.50) | ✅ Built 11/24. Not yet in the quarterly report |
-| W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel (§7.49) | ✅ Built 11/24 |
+| Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) (§7.50) | ✅ Built 11/24; in the quarterly report (internal always, shareable when ticked) 11/24 |
+| Acquisition Documents | Acquisitions tab: every acquisition document by deal stage, with a per-deal checklist; loan, rate cap and insurance read-only (§7.51) | ✅ Built 11/24; needs supabase/acquisition_doc_types.sql for the new types (works before it) |
+| W. GP Economics | New tab, last in Portfolio Management: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel (§7.49) | ✅ Built 11/24 |
 
 **How phases are delivered.**
 - **Scheduling:** phases I–O run in scheduled 5-hour windows (from 11/22, 8:40

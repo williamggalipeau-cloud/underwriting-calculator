@@ -11,6 +11,7 @@ import { lastCompletedQuarterEnd, quarterLabel } from "@/lib/valuations";
 import { writeXlsx } from "@/lib/xlsx";
 import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, quarterSummary, reportXlsx, summaryChange, summaryValue } from "@/lib/quarterlyReport";
 import { riskReport } from "@/lib/riskReport";
+import { benchmarksOf, fundBenchmarkBase, reportBenchmarks } from "@/lib/benchmarks";
 import { assetFileLinks, imageDataUrl, isSamplePath } from "@/lib/assetPhotos";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import FundLimits from "@/components/FundLimits";
@@ -41,6 +42,54 @@ async function coverImages(r, signedIn) {
   return out;
 }
 
+const bpct = (v) => (v == null || !isFinite(v) ? "—" : `${v.toFixed(1)}%`);
+const QSHORT = { 1: "Top quartile", 2: "2nd quartile", 3: "3rd quartile", 4: "Bottom quartile" };
+const QCLS = { 1: "bg-emerald-50 text-emerald-800", 2: "bg-emerald-50/50 text-emerald-700", 3: "bg-amber-50 text-amber-800", 4: "bg-red-50 text-red-700" };
+// The report's benchmark section (phase Y): fund TWR vs. the NCREIF indexes,
+// vintage quartiles and the PME; loaded on the Benchmarking tab.
+function BenchmarkSection({ bm, included, kind, canEdit, store, onChange }) {
+  if (!bm) return <p className="rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-500" data-testid="report-benchmarks-none">Benchmarks: none loaded. Upload NCREIF, Preqin / Cambridge or REIT returns on Portfolio Management → Benchmarking to add a benchmark section to the report.</p>;
+  return (
+    <div className="space-y-2 rounded-xl border border-gray-200 p-3 text-xs" data-testid="report-benchmarks">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-gray-800">Benchmarks <span className="font-normal text-gray-500">· as of {bm.endQ}</span>{!included && <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600">not in the shareable version</span>}</h3>
+        {canEdit && (
+          <label className="flex items-center gap-1.5 text-gray-700" title="Benchmark data is licensed (NCREIF, Preqin, Cambridge): include it in the LP version only if the licenses allow redistribution">
+            <input type="checkbox" aria-label="Include benchmarks in the shareable version" checked={!!store.benchmarksShareable} onChange={(e) => onChange({ benchmarksShareable: e.target.checked })} />
+            Include in the shareable version
+          </label>
+        )}
+      </div>
+      <div className="grid gap-3 lg:grid-cols-3">
+        <div className="overflow-x-auto rounded-lg border border-gray-100">
+          <table className="w-full tabular-nums" data-testid="report-bench-returns">
+            <thead className="bg-gray-50 text-gray-500"><tr><th className="px-2 py-1.5 text-left font-medium">Time-weighted return</th><th className="px-2 py-1.5 text-right font-medium">Fund</th>{bm.indexKeys.map((kk) => <th key={kk} className="px-2 py-1.5 text-right font-medium">{bm.indexLabels[kk].replace("NCREIF ", "")}</th>)}</tr></thead>
+            <tbody>{bm.returns.map((x) => (
+              <tr key={x.period} className="border-t border-gray-100"><td className="px-2 py-1.5">{x.label}</td><td className="px-2 py-1.5 text-right font-semibold">{bpct(x.fund)}</td>{bm.indexKeys.map((kk) => <td key={kk} className={`px-2 py-1.5 text-right ${x.index[kk] != null && x.fund >= x.index[kk] ? "text-emerald-700" : "text-gray-700"}`}>{bpct(x.index[kk])}</td>)}</tr>
+            ))}</tbody>
+          </table>
+        </div>
+        <div className="rounded-lg border border-gray-100 p-2" data-testid="report-bench-vintage">
+          <p className="mb-1 font-semibold text-gray-700">Vintage {bm.vintage} peers</p>
+          {bm.vintageRanks.length === 0 ? <p className="text-gray-500">No vintage quartiles loaded.</p> : bm.vintageRanks.map((v) => (
+            <div key={v.source} className="mb-1">
+              <p className="text-gray-600">{v.label}{v.strategy ? ` · ${v.strategy}` : ""}</p>
+              <div className="flex flex-wrap gap-1">{["irr", "tvpi", "dpi"].map((m) => <span key={m} className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${bm.netNm ? "bg-gray-100 text-gray-500" : QCLS[v.metrics[m].quartile] ?? "bg-gray-100 text-gray-500"}`}>{m === "irr" ? "Net IRR" : m.toUpperCase()}: {bm.netNm ? "n/m" : QSHORT[v.metrics[m].quartile] ?? "—"}</span>)}</div>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-lg border border-gray-100 p-2" data-testid="report-bench-pme">
+          <p className="mb-1 font-semibold text-gray-700">Public market equivalent · since inception</p>
+          {bm.pme.length === 0 ? <p className="text-gray-500">No REIT returns loaded.</p> : (
+            <table className="w-full tabular-nums"><tbody>{bm.pme.map((x) => <tr key={x.key}><td className="py-0.5 pr-2 text-gray-600">{x.label.replace(" (main)", "")}</td><td className={`py-0.5 text-right font-semibold ${x.ks >= 1 ? "text-emerald-700" : "text-red-700"}`}>{x.ks != null ? `${x.ks.toFixed(2)}x` : "—"}</td><td className="py-0.5 pl-2 text-right text-gray-500">{x.spread != null ? `${x.spread >= 0 ? "+" : ""}${x.spread.toFixed(1)} pts` : ""}</td></tr>)}</tbody></table>
+          )}
+        </div>
+      </div>
+      <p className="text-[11px] text-gray-500">Fund returns are property-level, time-weighted (NCREIF method), gross of fund fees. KS-PME above 1.00x: the fund beat the index. Sources: {bm.sources.map((x) => `${x.label}${x.source ? ` (${x.source})` : ""}`).join("; ")}. Frozen with the report when issued.</p>
+    </div>
+  );
+}
+
 function Stat({ label, value }) {
   return (
     <div className="rounded-lg border border-gray-200 px-3 py-2">
@@ -50,7 +99,7 @@ function Stat({ label, value }) {
   );
 }
 
-export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, onApplyDeal, pipeline = [], workspaceId = null }) {
+export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, onApplyDeal, pipeline = [], workspaceId = null, comps = null }) {
   const [view, setView] = useState("quarterly");
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
@@ -66,7 +115,22 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const k = canEdit ? kind : "shareable"; // viewers see the shareable version only
   const prevQEnd = prevQ(qEnd);
   const prevReport = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd: prevQEnd, todayISO: t0, curve, kind: "shareable" }) : null), [fundName, fundDeals, terms, marks, prevQEnd, t0, curve]);
-  const report = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd, todayISO: t0, curve, kind: k }) : null), [fundName, fundDeals, terms, marks, qEnd, t0, curve, k]);
+  const baseReport = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd, todayISO: t0, curve, kind: k }) : null), [fundName, fundDeals, terms, marks, qEnd, t0, curve, k]);
+  // Benchmarks (phase Y feeding the report), as of the report quarter end:
+  // always in the internal version; in the shareable one only when the fund
+  // says so (benchmark licenses can limit redistribution).
+  const bmb = useMemo(() => benchmarksOf(comps), [comps]);
+  const bmStore = terms.reports ?? {};
+  const bench = useMemo(() => {
+    if (!fundName || !baseReport) return null;
+    try {
+      const dayAfter = new Date(Date.parse(`${baseReport.qEnd}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
+      const base = fundBenchmarkBase(fundName, fundDeals, terms, marks, { todayISO: dayAfter, curve });
+      return reportBenchmarks(base, bmb, { strategy: bmStore.benchmarkStrategy ?? "" });
+    } catch { return null; }
+  }, [fundName, baseReport, fundDeals, terms, marks, curve, bmb, bmStore.benchmarkStrategy]);
+  const benchIn = !!bench && (k === "internal" || !!bmStore.benchmarksShareable);
+  const report = useMemo(() => (baseReport && benchIn ? { ...baseReport, benchmarks: bench } : baseReport), [baseReport, bench, benchIn]);
   // The risk watch list for the summary (owners and editors only; internal).
   const watch = useMemo(() => {
     if (!canEdit || !report) return null;
@@ -212,6 +276,9 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
         <Stat label="Gross IRR" value={pct(r.returns.grossIrr)} />
       </div>
       {r.returns.note && <p className="text-xs text-amber-800">Net returns not yet meaningful: {r.returns.note}.</p>}
+
+      <BenchmarkSection bm={bench} included={benchIn} kind={k} canEdit={canEdit} store={store}
+        onChange={(patch) => canEdit && onFundTermsChange(fundName, { reports: { ...store, ...patch } })} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="text-xs">

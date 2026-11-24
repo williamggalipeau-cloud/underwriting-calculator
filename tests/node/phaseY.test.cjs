@@ -107,5 +107,22 @@ if (log) {
   ok(be.length === 2 + 2 + 7 && be.some((e) => e.field === "NCREIF NPI Industrial" && /^31 rows from ncreif-npi-industrial\.csv \(NCREIF \(sample\)\)$/.test(e.to)) && !log.some((e) => e.area === "Sales comps"), `change log: ${be.length} benchmark entries, summarized`);
 }
 
+// ── The quarterly report's benchmark section ──
+{
+  const Q = j(R + "/lib/quarterlyReport.js");
+  const rb = B.reportBenchmarks(base, b, { strategy: "Value Added" });
+  ok(rb && rb.endQ === "2026-Q3" && rb.indexKeys.join() === "npi,npiInd" && rb.main === "npiInd", `report benchmarks: as of ${rb?.endQ}, indexes ${rb?.indexKeys.join(", ")}`);
+  ok(rb.returns.map((x) => x.period).join() === "si,1y,3y" && rb.returns.every((x) => isFinite(x.fund) && isFinite(x.index.npiInd)), "returns since inception, 1 and 3 years vs. the indexes (no 5 years)");
+  ok(close(rb.returns[0].fund, rep.periods[0].fund.total) && close(rb.returns[0].index.npiInd, rep.periods[0].index.npiInd.total), "the same figures as the Benchmarking tab");
+  ok(rb.vintageRanks.length === 2 && rb.vintageRanks.every((v) => [1, 2, 3, 4].includes(v.metrics.irr.quartile)), `vintage quartiles: ${rb.vintageRanks.map((v) => `${v.label} IRR Q${v.metrics.irr.quartile}`).join(", ")}`);
+  ok(rb.pme.length === 4 && rb.pme.every((x) => isFinite(x.ks)), "PME since inception for each loaded series");
+  ok(rb.sources.some((x) => x.label === "NCREIF NPI Industrial" && x.source === "NCREIF (sample)"), "sources named");
+  ok(B.reportBenchmarks(base, { ...B.EMPTY_BENCHMARKS }) === null, "no benchmarks loaded: no section");
+  const rows = Q.benchmarkRows(rb);
+  ok(rows.some((r) => /^Benchmarks \(as of 2026-Q3\)/.test(r[0] ?? "")) && rows.some((r) => r[0] === "Since inception") && rows.some((r) => r[0] === "Benchmark sources"), "report Excel rows");
+  const asOf = B.fundBenchmarkBase(fn, deals, terms, {}, { todayISO: "2026-07-01" });
+  ok(B.reportBenchmarks(asOf, b).endQ === "2026-Q2", "as of an earlier report quarter");
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;
