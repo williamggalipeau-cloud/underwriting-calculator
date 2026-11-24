@@ -62,24 +62,24 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const jvAssets = await assetsFig();
   check(/^Assets 1 across 1 fund$/.test(jvAssets), `firm strip follows the picker: ${jvAssets}`);
   check(/Example JV II \(Joint Venture\)/.test(await p.getByTestId("firm-scope").innerText()), "the strip is labelled with the fund");
-  await p.getByRole("button", { name: /^Asset Summary/ }).first().click();
+  await FX.openTab(p, /^Asset Summary/);
   await p.waitForTimeout(800);
   let t = await main.innerText();
   check(t.includes("Harbor Light Industrial") && !t.includes("Airport Flex Park") && !t.includes("Route 9 Small Bay"), "Asset Summary shows only the JV's asset");
-  await p.getByRole("button", { name: /^Fund Return/ }).first().click();
+  await FX.openTab(p, /^Fund Return/);
   await p.waitForTimeout(800);
   t = await main.innerText();
   check(t.includes(JV) && !/Airport Flex Park/.test(t), "Fund Return shows only the JV");
-  await p.getByRole("button", { name: /^Valuation/ }).first().click();
+  await FX.openTab(p, /^Valuation/);
   await p.waitForTimeout(800);
   t = await main.innerText();
   check(t.includes("Harbor Light Industrial") && !t.includes("Granite Ave Industrial"), "Valuation shows only the JV's asset");
-  await p.getByRole("button", { name: /^Pipeline/ }).first().click();
+  await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(800);
   t = await main.innerText();
   check(t.includes("Fictional Pipeline Dock"), "Pipeline: a deal screened for the JV shows under the JV");
   // Deal tabs: the asset list is the JV's asset plus its pipeline deal.
-  await p.getByRole("button", { name: /^Rent Roll/ }).first().click();
+  await FX.openTab(p, /^Rent Roll/);
   await p.waitForTimeout(800);
   t = await main.innerText();
   check(/2 open/.test(t), `asset list scoped: ${(t.match(/\d+ open[^\n]*/) || [""])[0]}`);
@@ -91,7 +91,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(800);
   const mfAssets = await assetsFig();
   check(/across 1 fund$/.test(mfAssets) && !/^Assets 1 /.test(mfAssets), `Model Fund I strip: ${mfAssets}`);
-  await p.getByRole("button", { name: /^Pipeline/ }).first().click();
+  await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(800);
   check(!(await main.innerText()).includes("Fictional Pipeline Dock"), "a deal screened for another fund is hidden");
 
@@ -105,7 +105,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByTestId("working-on").selectOption("");
   await p.waitForTimeout(800);
   check((await assetsFig()) === firmAssets, "All funds: the whole firm again");
-  await p.getByRole("button", { name: /^Pipeline/ }).first().click();
+  await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(800);
   check((await main.innerText()).includes("Fictional Pipeline Dock"), "All funds: every pipeline deal");
   await p.screenshot({ path: `${S}/picker.png` });

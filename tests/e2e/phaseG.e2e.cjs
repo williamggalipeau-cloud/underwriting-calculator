@@ -51,7 +51,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.waitForTimeout(3500);
   const main = p.locator("main");
 
-  await p.getByRole("button", { name: "Documents", exact: true }).click();
+  await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
   await main.getByRole("button", { name: /Whole fund/ }).click();
   await p.waitForTimeout(600);
@@ -71,7 +71,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await r9.getByTestId("cost-hold-warning").count()) === 1, "Route 9 Q2 2026: cost hold warning");
 
   // Valuation tab: the mark with its PDF link
-  await p.getByRole("button", { name: "Valuation", exact: true }).click();
+  await FX.openTab(p, "Valuation");
   await p.waitForTimeout(1500);
   await main.locator("tr", { hasText: "Airport Flex Park" }).getByRole("button", { name: "Marks", exact: true }).first().click();
   await p.waitForTimeout(800);

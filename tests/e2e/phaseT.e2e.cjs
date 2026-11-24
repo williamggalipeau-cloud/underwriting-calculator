@@ -46,13 +46,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
 
-  const groups = await p.getByRole("group").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")).filter(Boolean));
+  const groups = await FX.areas(p);
   check(groups.indexOf("Property Management") === groups.indexOf("Asset Management") + 1, "a Property Management group after Asset Management");
+  await FX.openArea(p, "Insurance");
   const pm = p.getByRole("group", { name: "Property Management" });
   check((await pm.getByRole("button").allInnerTexts()).join() === "Property Taxes,Insurance,Property Condition,Service Contracts", "four tabs");
 
   // ── Taxes ──
-  await pm.getByRole("button", { name: "Property Taxes" }).click();
+  await FX.openTab(p, "Property Taxes");
   await p.waitForTimeout(600);
   const tax = p.getByTestId("pm-taxes");
   const bills = p.getByTestId("pm-section-bills");
@@ -74,7 +75,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/appeal savings \$4,500/.test(await p.getByTestId("pm-summary").innerText()), "appeal savings");
 
   // ── Insurance ──
-  await pm.getByRole("button", { name: "Insurance" }).click();
+  await FX.openTab(p, "Insurance");
   await p.waitForTimeout(600);
   await p.getByTestId("pm-section-policies").getByRole("button", { name: "+ Add" }).click();
   const pr = p.getByTestId("pm-row-policies").first();
@@ -88,7 +89,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/1 policy · premium \$42,000\/yr · property limit \$15,000,000 · 1 open claim/.test(await p.getByTestId("pm-summary").innerText()), "insurance summary");
 
   // ── Condition ──
-  await pm.getByRole("button", { name: "Property Condition" }).click();
+  await FX.openTab(p, "Property Condition");
   await p.waitForTimeout(600);
   await p.getByTestId("pm-section-items").getByRole("button", { name: "+ Add" }).click();
   const ir = p.getByTestId("pm-row-items").first();
@@ -108,7 +109,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/^condition-.*\.pdf$/.test(pdf.suggestedFilename()), "the tab as a PDF");
 
   // ── Contracts: whole-fund view ──
-  await pm.getByRole("button", { name: "Service Contracts" }).click();
+  await FX.openTab(p, "Service Contracts");
   await p.waitForTimeout(600);
   check((await p.getByTestId("pm-row-contracts").count()) === 0, "this asset has no contracts");
   await p.getByTestId("pm-contracts").getByRole("button", { name: /^All assets|^All of/ }).click();
@@ -123,10 +124,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const more = p.getByTestId("attention").getByRole("button", { name: /^Show all/ });
   if (await more.count()) await more.click();
   const att = await p.getByTestId("attention").innerText();
-  check(/^Repair/m.test((await p.getByTestId("attention").locator("li").first().innerText())), "an immediate repair leads the attention list");
-  check(/Property tax 2nd half due \$31,000 \(Airport Flex Park\)/.test(att) && /Landscaping contract: notice deadline \(auto-renews\), Example Landscaping \(Route 9 Small Bay\)/.test(att) && /Immediate repair open: Fire \/ life safety/.test(att), "Home: tax bill, contract notice and immediate repair on the attention list");
+  check(/Repair/.test((await p.getByTestId("attention").getByTestId("action-row").first().innerText())), "an immediate repair leads the attention list");
+  const rowAsset = async (re) => p.getByTestId("attention").getByTestId("action-row").filter({ hasText: re }).first().getByTestId("cell-asset").innerText().catch(() => "");
+  check((await rowAsset(/Property tax 2nd half due \$31,000/)) === "Airport Flex Park" && (await rowAsset(/Landscaping contract: notice deadline \(auto-renews\), Example Landscaping/)) === "Route 9 Small Bay" && /Immediate repair open: Fire \/ life safety/.test(att), "Home: tax bill, contract notice and immediate repair on the attention list");
   check(!/Property policy renews/.test(att), "a renewal more than 60 days out isn't");
-  check(/Insurance premium \(annual\)\s*\$42K/.test((await p.getByTestId("lane").filter({ hasText: "Property Management" }).innerText()).replace(/\n/g, " ")), "Home: a Property Management lane");
 
   // ── Saved ──
   await p.waitForTimeout(22000);

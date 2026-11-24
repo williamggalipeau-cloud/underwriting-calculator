@@ -53,5 +53,73 @@ const log = Array.from({ length: 15 }, (_, i) => ({ id: `e${i}`, at: `2026-11-${
 const rec = H.recentActivity(log);
 ok(rec.length === 10 && rec[0].id === "e14" && rec[9].id === "e5", "recent activity: last 10, newest first");
 
+// ── Actions Needed vs. Calendar (user, 11/24) ──
+{
+  const d4 = deals.find((d) => d.id === "sample-deal-4");
+  const withExtras = deals.map((d) => d.id === "sample-deal-4" ? { ...d, inputs: { ...d.inputs,
+    dispositions: [{ id: "s1", stage: "contract", contract: { psaDate: "2026-12-01", depositDue: "2026-12-05", hardDate: "2027-01-10", ddDeadline: "2027-01-10", loanClosing: "2027-02-15", closingDate: "2027-02-28" } }],
+    construction: { jobs: [{ code: "J1", name: "Roof replacement", status: "In progress", scheduledCompletion: "2027-03-31" }, { code: "J2", name: "Done job", status: "Complete", completion: "2027-04-30" }] },
+  } } : d);
+  const pipeline = [{ id: "p1", name: "Fictional Purchase", stage: "psa", psaDate: "2026-11-30", depositDue: "2026-12-02", ddStart: "2026-12-01", ddDeadline: "2027-01-02", hardDate: "2027-01-05", loanClosing: "2027-01-28", expectedClose: "2027-01-31" }, { id: "p2", name: "Passed Deal", stage: "passed", expectedClose: "2027-01-31" }];
+  const leases = [{ id: "l1", deal_id: "sample-deal-1", tenant: "Example Tenant Co", abstract: { critical_dates: [{ date: "2027-03-01", kind: "renewal_notice", label: "Renewal option notice", notice: "6 months before expiration" }, { date: "2027-08-31", kind: "expiration", label: "Expiration" }] } }];
+  const fx = { [FUND]: { ...funds[FUND], subLineMaturity: "2027-06-30" } };
+  const r = H.actionsAndCalendar(withExtras, fx, marks, { todayISO: TODAY, pipeline, leases });
+  const A = r.actions, C = r.calendar;
+  ok(A.every((x) => x.date == null || x.days <= 30) && C.every((x) => x.days >= -365 && x.days <= 365), `split: ${A.length} actions (overdue, ≤ 30 days or undated), ${C.length} calendar items (a year back to a year ahead)`);
+  ok(C.some((x) => x.days < 0) && C.some((x) => x.days > 30) && C.filter((x) => x.state === "overdue").every((x) => A.some((a) => a.key === x.key)), "the calendar keeps the past year; overdue deadlines are also actions");
+  ok(C.every((x, i) => i === 0 || x.date >= C[i - 1].date), "calendar sorted by date");
+  ok(A.some((x) => /Example Tenant Co expires/.test(x.text)) && C.some((x) => x.kind === "cap" && /Rate cap expires/.test(x.text)), "the lease in 30 days is an action; rate caps months away are on the calendar");
+  const txt = (k) => C.filter((x) => x.kind === k).map((x) => x.text);
+  ok(txt("acquisition").length === 7 && txt("acquisition").some((t) => /^Purchase: Due diligence starts/.test(t)) && txt("acquisition").some((t) => /^Purchase: Due diligence ends/.test(t)) && txt("acquisition").some((t) => /^Purchase: P&S signed \(Fictional Purchase\)/.test(t)) && txt("acquisition").some((t) => /Purchase: Deal closing/.test(t)) && !txt("acquisition").some((t) => /Passed Deal/.test(t)), "purchase dates: P&S, deposit, hard money, due diligence start and end, loan closing, deal closing (active deals only)");
+  ok(txt("sale").length === 6 && txt("sale").some((t) => /Sale: Hard money due/.test(t)) && txt("sale").some((t) => /Sale: Loan closing/.test(t)), "sale contract dates");
+  ok(A.some((x) => x.kind === "acquisition" && /P&S signed/.test(x.text)) && C.some((x) => x.kind === "acquisition" && /Deal closing/.test(x.text)), "near dates are actions, later ones on the calendar");
+  ok(txt("leasedate").length === 1 && /Renewal notice: Renewal option notice \(Example Tenant Co, Airport Flex Park\) · 6 months/.test(txt("leasedate")[0]), "lease abstract critical dates (not the expiration, which comes from the rent roll)");
+  ok(txt("construction").length === 2 && C.find((x) => /Done job/.test(x.text)).state === "done" && !A.some((x) => x.kind === "construction"), "construction: open jobs' scheduled completion; completed jobs as history, never actions");
+  ok(txt("fund").some((t) => /Sub line matures \(Model Fund I\)/.test(t)), "the sub line maturity");
+  ok(txt("covenanttest").length >= 3 && txt("covenanttest").every((t) => /Quarterly covenant tests: \d+ loan/.test(t)), `quarterly covenant tests (${txt("covenanttest").length})`);
+  const caps = C.filter((x) => x.kind === "cap");
+  ok(caps.length > 0 && !caps.some((x) => /^Buy a replacement/.test(x.text)) && new Set(caps.map((x) => x.dealId)).size === caps.length && caps.some((x) => /Rate cap expires: buy a replacement \(the loan runs to \d{4}-\d\d-\d\d\)/.test(x.text)), "one line per rate cap; it says when a replacement is needed");
+  ok(C.filter((x) => x.kind === "appraisal" && /Appraisal due for/.test(x.text)).length >= 1, "appraisals from the schedule");
+  // Done: an overdue action leaves Actions and shows as done on the calendar; undo brings it back.
+  const od = A.find((x) => x.date && x.days < 0);
+  if (od) {
+    const doneMap = H.markDone({}, od, { by: "a@example.com", at: "2026-11-23T12:00:00Z" });
+    const r2 = H.actionsAndCalendar(withExtras, fx, marks, { todayISO: TODAY, pipeline, leases, done: doneMap });
+    ok(!r2.actions.some((x) => x.key === od.key) && r2.calendar.find((x) => x.key === od.key)?.state === "done" && r2.calendar.find((x) => x.key === od.key).done.by === "a@example.com", `marked done: "${od.text}" leaves Actions, shows done on the calendar`);
+    ok(Object.keys(H.markDone(doneMap, od, { undo: true })).length === 0, "undo");
+  } else ok(false, "an overdue action to mark done");
+  // Past events (a P&S signed) are history, not actions.
+  const past = H.actionsAndCalendar(withExtras, fx, marks, { todayISO: "2027-03-15", pipeline, leases });
+  ok(past.calendar.some((x) => /Purchase: P&S signed/.test(x.text) && x.state === "past") && !past.actions.some((x) => /P&S signed/.test(x.text)) && past.actions.some((x) => /Purchase: Hard money due/.test(x.text)), "a past P&S signing is history; a past hard-money deadline stays an action until done");
+  const r0 = H.actionsAndCalendar(withExtras, fx, marks, { todayISO: TODAY });
+  ok(!r0.calendar.some((x) => x.kind === "leasedate"), "no lease abstract dates when not signed in");
+  const ext = H.actionsAndCalendar(deals.map((d) => ({ ...d, inputs: { ...d.inputs, extensionCount: 2, extensionTermYears: 1, extensionNoticeDays: 90 } })), funds, marks, { todayISO: TODAY });
+  const en = [...ext.actions, ...ext.calendar].filter((x) => x.kind === "extension" && /Extension notice due/.test(x.text));
+  ok(en.length >= 1 && en.every((x) => /90 days before/.test(x.text) && !/assumed/.test(x.text)), `extension notice deadlines from the loan's notice period (${en.length})`);
+  void d4;
+}
+
+
+// Asset Watch List (user, 11/24): plan performance only; NOI / IRR under plan,
+// > 10% under At Risk, up to 10% Off Plan. Fictional plans and actuals.
+{
+  const BP = j(R + "/lib/businessPlan.js");
+  const withPlan = (d, k) => {
+    const plan = BP.seedPlan(d.inputs), budget = BP.budgetFromModel(d.inputs);
+    const actuals = {};
+    for (let m = 1; m <= 10; m++) { const ym = `2026-${String(m).padStart(2, "0")}`; const b = BP.budgetMonth(budget, ym); if (b) actuals[ym] = { ...b, noi: b.noi * k }; }
+    return { ...d, inputs: { ...d.inputs, assetManager: "Example Manager", businessPlan: { revisions: [{ n: 1, plan, budget }], actuals } } };
+  };
+  const ks = { "sample-deal-3": 0.85, "sample-deal-2": 0.95, "sample-deal-4": 1.02 };
+  const pd = deals.map((d) => (ks[d.id] ? withPlan(d, ks[d.id]) : d));
+  const cal = H.actionsAndCalendar(pd, funds, marks, { todayISO: TODAY }).calendar;
+  const w = H.planWatchList(pd, funds, marks, { todayISO: TODAY, calendar: cal });
+  const of = (id) => w.assets.find((a) => a.id === id);
+  ok(of("sample-deal-3")?.status === "At Risk" && Math.abs(of("sample-deal-3").noi.pct + 15) < 0.01, `NOI 15% under plan: At Risk (${of("sample-deal-3")?.noi?.pct.toFixed(1)}%)`);
+  ok(of("sample-deal-2")?.status === "Off Plan" && Math.abs(of("sample-deal-2").noi.pct + 5) < 0.01, "NOI 5% under plan: Off Plan");
+  ok(!of("sample-deal-4") && w.assets.length === 2, "ahead of plan, or no plan: not listed");
+  ok(w.assets[0].id === "sample-deal-3" && w.assets[0].owner === "Example Manager", "worst first, with the owner");
+  ok(w.assets.every((a) => !a.next || (a.next.dealId === a.id && a.next.days >= 0)), "next event: the asset's next calendar date");
+}
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exitCode = fail ? 1 : 0;

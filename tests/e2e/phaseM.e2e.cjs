@@ -38,14 +38,15 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const main = p.locator("main");
 
   const R = require("path").resolve(__dirname, "..", "..");
+  await FX.openArea(p, "Pipeline");
   const nav = await p.locator("nav").first().innerText();
   check(nav.indexOf("Pipeline") >= 0 && nav.indexOf("Pipeline") < nav.indexOf("Deal Screener"), "Pipeline is first in Acquisitions");
-  check((await main.getByTestId("asset-summary").count()) + (await main.getByText(/Asset Summary/).count()) > 0, "the app opens on Asset Summary");
+  check((await main.getByTestId("home").count()) === 1, "the app opens on the Operational Dashboard (phase Z)");
   // Deal Screener with an owned asset: notice, no model
-  await p.getByRole("button", { name: /^Deal Screener/ }).first().click();
+  await FX.openTab(p, /^Deal Screener/);
   await p.waitForTimeout(800);
   check((await main.getByTestId("screener-owned").count()) === 1 && (await main.getByTestId("screener-impact").count()) === 0, "Deal Screener: an owned asset gets a notice, not the screener");
-  await p.getByRole("button", { name: /^Pipeline/ }).first().click();
+  await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(1200);
   const pl = main.getByTestId("pipeline");
   check((await pl.getByTestId("pipeline-empty").count()) === 1, "empty pipeline explains how to start");
@@ -91,7 +92,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await imp.getByLabel("Compare against").selectOption("owned");
   await p.waitForTimeout(800);
   check(/owned assets only/.test(await imp.innerText()), "compare against owned assets only");
-  await p.getByRole("button", { name: /^Pipeline/ }).first().click();
+  await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(800);
   check((await pl.getByTestId("pipeline-row").filter({ hasText: "Glendale Commerce Center" }).getByRole("button", { name: "Open in Screener" }).count()) === 1 && (await pl.getByLabel("Stage Glendale Commerce Center").inputValue()) === "screening", "screened: linked to its deal, moved to Screening");
 
@@ -141,7 +142,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await fi.getByTestId("impact-candidate").filter({ hasText: "Cascade Trade Park" }).getByRole("button", { name: "Add to fund" }).click();
   await p.waitForTimeout(1500);
   await p.screenshot({ path: S + "/phaseM_impact.png", fullPage: true });
-  await p.getByRole("button", { name: /^Pipeline/ }).first().click();
+  await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(800);
   // Pipeline report
   const prp = pl.getByTestId("pipeline-report");

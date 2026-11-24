@@ -70,7 +70,7 @@ function LegalDocs({ workspaceId, fundName, canEdit, email }) {
   );
 }
 
-export default function FundSummary({ deals, funds, canEdit, email, workspaceId, onFundTermsChange, onOpenTab }) {
+export default function FundSummary({ deals, funds, canEdit, email, workspaceId, onFundTermsChange, onOpenTab, planSlot = null }) {
   const names = Object.keys(funds);
   const [pick, setPick] = useState(null);
   const fund = names.includes(pick) ? pick : names[0];
@@ -164,9 +164,12 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
 
       <Box title="Org charts and formation documents" testId="fs-docs"><LegalDocs workspaceId={workspaceId} fundName={fund} canEdit={canEdit} email={email} /></Box>
 
+      {/* Plan vs. actual (the former Fund Plan tab; user, 11/24) */}
+      {planSlot && <div className="rounded-xl border border-gray-200 p-4" data-testid="fs-plan">{planSlot(fund)}</div>}
+
       <Box title="Elsewhere" testId="fs-links">
         <div className="flex flex-wrap gap-2 text-xs">
-          {[["fund", "Performance: Fund Return"], ["valuations", "Valuation and NAV"], ["assets", "Portfolio: Asset Summary"], ["leases", "Upcoming dates: Leases → Critical dates"], ["fundplan", "Fund Plan"], ["reports", "Reports"]].map(([tab, l]) => (
+          {[["fund", "Performance: Fund Return"], ["valuations", "Valuation and NAV"], ["assets", "Portfolio: Asset Summary"], ["leases", "Upcoming dates: Leases → Critical dates"], ["reports", "Reports"]].map(([tab, l]) => (
             <button key={tab} type="button" onClick={() => onOpenTab?.(tab)} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-blue-700 hover:bg-gray-50">{l} →</button>
           ))}
         </div>

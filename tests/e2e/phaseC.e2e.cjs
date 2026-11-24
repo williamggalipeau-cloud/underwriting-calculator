@@ -53,7 +53,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   const main = p.locator("main");
-  await p.getByRole("button", { name: "Leases", exact: true }).click();
+  await FX.openTab(p, "Leases");
   await p.waitForTimeout(1500);
   const card = main.locator("div.rounded-xl", { hasText: "Desert Aero Parts LLC" }).first();
   check((await card.getByTestId("lease-flag").innerText()).includes("Not on the rent roll"), "Airport Flex lease flagged: not on the rent roll yet");
@@ -107,7 +107,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   console.log("  CHANGES:", Object.keys(saved ?? {}), JSON.stringify(saved?.changes ?? null).slice(0, 600));
   const src = (saved?.changes ?? []).filter((c) => /From lease abstract/.test(c.note ?? ""));
   check(src.length > 10 && src.some((c) => c.field.includes("Rent steps")), `database log rows carry the source: ${src.length} rows, e.g. ${JSON.stringify(src[0] ?? {}).slice(0, 160)}`);
-  await p.getByRole("button", { name: /^Rent Roll/ }).click();
+  await FX.openTab(p, /^Rent Roll/);
   await p.waitForTimeout(1500);
   const uflag = main.getByTestId("unit-lease-flag").first();
   check((await uflag.count()) && (await uflag.innerText()).includes("lease"), `Unit Roll row flag: ${await uflag.innerText().catch(() => "none")}`);

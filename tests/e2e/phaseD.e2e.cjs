@@ -61,7 +61,7 @@ let creditReads = 0;
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   const main = p.locator("main");
-  await p.getByRole("button", { name: "Leases", exact: true }).click();
+  await FX.openTab(p, "Leases");
   await p.waitForTimeout(1200);
 
   if (role === "viewer") {
@@ -159,7 +159,7 @@ let creditReads = 0;
   check((await tcp.innerText()).includes("credit rating: Moderate risk (3 of 5) ✓"), "latest rating applied to the unit's Credit rating");
 
   // Asset Summary: Leases column and Details
-  await p.getByRole("button", { name: "Asset Summary", exact: true }).click();
+  await FX.openTab(p, "Asset Summary");
   await p.waitForTimeout(1500);
   const head = await main.locator("thead").innerText();
   check(head.includes("Leases abstracted"), "Asset Summary has a Leases abstracted column");

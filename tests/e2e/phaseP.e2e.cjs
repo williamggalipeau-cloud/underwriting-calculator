@@ -38,13 +38,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const main = p.locator("main");
 
   // ── Tab group ──
-  const groups = await p.getByRole("group").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")).filter(Boolean));
+  const groups = await FX.areas(p);
   check(groups.indexOf("Dispositions") === groups.indexOf("Acquisitions") + 1, "a Dispositions group right after Acquisitions");
+  await FX.openArea(p, "Offers");
   const dg = p.getByRole("group", { name: "Dispositions" });
-  check((await dg.getByRole("button").allInnerTexts()).join() === "Assets for Sale,Offers,Track Record,Sale Documents", "its tabs: Assets for Sale, Offers, Track Record, Sale Documents");
+  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Sale Documents", "its tabs: Sell/Hold Analysis, Assets for Sale, Offers, Track Record, Sale Documents");
 
   // ── Start a sale ──
-  await dg.getByRole("button", { name: "Assets for Sale" }).click();
+  await FX.openTab(p, "Assets for Sale");
   await p.waitForTimeout(600);
   const ns = p.getByTestId("new-sale");
   await ns.getByLabel("Sale asset").selectOption({ label: "Airport Flex Park" });
@@ -69,7 +70,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await card.getByRole("button", { name: /Add offer/ }).click();
   await p.waitForTimeout(300);
   check(/Offers/.test(await p.getByTestId("sale-row").innerText()), "adding an offer moves the sale to Offers");
-  await dg.getByRole("button", { name: "Offers" }).click();
+  await FX.openTab(p, "Offers");
   await p.waitForTimeout(600);
   const og = p.getByTestId("offer-group");
   await og.getByLabel("Buyer", { exact: true }).nth(0).fill("Example REIT");
@@ -85,7 +86,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await og.getByRole("button", { name: "Selected ✓" }).count()) === 1, "one offer selected");
 
   // ── Contract and closing ──
-  await dg.getByRole("button", { name: "Assets for Sale" }).click();
+  await FX.openTab(p, "Assets for Sale");
   await p.waitForTimeout(500);
   if (!(await p.getByTestId("sale-card").count())) await p.getByTestId("sale-row").locator("button").first().click();
   await p.waitForTimeout(300);
@@ -93,7 +94,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(so.indexOf("Fictional Fund") < so.indexOf("Example REIT"), "the sale's summary lists offers best net first");
   const c2 = p.getByTestId("sale-card");
   await c2.getByLabel("Stage").selectOption("contract");
-  await c2.getByLabel("PSA date").fill("2026-11-01");
+  await c2.getByLabel("P&S signed").fill("2026-11-01");
   await c2.getByLabel("Contract price").fill("9300000");
   await c2.getByLabel("Contract price").blur();
   await p.waitForTimeout(400);
@@ -109,7 +110,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/Closed 11\/20\/2026: price \$9,300,000/.test(await p.getByTestId("sale-closed").innerText()), "closing statement shown: price, costs, payoff, net");
 
   // ── Track record ──
-  await dg.getByRole("button", { name: "Track Record" }).click();
+  await FX.openTab(p, "Track Record");
   await p.waitForTimeout(800);
   const trt = await p.getByTestId("track-record").innerText();
   check(/Airport Flex Park/.test(trt) && /\$9,300,000/.test(trt) && /%/.test(trt), "Track Record: the sale with IRR");
@@ -117,11 +118,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const [dl] = await Promise.all([p.waitForEvent("download"), p.getByTestId("track-record").getByRole("button", { name: "Excel" }).click()]);
   check(/track-record-.*\.xlsx$/.test(dl.suggestedFilename()), "Track Record Excel");
 
-  // ── Home lane ──
+  // ── Operational Dashboard: the sale's contract dates on the Calendar (11/24) ──
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
-  const lane = p.getByTestId("lane").filter({ hasText: "Dispositions" });
-  check((await lane.count()) === 1 && /Closed in \d{4}\s*1/.test((await lane.innerText()).replace(/\n/g, " ")), "Home: a Dispositions lane");
+  const pastBtn = p.getByTestId("calendar").getByRole("button", { name: /Show the past 12 months/ });
+  if (await pastBtn.count()) await pastBtn.click();
+  await p.waitForTimeout(300);
+  check(/Sale: (P&S signed|Deal closing|Due diligence|Hard money|Deposit due)/.test(await p.getByTestId("calendar").innerText()), "the sale's contract dates are on the Calendar");
 
   // ── Saved ──
   await p.waitForTimeout(22000);

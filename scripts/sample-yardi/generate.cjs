@@ -105,26 +105,26 @@ fs.writeFileSync(path.join(OUT, "income-statement-2026.csv"), csv([["Income Stat
 // TI and capital jobs by unit (budget, committed, invoiced, paid) and their
 // invoices, for the later "TI spend by unit" enhancement of the business plan.
 // TI budgets = the unit's TI/SF assumption × SF. Generic columns, not Yardi's.
-// [asset, unit or "", job name, category, kind (new|renewal|capex), new tenant, budget override, committed %, invoiced %, paid share of invoiced, status, start, completion]
+// [asset, unit or "", job name, category, kind (new|renewal|capex), new tenant, budget override, committed %, invoiced %, paid share of invoiced, status, start, completion, scheduled (target) completion]
 const JOBS = [
-  ["Airport Flex Park", "001", "Unit 001 re-tenant TI", "Tenant Improvements", "new", "Silverline Auto Glass LLC", null, 1.078, 1.078, 1, "Complete", "2026-08-03", "2026-09-12"], // 7.8% over
-  ["Airport Flex Park", "002", "Unit 002 renewal TI", "Tenant Improvements", "renewal", "", null, 0.95, 0.95, 1, "Complete", "2026-09-08", "2026-09-30"],
-  ["Airport Flex Park", "012", "Unit 012 lease-up TI", "Tenant Improvements", "new", "Mojave Drone Works Inc.", null, 0.75, 0.40, 1, "In progress", "2026-10-01", ""],
-  ["Airport Flex Park", "", "Roof replacement, Building B", "Capital Improvements", "capex", "", 180000, 0.98, 0.55, 0.9, "In progress", "2026-09-15", ""],
-  ["Route 9 Small Bay", "017", "Unit 017 lease-up TI", "Tenant Improvements", "new", "Garden State Millwork LLC", null, 1, 1, 1, "Complete", "2026-05-04", "2026-06-26"],
-  ["Route 9 Small Bay", "018", "Unit 018 lease-up TI", "Tenant Improvements", "new", "", null, 0, 0, 0, "Not started", "", ""],
-  ["Route 9 Small Bay", "001", "Unit 001 renewal TI", "Tenant Improvements", "renewal", "", null, 1, 1, 1, "Complete", "2026-09-01", "2026-09-20"],
-  ["Harbor Light Industrial", "016", "Unit 016 lease-up TI", "Tenant Improvements", "new", "Tidewater Marine Electric LLC", null, 0.9, 0.6, 0.8, "In progress", "2026-09-14", ""],
-  ["Harbor Light Industrial", "", "Parking lot resurfacing", "Capital Improvements", "capex", "", 95000, 1, 1, 1, "Complete", "2026-07-06", "2026-08-21"],
-  ["Ridgeway Trade Center", "014", "Unit 014 lease-up TI", "Tenant Improvements", "new", "Lone Star Cabinetry LLC", null, 1.344, 1.344, 0.85, "Complete", "2026-07-20", "2026-10-09"], // 34% over
-  ["Mill Creek Business Park", "021", "Unit 021 lease-up TI", "Tenant Improvements", "new", "Cascade Climbing Supply Co.", null, 0.6, 0.25, 1, "In progress", "2026-10-05", ""],
+  ["Airport Flex Park", "001", "Unit 001 re-tenant TI", "Tenant Improvements", "new", "Silverline Auto Glass LLC", null, 1.078, 1.078, 1, "Complete", "2026-08-03", "2026-09-12", "2026-09-12"], // 7.8% over
+  ["Airport Flex Park", "002", "Unit 002 renewal TI", "Tenant Improvements", "renewal", "", null, 0.95, 0.95, 1, "Complete", "2026-09-08", "2026-09-30", "2026-09-30"],
+  ["Airport Flex Park", "012", "Unit 012 lease-up TI", "Tenant Improvements", "new", "Mojave Drone Works Inc.", null, 0.75, 0.40, 1, "In progress", "2026-10-01", "", "2026-12-15"],
+  ["Airport Flex Park", "", "Roof replacement, Building B", "Capital Improvements", "capex", "", 180000, 0.98, 0.55, 0.9, "In progress", "2026-09-15", "", "2027-01-29"],
+  ["Route 9 Small Bay", "017", "Unit 017 lease-up TI", "Tenant Improvements", "new", "Garden State Millwork LLC", null, 1, 1, 1, "Complete", "2026-05-04", "2026-06-26", "2026-06-26"],
+  ["Route 9 Small Bay", "018", "Unit 018 lease-up TI", "Tenant Improvements", "new", "", null, 0, 0, 0, "Not started", "", "", "2027-03-31"],
+  ["Route 9 Small Bay", "001", "Unit 001 renewal TI", "Tenant Improvements", "renewal", "", null, 1, 1, 1, "Complete", "2026-09-01", "2026-09-20", "2026-09-20"],
+  ["Harbor Light Industrial", "016", "Unit 016 lease-up TI", "Tenant Improvements", "new", "Tidewater Marine Electric LLC", null, 0.9, 0.6, 0.8, "In progress", "2026-09-14", "", "2026-11-20"],
+  ["Harbor Light Industrial", "", "Parking lot resurfacing", "Capital Improvements", "capex", "", 95000, 1, 1, 1, "Complete", "2026-07-06", "2026-08-21", "2026-08-21"],
+  ["Ridgeway Trade Center", "014", "Unit 014 lease-up TI", "Tenant Improvements", "new", "Lone Star Cabinetry LLC", null, 1.344, 1.344, 0.85, "Complete", "2026-07-20", "2026-10-09", "2026-10-09"], // 34% over
+  ["Mill Creek Business Park", "021", "Unit 021 lease-up TI", "Tenant Improvements", "new", "Cascade Climbing Supply Co.", null, 0.6, 0.25, 1, "In progress", "2026-10-05", "", "2027-01-08"],
 ];
 const VENDORS = { "Tenant Improvements": ["Example Builders Inc.", "Sample Electric Co.", "Fictional HVAC Services"], "Capital Improvements": ["Test Roofing & Paving LLC", "Example Builders Inc."] };
-const jobRows = [["Job Code", "Property", "Property Name", "Unit", "Job Name", "Category", "Tenant", "Original Budget", "Revisions", "Revised Budget", "Committed", "Invoiced to Date", "Paid to Date", "Retainage Held", "Remaining Budget", "Status", "Start Date", "Completion Date"]];
+const jobRows = [["Job Code", "Property", "Property Name", "Unit", "Job Name", "Category", "Tenant", "Original Budget", "Revisions", "Revised Budget", "Committed", "Invoiced to Date", "Paid to Date", "Retainage Held", "Remaining Budget", "Status", "Start Date", "Completion Date", "Scheduled Completion"]];
 const invRows = [["Job Code", "Property", "Unit", "Vendor", "Invoice Number", "Invoice Date", "Cost Code", "Description", "Amount", "Status"]];
 const construction = { asOf: "2026-10-31", jobs: [], totals: { budget: 0, committed: 0, invoiced: 0, paid: 0 } };
 let invNo = 1000;
-JOBS.forEach(([asset, unitName, name, cat, kind, newTenant, bOverride, cPct, iPct, paidShare, status, start, done], k) => {
+JOBS.forEach(([asset, unitName, name, cat, kind, newTenant, bOverride, cPct, iPct, paidShare, status, start, done, target], k) => {
   const p = props.find((x) => x.name === asset);
   const u = unitName ? p.inputs.units.find((x) => x.name === unitName) : null;
   const budget = bOverride ?? r2((kind === "renewal" ? u.tiRenewalPSF : u.tiNewPSF) * u.squareFeet);
@@ -146,7 +146,7 @@ JOBS.forEach(([asset, unitName, name, cat, kind, newTenant, bOverride, cPct, iPc
   });
   const retainage = status === "Complete" ? 0 : r2(paid * 0.1);
   const revised = r2(budget + revisions);
-  jobRows.push([code, p.code, asset, unitName, name, cat, newTenant || u?.tenantName || "", budget, revisions, revised, committed, invoiced, paid, retainage, r2(revised - invoiced), status, start, done]);
+  jobRows.push([code, p.code, asset, unitName, name, cat, newTenant || u?.tenantName || "", budget, revisions, revised, committed, invoiced, paid, retainage, r2(revised - invoiced), status, start, done, target]);
   construction.jobs.push({ code, asset, unit: unitName, category: cat, budget, revised, committed, invoiced, paid, status, overrunPct: r2(((invoiced - budget) / budget) * 100) });
   for (const [key, v] of [["budget", budget], ["committed", committed], ["invoiced", invoiced], ["paid", paid]]) construction.totals[key] = r2(construction.totals[key] + v);
 });

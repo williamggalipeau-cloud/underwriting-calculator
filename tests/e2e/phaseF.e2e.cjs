@@ -20,7 +20,9 @@ const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com", role: "authenticated", exp: now + 3600, aud: "authenticated" })}.sig`;
 const sess = { access_token: jwt, token_type: "bearer", expires_in: 3600, expires_at: now + 3600, refresh_token: "r", user: { id: "u1", email: "t@example.com" } };
 const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new Date().toISOString(), updated_by_email: "t@example.com" };
-let saved = null; const uploads = [];
+let saved = null;
+const allChanges = []; // every save's change entries (the autosave can split a session)
+const uploads = [];
 let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
 (async () => {
   const b = await chromium.launch();
@@ -32,7 +34,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
     let body = "[]";
     const one = (x) => (acc.includes("vnd.pgrst.object") ? JSON.stringify(x) : JSON.stringify([x]));
     if (u.includes("/rpc/claim_invites")) body = "0";
-    else if (u.includes("/rpc/save_workspace")) { saved = JSON.parse(req.postData()); body = String(++ws.version); }
+    else if (u.includes("/rpc/save_workspace")) { saved = JSON.parse(req.postData()); allChanges.push(...(saved.changes ?? [])); body = String(++ws.version); }
     else if (u.includes("/auth/v1/user")) body = JSON.stringify(sess.user);
     else if (u.includes("/workspace_members")) body = JSON.stringify([{ workspace_id: "w1", role: "owner", email: "t@example.com" }]);
     else if (u.includes("/storage/v1/object/deal-docs/")) { uploads.push(u); body = JSON.stringify({ Key: "x" }); }
@@ -52,7 +54,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   const main = p.locator("main");
 
   // Debt tab before: nothing applied; pending documents noted
-  await p.getByRole("button", { name: "Debt", exact: true }).click();
+  await FX.openTab(p, "Debt");
   await p.waitForTimeout(1200);
   const panel = main.getByTestId("loan-agreement");
   check((await panel.innerText()).includes("Not applied yet: the loan agreement and 1 cap confirmation"), "Debt tab lists the documents not applied yet");
@@ -62,7 +64,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(uploads.length === 1 && docs.filter((d) => d.doc_type === "rate_cap").length === 3, "cap confirmation uploaded from the Debt tab (deal-docs)");
 
   // Documents: apply the loan agreement (all differing fields)
-  await p.getByRole("button", { name: "Documents", exact: true }).click();
+  await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
   const loan = main.getByTestId("doc-card").filter({ hasText: "Loan agreement" }).first();
   await loan.getByRole("button", { name: "Apply", exact: true }).click();
@@ -80,7 +82,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.waitForTimeout(1200);
 
   // Debt tab after
-  await p.getByRole("button", { name: "Debt", exact: true }).click();
+  await FX.openTab(p, "Debt");
   await p.waitForTimeout(1200);
   const pt = await main.getByTestId("loan-terms").innerText();
   check(pt.includes("Fictional Bank, N.A.") && pt.includes("$4,980,000") && pt.includes("2029-01-30") && pt.includes("rating A or better"), "loan terms on the Debt tab");
@@ -93,7 +95,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
 
   // Route 9: cap flagged against its loan
   await main.getByRole("combobox").first().selectOption({ label: "Route 9 Small Bay" }).catch(() => {});
-  await p.getByRole("button", { name: "Documents", exact: true }).click();
+  await FX.openTab(p, "Documents");
   await p.waitForTimeout(800);
   await main.getByRole("button", { name: /Whole fund/ }).click();
   await p.waitForTimeout(800);
@@ -107,7 +109,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(r9checks.some((t) => /BBB\+, below the loan's minimum A/.test(t)) && r9checks.some((t) => /Notional \$9,000,000 is below/.test(t)), `Route 9 cap flagged: ${r9checks.join(" | ")}`);
 
   // Critical dates: cap expiry and replacement deadline
-  await p.getByRole("button", { name: "Leases", exact: true }).click();
+  await FX.openTab(p, "Leases");
   await p.waitForTimeout(1200);
   await main.getByRole("button", { name: /Whole fund/ }).click();
   await main.getByRole("tab", { name: "Critical dates" }).click();
@@ -117,7 +119,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.waitForTimeout(22000);
   const afs = saved?.new_data?.deals?.find((d) => d.id === "sample-deal-1")?.inputs;
   check(afs?.loanAmountActual === 4980000 && afs?.executedCaps?.[0]?.provider === "Fictional Capital Markets LLC" && afs?.capPremiumAmount === 27858, "saved: actual loan and executed cap");
-  check((saved?.changes ?? []).some((c) => /Executed cap, hold year 1/.test(c.field) && /From Rate cap confirmation/.test(c.note ?? "")), "database log: executed cap with its source");
+  check(allChanges.some((c) => /Executed cap, hold year 1/.test(c.field) && /From Rate cap confirmation/.test(c.note ?? "")), "database log: executed cap with its source");
   console.log("errors", errs);
   if (errs.length) fails++;
   console.log(fails ? `${fails} FAILED` : "ALL PASS");

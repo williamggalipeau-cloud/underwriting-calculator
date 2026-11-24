@@ -56,21 +56,22 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   const dg = p.getByRole("group", { name: "Dispositions" });
-  check((await dg.getByRole("button").allInnerTexts()).join() === "Assets for Sale,Offers,Track Record,Sale Documents", "Dispositions tabs incl. Sale Documents");
+  await FX.openArea(p, "Offers");
+  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Sale Documents", "Dispositions tabs: Sell/Hold Analysis first, incl. Sale Documents");
 
   // ── Start sale from Sell/Hold (Route 9, the open asset) ──
-  await p.getByRole("button", { name: "Sell/Hold Analysis" }).click();
+  await FX.openTab(p, "Sell/Hold Analysis");
   await p.waitForTimeout(1500);
   await p.locator("main").getByRole("button", { name: "Start sale" }).click();
   await p.waitForTimeout(800);
   const rows = p.getByTestId("sale-row");
   check((await rows.count()) === 2 && (await p.getByTestId("sale-card").count()) === 1 && /Route 9 Small Bay[\s\S]*Preparing[\s\S]*Hold period reached/.test(await rows.filter({ hasText: "Route 9" }).innerText()), "Start sale on Sell/Hold opens a new sale on Assets for Sale");
-  await p.getByRole("button", { name: "Sell/Hold Analysis" }).click();
+  await FX.openTab(p, "Sell/Hold Analysis");
   await p.waitForTimeout(1200);
   check((await p.locator("main").getByRole("button", { name: /Sale in progress/ }).count()) === 1, "Sell/Hold then shows the sale in progress");
 
   // ── Documents on the sale (before the SQL) ──
-  await dg.getByRole("button", { name: "Assets for Sale" }).click();
+  await FX.openTab(p, "Assets for Sale");
   await p.waitForTimeout(600);
   const air = rows.filter({ hasText: "Airport Flex Park" });
   if (!(await air.getByTestId("sale-card").count())) await air.locator("button").first().click();
@@ -87,7 +88,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(docs.at(-1).doc_type === "psa", "a PSA keeps its existing type");
 
   // ── Offer letter on the offer ──
-  await dg.getByRole("button", { name: "Offers" }).click();
+  await FX.openTab(p, "Offers");
   await p.waitForTimeout(800);
   const og = p.getByTestId("offer-group").filter({ hasText: "Airport Flex Park" });
   await og.getByTestId("disp-file").first().setInputFiles({ name: "LOI.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 fictional") });
@@ -95,14 +96,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(docs.at(-1).title === "[sale:sale-fx1/offer:offer-fx1] Offer letter / LOI: LOI.pdf", "an offer letter on the offer");
 
   // ── Sale Documents tab ──
-  await dg.getByRole("button", { name: "Sale Documents" }).click();
+  await FX.openTab(p, "Sale Documents");
   await p.waitForTimeout(1000);
   check((await p.getByTestId("disp-doc-row").count()) === 3, "Sale Documents lists every disposition document");
   await p.getByLabel("Filter type").selectOption("offer_letter");
   check((await p.getByTestId("disp-doc-row").count()) === 1 && /Fictional Fund/.test(await p.getByTestId("disp-doc-row").innerText()), "filter by type; the offer's buyer shown");
 
   // ── Closing → LP / GP split ──
-  await dg.getByRole("button", { name: "Assets for Sale" }).click();
+  await FX.openTab(p, "Assets for Sale");
   await p.waitForTimeout(600);
   if (!(await air.getByTestId("sale-card").count())) await air.locator("button").first().click();
   await card.getByRole("button", { name: /Record closing statement/ }).click();
@@ -119,7 +120,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── PDFs ──
   const [d1] = await Promise.all([p.waitForEvent("download"), p.getByTestId("for-sale").getByRole("button", { name: "PDF", exact: true }).click()]);
   check(/assets-for-sale-.*\.pdf$/.test(d1.suggestedFilename()), "Assets for Sale PDF");
-  await dg.getByRole("button", { name: "Track Record" }).click();
+  await FX.openTab(p, "Track Record");
   await p.waitForTimeout(800);
   const [d2] = await Promise.all([p.waitForEvent("download"), p.getByTestId("track-record").getByRole("button", { name: "PDF", exact: true }).click()]);
   check(/track-record-.*\.pdf$/.test(d2.suggestedFilename()), "Track Record PDF");

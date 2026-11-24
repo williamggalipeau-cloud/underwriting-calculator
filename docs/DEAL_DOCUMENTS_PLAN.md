@@ -1327,6 +1327,19 @@ with an automatic backup first.
 
 ## Phase Z: Home page (added 11/23, after O)
 
+**Reworked 11/24 (user) into the Operational Dashboard (USER_MANUAL §7.42):**
+Actions Needed (urgent: overdue, due within 30 days or an issue now; Done
+tracking), Upcoming Events (a rolling year back and ahead: leases and lease
+abstract dates, debt, appraisals, property management, construction, plan
+milestones, purchase and sale contract dates, fund dates), and the Asset
+Watch List (plan performance only: NOI or IRR under plan, At Risk over 10%
+under, Off Plan up to 10%). Both lists show Asset name, Due date, Action
+type, Owner (asset manager or portfolio manager) and Status (Past Due, Due
+now, Upcoming, Completed). Home moved to the header and saves edits before
+leaving; Functions became one button per area, showing that area's tabs;
+Setup & Maintenance sits under Functions. The Workflows lanes, fund cards and
+recent activity below were removed. The original 11/23 plan follows.
+
 A **Home** page the app opens on, organised by workflow (user, 11/23):
 - **Today:** the firm-wide figures, and an attention list (lease
   expirations and option deadlines in 90 days, overdue appraisals, loan

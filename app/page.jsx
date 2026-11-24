@@ -8,7 +8,8 @@ import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
-import HomeView from "@/components/Home";
+import HomeView, { SetupMaintenance } from "@/components/Home";
+import { markDone } from "@/lib/home";
 import Dispositions from "@/components/Dispositions";
 import Leasing from "@/components/Leasing";
 import FundDebt from "@/components/FundDebt";
@@ -43,7 +44,7 @@ import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
 import { withSampleMedia } from "@/lib/sampleMedia";
-import { EMPTY_PIPELINE, makePipelineDeal, toQuickInputs } from "@/lib/pipeline";
+import { ACTIVE_STAGES as PIPELINE_ACTIVE, EMPTY_PIPELINE, makePipelineDeal, toQuickInputs } from "@/lib/pipeline";
 import Pipeline from "@/components/Pipeline";
 import FundImpact from "@/components/FundImpact";
 import FundSummary from "@/components/FundSummary";
@@ -466,7 +467,6 @@ const TAB_GROUPS = [
   ] },
   { label: "Portfolio Management", tabs: [
     { id: "fundsummary", label: "Fund Summary" },
-    { id: "fundplan",    label: "Fund Plan" },
     { id: "fund",        label: "Fund Return" },
     { id: "gpecon",      label: "GP Economics" },
     { id: "funddebt",    label: "Fund Debt" },
@@ -484,6 +484,8 @@ const TAB_GROUPS = [
 ];
 const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 
+const TAB_COUNT_TITLES = { pipeline: "Active pipeline deals", forsale: "Sales in progress", offers: "Offers on sales in progress" };
+
 // Tabs that show one deal: they get the Asset dropdown.
 const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
 
@@ -492,6 +494,9 @@ export default function Home() {
   const [deals, setDealsRaw] = useState(initialDeals);
   const [activeDealId, setActiveDealId] = useState("sample-deal-1");
   const [activeTab, setActiveTab] = useState("home"); // the app opens on Home (phase Z)
+  // The function area whose tabs show (null: the active tab's area).
+  const [openArea, setOpenArea] = useState(null);
+  useEffect(() => { setOpenArea(null); }, [activeTab]);
   const [savedDeals, setSavedDealsRaw] = useState([]);
   // Fund terms by fund name (timeline, waterfall, fee).
   const [funds, setFundsRaw] = useState(initialFunds);
@@ -1384,6 +1389,12 @@ export default function Home() {
   const fundDeals = useMemo(() => scopeDeals(firmFundDeals, scope, resolveFund), [firmFundDeals, scope, resolveFund]);
   const viewFunds = useMemo(() => scopeFunds(funds, scope), [funds, scope]);
   const viewDeals = useMemo(() => scopeOpenDeals(deals, scope, resolveFund, pipeline), [deals, scope, resolveFund, pipeline]);
+  // Tab count badges (11/24): active pipeline deals, sales in progress, offers on them.
+  const tabCounts = useMemo(() => {
+    const pl = (pipeline?.deals ?? []).filter((d) => PIPELINE_ACTIVE.includes(d.stage) && (!scope || d.targetFund === scope));
+    const sales = fundDeals.flatMap((d) => (d.inputs?.dispositions ?? []).filter((x) => ACTIVE_SALE_STAGES.includes(x.stage)));
+    return { pipeline: pl.length, forsale: sales.length, offers: sales.reduce((n, x) => n + (x.offers?.length ?? 0), 0) };
+  }, [pipeline, scope, fundDeals]);
   // A deal outside the chosen fund isn't left open: switch to the fund's first asset.
   useEffect(() => {
     if (scope && viewDeals.length && !viewDeals.some((d) => d.id === activeDealId)) setActiveDealId(viewDeals[0].id);
@@ -1508,6 +1519,7 @@ export default function Home() {
   }
 
   const [sampleOpen, setSampleOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false); // asset inputs slide-over (phase O)
   const testLoaded = savedDeals.some((d) => d.id.startsWith("test-"));
 
@@ -1655,12 +1667,43 @@ export default function Home() {
   </div>
   );
 
+  // Setup & Maintenance (under Functions on every page, 11/24).
+  const setupActions = [
+      { label: "New asset", primary: true, disabled: locked, run: () => { handleAddDeal(); setPanelOpen(true); } },
+      { label: "New fund setup", disabled: locked, run: () => setFundEditor({ mode: "new" }) },
+      { label: "Edit asset", kind: "select", placeholder: "Edit asset…", options: deals.filter((d) => !scope || d.inputs.fundName === scope).sort((x, y) => (x.inputs.propertyName || "").localeCompare(y.inputs.propertyName || "")).map((d) => ({ value: d.id, label: `${d.inputs.propertyName || "Unnamed deal"}${d.inputs.fundName ? ` · ${d.inputs.fundName}` : " · pipeline"}` })), run: (id) => { setActiveDealId(id); setPanelOpen(true); } },
+      { label: "Edit fund", kind: "select", placeholder: "Edit fund…", options: Object.keys(funds).filter((n) => !scope || n === scope).sort().map((n) => ({ value: n, label: n })), run: (name) => setFundEditor({ mode: "edit", name }) },
+      { label: "Upload rent roll", title: "Rent Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
+      { label: "Upload Yardi actuals", title: "Asset Business Plan tab: upload monthly actuals", run: () => setActiveTab("plan") },
+      { label: "Import marks", title: "Valuation tab: import quarterly marks", run: () => setActiveTab("valuations") },
+      { label: "Record capital activity", title: "Fund Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },
+      { label: "New report", title: "Reports tab: quarterly and risk reports", run: () => setActiveTab("reports") },
+    ];
+
+  // Home (user, 11/24): save any unsaved edits, then go to the landing page.
+  // If the save doesn't go through, ask before leaving (the edits stay in
+  // this window either way and save when the database is reachable).
+  async function goHome() {
+    setPanelOpen(false);
+    setMoreOpen(false);
+    const l = dbLinkRef.current;
+    if (l && session && l.role !== "viewer" && (l.dirty || dbSaving.current)) {
+      try { await saveToDbNow(); } catch { /* checked below */ }
+      const after = dbLinkRef.current;
+      if ((after?.dirty || after?.conflict || after?.error) && !window.confirm(`Your latest edits ${after?.conflict ? "conflict with a newer version someone else saved" : after?.error ? `couldn't be saved (${after.error})` : "aren't saved yet"}. Go to the Operational Dashboard anyway? They stay in this window and are saved when you use Save now.`)) return;
+    }
+    setOpenArea("");
+    setActiveTab("home");
+  }
+  const areaOf = (id) => TAB_GROUPS.find((g) => g.tabs.some((t) => t.id === id))?.label ?? "";
+  const shownArea = openArea ?? areaOf(activeTab);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-3 mr-4">
+          <button type="button" onClick={goHome} aria-label="Baywise: go to the Operational Dashboard" className="flex items-center gap-3 mr-1 text-left">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -1670,7 +1713,13 @@ export default function Home() {
               <h1 className="text-sm font-bold text-gray-900 leading-tight">Baywise</h1>
               <p className="text-xs text-gray-400 leading-tight">Industrial Real Estate Management</p>
             </div>
-          </div>
+          </button>
+
+          {/* Home (user, 11/24): in the header; always returns to the landing page, saving edits first. */}
+          <button type="button" onClick={goHome} data-testid="home-button" title="Back to the Operational Dashboard (saves your edits first)" className={`mr-3 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium ${activeTab === "home" ? "border-blue-600 bg-blue-600 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"}`}>
+            <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10" /></svg>
+            Home
+          </button>
 
           {/* Summary bar */}
           <div className="flex flex-wrap items-center gap-1">
@@ -1710,8 +1759,42 @@ export default function Home() {
               <span aria-hidden="true">↺</span>
               Change log
             </button>
+            {/* Save status (11/24: moved up from the toolbar row). */}
+            {session && dbLink?.id ? (
+              <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs ${dbLink.conflict || dbLink.error ? "border-red-200 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-900"}`}>
+                <span aria-hidden="true">☁</span>
+                <button type="button" onClick={() => setCloudOpen(true)} className="font-semibold hover:underline" title="Database">{dbLink.name}</button>
+                {dbLink.mode !== "records" && <span className="text-sky-700">v{dbLink.version}</span>}
+                {dbLink.conflict ? (
+                  <>
+                    <span>· someone else saved a newer version</span>
+                    <button type="button" onClick={() => openDbWorkspace(dbLink).catch((e) => setDbLink((l) => ({ ...l, error: e.message })))} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Open latest</button>
+                    <button type="button" onClick={() => window.confirm("Save your version over the newer one? The newer one stays in the database's version history.") && overwriteDb().catch(() => {})} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Keep mine</button>
+                  </>
+                ) : dbLink.error ? (
+                  <span>· {dbLink.error}</span>
+                ) : dbLink.role === "viewer" ? (
+                  <span className="text-sky-700">· view only</span>
+                ) : dbLink.dirty ? (
+                  <span className="text-amber-700">· unsaved changes</span>
+                ) : (
+                  dbLink.savedAt && <span className="text-sky-700">· saved {new Date(dbLink.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
+                )}
+                {dbLink.role !== "viewer" && !dbLink.conflict && (
+                  <button type="button" onClick={() => saveToDbNow(true).catch(() => {})} className="ml-1 rounded border border-sky-300 bg-white px-1.5 py-0.5 font-medium text-sky-800 hover:bg-sky-100">Save now</button>
+                )}
+              </span>
+            ) : session && dbLink?.error ? (
+              <span className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-800">
+                <span aria-hidden="true">☁</span> Couldn&apos;t open the firm&apos;s data: {dbLink.error}
+                <button type="button" onClick={() => setCloudOpen(true)} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Database…</button>
+
+              </span>
+            ) : null}
+            {!session && <span className="text-[11px] text-gray-400">Not saved. Sign in to save to the database</span>}
+            {session && !dbLink && <span className="text-[11px] text-gray-400">Opening the firm&apos;s data…</span>}
             {/* Signed out, sign in from the View only banner; this button is only the database panel. */}
-            {session && (
+            {session && !dbLink?.id && (
               <button
                 type="button"
                 onClick={() => setCloudOpen(true)}
@@ -1722,73 +1805,70 @@ export default function Home() {
                 {dbLink?.id ? `${dbLink.name}${dbLink.dirty ? " · unsaved" : ""}` : "Database"}
               </button>
             )}
+            {/* ⋯ More (11/24): backup, restore and sample data, off the main view. */}
+            <div className="relative" data-testid="more-menu">
+              <button type="button" aria-label="More" aria-expanded={moreOpen} aria-haspopup="menu" onClick={() => setMoreOpen((o) => !o)} title="Backup, restore and sample data" className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">⋯</button>
+              {moreOpen && (
+                <div className="absolute right-0 z-30 mt-1 w-80 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                  <button type="button" onClick={() => { setMoreOpen(false); handleExportWorkspace(); }} title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Download backup</button>
+                  {(!session || dbLink?.role === "owner") && (
+                    <button type="button" onClick={() => { setMoreOpen(false); importRef.current?.click(); }} title="Owners only: replace all of the firm's data with a backup file (a backup of the current data downloads first)" className="block w-full rounded px-2 py-1.5 text-left text-xs text-red-600 hover:bg-red-50">Restore from backup</button>
+                  )}
+                  {(!session || dbLink?.role === "owner") && (
+                    <div className="mt-1 border-t border-gray-100 pt-1" data-testid="sample-data-menu">
+                      <button
+                        type="button"
+                        aria-expanded={sampleOpen}
+                        aria-haspopup="menu"
+                        onClick={() => setSampleOpen((o) => !o)}
+                        title="Owners only: load or remove the fictional sample fund and test deals"
+                        className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-amber-50"
+                      >
+                        Sample data ▾
+                      </button>
+                      {sampleOpen && (
+                        <div role="menu" className="mt-1 rounded-lg border border-amber-200 bg-white p-2">
+                          <p className="mb-2 rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-900">
+                            For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
+                          </p>
+                          {[
+                            { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
+                            { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
+                            { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
+                            { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
+                            { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
+                            { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
+                          ].map((a) => (
+                            <button
+                              key={a.label}
+                              type="button"
+                              role="menuitem"
+                              onClick={() => {
+                                setSampleOpen(false);
+                                setMoreOpen(false);
+                                if (window.confirm(a.ask)) a.run();
+                              }}
+                              className="block w-full rounded px-2 py-1.5 text-left hover:bg-gray-50"
+                            >
+                              <span className={`block text-xs font-medium ${a.label.startsWith("Clear") ? "text-red-600" : "text-gray-800"}`}>{a.label}</span>
+                              <span className="block text-[11px] text-gray-500">{a.sub}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Sample data menu (11/23): owners only, since it changes everyone's data. */}
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center gap-2">
-        {/* Setup (phase O, 11/23): the asset inputs open only from here, as a slide-over. */}
-        <div className="flex flex-wrap items-center gap-1.5" data-testid="setup-buttons">
-          {!locked && (
-            <button type="button" onClick={() => { handleAddDeal(); setPanelOpen(true); }} className="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-3 py-1.5">New asset</button>
-          )}
-          <select aria-label="Edit asset" value="" onChange={(e) => { if (!e.target.value) return; setActiveDealId(e.target.value); setPanelOpen(true); }} className="text-xs rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-gray-700">
-            <option value="">Edit asset…</option>
-            {[...deals].sort((x, y) => (x.inputs.propertyName || "").localeCompare(y.inputs.propertyName || "")).map((d) => <option key={d.id} value={d.id}>{d.inputs.propertyName || "Unnamed deal"}{d.inputs.fundName ? ` · ${d.inputs.fundName}` : " · pipeline"}</option>)}
-          </select>
-          {!locked && <button type="button" onClick={() => setFundEditor({ mode: "new" })} className="text-xs font-medium text-blue-700 border border-blue-200 bg-white hover:bg-blue-50 rounded-lg px-3 py-1.5">New fund</button>}
-          <select aria-label="Edit fund" value="" onChange={(e) => { if (!e.target.value) return; setFundEditor({ mode: "edit", name: e.target.value }); }} className="text-xs rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-gray-700">
-            <option value="">Edit fund…</option>
-            {Object.keys(funds).sort().map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
-        {(!session || dbLink?.role === "owner") && (
-          <div className="relative" data-testid="sample-data-menu">
-            <button
-              type="button"
-              aria-expanded={sampleOpen}
-              aria-haspopup="menu"
-              onClick={() => setSampleOpen((o) => !o)}
-              title="Owners only: load or remove the fictional sample fund and test deals"
-              className="text-xs text-gray-500 hover:text-amber-700 border border-gray-200 hover:border-amber-300 bg-white rounded-lg px-3 py-1.5 transition-colors"
-            >
-              Sample data ▾
-            </button>
-            {sampleOpen && (
-              <div role="menu" className="absolute left-0 z-30 mt-1 w-80 rounded-lg border border-amber-200 bg-white p-2 shadow-lg">
-                <p className="mb-2 rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-900">
-                  For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
-                </p>
-                {[
-                  { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
-                  { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
-                  { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
-                  { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
-                  { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
-                  { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
-                ].map((a) => (
-                  <button
-                    key={a.label}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setSampleOpen(false);
-                      if (window.confirm(a.ask)) a.run();
-                    }}
-                    className="block w-full rounded px-2 py-1.5 text-left hover:bg-gray-50"
-                  >
-                    <span className={`block text-xs font-medium ${a.label.startsWith("Clear") ? "text-red-600" : "text-gray-800"}`}>{a.label}</span>
-                    <span className="block text-[11px] text-gray-500">{a.sub}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        <span className="ml-auto text-[11px] text-gray-400">
-          {!session ? "Not saved. Sign in to save to the database" : !dbLink ? "Opening the firm's data…" : null}
-        </span>
+      {/* The toolbar row is gone (11/24): New / Edit asset and fund are in the
+          Operational Dashboard's Setup & Maintenance; save status is in the
+          header; backup, restore and sample data are under ⋯ More. This row
+          shows only notices. */}
         <input
           ref={importRef}
           type="file"
@@ -1800,37 +1880,8 @@ export default function Home() {
             e.target.value = "";
           }}
         />
-        {session && dbLink?.id ? (
-          <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs ${dbLink.conflict || dbLink.error ? "border-red-200 bg-red-50 text-red-800" : "border-sky-200 bg-sky-50 text-sky-900"}`}>
-            <span aria-hidden="true">☁</span>
-            <button type="button" onClick={() => setCloudOpen(true)} className="font-semibold hover:underline" title="Database">{dbLink.name}</button>
-            {dbLink.mode !== "records" && <span className="text-sky-700">v{dbLink.version}</span>}
-            {dbLink.conflict ? (
-              <>
-                <span>· someone else saved a newer version</span>
-                <button type="button" onClick={() => openDbWorkspace(dbLink).catch((e) => setDbLink((l) => ({ ...l, error: e.message })))} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Open latest</button>
-                <button type="button" onClick={() => window.confirm("Save your version over the newer one? The newer one stays in the database's version history.") && overwriteDb().catch(() => {})} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Keep mine</button>
-              </>
-            ) : dbLink.error ? (
-              <span>· {dbLink.error}</span>
-            ) : dbLink.role === "viewer" ? (
-              <span className="text-sky-700">· view only</span>
-            ) : dbLink.dirty ? (
-              <span className="text-amber-700">· unsaved changes</span>
-            ) : (
-              dbLink.savedAt && <span className="text-sky-700">· saved {new Date(dbLink.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
-            )}
-            {dbLink.role !== "viewer" && !dbLink.conflict && (
-              <button type="button" onClick={() => saveToDbNow(true).catch(() => {})} className="ml-1 rounded border border-sky-300 bg-white px-1.5 py-0.5 font-medium text-sky-800 hover:bg-sky-100">Save now</button>
-            )}
-          </span>
-        ) : session && dbLink?.error ? (
-          <span className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-800">
-            <span aria-hidden="true">☁</span> Couldn&apos;t open the firm&apos;s data: {dbLink.error}
-            <button type="button" onClick={() => setCloudOpen(true)} className="rounded border border-red-300 bg-white px-1.5 py-0.5 font-medium">Database…</button>
-
-          </span>
-        ) : null}
+      {(recordNotice || (dbLink?.importPending && dbLink.role === "owner") || importMsg) && (
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4 flex flex-wrap items-center justify-end gap-2">
         {recordNotice && (
           <span className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs text-amber-900" role="status" data-testid="record-notice">
             {recordNotice}
@@ -1843,6 +1894,14 @@ export default function Home() {
             <button type="button" onClick={() => importFromOldApp().catch((e) => setRecordNotice(e.message))} className="rounded border border-violet-300 bg-white px-1.5 py-0.5 font-medium">Import changes made in the old app</button>
           </span>
         )}
+        {importMsg && (
+          <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
+            {importMsg.text}
+            <button type="button" onClick={() => setImportMsg(null)} className="ml-2 text-gray-400 hover:text-gray-700" aria-label="Dismiss">✕</button>
+          </p>
+        )}
+        </div>
+      )}
         {cloudOpen && (
           <CloudPanel
             session={session}
@@ -1859,32 +1918,6 @@ export default function Home() {
             }}
           />
         )}
-        <button
-          type="button"
-          onClick={handleExportWorkspace}
-          title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep"
-          className="text-xs text-gray-600 hover:text-blue-700 border border-gray-200 hover:border-blue-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Download backup
-        </button>
-        {(!session || dbLink?.role === "owner") && (
-          <button
-            type="button"
-            onClick={() => importRef.current?.click()}
-            title="Owners only: replace all of the firm's data with a backup file (a backup of the current data downloads first)"
-            className="text-xs text-gray-400 hover:text-red-600 border border-gray-200 hover:border-red-200 bg-white rounded-lg px-3 py-1.5 transition-colors"
-          >
-            Restore from backup
-          </button>
-        )}
-        {importMsg && (
-          <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
-            {importMsg.text}
-            <button type="button" onClick={() => setImportMsg(null)} className="ml-2 text-gray-400 hover:text-gray-700" aria-label="Dismiss">✕</button>
-          </p>
-        )}
-      </div>
-
       {/* Asset inputs slide-over (phase O): opens only from New asset / Edit asset. */}
       {panelOpen && (
         <div className="fixed inset-0 z-40 flex" role="dialog" aria-modal="true" aria-label="Asset inputs" onKeyDown={(e) => e.key === "Escape" && setPanelOpen(false)}>
@@ -1945,15 +1978,29 @@ export default function Home() {
             </div>
           )}
 
-          {/* Tab bar: grouped, with a small header over each group */}
-          <nav className="flex flex-wrap items-end gap-x-2 gap-y-2 bg-white border border-gray-200 rounded-xl p-1.5 w-fit max-w-full shadow-sm" aria-label="Tabs">
-            <div className="flex flex-col gap-0.5 pr-1" role="group" aria-label="Home">
-              <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">&nbsp;</span>
-              <button type="button" onClick={() => setActiveTab("home")} className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === "home" ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"}`}>Home</button>
+          {/* Tab bar ("Functions", 11/24): grouped, with a small header over each group.
+              Count badges show where there's work (they replaced the Workflows lanes). */}
+          <div className="w-full">
+          <nav className="rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm" aria-label="Functions">
+            {/* Function areas (user, 11/24): one button per area; choosing one shows its tabs. */}
+            <div className="flex flex-wrap items-center gap-1" data-testid="function-areas">
+              <span className="px-2 text-xs font-semibold text-gray-600" data-testid="functions-title">Functions</span>
+              {TAB_GROUPS.filter((g) => g.tabs.length).map((g) => {
+                const on = shownArea === g.label;
+                const here = g.tabs.some((t) => t.id === activeTab);
+                const n = g.tabs.reduce((s, t) => s + (tabCounts[t.id] || 0), 0);
+                return (
+                  <button key={g.label} type="button" data-testid="function-area" aria-expanded={on} onClick={() => setOpenArea(on ? "" : g.label)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all ${on ? "bg-gray-900 text-white" : here ? "bg-blue-50 text-blue-800 ring-1 ring-blue-200" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`} title={`${g.label}: ${g.tabs.map((t) => t.label).join(", ")}`}>
+                    {g.label}
+                    {n > 0 && <span className={`rounded-full px-1.5 text-[11px] font-bold ${on ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>{n}</span>}
+                    <span aria-hidden="true" className="text-[10px] opacity-60">{on ? "▴" : "▾"}</span>
+                  </button>
+                );
+              })}
             </div>
-            {TAB_GROUPS.filter((g) => g.tabs.length).map((g, gi) => (
-              <div key={g.label} className={`flex flex-col gap-0.5 border-l border-gray-200 pl-2`} role="group" aria-label={g.label} data-testid="tab-group">
-                <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{g.label}</span>
+            {TAB_GROUPS.filter((g) => g.tabs.length && g.label === shownArea).map((g) => (
+              <div key={g.label} className="mt-1.5 border-t border-gray-100 pt-1.5" role="group" aria-label={g.label} data-testid="tab-group">
+                <span className="sr-only">{g.label}</span>
                 <div className="flex flex-wrap gap-1">
                   {g.tabs.map((tab) => (
                     <button
@@ -1972,6 +2019,11 @@ export default function Home() {
                           {inputs.units.length}
                         </span>
                       )}
+                      {tabCounts[tab.id] > 0 && (
+                        <span data-testid={`tab-count-${tab.id}`} title={TAB_COUNT_TITLES[tab.id]} className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
+                          {tabCounts[tab.id]}
+                        </span>
+                      )}
                       {tab.id === "fund" && fundDeals.length > 0 && (
                         <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${activeTab === "fund" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
                           {fundDeals.length}
@@ -1983,32 +2035,25 @@ export default function Home() {
               </div>
             ))}
           </nav>
+          <SetupMaintenance actions={setupActions} />
+          </div>
 
           {/* Panel */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             {activeTab === "home" && (
               <HomeView
-                market={comps?.market ?? null}
+                pipeline={(pipeline?.deals ?? []).filter((d) => !scope || d.targetFund === scope)}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                done={comps?.actionsDone ?? {}}
+                onMarkDone={locked ? null : (item, undo) => setComps((c) => ({ ...c, actionsDone: markDone(c?.actionsDone, item, { by: session?.user?.email ?? "", undo }) }))}
                 deals={fundDeals}
                 funds={viewFunds}
                 valuations={valuations}
-                pipeline={scope ? { ...pipeline, deals: (pipeline?.deals ?? []).filter((d) => d.targetFund === scope) } : pipeline}
-                log={session && dbLink?.id && dbLog?.length ? dbLog : auditLog}
-                firm={firm}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 scopeName={scope ? scopeLabel(scope, funds) : ""}
                 tabLabels={{ ...Object.fromEntries(TAB_GROUPS.flatMap((g) => g.tabs.map((t) => [t.id, t.label]))), changes: "Change log" }}
                 onOpenTab={setActiveTab}
                 onOpenDeal={(id, tab) => { if (deals.some((d) => d.id === id)) setActiveDealId(id); setActiveTab(tab); }}
-                actions={[
-                  { label: "New asset", primary: true, disabled: locked, run: () => { handleAddDeal(); setPanelOpen(true); } },
-                  { label: "New fund setup", disabled: locked, run: () => setFundEditor({ mode: "new" }) },
-                  { label: "Upload rent roll", title: "Rent Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
-                  { label: "Upload Yardi actuals", title: "Asset Business Plan tab: upload monthly actuals", run: () => setActiveTab("plan") },
-                  { label: "Import marks", title: "Valuation tab: import quarterly marks", run: () => setActiveTab("valuations") },
-                  { label: "Record capital activity", title: "Fund Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },
-                  { label: "New report", title: "Reports tab: quarterly and risk reports", run: () => setActiveTab("reports") },
-                ]}
               />
             )}
             {["forsale", "offers", "trackrecord", "dispdocs"].includes(activeTab) && (
@@ -2034,6 +2079,7 @@ export default function Home() {
                 activeId={activeDealId}
                 onPick={setActiveDealId}
                 onOpenSnapshot={handleOpenSnapshot}
+                onEdit={() => setPanelOpen(true)}
                 label={`${viewDeals.length} open${scope ? ` in ${scope}` : ""}${savedDeals.length ? ` · ${savedDeals.length} saved` : ""}`}
               />
             )}
@@ -2222,17 +2268,18 @@ export default function Home() {
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
                 onFundTermsChange={handleFundTermsChange}
                 onOpenTab={setActiveTab}
-              />
-            )}
-            {activeTab === "fundplan" && (
-              <FundPlan
-                deals={fundDeals}
-                funds={viewFunds}
-                marks={valuations}
-                curve={effectiveCurve(baseCurve, anchorToLive, live)}
-                canEdit={!locked}
-                email={session?.user?.email ?? null}
-                onFundTermsChange={handleFundTermsChange}
+                planSlot={(fund) => (
+                  <FundPlan
+                    fixedFund={fund}
+                    deals={fundDeals}
+                    funds={viewFunds}
+                    marks={valuations}
+                    curve={effectiveCurve(baseCurve, anchorToLive, live)}
+                    canEdit={!locked}
+                    email={session?.user?.email ?? null}
+                    onFundTermsChange={handleFundTermsChange}
+                  />
+                )}
               />
             )}
             {activeTab === "benchmark" && (

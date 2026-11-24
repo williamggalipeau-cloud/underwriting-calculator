@@ -60,7 +60,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const main = p.locator("main");
 
-  await p.getByRole("button", { name: /^Asset Return/ }).first().click();
+  await FX.openTab(p, /^Asset Return/);
   await p.waitForTimeout(1500);
   const labels = (await main.getByTestId("wf-row").allInnerTexts()).map((t) => t.split("\n")[0].trim());
   check(!labels.includes("GP Promote") && labels.includes("GP profit") && labels.includes("GP promote") && labels.includes("GP ROE"), `waterfall rows: ${labels.join(", ")}`);
@@ -78,13 +78,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.screenshot({ path: S + "/phaseL_returns.png", fullPage: true });
 
   // Fund Return carries the same labels
-  await p.getByRole("button", { name: /^Fund Return/ }).first().click();
+  await FX.openTab(p, /^Fund Return/);
   await p.waitForTimeout(1500);
   const ft = await main.innerText();
   check(/GP profit/.test(ft) && /GP promote/.test(ft) && !/GP Promote/.test(ft), "Fund Return: GP profit and GP promote");
 
   // Asset Business Plan: drawn photos show; the full PDF
-  await p.getByRole("button", { name: "Asset Business Plan", exact: true }).click();
+  await FX.openTab(p, "Asset Business Plan");
   await p.waitForTimeout(1500);
   const ph = main.getByTestId("asset-photos");
   check((await ph.getByTestId("photo-item").count()) === 4 && /drawing/.test(await ph.innerText()), "Route 9: four drawn sample photos with captions");
@@ -108,7 +108,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(imgs >= 6, `PDF: ${imgs} images (cover, 4 photos, floor plan)`);
 
   // Reports tab (Library): quarterly report, internal version, issue, PDF
-  await p.getByRole("button", { name: /^Reports/ }).first().click();
+  await FX.openTab(p, /^Reports/);
   await p.waitForTimeout(2000);
   const rp = main.getByTestId("reports");
   check((await rp.count()) === 1 && /Model Fund I/.test(await rp.locator("h2").innerText()), "Reports tab for Model Fund I");

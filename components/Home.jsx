@@ -1,12 +1,14 @@
 "use client";
 
-// Phase Z: the Home page, for the portfolio chosen in the "Working on"
-// picker. Order (user, 11/24): Watch List (what needs attention), Setup &
-// Maintenance (the quick actions), Workflows (one lane per tab header); then
-// the fund cards and recent activity.
+// Phase Z: the landing page, the Operational Dashboard (opened by Home), for
+// the portfolio chosen in the "Working on" picker. Sections (user, 11/24):
+// Actions Needed (urgent: overdue, due within 30 days, or an issue now),
+// Upcoming Events (critical action and milestone dates, a year back and a
+// year ahead) and Asset Watch List (the risk report's watch list). Setup &
+// Maintenance sits under the Functions tab bar on every page.
 import { useEffect, useMemo, useState } from "react";
-import { attentionList, fundCards, lanes, money, recentActivity } from "@/lib/home";
-import { formatValue } from "@/lib/audit";
+import { actionsAndCalendar, planWatchList } from "@/lib/home";
+import { listLeases } from "@/lib/leaseDocs";
 
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "");
 const KIND = {
@@ -23,15 +25,70 @@ const KIND = {
   cap: ["Rate cap", "bg-sky-50 text-sky-800"],
   appraisal: ["Appraisal", "bg-gray-100 text-gray-700"],
   budget: ["Budget", "bg-red-50 text-red-700"],
+  milestone: ["Milestone", "bg-violet-50 text-violet-800"],
+  acquisition: ["Purchase", "bg-sky-50 text-sky-800"],
+  leasedate: ["Lease date", "bg-amber-50 text-amber-800"],
+  covenanttest: ["Covenant test", "bg-violet-50 text-violet-800"],
+  construction: ["Construction", "bg-orange-50 text-orange-800"],
+  sale: ["Sale", "bg-emerald-50 text-emerald-800"],
+  fund: ["Fund", "bg-blue-50 text-blue-700"],
 };
-const TYPE_CLS = { Fund: "bg-blue-50 text-blue-700", "Separate Account": "bg-emerald-50 text-emerald-700", "Joint Venture": "bg-amber-50 text-amber-800" };
+// The asset has its own column: drop "(Asset)" / ", Asset)" from the text.
+const shortText = (a) => (a.asset ? a.text.replace(` (${a.asset})`, "").replace(`, ${a.asset})`, ")") : a.text);
+const STATUS_CLS = { "Past Due": "bg-red-50 text-red-700", "Due now": "bg-gray-900 text-white", Completed: "bg-emerald-50 text-emerald-700", Upcoming: "bg-gray-100 text-gray-600" };
+const Status = ({ s }) => <span className={`inline-block whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-semibold ${STATUS_CLS[s] ?? ""}`} data-testid="status">{s}</span>;
+const Kind = ({ k }) => <span className={`inline-block w-24 shrink-0 rounded px-1.5 py-0.5 text-center text-[10px] font-semibold ${KIND[k]?.[1] ?? ""}`}>{KIND[k]?.[0] ?? k}</span>;
+const Owner = ({ o }) => (o ? <span>{o}</span> : <span className="text-gray-400" title="Set the asset manager on the asset (Edit asset) or the portfolio manager on the fund (Edit fund)">Unassigned</span>);
+const TH = "px-2 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500";
+const Head = () => (
+  <thead className="border-b border-gray-200 bg-gray-50">
+    <tr>
+      <th className={TH}>Asset name</th>
+      <th className={TH}>Due date</th>
+      <th className={TH}>Action type</th>
+      <th className={TH}>Owner</th>
+      <th className={TH}>Status</th>
+      <th className={`${TH} text-right`}>Details</th>
+    </tr>
+  </thead>
+);
+// Status (user, 11/24): the Done button is gone; choosing Completed marks the
+// item done (it leaves Actions Needed); choosing its open status again undoes it.
+const StatusCell = ({ a, onMarkDone }) => {
+  if (!onMarkDone || a.resolved || a.state === "past") return <Status s={a.status} />;
+  const open = a.date && a.days < 0 ? "Past Due" : a.days != null && a.days > 30 ? "Upcoming" : "Due now";
+  const cur = a.done ? "Completed" : a.status;
+  return (
+    <select aria-label={`Status: ${a.text}`} data-testid="status" value={cur} onChange={(e) => (e.target.value === "Completed" ? onMarkDone(a) : a.done && onMarkDone(a, true))} className={`rounded border-0 px-1.5 py-0.5 text-[10px] font-semibold ${STATUS_CLS[cur] ?? ""}`}>
+      <option value={a.done ? open : cur}>{a.done ? open : cur}</option>
+      <option value="Completed">Completed</option>
+    </select>
+  );
+};
+const monthLabel = (iso) => new Date(`${iso.slice(0, 7)}-01T00:00:00Z`).toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 
-export default function Home({ deals = [], funds = {}, valuations = {}, pipeline, log = [], firm, curve, scopeName = "", tabLabels = {}, onOpenTab, onOpenDeal, actions = [], market = null }) {
+export default function Home({ deals = [], funds = {}, valuations = {}, curve, scopeName = "", tabLabels = {}, onOpenTab, onOpenDeal, actions = [], pipeline = [], workspaceId = null, done = {}, onMarkDone = null }) {
   const todayISO = new Date().toISOString().slice(0, 10);
-  const attention = useMemo(() => attentionList(deals, funds, valuations, { todayISO }), [deals, funds, valuations, todayISO]);
-  const cards = useMemo(() => fundCards(deals, funds, valuations, { todayISO, curve }), [deals, funds, valuations, todayISO, curve]);
-  const laneList = useMemo(() => lanes({ deals, funds, pipeline, attention, cards, firm, todayISO, market }), [deals, funds, pipeline, attention, cards, firm, todayISO, market]);
-  const recent = useMemo(() => recentActivity(log, 10), [log]);
+  // Lease abstracts (critical dates) when signed in to the firm's workspace.
+  const [leases, setLeases] = useState(null);
+  useEffect(() => {
+    if (!workspaceId) return;
+    let live = true;
+    listLeases(workspaceId).then((l) => live && setLeases(l)).catch(() => {});
+    return () => { live = false; };
+  }, [workspaceId]);
+  const ac = useMemo(() => actionsAndCalendar(deals, funds, valuations, { todayISO, pipeline, leases, done }), [deals, funds, valuations, todayISO, pipeline, leases, done]);
+  const [showPast, setShowPast] = useState(false);
+  const pastItems = ac.calendar.filter((x) => x.days < 0);
+  // Default view: the next three months (user, 11/24); Show all goes to a year out.
+  const [allCal, setAllCal] = useState(false);
+  const d3 = new Date(`${todayISO}T00:00:00Z`); d3.setUTCMonth(d3.getUTCMonth() + 3);
+  const in3 = d3.toISOString().slice(0, 10);
+  const yearItems = showPast ? ac.calendar : ac.calendar.filter((x) => x.days >= 0);
+  const calItems = allCal ? yearItems : yearItems.filter((x) => x.date <= in3);
+  const attention = ac.actions;
+  const watch = useMemo(() => planWatchList(deals, funds, valuations, { todayISO, calendar: ac.calendar }), [deals, funds, valuations, todayISO, ac.calendar]);
+  const [allWatch, setAllWatch] = useState(false);
   const open = (a) => (a.dealId && onOpenDeal ? onOpenDeal(a.dealId, a.tab) : onOpenTab?.(a.tab));
   const [allAtt, setAllAtt] = useState(false);
   const shown = allAtt ? attention : attention.slice(0, 12);
@@ -40,116 +97,153 @@ export default function Home({ deals = [], funds = {}, valuations = {}, pipeline
   // never disagrees with today's (no hydration mismatch).
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return <div className="text-xs text-gray-400" data-testid="home-loading">Loading Home…</div>;
+  if (!mounted) return <div className="text-xs text-gray-400" data-testid="home-loading">Loading the Operational Dashboard…</div>;
 
   return (
     <div className="space-y-5 text-gray-900" data-testid="home">
       <div>
-        <h2 className="text-lg font-bold">Home</h2>
-        <p className="text-xs text-gray-500">{scopeName ? `${scopeName}: ` : "All funds: "}what needs attention, the setup and upkeep tasks, and every workflow one click away.</p>
+        <h2 className="text-lg font-bold">Operational Dashboard</h2>
+        <p className="text-xs text-gray-500">{scopeName ? `${scopeName}: ` : "All funds: "}what needs doing now, the events coming up and the assets on watch. Every function, and Setup &amp; Maintenance, is one click away above.</p>
       </div>
 
-      {/* 1. Watch List (was "Today · needs attention"; user, 11/24) */}
+      {/* 1. Actions Needed (was "Today · needs attention"; user, 11/24) */}
       <section className="rounded-xl border border-gray-200 bg-white p-4" data-testid="attention">
-        <h3 className="mb-2 text-sm font-semibold">Watch List {attention.length > 0 && <span className="ml-1 rounded-full bg-red-50 px-1.5 text-[11px] text-red-700">{attention.length}</span>}</h3>
+        <h3 className="mb-0.5 text-sm font-semibold">Actions Needed {attention.length > 0 && <span className="ml-1 rounded-full bg-red-50 px-1.5 text-[11px] text-red-700">{attention.length}</span>}</h3>
+        <p className="mb-2 text-[11px] text-gray-500">Urgent: <span className="font-medium text-red-700">Past Due in red</span>; Due now (within {ac.urgentDays} days, or an issue to fix now) in black. Items roll on as they come due and leave once done{onMarkDone ? " (set Status to Completed)" : ""} or once the data shows them handled. Details opens the item where it's handled.</p>
         {attention.length === 0 ? (
-          <p className="text-xs text-gray-500">Nothing due: no leases expiring in 90 days, leasing next steps due, loans maturing in 18 months, rate caps expiring in 12 months, missing marks, rent 60+ days late or budgets in the red.</p>
+          <p className="text-xs text-gray-500">Nothing urgent: nothing overdue or due in the next {ac.urgentDays} days, no covenant breaches, immediate repairs, missing marks, rent 60+ days late or budgets in the red.</p>
         ) : (
-          <ul className="divide-y divide-gray-100 text-xs">
-            {shown.map((a, i) => (
-              <li key={`${a.kind}-${a.dealId ?? ""}-${i}`} className="flex items-center gap-2 py-1.5">
-                <span className={`w-20 shrink-0 rounded px-1.5 py-0.5 text-center text-[10px] font-semibold ${KIND[a.kind]?.[1] ?? ""}`}>{KIND[a.kind]?.[0] ?? a.kind}</span>
-                <span className="flex-1">{a.text}</span>
-                {a.date && <span className={`whitespace-nowrap tabular-nums ${a.days != null && a.days < 0 ? "text-red-700" : "text-gray-500"}`}>{usDate(a.date)}{a.days != null ? ` · ${a.days < 0 ? `${-a.days} d ago` : `${a.days} d`}` : ""}</span>}
-                <button type="button" aria-label={`Open ${tabLabels[a.tab] ?? a.tab}: ${a.text}`} onClick={() => open(a)} className="whitespace-nowrap rounded border border-gray-200 px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">{tabLabels[a.tab] ?? "Open"} →</button>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs" data-testid="actions-table">
+              <Head />
+              <tbody className="divide-y divide-gray-100">
+                {shown.map((a, i) => {
+                  const od = a.days != null && a.days < 0;
+                  return (
+                    <tr key={`${a.kind}-${a.dealId ?? ""}-${i}`} data-testid="action-row" className="align-top">
+                      <td className="px-2 py-1.5 font-medium" data-testid="cell-asset">{a.asset || "—"}</td>
+                      <td className={`whitespace-nowrap px-2 py-1.5 tabular-nums ${od ? "text-red-700" : "text-gray-900"}`}>{a.date ? <>{usDate(a.date)}<span className="block text-[10px] text-gray-400">{od ? `${-a.days} d ago` : `${a.days} d`}</span></> : <span className="text-gray-400">Now</span>}</td>
+                      <td className="px-2 py-1.5"><div className="flex items-start gap-2"><Kind k={a.kind} /><span className={od ? "font-medium text-red-700" : "text-gray-900"} data-overdue={od ? "yes" : "no"}>{shortText(a)}</span></div></td>
+                      <td className="whitespace-nowrap px-2 py-1.5" data-testid="cell-owner"><Owner o={a.owner} /></td>
+                      <td className="px-2 py-1.5"><StatusCell a={a} onMarkDone={onMarkDone} /></td>
+                      <td className="whitespace-nowrap px-2 py-1.5 text-right">
+                        <button type="button" aria-label={`Open ${tabLabels[a.tab] ?? a.tab}: ${a.text}`} onClick={() => open(a)} className="whitespace-nowrap rounded border border-gray-200 px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">{tabLabels[a.tab] ?? "Open"} →</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
         {attention.length > 12 && <button type="button" onClick={() => setAllAtt(!allAtt)} className="mt-1 text-[11px] text-blue-700 hover:underline">{allAtt ? "Show fewer" : `Show all ${attention.length} (${attention.length - shown.length} more)`}</button>}
       </section>
 
-      {/* 2. Setup & Maintenance (the quick actions) */}
-      <section className="rounded-xl border border-gray-200 bg-white p-4" data-testid="setup-maintenance">
-        <h3 className="mb-2 text-sm font-semibold">Setup &amp; Maintenance</h3>
-        <div className="flex flex-wrap gap-1.5" data-testid="quick-actions">
-          {actions.map((a) => (
+      {/* 1b. Upcoming Events (was Calendar): critical action and milestone dates, a year back to a year ahead (user, 11/24) */}
+      <section className="rounded-xl border border-gray-200 bg-white p-4" data-testid="calendar">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="mb-0.5 text-sm font-semibold">Upcoming Events {calItems.length > 0 && <span className="ml-1 rounded-full bg-gray-100 px-1.5 text-[11px] text-gray-700">{calItems.length}</span>}</h3>
+          {pastItems.length > 0 && <button type="button" onClick={() => setShowPast(!showPast)} className="text-[11px] text-blue-700 hover:underline">{showPast ? "Hide the past 12 months" : `Show the past 12 months (${pastItems.length})`}</button>}
+        </div>
+        <p className="mb-2 text-[11px] text-gray-500">The next three months of critical action and milestone dates (Show all: a year ahead; the past 12 months on request): leases (rent roll and abstracts{workspaceId ? "" : ", when signed in"}), debt, appraisals, property management, construction, business plan milestones, purchase and sale contracts, and fund dates. Status: <span className="font-medium text-red-700">Past Due</span>, Due now (within {ac.urgentDays} days), Upcoming, or Completed (in gray). Owner: the asset&apos;s asset manager or the fund&apos;s portfolio manager, unless the item names one.</p>
+        {calItems.length === 0 && !(yearItems.length > calItems.length) ? <p className="text-xs text-gray-500">Nothing scheduled in the next 12 months.</p> : (
+          <div className="space-y-2 text-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs" data-testid="calendar-table">
+                <Head />
+                {Object.entries(calItems.reduce((m, x) => { (m[x.date.slice(0, 7)] ??= []).push(x); return m; }, {})).map(([mo, xs]) => (
+                  <tbody key={mo} data-testid="calendar-month" className="divide-y divide-gray-100">
+                    <tr><td colSpan={6} className="px-2 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{monthLabel(mo)}</td></tr>
+                    {xs.map((a, i) => {
+                      const cls = a.state === "overdue" ? "font-medium text-red-700" : a.state === "done" || a.state === "past" ? "text-gray-400" : "text-gray-900";
+                      return (
+                        <tr key={`${a.key}-${i}`} data-testid="calendar-item" data-state={a.state} data-days={a.days} className="align-top">
+                          <td className={`px-2 py-1.5 font-medium ${a.state === "done" || a.state === "past" ? "text-gray-400" : ""}`} data-testid="cell-asset">{a.asset || "—"}</td>
+                          <td className={`whitespace-nowrap px-2 py-1.5 tabular-nums ${cls}`}>{usDate(a.date)}<span className="block text-[10px] text-gray-400">{a.days < 0 ? `${-a.days} d ago` : `${a.days} d`}</span></td>
+                          <td className="px-2 py-1.5"><div className="flex items-start gap-2"><Kind k={a.kind} /><span className={cls}>{shortText(a)}{a.state === "done" && a.done && <span className="ml-1 text-emerald-700">✓ done {usDate(String(a.done.at).slice(0, 10))}{a.done.by ? ` by ${a.done.by}` : ""}</span>}</span></div></td>
+                          <td className="whitespace-nowrap px-2 py-1.5" data-testid="cell-owner"><Owner o={a.owner} /></td>
+                          <td className="px-2 py-1.5"><StatusCell a={a} onMarkDone={onMarkDone} /></td>
+                          <td className="whitespace-nowrap px-2 py-1.5 text-right">
+                            <button type="button" aria-label={`Open ${tabLabels[a.tab] ?? a.tab}: ${a.text}`} onClick={() => open(a)} className="whitespace-nowrap rounded border border-gray-200 px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">{tabLabels[a.tab] ?? "Open"} →</button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                ))}
+              </table>
+            </div>
+            {(allCal || yearItems.length > calItems.length) && <button type="button" onClick={() => setAllCal(!allCal)} className="text-[11px] text-blue-700 hover:underline">{allCal ? "Show the next three months only" : `Show all ${yearItems.length}, a year out (${yearItems.length - calItems.length} more)`}</button>}
+          </div>
+        )}
+      </section>
+
+      {/* 2. Asset Watch List (user, 11/24): plan performance only. NOI or IRR
+          under plan: up to 10% under is Off Plan, more than 10% At Risk. */}
+      <section className="rounded-xl border border-red-200 bg-white p-4" data-testid="assets-watch">
+        <h3 className="mb-0.5 text-sm font-semibold">Asset Watch List {watch.assets.length > 0 && <span className="ml-1 rounded-full bg-red-50 px-1.5 text-[11px] text-red-700">{watch.assets.length}</span>}</h3>
+        <p className="mb-2 text-[11px] text-gray-500">Assets under their business plan on NOI (year to date vs. the plan) or IRR (at the {usDate(watch.irrAsOf)} mark vs. the underwritten IRR, once held a year). <span className="font-medium text-red-700">At Risk</span>: more than {watch.atRiskPct}% under; <span className="font-medium text-amber-700">Off Plan</span>: up to {watch.atRiskPct}% under.</p>
+        {watch.assets.length === 0 ? (
+          <p className="text-xs text-gray-500">No assets under plan on NOI or IRR. Assets need a business plan with actuals (Asset Business Plan) or a mark to be measured.</p>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs" data-testid="watch-table">
+                <thead className="border-b border-gray-200 bg-gray-50">
+                  <tr>
+                    <th className={TH}>Asset name</th>
+                    <th className={TH}>Owner</th>
+                    <th className={TH}>Plan status</th>
+                    <th className={`${TH} text-right`}>NOI vs. plan</th>
+                    <th className={`${TH} text-right`}>IRR vs. plan</th>
+                    <th className={TH}>Other goals missed</th>
+                    <th className={TH}>Next event</th>
+                    <th className={`${TH} text-right`}>Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {(allWatch ? watch.assets : watch.assets.slice(0, 8)).map((w) => (
+                    <tr key={w.id} data-testid="watch-asset" className="align-top">
+                      <td className="px-2 py-1.5 font-medium" data-testid="cell-asset">{w.name}<span className="block text-[10px] font-normal text-gray-400">{w.fund}</span></td>
+                      <td className="whitespace-nowrap px-2 py-1.5" data-testid="cell-owner"><Owner o={w.owner} /></td>
+                      <td className="px-2 py-1.5"><span data-testid="plan-status" className={`inline-block whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-semibold ${w.status === "At Risk" ? "bg-red-600 text-white" : "bg-amber-100 text-amber-800"}`}>{w.status}</span></td>
+                      <td className={`whitespace-nowrap px-2 py-1.5 text-right tabular-nums ${w.noi?.pct < 0 ? "text-red-700" : ""}`}>{w.noi ? <>{w.noi.pct.toFixed(1)}%<span className="block text-[10px] text-gray-400">${Math.round(w.noi.actual / 1000).toLocaleString("en-US")}K vs ${Math.round(w.noi.plan / 1000).toLocaleString("en-US")}K · {w.noi.months} mo</span></> : <span className="text-gray-400">—</span>}</td>
+                      <td className={`whitespace-nowrap px-2 py-1.5 text-right tabular-nums ${w.irr?.pct < 0 ? "text-red-700" : ""}`}>{w.irr ? <>{w.irr.actual.toFixed(1)}%<span className="block text-[10px] text-gray-400">vs {w.irr.plan.toFixed(1)}% plan</span></> : <span className="text-gray-400">—</span>}</td>
+                      <td className="px-2 py-1.5 text-gray-700">{w.goals.length ? w.goals.join(" · ") : <span className="text-gray-400">None</span>}</td>
+                      <td className="px-2 py-1.5">{w.next ? <>{usDate(w.next.date)}<span className="block text-[10px] text-gray-500">{shortText({ ...w.next, asset: w.name })}</span></> : <span className="text-gray-400">—</span>}</td>
+                      <td className="whitespace-nowrap px-2 py-1.5 text-right">{onOpenDeal && <button type="button" aria-label={`Open ${w.name}`} onClick={() => onOpenDeal(w.id, "plan")} className="whitespace-nowrap rounded border border-gray-200 px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">{tabLabels.plan ?? "Open"} →</button>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {watch.assets.length > 8 && <button type="button" onClick={() => setAllWatch(!allWatch)} className="mt-1 text-[11px] text-blue-700 hover:underline">{allWatch ? "Show fewer" : `Show all ${watch.assets.length}`}</button>}
+          </>
+        )}
+      </section>
+
+    </div>
+  );
+}
+
+// Setup & Maintenance (11/24: under Functions, on every page): New / Edit
+// asset and fund, uploads, marks, capital activity, reports.
+export function SetupMaintenance({ actions = [] }) {
+  return (
+    <section className="mt-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm" data-testid="setup-maintenance">
+      <div className="flex flex-wrap items-center gap-1.5" data-testid="setup-buttons">
+        <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Setup &amp; Maintenance</span>
+        <div className="contents" data-testid="quick-actions">
+          {actions.map((a) => a.kind === "select" ? (
+            <select key={a.label} aria-label={a.label} value="" onChange={(e) => e.target.value && a.run(e.target.value)} className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700">
+              <option value="">{a.placeholder}</option>
+              {a.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          ) : (
             <button key={a.label} type="button" onClick={a.run} disabled={a.disabled} title={a.title} className={`rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-40 ${a.primary ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"}`}>{a.label}</button>
           ))}
         </div>
-      </section>
-
-      {/* 3. Workflows */}
-      <section data-testid="lanes">
-        <h3 className="mb-2 text-sm font-semibold">Workflows</h3>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {laneList.map((l) => (
-            <div key={l.label} className="rounded-xl border border-gray-200 bg-white p-4 text-xs" data-testid="lane">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{l.label}</p>
-              <dl className="space-y-1">
-                {l.stats.map((s) => (
-                  <div key={s.label} className="flex justify-between gap-2"><dt className="text-gray-500">{s.label}</dt><dd className="text-right font-medium tabular-nums">{s.value}</dd></div>
-                ))}
-              </dl>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {l.tabs.map((t) => <button key={t} type="button" aria-label={`Open ${tabLabels[t] ?? t}`} onClick={() => onOpenTab?.(t)} className="rounded border border-gray-200 px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">{tabLabels[t] ?? t}</button>)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Funds and recent activity: placement to be settled (user, 11/24) */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-      {/* Fund cards */}
-      {cards.length > 0 && (
-        <section data-testid="fund-cards">
-          <h3 className="mb-2 text-sm font-semibold">Funds</h3>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {cards.map((c) => (
-              <div key={c.name} className="rounded-xl border border-gray-200 bg-white p-4 text-xs" data-testid="fund-card">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold">{c.name}</span>
-                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${TYPE_CLS[c.type] ?? ""}`}>{c.type}</span>
-                </div>
-                <dl className="grid grid-cols-2 gap-x-3 gap-y-1">
-                  <dt className="text-gray-500">NAV</dt><dd className="text-right font-semibold tabular-nums">{money(c.nav)}</dd>
-                  <dt className="text-gray-500">Net IRR{c.targetNetIrr != null ? " vs. target" : ""}</dt><dd className="text-right tabular-nums">{c.netIrr != null ? `${c.netIrr.toFixed(1)}%` : "not yet meaningful"}{c.targetNetIrr != null ? ` / ${c.targetNetIrr}%` : ""}</dd>
-                  <dt className="text-gray-500">Called</dt><dd className="text-right tabular-nums">{c.pctCalled != null ? `${c.pctCalled.toFixed(1)}%` : "—"}</dd>
-                  <dt className="text-gray-500">Dry powder</dt><dd className="text-right tabular-nums">{money(c.dryPowder)}</dd>
-                  <dt className="text-gray-500">Assets</dt><dd className="text-right tabular-nums">{c.assets}</dd>
-                  <dt className="text-gray-500">Next key date</dt><dd className="text-right">{c.nextDate ? `${c.nextDate.label} ${usDate(c.nextDate.date)}` : "—"}</dd>
-                </dl>
-                <div className="mt-2 flex gap-2">
-                  <button type="button" aria-label={`Open Fund Summary for ${c.name}`} onClick={() => onOpenTab?.("fundsummary")} className="text-[11px] text-blue-700 hover:underline">Fund Summary →</button>
-                  <button type="button" aria-label={`Open Fund Return for ${c.name}`} onClick={() => onOpenTab?.("fund")} className="text-[11px] text-blue-700 hover:underline">Fund Return →</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-        </div>
-        {/* Recent activity */}
-        <section className="rounded-xl border border-gray-200 bg-white p-4" data-testid="recent-activity">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Recent activity</h3>
-            <button type="button" aria-label="See all recent activity" onClick={() => onOpenTab?.("changes")} className="text-[11px] text-blue-700 hover:underline">Change log →</button>
-          </div>
-          {recent.length === 0 ? <p className="text-xs text-gray-500">No changes recorded yet.</p> : (
-            <ul className="space-y-1.5 text-[11px]">
-              {recent.map((e) => (
-                <li key={e.id ?? e.at} className="leading-snug">
-                  <span className="text-gray-400">{usDate(e.at.slice(0, 10))}</span> <span className="font-medium">{e.user}</span>{" "}
-                  <span className="text-gray-600">{e.item}{e.field ? ` › ${e.field}` : ""}</span>
-                  {e.from !== undefined || e.to !== undefined ? <span className="text-gray-500">: {formatValue(e.from)} → {formatValue(e.to)}</span> : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
-    </div>
+    </section>
   );
 }

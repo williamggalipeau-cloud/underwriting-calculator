@@ -86,10 +86,11 @@ function PlanChart({ rows }) {
   );
 }
 
-export default function FundPlan({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange }) {
+export default function FundPlan({ deals, funds = {}, marks = {}, curve, canEdit, email, onFundTermsChange, fixedFund = null }) {
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
-  const fundName = fundNames.includes(fundPick) ? fundPick : fundNames[0];
+  // Inside Fund Summary (11/24) the fund is Fund Summary's pick.
+  const fundName = fixedFund ?? (fundNames.includes(fundPick) ? fundPick : fundNames[0]);
   const fundDeals = useMemo(() => deals.filter((d) => d.inputs.fundName?.trim() === fundName), [deals, fundName]);
   const terms = useMemo(() => ({ ...DEFAULT_FUND_TERMS, ...(funds[fundName] ?? {}), name: fundName }), [funds, fundName]);
   const asOfToday = today();
@@ -137,16 +138,20 @@ export default function FundPlan({ deals, funds = {}, marks = {}, curve, canEdit
     <section className="space-y-4" data-testid="fund-plan">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
-            Fund Plan <span className="text-sm font-normal text-gray-500">· {fundName}</span>
-            <FundTypeBadge type={funds[fundName]?.type} />
-          </h2>
+          {fixedFund ? (
+            <h3 className="text-sm font-semibold text-gray-800">Plan vs. actual</h3>
+          ) : (
+            <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+              Fund Plan <span className="text-sm font-normal text-gray-500">· {fundName}</span>
+              <FundTypeBadge type={funds[fundName]?.type} />
+            </h2>
+          )}
           <p className="text-xs text-gray-500">
             The fund&apos;s plan, frozen from the fund model, against what the fund has done (actuals through {quarterLabel(asOf)}, from capital activity and the Valuation tab) and the current forecast (the fund model today).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          {fundNames.length > 1 && (
+          {!fixedFund && fundNames.length > 1 && (
             <select aria-label="Fund" value={fundName} onChange={(e) => { setFundPick(e.target.value); setVPick(null); }} className="rounded-lg border border-gray-300 px-2 py-1.5">
               {fundNames.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}
             </select>

@@ -3,7 +3,7 @@
 // Asset selector shown above the single-deal tabs (Quick Underwrite, Unit
 // Roll, Debt, Cash Flow, Asset Return, Sensitivity, Comps). Lists every open
 // deal; saved fund snapshots are listed too and open for editing when picked.
-export default function AssetPicker({ deals, snapshots = [], activeId, onPick, onOpenSnapshot, label }) {
+export default function AssetPicker({ deals, snapshots = [], activeId, onPick, onOpenSnapshot, label, onEdit = null }) {
   const name = (d) => d.inputs?.propertyName || "Unnamed deal";
   const byName = (a, b) => name(a).localeCompare(name(b));
   const funds = [...new Set(deals.map((d) => d.inputs?.fundName?.trim() || ""))].sort((a, b) => (a === "" ? 1 : b === "" ? -1 : a.localeCompare(b)));
@@ -35,6 +35,7 @@ export default function AssetPicker({ deals, snapshots = [], activeId, onPick, o
           </optgroup>
         )}
       </select>
+      {onEdit && <button type="button" onClick={onEdit} title="Open this asset's inputs (price, loan, rent roll and the rest)" className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50">Edit inputs</button>}
       {label && <span className="text-xs text-gray-400">{label}</span>}
     </div>
   );

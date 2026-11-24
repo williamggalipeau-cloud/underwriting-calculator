@@ -37,13 +37,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const main = p.locator("main");
 
-  // Tab placement: Portfolio Management, before Fund Return
+  // Placement (11/24): no Fund Plan tab; Plan vs. actual is a section of Fund Summary
+  await FX.openArea(p, "Fund Summary");
   const nav = await p.locator("nav").first().innerText();
-  check(nav.indexOf("Fund Plan") > 0 && nav.indexOf("Fund Plan") < nav.indexOf("Fund Return"), "Fund Plan tab sits before Fund Return");
-  await p.getByRole("button", { name: /^Fund Plan/ }).first().click();
+  check(!nav.includes("Fund Plan"), "no Fund Plan tab");
+  await FX.openTab(p, /^Fund Summary/);
   await p.waitForTimeout(1500);
-  const fp = main.getByTestId("fund-plan");
-  check((await fp.count()) === 1 && (await fp.locator("h2").innerText()).includes("Model Fund I"), "Fund Plan for Model Fund I");
+  const fp = main.getByTestId("fs-plan").getByTestId("fund-plan");
+  check((await fp.count()) === 1 && /Plan vs\. actual/.test(await fp.locator("h3").first().innerText()) && (await fp.getByLabel("Fund", { exact: true }).count()) === 0, "Plan vs. actual inside Fund Summary (Fund Summary's fund, no second picker)");
   check((await fp.getByTestId("no-plan").count()) === 1 && /Today.s forecast: net LP IRR \d/.test(await fp.getByTestId("no-plan").innerText()), "no plan yet: shows today's forecast");
 
   // Freeze the original plan
@@ -88,7 +89,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.screenshot({ path: S + "/phaseK_fundplan.png", fullPage: true });
 
   // Sell/Hold: change every hold, flags, new fund rows
-  await p.getByRole("button", { name: /^Sell\/Hold Analysis/ }).first().click();
+  await FX.openTab(p, /^Sell\/Hold Analysis/);
   await p.waitForTimeout(1500);
   await main.getByRole("button", { name: /^Whole fund/ }).click();
   await p.waitForTimeout(1500);

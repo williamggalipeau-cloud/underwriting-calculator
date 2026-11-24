@@ -244,7 +244,7 @@ The tabs have no ✕: an asset can't be deleted from here (to take one out of
 a fund, use Remove on the Fund Return tab, which keeps the deal). Phase O
 replaces this with New / Edit asset and New / Edit fund buttons.
 
-**Tab bar.** Tabs are grouped, with a small header over each group:
+**Functions** (the tab bar). One button per function area; choosing an area shows its tabs (11/24, §7.42). **Home**, in the header, returns to the Operational Dashboard after saving your edits.
 
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
@@ -252,7 +252,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Dispositions** | Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Sale Documents | |
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
-| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing · Benchmarking | |
+| **Portfolio Management** | Fund Summary (with Plan vs. actual) · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing · Benchmarking | |
 | **Market** | Market Data | |
 | **Library** | Documents · Reports | |
 
@@ -263,7 +263,12 @@ Management, where it was "Sales Comps") and its **Third-Party** research
 **11/24 changes:** Sell/Hold Analysis moved to Dispositions (first, since
 it leads to Start sale); Asset Summary is the first Asset Management tab;
 **Unit Roll** is now **Rent Roll** and **Leasing** is now **Active
-Leasing**. Older sections of this manual may still use the old names.
+Leasing**; the Fund Plan tab is now **Plan vs. actual** on Fund Summary. New
+fields: **Asset Manager** (Edit asset) and **Portfolio manager** (Edit fund)
+name the Owner on the dashboard; **Ext. Notice** (Debt) and **Sub line
+maturity** (Edit fund) feed Upcoming Events; sale contracts and pipeline
+deals carry P&S, deposit, hard money, due diligence, loan closing and
+closing dates. Older sections of this manual may still use the old names.
 
 A group's header appears once it has tabs. Each fund carries a **type tag**
 (Fund, Separate Account or Joint Venture), chosen in **New fund** and
@@ -2330,7 +2335,7 @@ date added.
 bought after today. A row of **Pipeline deals** at the top switches between
 them. With an owned asset selected, the tab says so and points to the Asset
 Management tabs instead of showing the screener. The app opens on
-**Home** (§7.42); opening an asset from Asset Summary goes to its business
+the **Operational Dashboard** (§7.42); opening an asset from Asset Summary goes to its business
 plan.
 
 **Model in fund** (above the screener inputs, labelled "Scenario — not
@@ -2463,31 +2468,74 @@ On the **Change log** tab (working log or the database's verified log):
   (they are kept in the database, marked deleted), with when and by whom.
   **Restore** brings one back exactly as it was when deleted.
 
-### 7.42 Home page (`lib/home.js`, phase Z)
+### 7.42 Operational Dashboard (`lib/home.js`, `components/Home.jsx`, phase Z)
 
-The app opens on **Home** (the first button in the tab bar). It shows the
+The app opens on the **Operational Dashboard**, the landing page. It shows the
 portfolio chosen in **Working on** (§7.40) and is computed from data already
-loaded; nothing on it is saved.
-Sections, top to bottom (user, 11/24):
-1. **Watch List** (was "Today · needs attention"): leases expiring in the
-   next 90 days (rent roll), leasing next steps due, loans maturing within
-   18 months, rate caps expiring within 12 months, assets with no valuation
-   mark for the last quarter end, rent 60+ days late (each fund's latest
-   delinquency report), covenant and property condition issues, and assets
-   whose NOI is in the red against budget year to date. Urgent undated items
-   come first, then dated items, soonest first; each opens the tab that
-   handles it on that asset. **Show all** past the first 12.
-2. **Setup & Maintenance:** New asset, New fund setup, Upload rent roll,
-   Upload Yardi actuals, Import marks, Record capital activity and New
-   report, each opening the screen that does it.
-3. **Workflows:** one lane per tab header in the tab bar's order, each with
-   a few live numbers and links to its tabs.
+loaded; the only thing it saves is which actions were marked done.
 
-Below them, for now: **Funds** (a card per fund, separate account or joint
-venture with its type badge: NAV, net IRR against the target when set, %
-called, dry powder, assets and the next key date, with links to Fund Summary
-and Fund Return) and **Recent activity** (the last 10 changes from the
-change log).
+**Getting around (user, 11/24).**
+- **Home** sits in the header next to the Baywise logo (the logo works too).
+  It always returns to the dashboard. Before it leaves it saves any unsaved
+  edits; if the save doesn't go through (a newer version saved by someone
+  else, or the database unreachable) it asks before leaving. The edits stay
+  in the window either way and are saved with **Save now**.
+- **Functions:** one button per function area (Acquisitions, Dispositions,
+  Asset Management, Property Management, Portfolio Management, Market,
+  Library), each with a count badge where there's work. Choosing an area
+  shows its tabs on a second row; choosing it again closes it. The area of
+  the tab you're on is highlighted and opens by itself when a dashboard link
+  takes you to one of its tabs.
+- **Setup & Maintenance**, under Functions on every page: New asset, New fund
+  setup, Edit asset…, Edit fund…, Upload rent roll, Upload Yardi actuals,
+  Import marks, Record capital activity and New report.
+- Download backup, Restore from backup and the owner-only Sample data menu are
+  under **⋯ More** in the header.
+
+**Sections, top to bottom:**
+1. **Actions Needed:** urgent items: undated issues to fix now (a covenant
+   breach, an immediate repair, rent 60+ days late, NOI in the red against
+   budget), anything due within 30 days and anything overdue. Overdue items
+   are in red, the rest in black. An item stays until its **Status** is set
+   to **Completed** (who and when are kept for two years, logged in the change log
+   under "Actions Needed") or until the data shows it handled (a mark
+   entered, a milestone done, a job completed, a sale closed).
+2. **Upcoming Events:** critical action and milestone dates by month: the
+   next three months by default, **Show all** for a year ahead, and **Show
+   the past 12 months** for history (user, 11/24). It covers lease expirations (rent roll) and the
+   lease abstracts' critical dates (signed in), loan maturities, extension
+   notices (the loan's notice period, **Ext. Notice** on Debt; 60 days when
+   not set), quarterly covenant tests, rate caps expiring (one line, saying
+   when a replacement is needed because the loan runs past the cap), each
+   fund's sub line maturity (Edit fund), appraisals due, property management
+   dates, construction jobs' scheduled completion, business plan milestones,
+   purchase and sale contract dates (P&S signed, deposit due, hard money due,
+   due diligence start and end, loan closing, deal closing) and fund dates.
+   Setting a completed item's Status back reopens it.
+3. **Asset Watch List:** plan performance only. An asset is listed when its
+   NOI or IRR is under its business plan:
+   - NOI: actual year to date against the original plan (revision 1's
+     budget), when monthly actuals are in (Asset Business Plan).
+   - IRR: the to-date IRR at the last quarter end's appraisal or internal
+     mark against the plan's underwritten IRR, once the asset has been held a
+     year.
+   - **At Risk:** more than 10% under on either (relative to the plan);
+     **Off Plan:** up to 10% under. Worst first.
+   - Columns: Asset name, Owner, Plan status, NOI vs. plan, IRR vs. plan,
+     Other goals missed (occupancy, rent, WALT below target; late milestones;
+     capital over budget), Next event (from Upcoming Events) and a link to the
+     asset's business plan. The risk report's other flags stay in Reports.
+
+**Columns of Actions Needed and Upcoming Events:** Asset name, Due date,
+Action type, Owner, Status and **Details** (opens the tab where the item is
+handled, on that asset).
+- **Owner:** the item's own owner (a plan milestone's or a pipeline deal's),
+  else the asset's **Asset Manager** (Edit asset), else the fund's
+  **Portfolio manager** (Edit fund); "Unassigned" when none is set.
+- **Status:** **Past Due**, **Due now** (within 30 days, or an issue to fix
+  now), **Upcoming** (more than 30 days out; Upcoming Events only) or
+  **Completed** (marked done, cleared by the data, or a past event). Status
+  is a dropdown on open items: choose Completed to mark one done.
 
 ### 7.43 Dispositions (`lib/dispositions.js`, phase P)
 
@@ -3987,7 +4035,7 @@ each phase and the decisions behind it are in
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
-| Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ✅ Built 11/23: attention list, recent activity, fund cards, lanes for the tab headers that exist, quick actions; follows Working on (§7.42) |
+| Z. Operational Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions; follows Working on (§7.42) |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Research → Comps, valuations and reports show a full set | ⛓ Future release |

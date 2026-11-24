@@ -46,7 +46,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const main = p.locator("main");
 
   // Fund Return: assets ranked by gap
-  await p.getByRole("button", { name: /^Fund Return/ }).first().click();
+  await FX.openTab(p, /^Fund Return/);
   await p.waitForTimeout(1500);
   const fu = main.getByTestId("fund-uw");
   const rows = fu.getByTestId("fund-uw-row");
@@ -58,7 +58,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/underwritten-vs-actual\.xlsx$/.test(dl.suggestedFilename()), `fund Excel: ${dl.suggestedFilename()}`);
 
   // Asset Summary → Details for Route 9
-  await p.getByRole("button", { name: "Asset Summary", exact: true }).click();
+  await FX.openTab(p, "Asset Summary");
   await p.waitForTimeout(1500);
   await main.locator("tbody tr", { hasText: "Route 9 Small Bay" }).first().getByRole("button", { name: "Details" }).click();
   await p.waitForTimeout(800);
@@ -92,7 +92,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const t2 = await main.getByTestId("uw-vs-actual").innerText();
   check(/Baseline frozen/.test(t2) && /by t@example\.com/.test(t2), "baseline frozen by the signed-in user");
   check(/Levered IRR[^\n]*\n?[^\n]*(0\.00 pts|—)/.test(await main.getByTestId("uw-returns").innerText()) || /gap: (0\.00 pts|—)/.test(await main.getByTestId("uw-attribution").innerText()), "fresh baseline: no gap");
-  await p.getByRole("button", { name: /^Fund Return/ }).first().click();
+  await FX.openTab(p, /^Fund Return/);
   await p.waitForTimeout(1500);
   check((await main.getByTestId("fund-uw-row").count()) === 2, "Fund Return now lists both assets");
 

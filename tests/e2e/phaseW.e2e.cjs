@@ -34,10 +34,11 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   p.on("pageerror", (e) => errs.push(e.message));
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
+  await FX.openArea(p, "Fund Debt");
   const pm = p.getByRole("group", { name: "Portfolio Management" });
   const tabs = await pm.getByRole("button").allInnerTexts();
   check(tabs.findIndex((t) => /^GP Economics/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "a GP Economics tab right after Fund Return");
-  await pm.getByRole("button", { name: "GP Economics" }).click();
+  await FX.openTab(p, "GP Economics");
   await p.waitForTimeout(2500);
   const g = p.getByTestId("gp-economics");
   check(/Internal/.test(await g.innerText()) && /Promote is kept apart from fee revenue/.test(await g.innerText()), "marked internal; promote apart from fees");
