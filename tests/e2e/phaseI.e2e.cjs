@@ -127,7 +127,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(xl.suggestedFilename().endsWith("-budget.xlsx"), "Excel budget export");
   await p.screenshot({ path: S + "/i_plan.png", fullPage: true });
   // Model change banner
-  await p.getByRole("button", { name: /^Unit Roll/ }).first().click();
+  await p.getByRole("button", { name: /^Rent Roll/ }).first().click();
   await p.waitForTimeout(600);
   // Fund Return roll-up
   await p.getByRole("button", { name: /^Fund Return/ }).first().click();

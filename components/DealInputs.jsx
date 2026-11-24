@@ -815,14 +815,14 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           {(inputs.units ?? []).length > 0 ? (
             <p className="text-xs text-gray-500">
               <span className="font-medium uppercase tracking-wide">Units:</span>{" "}
-              <span className="font-semibold text-gray-900">{inputs.units.length}</span> from the rent roll (Unit Roll tab) ·{" "}
+              <span className="font-semibold text-gray-900">{inputs.units.length}</span> from the rent roll (Rent Roll tab) ·{" "}
               {inputs.units.filter((u) => u.leaseStatus === "occupied").length} leased
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <Field label="Units" value={inputs.unitCount ?? 0} field="unitCount" step={1} onChange={set} />
               <p className="self-end pb-2 text-xs text-gray-400">
-                {avgUnitSize > 0 ? `≈ ${avgUnitSize.toLocaleString()} SF per unit. ` : ""}Add a rent roll on the Unit Roll tab for leases.
+                {avgUnitSize > 0 ? `≈ ${avgUnitSize.toLocaleString()} SF per unit. ` : ""}Add a rent roll on the Rent Roll tab for leases.
               </p>
             </div>
           )}

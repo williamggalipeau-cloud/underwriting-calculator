@@ -79,7 +79,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   t = await main.innerText();
   check(t.includes("Fictional Pipeline Dock"), "Pipeline: a deal screened for the JV shows under the JV");
   // Deal tabs: the asset list is the JV's asset plus its pipeline deal.
-  await p.getByRole("button", { name: /^Unit Roll/ }).first().click();
+  await p.getByRole("button", { name: /^Rent Roll/ }).first().click();
   await p.waitForTimeout(800);
   t = await main.innerText();
   check(/2 open/.test(t), `asset list scoped: ${(t.match(/\d+ open[^\n]*/) || [""])[0]}`);

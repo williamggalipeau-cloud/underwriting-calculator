@@ -96,7 +96,7 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, t
   return (
     <div className="space-y-5 text-gray-900" data-testid="leasing">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <div><h2 className="text-lg font-bold">Leasing</h2><p className="text-xs text-gray-500">Leasing prospects and renewals by unit against the business plan, and rent comps for {inputs.propertyName}.</p></div>
+        <div><h2 className="text-lg font-bold">Active Leasing</h2><p className="text-xs text-gray-500">Leasing prospects and renewals by unit against the business plan, and rent comps for {inputs.propertyName}.</p></div>
         <div className="flex items-center gap-2 text-xs">
           <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             {[["asset", inputs.propertyName || "This asset"], ["fund", scopeName ? `All of ${scopeName}` : "All assets"]].map(([k, l]) => <button key={k} type="button" onClick={() => setScope(k)} className={`rounded-md px-2 py-1 ${scope === k ? "bg-white font-semibold shadow-sm" : "text-gray-500"}`}>{l}</button>)}

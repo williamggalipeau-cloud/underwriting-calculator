@@ -56,8 +56,8 @@ const CSV = [
   await p.waitForTimeout(3500);
   const am = p.getByRole("group", { name: "Asset Management" });
   const tabs = await am.getByRole("button").allInnerTexts();
-  check(tabs.indexOf("Leasing") === tabs.indexOf("Leases") + 1, "a Leasing tab right after Leases");
-  await am.getByRole("button", { name: "Leasing", exact: true }).click();
+  check(tabs.indexOf("Active Leasing") === tabs.indexOf("Leases") + 1, "an Active Leasing tab right after Leases");
+  await am.getByRole("button", { name: "Active Leasing", exact: true }).click();
   await p.waitForTimeout(800);
   const lp = p.getByTestId("leasing-pipeline");
 

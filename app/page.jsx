@@ -440,23 +440,23 @@ const TAB_GROUPS = [
     { id: "research",    label: "Research" },
   ] },
   { label: "Dispositions", tabs: [
+    { id: "sellhold",    label: "Sell/Hold Analysis" },
     { id: "forsale",     label: "Assets for Sale" },
     { id: "offers",      label: "Offers" },
     { id: "trackrecord", label: "Track Record" },
     { id: "dispdocs",    label: "Sale Documents" },
   ] },
   { label: "Asset Management", tabs: [
-    { id: "plan",        label: "Asset Business Plan" },
     { id: "assets",      label: "Asset Summary" },
-    { id: "units",       label: "Unit Roll" },
+    { id: "plan",        label: "Asset Business Plan" },
+    { id: "units",       label: "Rent Roll" },
     { id: "leases",      label: "Leases" },
-    { id: "leasing",     label: "Leasing" },
+    { id: "leasing",     label: "Active Leasing" },
     { id: "valuations",  label: "Valuation" },
     { id: "debt",        label: "Debt" },
     { id: "cashflow",    label: "Cash Flow" },
     { id: "returns",     label: "Asset Return" },
     { id: "sensitivity", label: "Return Sensitivity" },
-    { id: "sellhold",    label: "Sell/Hold Analysis" },
   ] },
   { label: "Property Management", tabs: [
     { id: "taxes",       label: "Property Taxes" },
@@ -1238,7 +1238,7 @@ export default function Home() {
     setValuations((prev) => ({ ...prev, [dealId]: { ...(prev[dealId] ?? {}), [quarter]: { ...((prev[dealId] ?? {})[quarter] ?? {}), ...mark } } }));
     return true;
   }
-  // Unit Roll → rent delinquency (Yardi) stored with the fund. An import is
+  // Rent Roll → rent delinquency (Yardi) stored with the fund. An import is
   // logged as one note; per-tenant notes as normal changes.
   function setDelinquency(fundName, updater, note) {
     if (!requireEdit()) return;
@@ -2003,7 +2003,7 @@ export default function Home() {
                 actions={[
                   { label: "New asset", primary: true, disabled: locked, run: () => { handleAddDeal(); setPanelOpen(true); } },
                   { label: "New fund setup", disabled: locked, run: () => setFundEditor({ mode: "new" }) },
-                  { label: "Upload rent roll", title: "Unit Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
+                  { label: "Upload rent roll", title: "Rent Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
                   { label: "Upload Yardi actuals", title: "Asset Business Plan tab: upload monthly actuals", run: () => setActiveTab("plan") },
                   { label: "Import marks", title: "Valuation tab: import quarterly marks", run: () => setActiveTab("valuations") },
                   { label: "Record capital activity", title: "Fund Return tab: capital calls, distributions and line draws", run: () => setActiveTab("fund") },

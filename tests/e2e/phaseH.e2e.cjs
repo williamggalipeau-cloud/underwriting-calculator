@@ -64,7 +64,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   const main = p.locator("main");
 
   // ── Delinquency: upload three months of aged receivables ──
-  await p.getByRole("button", { name: /^Unit Roll/ }).first().click();
+  await p.getByRole("button", { name: /^Rent Roll/ }).first().click();
   await p.waitForTimeout(1200);
   const dq = main.getByTestId("delinquency");
   for (const m of ["08", "09", "10"]) {

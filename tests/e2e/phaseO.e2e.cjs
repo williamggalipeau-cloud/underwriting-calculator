@@ -40,7 +40,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await p.getByTestId("asset-panel").count()) === 0, "no inputs panel on load: the tabs use the full width");
   const sb = p.getByTestId("setup-buttons");
   check((await sb.getByRole("button", { name: "New asset" }).count()) === 1 && (await sb.getByLabel("Edit asset").count()) === 1 && (await sb.getByRole("button", { name: "New fund" }).count()) === 1 && (await sb.getByLabel("Edit fund").count()) === 1, "header: New asset, Edit asset, New fund, Edit fund");
-  for (const t of ["Asset Summary", "Unit Roll", "Fund Return", "Deal Screener", "Documents"]) {
+  for (const t of ["Asset Summary", "Rent Roll", "Fund Return", "Deal Screener", "Documents"]) {
     await p.getByRole("button", { name: new RegExp(`^${t}`) }).first().click();
     await p.waitForTimeout(400);
   }
@@ -59,7 +59,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await panel.getByRole("button", { name: "Done" }).click();
   await p.waitForTimeout(500);
   check((await p.getByTestId("asset-panel").count()) === 0, "Done closes it");
-  await p.getByRole("button", { name: /^Unit Roll/ }).first().click();
+  await p.getByRole("button", { name: /^Rent Roll/ }).first().click();
   await p.waitForTimeout(500);
   const pickTxt = await main.locator("#asset-picker option:checked").innerText();
   check(/Harbor Light Industrial \(edited\)/.test(pickTxt), `the edit applies and the asset picker shows it: ${pickTxt}`);

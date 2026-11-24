@@ -64,6 +64,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const jvCard = await cards.filter({ hasText: JV }).innerText();
   check(/Joint Venture/.test(jvCard) && /NAV/.test(jvCard) && /Dry powder/.test(jvCard) && /Next key date/.test(jvCard), "the JV card: type badge, NAV, dry powder, next key date");
 
+  // ── Section order (user, 11/24): Watch List, Setup & Maintenance, Workflows ──
+  const ys = [];
+  for (const id of ["attention", "setup-maintenance", "lanes", "fund-cards"]) ys.push((await p.getByTestId(id).boundingBox())?.y ?? -1);
+  check(ys.every((y, i) => y >= 0 && (i === 0 || y > ys[i - 1])), `sections in order: Watch List, Setup & Maintenance, Workflows, then funds (${ys.map(Math.round).join(", ")})`);
+  check(/^Watch List/.test(await p.getByTestId("attention").locator("h3").innerText()) && /Setup & Maintenance/.test(await p.getByTestId("setup-maintenance").innerText()) && !/needs attention ·|Today · needs attention/.test(await p.getByTestId("home").innerText()), "renamed Watch List; Setup & Maintenance holds the quick actions");
+
   // ── Lanes ──
   const lanes = p.getByTestId("lane");
   const labels = await lanes.evaluateAll((els) => els.map((e) => e.querySelector("p")?.textContent));

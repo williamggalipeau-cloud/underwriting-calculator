@@ -249,8 +249,8 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
 | **Acquisitions** | Pipeline · Deal Screener · Fund Impact · Research | |
-| **Dispositions** | Assets for Sale · Offers · Track Record · Sale Documents | |
-| **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
+| **Dispositions** | Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Sale Documents | |
+| **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
 | **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing · Benchmarking | |
 | **Market** | Market Data | |
@@ -259,6 +259,11 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 **Research** (11/24) holds the asset's **Comps** (moved here from Asset
 Management, where it was "Sales Comps") and its **Third-Party** research
 (§7.48). Both belong to the asset, not the fund.
+
+**11/24 changes:** Sell/Hold Analysis moved to Dispositions (first, since
+it leads to Start sale); Asset Summary is the first Asset Management tab;
+**Unit Roll** is now **Rent Roll** and **Leasing** is now **Active
+Leasing**. Older sections of this manual may still use the old names.
 
 A group's header appears once it has tabs. Each fund carries a **type tag**
 (Fund, Separate Account or Joint Venture), chosen in **New fund** and
@@ -2463,28 +2468,26 @@ On the **Change log** tab (working log or the database's verified log):
 The app opens on **Home** (the first button in the tab bar). It shows the
 portfolio chosen in **Working on** (§7.40) and is computed from data already
 loaded; nothing on it is saved.
-- **Today · needs attention:** leases expiring in the next 90 days (unit
-  roll), loans maturing within 18 months, rate caps expiring within 12
-  months, assets with no valuation mark for the last quarter end, rent 60+
-  days late (each fund's latest delinquency report) and assets whose NOI is
-  in the red against budget year to date. Dated items come first, soonest
-  first; each opens the tab that handles it on that asset.
-- **Recent activity:** the last 10 changes from the change log (the
-  database's log when signed in).
-- **Funds:** a card per fund, separate account or joint venture with its
-  type badge: NAV, net IRR (against the target when one is set in Fund
-  Plan), % called, dry powder, assets and the next key date, with links to
-  Fund Summary and Fund Return.
-- **Workflows:** one lane per tab header in the tab bar's order
-  (Acquisitions, Asset Management, Portfolio Management, Library), each with
-  a few live numbers (active pipeline by stage and dry powder; occupancy,
-  leases expiring this year, NOI vs. budget and appraisals due; NAV, loans
-  maturing, sub line drawn and caps expiring) and links to its tabs. Lanes
-  for Dispositions, Property Management and Market appear once those tab
-  headers exist.
-- **Quick actions:** New asset, New fund setup, Upload rent roll, Upload
-  Yardi actuals, Import marks, Record capital activity and New report, each
-  opening the screen that does it.
+Sections, top to bottom (user, 11/24):
+1. **Watch List** (was "Today · needs attention"): leases expiring in the
+   next 90 days (rent roll), leasing next steps due, loans maturing within
+   18 months, rate caps expiring within 12 months, assets with no valuation
+   mark for the last quarter end, rent 60+ days late (each fund's latest
+   delinquency report), covenant and property condition issues, and assets
+   whose NOI is in the red against budget year to date. Urgent undated items
+   come first, then dated items, soonest first; each opens the tab that
+   handles it on that asset. **Show all** past the first 12.
+2. **Setup & Maintenance:** New asset, New fund setup, Upload rent roll,
+   Upload Yardi actuals, Import marks, Record capital activity and New
+   report, each opening the screen that does it.
+3. **Workflows:** one lane per tab header in the tab bar's order, each with
+   a few live numbers and links to its tabs.
+
+Below them, for now: **Funds** (a card per fund, separate account or joint
+venture with its type badge: NAV, net IRR against the target when set, %
+called, dry powder, assets and the next key date, with links to Fund Summary
+and Fund Return) and **Recent activity** (the last 10 changes from the
+change log).
 
 ### 7.43 Dispositions (`lib/dispositions.js`, phase P)
 

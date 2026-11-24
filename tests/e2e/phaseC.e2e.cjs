@@ -107,7 +107,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   console.log("  CHANGES:", Object.keys(saved ?? {}), JSON.stringify(saved?.changes ?? null).slice(0, 600));
   const src = (saved?.changes ?? []).filter((c) => /From lease abstract/.test(c.note ?? ""));
   check(src.length > 10 && src.some((c) => c.field.includes("Rent steps")), `database log rows carry the source: ${src.length} rows, e.g. ${JSON.stringify(src[0] ?? {}).slice(0, 160)}`);
-  await p.getByRole("button", { name: /^Unit Roll/ }).click();
+  await p.getByRole("button", { name: /^Rent Roll/ }).click();
   await p.waitForTimeout(1500);
   const uflag = main.getByTestId("unit-lease-flag").first();
   check((await uflag.count()) && (await uflag.innerText()).includes("lease"), `Unit Roll row flag: ${await uflag.innerText().catch(() => "none")}`);

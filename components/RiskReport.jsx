@@ -259,7 +259,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         <Sec title={`Industry (SIC 2-digit) · limits ${lim.industryAssetPct}% of an asset, ${lim.industryFundPct}% of the fund`} testId="risk-industry">
           <T head={["Fund industry", "% of rent"]} right={[1]} rows={r.industry.fund.slice(0, 8).map((g) => [g.title, over(g.rentPct, lim.industryFundPct)])} />
           <T head={["Asset", "Largest industry", "% of asset rent"]} right={[2]} rows={r.industry.assets.map((a) => [a.name, a.groups[0]?.title ?? "—", a.groups[0] ? over(a.groups[0].rentPct, lim.industryAssetPct) : "—"])} />
-          {r.industry.unclassifiedPct > 0 && <p className="mt-1 text-[11px] text-gray-500">{pct(r.industry.unclassifiedPct)} of rent has no SIC code (Unit Roll).</p>}
+          {r.industry.unclassifiedPct > 0 && <p className="mt-1 text-[11px] text-gray-500">{pct(r.industry.unclassifiedPct)} of rent has no SIC code (Rent Roll).</p>}
         </Sec>
       </div>
         <Sec title="Geography (share of value)" testId="risk-geo">
