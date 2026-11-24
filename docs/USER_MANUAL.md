@@ -248,13 +248,17 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
-| **Acquisitions** | Pipeline · Deal Screener · Fund Impact | |
-| **Dispositions** | (none yet) | Assets for Sale · Offers · Track Record · Documents (P) |
-| **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Valuation · Sales Comps · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | Leasing (R), after Leases |
-| **Property Management** | (none yet) | Property Taxes · Insurance · Property Condition · Service Contracts (T) |
-| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · Distribution Analysis · Stress Testing | Fund Debt (S) |
-| **Market** | (none yet) | Market Data (U) |
+| **Acquisitions** | Pipeline · Deal Screener · Fund Impact · Research | |
+| **Dispositions** | Assets for Sale · Offers · Track Record · Sale Documents | |
+| **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
+| **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
+| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · Fund Debt · Distribution Analysis · Stress Testing | |
+| **Market** | Market Data | |
 | **Library** | Documents · Reports | |
+
+**Research** (11/24) holds the asset's **Comps** (moved here from Asset
+Management, where it was "Sales Comps") and its **Third-Party** research
+(§7.48). Both belong to the asset, not the fund.
 
 A group's header appears once it has tabs. Each fund carries a **type tag**
 (Fund, Separate Account or Joint Venture), chosen in **New fund** and
@@ -280,7 +284,7 @@ in the header, next to User manual.
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
 | **Valuation** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, each asset's quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. (Fund NAV and the fund's gross / net LP interim returns and value change are on Fund Return.) |
-| **Sales Comps** | Import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. |
+| **Research** (Acquisitions) | **Comps**: import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. Each asset keeps its own comps. **Third-Party**: the reports the underwriting used (market reports, appraisals, BOVs, rent surveys, environmental, PCA, credit, zoning), each a PDF or a link with a summary of what it supports; Excel and PDF (§7.48). |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. The live NY Fed SOFR and forward-curve panel is at the top of this tab. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
 | **Asset Return** | Deal returns, projected cash-on-cash yield by hold year (§7.21), the deal-level LP/GP waterfall and a comparison with the other saved deals. IRR, equity multiple, year-1 cash-on-cash and DSCR turn red below 14%, 2.0x, 7% and 1.25x (hover for the threshold). The waterfall summary shows **GP profit** (GP distributions − GP equity: upside above capital returned; formerly "GP Promote"), **GP promote** (GP distributions − the GP's share of equity × all distributions: upside above its pro-rata share) and **GP ROE** (GP profit ÷ GP equity, total, not annualized). Example: GP 10% of equity ($1.0M), the deal distributes $20M, the GP gets $2.6M: GP profit $1.6M, GP promote $0.6M, GP ROE 160%. **Projected fee revenue**: property management and construction management fees by hold year, the total and its present value at a discount rate you set (default 8%); Excel. The asset management fee is the fund's management fee (Fund Return), so it isn't counted per asset, and promote is never fee revenue (phase L, 11/23). |
@@ -306,7 +310,7 @@ in the header, next to User manual.
 
 
 **Asset dropdown.** Deal Screener, Unit Roll, Debt, Cash Flow, Asset
-Return, Return Sensitivity and Sales Comps have an **Asset** dropdown at the top,
+Return, Return Sensitivity and Research have an **Asset** dropdown at the top,
 grouped by fund, listing every open deal; choosing one switches the active
 deal (the same as clicking its tab in the left panel). Saved fund snapshots
 (**Add to Fund** copies) are listed under "Saved snapshots"; choosing one
@@ -505,7 +509,7 @@ repository. Excel files are unzipped with the browser's built-in
 | **Supabase** (nydqmigxorahfkfpkjnq.supabase.co) | Sign-in, then saves and opens | Shared workspaces, version history, verified change log | Optional; see §12 |
 | **NY Fed Markets Data API** (markets.newyorkfed.org) | Fetched live when the page opens, and on **Refresh** | Current SOFR and the 30/90/180-day SOFR averages; anchoring the curve to the live 30-day average | Public, free and allows browser requests. If it is unreachable, the app keeps working on the snapshot curve. |
 | **CME SOFR futures via Yahoo Finance** | **Fetch CME** button (optional) | A per-year manual SOFR curve (December 3-month SOFR futures; rate = 100 − price) | Goes through public CORS proxies and may fail; Pensford is the default. |
-| **CoStar** (and Crexi, LoopNet, RCA, broker sheets) | Upload an export on the Sales Comps tab | Sale comps: $/SF, cap rates, exit cap check | CoStar has no public API. In CoStar, run a Sale Comps search, then Export → Excel. Column names are recognized automatically (§7.14). |
+| **CoStar** (and Crexi, LoopNet, RCA, broker sheets) | Upload an export on Research → Comps | Sale comps: $/SF, cap rates, exit cap check | CoStar has no public API. In CoStar, run a Sale Comps search, then Export → Excel. Column names are recognized automatically (§7.14). |
 | **Your files** | Upload | Rent roll CSV (Unit Roll), fund terms template (.xlsx / .csv), Pensford export, comps | All read in the browser. |
 
 The sample portfolio and the example comps are **made up for illustration**
@@ -554,7 +558,8 @@ underwriting-calculator/
 │   ├── TenantCredit.jsx      Tenant credit section on each lease
 │   ├── CloudPanel.jsx        Database panel (sign in, save/open, members)
 │   ├── ChangeLog.jsx         Change Log tab
-│   └── SalesComps.jsx        Sales Comps tab
+│   ├── Research.jsx          Acquisitions → Research (Comps, Third-Party)
+│   └── SalesComps.jsx        Comps section of Research
 ├── lib/                      Calculation engine and data (no UI)
 │   ├── calculations.js       Core engine: underwrite(), loan math, IRR, waterfall, sensitivity
 │   ├── quickUnderwrite.js    Quick model, cap schedule, SOFR by year, toMainInputs()
@@ -2135,6 +2140,21 @@ issued list. Before LPs have funded capital, net returns show as not yet
 meaningful and the letter describes gross asset value. The app never sends
 anything: download the PDF and upload it to the investor portal.
 
+**Summary on top** (11/24, like the risk report, §7.32d). Three cards open
+the report, and the same summary is on the first page of the PDF (above the
+letter) and at the top of the Excel:
+- **Watch list**: the risk report's flagged assets and their scores. It is
+  internal: owners and editors see the card on screen in both versions, but
+  it goes into the PDF and Excel of the **internal** version only, never the
+  shareable one.
+- **Change vs. last quarter**: LP NAV, net LP IRR, TVPI, DPI, LP capital
+  called (%), occupancy (weighted by SF), loan to value and the number of
+  assets, now against the previous quarter end, with the measures that
+  moved. Open **Change vs. last quarter: all measures** for the full table.
+- **Issued reports**: how many versions have been issued for the quarter
+  and the latest (version, shareable or internal, date and who). An issued
+  version keeps the summary as it was when issued.
+
 ### 7.32c Fund limits, actual vs. limit (phase L)
 
 On the Reports tab (owners and editors), **Fund limits** lists every
@@ -2841,6 +2861,38 @@ fund to actual capital calls. There is no approval step yet (phase V).
 **Excel** and **PDF** export the quarter. Everything entered (balances,
 fund cash, the sub line rule, Yardi code matches, proposals) is saved on the
 fund's record.
+
+### 7.48 Research: Comps and Third-Party (`lib/research.js`, 11/24)
+
+**Acquisitions → Research** has two sections, switched at the top right.
+Everything in it is saved on the asset (the Asset dropdown picks which), so
+it follows the asset into whichever fund it sits in, and every change is in
+the change log.
+
+**Comps** is the sales comps tool that used to be the Sales Comps tab
+(§7.14), now per asset. Before 11/24 the firm had one comps list for every
+asset. An asset with no comps of its own opens with that firm list as a
+starting point, under an amber note; the first change (import, add, clear,
+a filter, the spread) saves a copy to the asset, and from then on the asset
+uses its own. The firm list itself doesn't change, and the firm-wide market
+data (§7.47) never copies onto an asset.
+
+**Third-Party** lists the research the team relied on for the asset:
+
+| Field | What to enter |
+|---|---|
+| Type | Market report · Appraisal · Broker opinion of value · Rent survey · Environmental (Phase I / II) · Property condition report · Tenant credit report · Zoning / entitlement report · Other |
+| Title, provider, report date | e.g. "Q3 industrial market report", the broker or appraiser, the report's date. With a PDF and no title, the file name is used |
+| Link | Optional; only http:// and https:// links are accepted |
+| PDF | Optional (signed in to the firm workspace). Stored with the asset's documents, filed as Other with the title "[research:…] file name", so it is also in Library → Documents |
+| Assumptions it supports | Market rent · Rent growth · Vacancy / downtime · Exit cap rate · Purchase price / value · Capital / repairs · Tenant credit · Other |
+| Key figures, summary | The numbers taken from the report and how they were used |
+
+The cards above the list count the reports (PDFs and links) and show which
+assumptions have support and which have **no research yet**. **This asset /
+All assets in view** switches to every asset in the "Working on" scope.
+**Edit** and **Remove** are on each row (removing an item leaves its PDF in
+Library → Documents). **Excel** and **PDF** export the list shown.
 
 ## 8. Worked example: the default deal
 
@@ -3856,7 +3908,9 @@ each phase and the decisions behind it are in
 | Z. Home page | The page the app opens on: attention list, one workflow lane per tab header (Acquisitions, Dispositions, Asset Management, Property Management, Portfolio Management, Market, Library) with live numbers, fund cards, quick actions (New deal, New fund setup, uploads, capital activity, new report), recent activity | ✅ Built 11/23: attention list, recent activity, fund cards, lanes for the tab headers that exist, quick actions; follows Working on (§7.42) |
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
-| Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so the Sales Comps tab, valuations and reports show a full set | ⛓ Future release |
+| Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Research → Comps, valuations and reports show a full set | ⛓ Future release |
+| Quarterly report summary (11/24) | Watch list (internal version only), change vs. last quarter and issued reports on top of the quarterly report, on screen, in the PDF and in the Excel (§7.32b) | ✅ Built 11/24 |
+| Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |

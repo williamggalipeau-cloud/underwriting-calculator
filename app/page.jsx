@@ -28,7 +28,8 @@ import FundAnalysis from "@/components/FundAnalysis";
 import StressTest from "@/components/StressTest";
 import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
-import SalesComps, { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
+import { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
+import Research from "@/components/Research";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
 import DistributionAnalysis from "@/components/DistributionAnalysis";
@@ -434,6 +435,7 @@ const TAB_GROUPS = [
     { id: "pipeline",    label: "Pipeline" },
     { id: "quick",       label: "Deal Screener" },
     { id: "impact",      label: "Fund Impact" },
+    { id: "research",    label: "Research" },
   ] },
   { label: "Dispositions", tabs: [
     { id: "forsale",     label: "Assets for Sale" },
@@ -448,7 +450,6 @@ const TAB_GROUPS = [
     { id: "leases",      label: "Leases" },
     { id: "leasing",     label: "Leasing" },
     { id: "valuations",  label: "Valuation" },
-    { id: "comps",       label: "Sales Comps" },
     { id: "debt",        label: "Debt" },
     { id: "cashflow",    label: "Cash Flow" },
     { id: "returns",     label: "Asset Return" },
@@ -480,7 +481,7 @@ const TAB_GROUPS = [
 const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "comps", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
 
 
 export default function Home() {
@@ -2410,10 +2411,16 @@ export default function Home() {
                 onApplyMark={applyToMark}
               />
             )}
-            {activeTab === "comps" && (
-              <SalesComps
-                state={comps}
-                onChange={setComps}
+            {activeTab === "research" && (
+              <Research
+                deal={activeDeal}
+                deals={viewDeals}
+                firmComps={comps}
+                canEdit={!locked}
+                onUpdate={updateDealInputs}
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                email={session?.user?.email ?? null}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
                 subject={{
                   name: inputs.propertyName,
                   price: inputs.purchasePrice,
