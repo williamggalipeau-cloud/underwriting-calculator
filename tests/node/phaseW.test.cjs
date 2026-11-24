@@ -26,7 +26,7 @@ ok(close(f.years.reduce((s, y) => s + y.coinvest, 0), f.coinvest.profit, 1) && c
 ok(f.coinvest.equity > 0 && f.coinvest.multiple > 1 && f.coinvest.irr > 0 && f.coinvest.roe > 0, `GP equity ${(f.coinvest.equity / 1e6).toFixed(2)}M: multiple ${f.coinvest.multiple.toFixed(2)}x, IRR ${f.coinvest.irr.toFixed(1)}%, ROE ${f.coinvest.roe.toFixed(0)}%`);
 ok(f.fees.mgmt > 0 && f.fees.pm > 0, `fees: asset management (fund fee) ${(f.fees.mgmt / 1e6).toFixed(2)}M, property management ${(f.fees.pm / 1e6).toFixed(2)}M`);
 ok(close(f.fees.total, f.fees.mgmt + f.fees.pm + f.fees.cm) && close(f.years.reduce((s, y) => s + y.fees, 0), f.fees.total), "fee revenue = AM + PM + CM, by year");
-ok(f.years.every((y) => close(y.total, y.fees + y.promote, 1e-6) && y.income === y.total), "each year's GP income = fees + promote; co-invest profit is not income (user, 11/24)");
+ok(f.years.every((y) => y.income === y.fees && close(y.capitalGains, y.promote + y.coinvest, 1e-6) && close(y.total, y.fees + y.capitalGains, 1e-6)), "each year: fee income = fees; capital gains = promote + co-invest; kept apart (user, 11/24)");
 ok(close(f.years.reduce((s0, y) => s0 + y.coinvest, 0), f.coinvest.profit, 1) && f.years.filter((y) => y.coinvest).every((y) => f.assets.some((a) => a.exit.slice(0, 4) === y.year && a.coinvest)), "co-invest profit only in the years assets are sold, adding to the total");
 ok(f.assets.length === deals.length && close(f.assets.reduce((s, a) => s + a.promote, 0), f.promote.total, 1) && close(f.assets.reduce((s, a) => s + a.promoteWeight, 0), 100, 1e-6), "asset promote allocated by share of gross profit, adding to the fund's");
 ok(close(f.assets.reduce((s, a) => s + a.pm + a.cm, 0), f.fees.pm + f.fees.cm, 1), "asset fees add up to the fund's PM and CM");
@@ -45,7 +45,7 @@ ok(close(t.total, t.fees + t.promote + t.coinvest) && close(t.feesShare + t.prom
 ok(t.feesPv === undefined && t.discountPct === undefined, "no discount rate or fee present value (removed, user 11/24)");
 ok(firm.assets.length === deals.length + 2 && firm.funds[1].type === "Separate Account", "assets of every fund, with types");
 const x = W.gpEconomicsXlsx("All funds", firm);
-ok(/GP economics \(internal\)/.test(x[0][0]) && x[3][0] === "Life of fund" && x.some((r) => r[0] === "Total GP income") && x.some((r) => r[0] === "Asset" && r[1] === "Fund"), "Excel: life of fund, years, funds, assets");
+ok(/GP economics \(internal\)/.test(x[0][0]) && x[3][0] === "Life of portfolios" && x.some((r) => /^Total GP economics/.test(r[0])) && x.some((r) => r[0] === "Asset" && r[1] === "Fund"), "Excel: life of portfolios, years, funds, assets");
 ok(W.firmGpEconomics([], { todayISO: TODAY }).totals.total === 0, "no funds: zeros");
 
 // ── Revenue Yield (user, 11/24): GP fees ÷ committed capital ──

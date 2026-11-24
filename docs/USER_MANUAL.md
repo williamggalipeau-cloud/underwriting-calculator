@@ -2813,7 +2813,9 @@ firm.
 
   Each figure keeps its source and date; a figure edited by hand is marked
   "(edited)". **+ Quarter** adds a quarter by hand.
-- **Upload CoStar / broker report** (CSV or Excel): columns are matched by
+- **Upload Excel (CoStar / broker)**, **Upload CSV** (user, 11/24) and **CSV
+  template** (a blank comma-separated file with every column the upload
+  recognizes and one fictional example row): columns are matched by
   name, shown before importing, and remembered. Quarters can be written as
   "2026 Q3", "Q3 2026", "3Q26" or a date. The same submarket and quarter
   updates in place. A file without a submarket column goes to the chosen
@@ -2994,10 +2996,40 @@ and the PDF is marked on every page.
 
 | Part | What it is |
 |---|---|
-| **Fee revenue** | The **asset management fee**, which is the fund's management fee (one fund-level fee, charged quarterly by the fund expense engine; there is no separate per-asset AM fee), plus **property management** and **construction management** fees from each asset's cash flow |
-| **Promote** | GP distributions − the GP's share of equity × all distributions, from the fund waterfall (the definition on Asset Return). Kept apart from fee revenue and never counted in it. **Realized** = distributions dated on or before today |
-| **Co-invest profit** | The GP's return on its own capital at its pro-rata share: GP profit − promote. With promote it adds up to GP profit. The fund view shows GP equity, distributions, ROE, IRR and multiple |
-| **Total GP income** | Fees + promote + co-invest profit, with each part's share (the cards and the colored bar) |
+| **Fee income** | Fees for services: the **asset management fee**, which is the fund's management fee (one fund-level fee, charged quarterly by the fund expense engine; there is no separate per-asset AM fee), **property management** and **construction management** fees from each asset's cash flow, and **acquisition and disposition fees** (§7.52). Counted in the year earned |
+| **Promote** (capital gain) | GP distributions − the GP's share of equity × all distributions, from the fund waterfall (the definition on Asset Return); an SMA's incentive fee. A capital gain, never fee income (user, 11/24). **Realized** = what the waterfall has paid on or before today |
+| **Co-invest profit** (capital gain) | The GP's return on its own capital at its pro-rata share: GP profit − promote. Capital appreciation, not income: counted only when an asset is sold (user, 11/24). The By portfolio view shows GP equity, distributions, ROE, IRR and multiple |
+| **Total GP economics** | Fee income + capital gains (promote + co-invest profit), with each part's share (the cards and the colored bar) |
+| **Revenue Yield** | Fee income over the portfolio's life ÷ committed capital (see below) |
+
+**Fee income vs. capital gains (user, 11/24).** Fee income and capital gains
+are kept apart everywhere on the page. **By year** shows the fee income
+columns (asset management, property management, construction management,
+acquisition / disposition fees, Fee income), then **Capital gains (on sale)**
+beside them: promote and co-invest profit in the year each asset is sold
+(the portfolio's totals allocated by each asset's share of gross profit, as
+in By asset), their subtotal, and the year's total. The Consolidated chart
+shows fee income by year and portfolio type.
+
+**Revenue Yield (user, 11/24).** GP fees (asset management, property and
+construction management, acquisition and disposition fees; never promote or
+co-invest profit) over the portfolio's life ÷ committed capital.
+- **Committed capital:** the portfolio's **Total commitments**, measured
+  against **LP + GP** commitments (the default) or **LP only**, as the LPA,
+  JVA or SMA says what fees are charged on ("Fees charged on", read in by
+  Claude and applied like other terms) or as set under **Revenue Yield
+  basis** on the portfolio's terms (your choice overrides the document). The
+  By portfolio view shows the basis and where it came from (from the LPA /
+  JVA / SMA, set by user, default).
+- **No commitments entered:** the portfolio's total equity (LP + GP, or LP
+  only) is used instead, marked with an asterisk.
+- **Per year:** Revenue Yield ÷ the life in years (first acquisition to the
+  last projected sale). **To date:** fees earned through today (management
+  fees charged, PM and CM fees for the part of each hold year passed,
+  acquisition and disposition fees once paid) ÷ committed capital.
+- **Shown:** the fifth card; Committed capital, Revenue Yield, Per year and
+  To date columns in Consolidated (combined rows: total fees ÷ total
+  committed) and By portfolio; rows in the Excel and PDF.
 
 **Views:** **By year** (each calendar year, with life-of-fund totals), **By
 fund** (with the fund type tag) and **By asset**. The waterfall runs on the

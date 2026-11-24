@@ -53,7 +53,7 @@ ok(one.assets.length === 1 && one.promoteKind === "Incentive fee" && one.counter
 const firm = G.firmGpEconomics([fund, jv, one], { todayISO: "2026-11-24" });
 ok(firm.byType.map((b) => b.type).join() === "Fund,Joint Venture,Separate Account" && firm.byType.find((b) => b.type === "Separate Account").assets === 1, "consolidated by portfolio type");
 ok(Math.abs(firm.byType.reduce((s, b) => s + b.total, 0) - firm.totals.total) < 1 && Math.abs(firm.byType.reduce((s, b) => s + (b.share ?? 0), 0) - 100) < 0.01, "type subtotals add up to the firm total; shares to 100%");
-ok(firm.yearsByType.length === firm.years.length && firm.yearsByType.every((y) => Math.abs(["Fund", "Joint Venture", "Separate Account"].reduce((s, k) => s + (y[k] ?? 0), 0) - firm.years.find((z) => z.year === y.year).total) < 1), "income by year and type adds up to each year");
+ok(firm.yearsByType.length === firm.years.length && firm.yearsByType.every((y) => Math.abs(["Fund", "Joint Venture", "Separate Account"].reduce((s, k) => s + (y[k] ?? 0), 0) - firm.years.find((z) => z.year === y.year).income) < 1), "fee income by year and type adds up to each year");
 ok(G.gpEconomicsXlsx("All portfolios", firm).some((r) => r[0] === "Consolidated by portfolio type") && G.gpEconomicsXlsx("All portfolios", firm).some((r) => r[0] === "  Acquisition fees"), "Excel: the consolidated block and acquisition fees");
 // Acquisition and disposition fees come out of investor returns (11/24)
 {
