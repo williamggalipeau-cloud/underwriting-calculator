@@ -43,6 +43,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   p.on("pageerror", (e) => errs.push(e.message));
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
+  await FX.saveLoadUpgrade(p);
   const main = p.locator("main");
   const pick = p.getByTestId("working-on");
   const assetsFig = async () => (await p.getByTestId("firm-figure").filter({ hasText: "Assets" }).innerText()).replace(/\s+/g, " ");
@@ -98,6 +99,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── Reopen: the choice comes back ──
   await p.reload();
   await p.waitForTimeout(3500);
+  await FX.saveLoadUpgrade(p);
   check((await p.getByTestId("working-on").inputValue()) === "Model Fund I", "reopens on the fund last worked on");
 
   // ── Back to All funds ──
