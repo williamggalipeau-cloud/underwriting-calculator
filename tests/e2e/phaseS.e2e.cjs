@@ -36,7 +36,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const pm = p.getByRole("group", { name: "Portfolio Management" });
   const tabs = await pm.getByRole("button").allInnerTexts();
-  check(tabs.findIndex((t) => /^Fund Debt/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "a Fund Debt tab right after Fund Return");
+  check(tabs.findIndex((t) => /^Fund Debt/.test(t)) === tabs.findIndex((t) => /^GP Economics/.test(t)) + 1 && tabs.findIndex((t) => /^GP Economics/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "Fund Debt after Fund Return and GP Economics");
   const before = saves;
   await pm.getByRole("button", { name: "Fund Debt" }).click();
   await p.waitForTimeout(1500);

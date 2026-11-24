@@ -41,7 +41,7 @@ changes the model without the user clicking to apply it.
 | Comps | Mock comps for each Model Fund I asset: fictional sales comps on Research → Comps and lease (rent) comps for phase R's Leasing tab, near each sample address (added 11/23) | ⛓ Future release (with the next sample-data update) |
 | External reports | A few more external (LP-facing) reports, to choose: e.g. LP capital account statements, an ILPA-template quarterly report, an annual report with audited figures, property-level investor updates, ESG / GRESB data (added 11/24) | ⛓ Future release: pick which, then plan |
 | Y | Benchmarking tab (Portfolio Management): NCREIF, Preqin and Cambridge Associates uploads, plus a public market equivalent; time-weighted returns added (added 11/23) | ⛓ After L |
-| W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ⛓ After L |
+| W | GP Economics tab (Portfolio Management, after Fund Return): the firm's fees, promote and co-invest returns in one page and report (added 11/23) | ✅ Built 11/24 (manual §7.49) |
 | UI | Baywise name, grouped tab bar, tab renames, fund NAV to Fund Return, firm-wide header strip , fund type tag, Asset Return target warnings, SOFR panel on Debt (decided 11/23; see "App name and layout") | ✅ Built 11/23 |
 
 **Built outside the phases on 11/22** (live): Valuations quarter-over-quarter
@@ -1449,6 +1449,15 @@ the firm makes, in one place. Projected, with actuals where the app has them.
 - **Report:** internal PDF and Excel.
 Builds on phase L's Asset Return additions (GP ROE, GP profit / promote,
 projected fee revenue), which roll up here.
+
+**Built 11/24** (`lib/gpEconomics.js`, `components/GpEconomics.jsx`,
+`lib/gpEconomicsPdf.js`): the fund fee comes from the fund expense engine
+(the same quarterly charges as Fund Return), promote and co-invest from the
+fund waterfall's distribution rows by year; co-invest profit = GP profit −
+promote, so the three parts never double count. Asset promote is the fund's
+promote allocated by share of gross profit (the waterfall is fund-level).
+Tests: `tests/node/phaseW.test.cjs` (promote matches Fund Return's,
+by-year sums, shares add to 100%), `tests/e2e/phaseW.e2e.cjs`.
 
 ## Phase V: automated workflow (added 11/23; later, to be scoped)
 

@@ -30,6 +30,7 @@ import QuickUnderwrite from "@/components/QuickUnderwrite";
 import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Research from "@/components/Research";
+import GpEconomics from "@/components/GpEconomics";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
 import DistributionAnalysis from "@/components/DistributionAnalysis";
@@ -466,6 +467,7 @@ const TAB_GROUPS = [
     { id: "fundsummary", label: "Fund Summary" },
     { id: "fundplan",    label: "Fund Plan" },
     { id: "fund",        label: "Fund Return" },
+    { id: "gpecon",      label: "GP Economics" },
     { id: "funddebt",    label: "Fund Debt" },
     { id: "distributions", label: "Distribution Analysis" },
     { id: "stress",      label: "Stress Testing" },
@@ -2230,6 +2232,9 @@ export default function Home() {
                 email={session?.user?.email ?? null}
                 onFundTermsChange={handleFundTermsChange}
               />
+            )}
+            {activeTab === "gpecon" && (
+              <GpEconomics deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
             )}
             {activeTab === "fund" && (
               <>

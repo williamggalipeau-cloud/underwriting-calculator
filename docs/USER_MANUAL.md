@@ -252,7 +252,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Dispositions** | Assets for Sale · Offers · Track Record · Sale Documents | |
 | **Asset Management** | Asset Business Plan · Asset Summary · Unit Roll · Leases · Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity · Sell/Hold Analysis | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
-| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · Fund Debt · Distribution Analysis · Stress Testing | |
+| **Portfolio Management** | Fund Summary · Fund Plan · Fund Return · GP Economics · Fund Debt · Distribution Analysis · Stress Testing | |
 | **Market** | Market Data | |
 | **Library** | Documents · Reports | |
 
@@ -2894,6 +2894,30 @@ All assets in view** switches to every asset in the "Working on" scope.
 **Edit** and **Remove** are on each row (removing an item leaves its PDF in
 Library → Documents). **Excel** and **PDF** export the list shown.
 
+### 7.49 GP Economics (`lib/gpEconomics.js`, phase W)
+
+**Portfolio Management → GP Economics** (right after Fund Return) shows
+what the firm makes, for the funds in the "Working on" scope, projected over
+each fund's life. Where a fund has actual capital activity, the same mix of
+actuals and model as Fund Return is used. It is internal: a banner says so,
+and the PDF is marked on every page.
+
+| Part | What it is |
+|---|---|
+| **Fee revenue** | The **asset management fee**, which is the fund's management fee (one fund-level fee, charged quarterly by the fund expense engine; there is no separate per-asset AM fee), plus **property management** and **construction management** fees from each asset's cash flow |
+| **Promote** | GP distributions − the GP's share of equity × all distributions, from the fund waterfall (the definition on Asset Return). Kept apart from fee revenue and never counted in it. **Realized** = distributions dated on or before today |
+| **Co-invest profit** | The GP's return on its own capital at its pro-rata share: GP profit − promote. With promote it adds up to GP profit. The fund view shows GP equity, distributions, ROE, IRR and multiple |
+| **Total GP income** | Fees + promote + co-invest profit, with each part's share (the cards and the colored bar) |
+
+**Views:** **By year** (each calendar year, with life-of-fund totals), **By
+fund** (with the fund type tag) and **By asset**. The waterfall runs on the
+whole fund, so an asset's promote is the fund's promote **allocated by its
+share of gross profit**; the asset's own fees are its PM and CM fees.
+**Fund type** limits the page to Funds, Separate Accounts or Joint Ventures.
+**Discount rate** (default 8%) sets the present value of fee revenue from
+this year on; it doesn't change the totals. **Excel** and **PDF** export
+everything on the page.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -3913,7 +3937,7 @@ each phase and the decisions behind it are in
 | Research tab (11/24) | Acquisitions → Research: Comps moved from Asset Management and kept per asset; Third-Party research (PDF or link, with a summary of the assumptions it supports), Excel and PDF (§7.48) | ✅ Built 11/24 |
 | More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
-| W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
+| W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel (§7.49) | ✅ Built 11/24 |
 
 **How phases are delivered.**
 - **Scheduling:** phases I–O run in scheduled 5-hour windows (from 11/22, 8:40
