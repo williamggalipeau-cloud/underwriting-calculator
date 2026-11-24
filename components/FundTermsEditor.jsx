@@ -2,6 +2,7 @@
 
 import { FUND_TYPES, fundType } from "@/lib/fundTypes";
 import { useEffect, useState } from "react";
+import { FEE_KEYS, FEE_PAYEES, gpPartiesOf, partiesOf, firmRoleLabel } from "@/lib/gpEconomics";
 import { compareDoc } from "@/lib/dealDocApply";
 import { createDealDocWithFallback, listDealDocs } from "@/lib/dealDocs";
 import {
@@ -126,7 +127,7 @@ function LpaPanel({ workspaceId, email, fundName, terms, onUse, onUseLimit }) {
   );
 }
 
-export default function FundTermsEditor({ mode = "new", initial, existingNames = [], currentDealName, onSave, onClose, workspaceId, email }) {
+export default function FundTermsEditor({ mode = "new", initial, existingNames = [], currentDealName, onSave, onClose, workspaceId, email, portfolioAssets = [] }) {
   const [t, setT] = useState(() => normalizeTerms({ ...DEFAULT_FUND_TERMS, ...(initial ?? {}) }));
   const [addCurrent, setAddCurrent] = useState(mode === "new" && !!currentDealName);
   const [upload, setUpload] = useState(null); // { ok } | { error } | { warnings }
@@ -302,6 +303,97 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
               </div>
             )}
           </section>
+
+          {/* Parties and economics (user, 11/24) */}
+          {(() => {
+            const P = partiesOf(t);
+            const sel = "border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900";
+            const doc = unit === "Fund" ? "LPA" : unit === "JV" ? "JVA" : "SMA";
+            const termsOf = (k) => ({ mgmt: `${t.mgmtFeePct ?? 0}%/yr`, pm: "from each asset's model", cm: "from each asset's model", acq: `${t.acqFeePct ?? 0}% of price`, disp: `${t.dispFeePct ?? 0}% of sale` }[k]);
+            const overrides = Object.entries(P.promoteGpPctByAsset);
+            const gps = gpPartiesOf(t);
+            const setGps = (fn) => setT((p) => ({ ...p, gpParties: fn(gpPartiesOf(p)) }));
+            const setGp = (i, k, v) => setGps((gs) => gs.map((g, j) => (j === i ? { ...g, [k]: v } : g)));
+            const num = (v) => Math.min(100, Math.max(0, Number(v) || 0));
+            const setOverride = (id, v) => setT((p) => { const o = { ...(p.promoteGpPctByAsset ?? {}) }; if (v === null) delete o[id]; else o[id] = v; return { ...p, promoteGpPctByAsset: o }; });
+            return (
+              <section className="space-y-3" data-testid="parties">
+                <h3 className="text-sm font-semibold text-gray-900">Parties and economics</h3>
+                <p className="text-[11px] text-gray-500">Who the sponsor (operator: manages the assets, earns fees) and the GP parties (capital partners) are, who is paid each fee and how the promote is split. The sponsor and who is paid each fee can be read in from the {doc}; the GP parties, their capital shares and the promote split are entered here.</p>
+                <table className="w-full text-sm" data-testid="party-table">
+                  <thead><tr className="text-left text-[10px] uppercase tracking-wide text-gray-500"><th className="py-1">Role</th><th>Who</th><th>Name</th><th className="text-right">Share of GP capital</th><th className="text-right">Share of promote</th><th /></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-gray-100">
+                      <td className="py-1.5 pr-2 font-medium">Sponsor / operator</td>
+                      <td className="pr-2"><select aria-label="Sponsor / operator: who" value={P.sponsor.who} onChange={(e) => set("sponsorWho")(e.target.value)} className={sel}><option value="firm">This firm</option><option value="external">External operator</option></select></td>
+                      <td className="pr-2">{P.sponsor.who === "external" ? <input aria-label="Sponsor / operator: name" value={t.sponsorName ?? ""} onChange={(e) => set("sponsorName")(e.target.value)} placeholder={`From the ${doc}`} className={`${sel} w-52`} /> : <span className="text-xs text-emerald-700">This firm</span>}</td>
+                      <td className="text-right text-xs text-gray-500"><span className="inline-flex items-center gap-1 whitespace-nowrap">co-invest <input aria-label="Sponsor co-invest" type="number" min={0} max={100} step={0.5} value={t.sponsorCommitPct ?? 0} onChange={(e) => set("sponsorCommitPct")(e.target.value === "" ? 0 : Number(e.target.value))} className={`${sel} w-16 text-right`} />% of equity</span></td>
+                      <td className="text-right text-sm font-medium" data-testid="sponsor-promote">{P.sponsorPromotePct}%</td>
+                      <td />
+                    </tr>
+                    {gps.map((g, i) => (
+                      <tr key={g.id} className="border-t border-gray-100" data-testid="gp-party">
+                        <td className="py-1.5 pr-2 font-medium">GP{gps.length > 1 ? ` ${i + 1}` : ""} (capital partner)</td>
+                        <td className="pr-2"><select aria-label={`GP ${i + 1}: who`} value={g.who} onChange={(e) => setGp(i, "who", e.target.value)} className={sel}><option value="firm">This firm</option><option value="external">External GP</option></select></td>
+                        <td className="pr-2">{g.who === "external" ? <input aria-label={`GP ${i + 1}: name`} value={g.name} onChange={(e) => setGp(i, "name", e.target.value)} placeholder="GP provider" className={`${sel} w-52`} /> : <span className="text-xs text-emerald-700">This firm</span>}</td>
+                        <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of GP capital`} type="number" min={0} max={100} step={5} value={g.capitalPct} onChange={(e) => setGp(i, "capitalPct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
+                        <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of promote`} type="number" min={0} max={100} step={5} value={g.promotePct} onChange={(e) => setGp(i, "promotePct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
+                        <td className="text-right">{gps.length > 1 && <button type="button" onClick={() => setGps((gs) => gs.filter((_, j) => j !== i))} className="text-xs text-gray-400 hover:text-red-600">Remove</button>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="flex flex-wrap items-center gap-3 text-[11px]">
+                  <button type="button" onClick={() => setGps((gs) => [...gs, { id: `gp${Date.now().toString(36)}`, who: "external", name: "", capitalPct: 0, promotePct: 0 }])} className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium" data-testid="add-gp-party">+ Add a GP party</button>
+                  <span className="text-gray-500">The GP commitment is {t.gpCommitPct ?? 0}% of equity; the GP parties&apos; capital shares split it{P.capitalPctTotal !== 100 ? "" : "."}</span>
+                  {P.capitalPctTotal !== 100 && <span className="font-medium text-amber-700" data-testid="gp-capital-warning">Shares of GP capital add to {P.capitalPctTotal}%, not 100%.</span>}
+                  {gps.reduce((a, g) => a + g.promotePct, 0) > 100 && <span className="font-medium text-amber-700">GP promote shares add to more than 100%.</span>}
+                </div>
+                <p className="text-[11px] text-gray-500">The promote split and each GP&apos;s capital share are entered here (they&apos;re often in a separate agreement between the GP provider and the sponsor, not the {doc}). The sponsor has whatever promote the GP parties don&apos;t.</p>
+                <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-900" data-testid="firm-role">This firm&apos;s role in this {unitLc}: <b>{firmRoleLabel(P.firmRole)}</b>. {P.firmRole === "both" ? "Its GP return and its fees appear on GP Economics and Sponsor Economics, and add up to its total." : P.firmRole === "gp" ? "It appears on GP Economics; the operator's fees are a counterparty's (Sponsor Economics, outside sponsors)." : P.firmRole === "sponsor" ? "It appears on Sponsor Economics; the GP's return is a counterparty's." : "Neither role is this firm's: nothing counts in its totals."}</p>
+                <table className="w-full text-sm" data-testid="fee-payees">
+                  <thead><tr className="text-left text-[10px] uppercase tracking-wide text-gray-500"><th className="py-1">Fee</th><th>Terms</th><th>Paid to</th><th /></tr></thead>
+                  <tbody>
+                    {FEE_KEYS.map(([k, label, key]) => (
+                      <tr key={k} className="border-t border-gray-100">
+                        <td className="py-1.5 pr-2">{label}</td>
+                        <td className="pr-2 text-xs text-gray-500">{termsOf(k)}</td>
+                        <td className="pr-2"><select aria-label={`${label}: paid to`} value={P.feeTo[k]} onChange={(e) => set(key)(e.target.value)} className={sel}>{FEE_PAYEES.filter(([v]) => v !== "third" || k === "pm" || k === "cm").map(([v, l]) => <option key={v} value={v}>{l}{v === "sponsor" && k === "mgmt" ? " (default)" : ""}</option>)}</select></td>
+                        <td>{P.feeTo[k] === "third" && (k === "pm" || k === "cm") && <input aria-label={`${label}: third party`} value={t[k === "pm" ? "pmThirdParty" : "cmThirdParty"] ?? ""} onChange={(e) => set(k === "pm" ? "pmThirdParty" : "cmThirdParty")(e.target.value)} placeholder="Provider (optional)" className={`${sel} w-44`} />}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="text-[11px] text-gray-500">Outsourced property or construction management is still an expense of the asset (NOI and returns don&apos;t change), but nobody&apos;s revenue: it isn&apos;t counted for the sponsor, the GP or Revenue Yield.</p>
+                <div className="flex flex-wrap items-end gap-3">
+                  <p className="text-xs text-gray-500">GP side of the promote: <b>{P.promoteGpPct}%</b> · sponsor <b>{P.sponsorPromotePct}%</b> (portfolio default). An asset can have its own GP-side share; the GP parties split it in proportion to their shares.</p>
+                  {portfolioAssets.length > 0 && (
+                    <label className="flex flex-col gap-1 text-xs"><span className="font-medium uppercase tracking-wide text-gray-500">Asset with its own promote split</span>
+                      <select aria-label="Add an asset promote split" value="" onChange={(e) => e.target.value && setOverride(e.target.value, P.promoteGpPct)} className={sel}>
+                        <option value="">+ Add an asset…</option>
+                        {portfolioAssets.filter((a) => !(a.id in P.promoteGpPctByAsset)).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                      </select>
+                    </label>
+                  )}
+                </div>
+                {overrides.length > 0 && (
+                  <table className="w-full text-sm" data-testid="promote-overrides">
+                    <thead><tr className="text-left text-[10px] uppercase tracking-wide text-gray-500"><th className="py-1">Asset</th><th className="text-right">GP side %</th><th className="text-right">Sponsor %</th><th /></tr></thead>
+                    <tbody>
+                      {overrides.map(([id, v]) => (
+                        <tr key={id} className="border-t border-gray-100">
+                          <td className="py-1">{portfolioAssets.find((a) => a.id === id)?.name ?? id}</td>
+                          <td className="text-right"><input aria-label="Asset GP share of promote" type="number" min={0} max={100} step={5} value={v} onChange={(e) => setOverride(id, Math.min(100, Math.max(0, Number(e.target.value) || 0)))} className={`${sel} w-20 text-right`} /></td>
+                          <td className="text-right text-gray-600">{100 - Number(v)}</td>
+                          <td className="text-right"><button type="button" onClick={() => setOverride(id, null)} className="text-xs text-gray-400 hover:text-red-600">Remove</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </section>
+            );
+          })()}
 
           {/* Timeline */}
           <section className="space-y-3">

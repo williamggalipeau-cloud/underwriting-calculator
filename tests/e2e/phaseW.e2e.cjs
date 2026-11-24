@@ -32,6 +32,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await ctx.route("**/maps.google.com/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<html></html>" }));
   const p = await ctx.newPage();
   p.on("pageerror", (e) => errs.push(e.message));
+  p.on("dialog", (d) => d.accept()); // leave prompts: save and continue
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   await FX.saveLoadUpgrade(p);
@@ -39,55 +40,97 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   check(areas.indexOf("Finance") === areas.indexOf("Portfolio Management") + 1, `a Finance area after Portfolio Management: ${areas.join(", ")}`);
   await FX.openArea(p, "GP Economics");
   const tabs = await p.getByRole("group", { name: "Finance" }).getByRole("button").allInnerTexts();
-  check(tabs.length === 1 && /^GP Economics/.test(tabs[0]), "GP Economics is under Finance (user, 11/24)");
+  check(tabs.length === 2 && /^GP Economics/.test(tabs[0]) && /^Sponsor Economics/.test(tabs[1]), "Finance: GP Economics and Sponsor Economics (user, 11/24)");
   await FX.openArea(p, "Portfolio Debt");
-  check(!(await p.getByRole("group", { name: "Portfolio Management" }).innerText()).includes("GP Economics"), "and no longer under Portfolio Management");
+  check(!(await p.getByRole("group", { name: "Portfolio Management" }).innerText()).includes("GP Economics"), "and not under Portfolio Management");
+  const money = async (id) => Number((await p.getByTestId(id).locator("p").nth(1).innerText()).replace(/[$M,]/g, ""));
+
+  // ── GP Economics: the capital partner ──
   await FX.openTab(p, "GP Economics");
   await p.waitForTimeout(2500);
   const g = p.getByTestId("gp-economics");
-  check(/Internal/.test(await g.innerText()) && /kept apart from capital gains/.test(await g.innerText()), "marked internal; fee income apart from capital gains");
-  const money = async (id) => Number((await p.getByTestId(id).locator("p").nth(1).innerText()).replace(/[$M,]/g, ""));
-  const fees = await money("gp-fees"), promote = await money("gp-promote"), co = await money("gp-coinvest"), total = await money("gp-total");
-  check(fees > 0 && promote > 0 && Math.abs(fees + promote + co - total) < 0.03, `fees ${fees}M + promote ${promote}M + co-invest ${co}M = total ${total}M`);
-  check(/% of total GP economics/.test(await p.getByTestId("gp-fees").innerText()) && !/PV/.test(await p.getByTestId("gp-fees").innerText()) && (await g.getByLabel("Discount rate").count()) === 0, "shares; no discount rate or present value (user, 11/24)");
-  check((await p.getByTestId("gp-share-bar").locator("div").count()) === 3, "share bar: fees, promote, co-invest");
-  check(/^Consolidated/.test(await p.getByTestId("gp-totals-label").innerText()), "the cards are labelled Consolidated (user, 11/24)");
-  // Revenue Yield (user, 11/24): the fifth card
-  const ryc = await p.getByTestId("gp-revenue-yield").innerText();
-  check(/Revenue Yield/i.test(ryc) && /\d+\.\d\d%/.test(ryc) && /a year/.test(ryc) && /To date:/.test(ryc) && /committed/.test(ryc), `Revenue Yield card: ${ryc.replace(/\s+/g, " ")}`);
-  check(/Committed capital/i.test(await p.getByTestId("gp-by-type").locator("thead").innerText()) && /never promote or co-invest profit/.test(await p.getByTestId("gp-ry-note").innerText()), "Consolidated: Revenue Yield columns and the definition");
-  // Consolidated by portfolio type (11/24): the default view
-  const con = p.getByTestId("gp-by-type");
-  check((await con.count()) === 1 && /Fund/.test(await con.innerText()) && /All portfolios/.test(await con.locator("tfoot").innerText()) && (await p.getByTestId("gp-type-years").count()) === 1, "Consolidated: subtotals by portfolio type, all portfolios, income by year and type");
-  // By year
-  await p.getByRole("tab", { name: "By year" }).click();
-  await p.waitForTimeout(300);
-  const yrs = p.getByTestId("gp-years");
-  check((await yrs.locator("tbody tr").count()) >= 5 && /Life of portfolios/.test(await yrs.locator("tfoot").innerText()), "by year, with life-of-portfolio totals");
-  check(/Fee income/i.test(await yrs.locator("thead").innerText()) && /Capital gains \(on sale\)/i.test(await yrs.locator("thead").innerText()) && /not income/.test(await p.getByTestId("gp-years-note").innerText()), "by year: fee income, and capital gains (promote, co-invest profit) beside it (user, 11/24)");
-  // By fund, by asset
-  await g.getByRole("tab", { name: "By portfolio" }).click();
-  await p.waitForTimeout(300);
+  check(/Internal/.test(await g.innerText()) && /return on invested capital/.test(await g.innerText()), "GP: internal; return on invested capital and promote share");
+  check(/^Consolidated/.test(await p.getByTestId("gp-totals-label").innerText()) && /this firm is a GP/.test(await p.getByTestId("gp-totals-label").innerText()), "cards labelled Consolidated, portfolios where this firm is a GP");
+  const eq = await money("gp-equity"), co = await money("gp-coinvest"), pr = await money("gp-promote"), tot = await money("gp-total");
+  check(eq > 0 && pr > 0 && Math.abs(co + pr - tot) < 0.03, `GP: co-invest ${co}M + promote share ${pr}M = total GP economics ${tot}M (no fees by default)`);
+  check(/This firm/.test(await p.getByTestId("gp-by-party").innerText()) && /Total GP economics/.test(await p.getByTestId("gp-by-party").locator("tfoot").innerText()), "total GP economics, then split by GP party");
+  check(/\d+%/.test(await p.getByTestId("gp-roic").innerText()) && /x multiple/.test(await p.getByTestId("gp-roic").innerText()) && (await g.getByTestId("gp-revenue-yield").count()) === 0, "GP: return on invested capital; no Revenue Yield here");
+  check(/add up to its total/.test(await p.getByTestId("firm-both-total").innerText()), "the firm is both: the two tabs add up to its total");
+  await g.getByRole("tab", { name: "By year" }).click(); await p.waitForTimeout(300);
+  check(/Promote share \(on sale\)/.test(await p.getByTestId("gp-years").locator("thead").innerText()) && !/Asset management/.test(await p.getByTestId("gp-years").locator("thead").innerText()), "GP by year: capital gains on sale, no fee columns");
+  await g.getByRole("tab", { name: "By portfolio" }).click(); await p.waitForTimeout(300);
   const fr = await p.getByTestId("gp-funds").locator("tbody tr").first().innerText();
-  check(/LP \+ GP \(default\)/.test(fr) && /\d+\.\d\d%/.test(fr), `by portfolio: Revenue Yield and its basis (${fr.replace(/\s+/g, " ").slice(-60)})`);
-  check(/Model Fund I/.test(fr) && /x/.test(fr), `by fund: ${fr.replace(/\s+/g, " ").slice(0, 90)}`);
-  await g.getByRole("tab", { name: "By asset" }).click();
-  await p.waitForTimeout(300);
-  check((await p.getByTestId("gp-assets").locator("tbody tr").count()) >= 9 && /allocated by its share of gross profit/.test(await g.innerText()), "by asset, with the allocation note");
-  // Fund-type filter
-  await g.getByLabel("Fund type").selectOption("Joint Venture");
-  await p.waitForTimeout(400);
-  check((await money("gp-total")) === 0 || /0 funds/.test(await p.getByTestId("gp-total").innerText()), "no joint ventures: nothing shown");
-  await g.getByLabel("Fund type").selectOption("");
-  await p.waitForTimeout(400);
-  // Exports
+  check(/Model Fund I/.test(fr) && /GP \+ sponsor/.test(fr) && /100%/.test(fr) && /x/.test(fr), `GP by portfolio: ${fr.replace(/\s+/g, " ").slice(0, 100)}`);
+  await g.getByRole("tab", { name: "By asset" }).click(); await p.waitForTimeout(300);
+  check((await p.getByTestId("gp-assets").locator("tbody tr").count()) >= 9 && /allocated by its share of gross profit/.test(await g.innerText()), "GP by asset, with the allocation note");
   const [dx] = await Promise.all([p.waitForEvent("download"), g.getByRole("button", { name: "Excel" }).click()]);
-  check(/^gp-economics-.*\.xlsx$/.test(dx.suggestedFilename()), "Excel");
+  check(/^gp-economics-.*\.xlsx$/.test(dx.suggestedFilename()), "GP Excel");
   const [dp] = await Promise.all([p.waitForEvent("download"), g.getByRole("button", { name: "PDF", exact: true }).click()]);
   const pdfPath = `${S}/gp-economics.pdf`; await dp.saveAs(pdfPath);
   const txt = require("child_process").execFileSync("pdftotext", ["-layout", pdfPath, "-"]).toString();
-  check(/GP economics/.test(txt) && /INTERNAL - not for distribution/.test(txt) && /Total GP economics/.test(txt) && /Model Fund I/.test(txt), "PDF: internal, totals, funds and assets");
+  check(/GP Economics/.test(txt) && /INTERNAL - not for distribution/.test(txt) && /Total GP economics/.test(txt) && /Split by GP party/.test(txt) && /Model Fund I/.test(txt), "GP PDF: internal, totals, portfolios");
   await p.screenshot({ path: `${S}/gp-economics.png`, fullPage: true });
+
+  // ── Sponsor Economics: the operator ──
+  await FX.openTab(p, "Sponsor Economics");
+  await p.waitForTimeout(2500);
+  const sp = p.getByTestId("sponsor-economics");
+  const fees = await money("gp-fees"), spt = await money("sp-total");
+  check(fees > 0 && spt >= fees && /this firm is the sponsor/.test(await p.getByTestId("gp-totals-label").innerText()), `Sponsor: fee income ${fees}M, total ${spt}M`);
+  const ryc = await p.getByTestId("gp-revenue-yield").innerText();
+  check(/Revenue Yield/i.test(ryc) && /\d+\.\d\d%/.test(ryc) && /a year/.test(ryc) && /To date:/.test(ryc) && /committed/.test(ryc), `Revenue Yield card: ${ryc.replace(/\s+/g, " ")}`);
+  check(/Committed capital/i.test(await p.getByTestId("gp-by-type").locator("thead").innerText()) && /never promote, co-invest profit or outsourced fees/.test(await p.getByTestId("gp-ry-note").innerText()), "Sponsor consolidated: Revenue Yield columns and the definition");
+  await sp.getByRole("tab", { name: "By year" }).click(); await p.waitForTimeout(300);
+  check(/Asset management/.test(await p.getByTestId("gp-years").locator("thead").innerText()) && /Life of portfolios/.test(await p.getByTestId("gp-years").locator("tfoot").innerText()), "Sponsor by year: fee columns");
+  await sp.getByRole("tab", { name: "By portfolio" }).click(); await p.waitForTimeout(300);
+  const sr = await p.getByTestId("gp-funds").locator("tbody tr").first().innerText();
+  check(/This firm/.test(sr) && /LP \+ GP \(default\)/.test(sr) && /\d+\.\d\d%/.test(sr), `Sponsor by portfolio: ${sr.replace(/\s+/g, " ").slice(-80)}`);
+  // Fund-type filter
+  await sp.getByLabel("Fund type").selectOption("Joint Venture");
+  await p.waitForTimeout(400);
+  check((await money("sp-total")) === 0, "no joint ventures: nothing counted");
+  await sp.getByLabel("Fund type").selectOption("");
+  await p.waitForTimeout(300);
+  const [sx] = await Promise.all([p.waitForEvent("download"), sp.getByRole("button", { name: "Excel" }).click()]);
+  check(/^sponsor-economics-.*\.xlsx$/.test(sx.suggestedFilename()), "Sponsor Excel");
+
+  // ── Parties: an outside operator; the firm becomes the GP only ──
+  await p.getByTestId("home-button").click();
+  await p.waitForTimeout(800);
+  await p.getByTestId("setup-buttons").getByLabel("Edit fund").selectOption("Model Fund I");
+  await p.waitForTimeout(800);
+  const parties = p.getByTestId("parties");
+  if (await parties.count()) {
+    await parties.getByLabel("Sponsor / operator: who").selectOption("external");
+    await parties.getByLabel("Sponsor / operator: name").fill("Fictional Operating Partners LLC");
+    await parties.getByLabel("Property management: paid to").selectOption("third");
+    check(/This firm's role in this fund: GP\b/.test(await p.getByTestId("firm-role").innerText()), "setup: an outside operator makes this firm the GP only");
+    check((await parties.getByLabel("Asset management: paid to").locator("option").allInnerTexts()).join("|") === "Sponsor (default)|GP", "asset management: sponsor (default) or GP; no third party");
+    // A second GP party, entered by hand (user, 11/24)
+    await parties.getByTestId("add-gp-party").click();
+    await parties.getByLabel("GP 2: name").fill("Example Capital GP");
+    await parties.getByLabel("GP 1: share of GP capital").fill("70");
+    await parties.getByLabel("GP 2: share of GP capital").fill("30");
+    await parties.getByLabel("GP 1: share of promote").fill("30");
+    await parties.getByLabel("GP 2: share of promote").fill("20");
+    check((await parties.getByTestId("sponsor-promote").innerText()) === "50%" && (await parties.getByTestId("gp-capital-warning").count()) === 0, "two GP parties: capital 70 / 30, promote 30 / 20, the sponsor's 50% follows");
+    await p.getByRole("button", { name: "Save terms" }).click();
+    await p.waitForTimeout(1000);
+    await FX.openTab(p, "Sponsor Economics");
+    await p.waitForTimeout(2000);
+    check(/\(0 of 1\)/.test(await p.getByTestId("gp-totals-label").innerText()) && (await money("gp-fees")) === 0, "Sponsor Economics: nothing counted once the operator is outside");
+    await FX.openTab(p, "GP Economics");
+    await p.waitForTimeout(2000);
+    const bp = await p.getByTestId("gp-by-party").locator("tbody tr").allInnerTexts();
+    check(bp.length === 2 && /This firm/.test(bp[0]) && /Example Capital GP/.test(bp[1]), `GP Economics split by party: ${bp.map((x) => x.split("\t")[0]).join(", ")}`);
+    await FX.openTab(p, "Sponsor Economics");
+    await p.waitForTimeout(1500);
+    await p.getByTestId("include-external").check();
+    await p.waitForTimeout(300);
+    await p.getByRole("tab", { name: "By portfolio" }).click(); await p.waitForTimeout(300);
+    const ext = await p.getByTestId("gp-funds").locator("tbody tr").first().innerText();
+    check(/Fictional Operating Partners/.test(ext) && (await p.getByTestId("gp-funds").locator("tbody tr").first().getAttribute("class")).includes("text-gray-400"), "outside operator shown greyed when asked");
+  } else check(false, "the fund editor's Parties and economics section");
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();
   console.log(fails ? `${fails} FAILED` : "ALL PASS");
