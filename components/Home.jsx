@@ -3,7 +3,7 @@
 // Phase Z: the Home page. Today's attention list, fund cards, workflow lanes
 // (one per tab header), quick actions and recent activity, for the portfolio
 // chosen in the "Working on" picker.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { attentionList, fundCards, lanes, money, recentActivity } from "@/lib/home";
 import { formatValue } from "@/lib/audit";
 
@@ -34,6 +34,12 @@ export default function Home({ deals = [], funds = {}, valuations = {}, pipeline
   const open = (a) => (a.dealId && onOpenDeal ? onOpenDeal(a.dealId, a.tab) : onOpenTab?.(a.tab));
   const [allAtt, setAllAtt] = useState(false);
   const shown = allAtt ? attention : attention.slice(0, 12);
+  // Day counts and dates change daily, but the page is pre-rendered when the
+  // site is built: render them only in the browser, so the pre-rendered HTML
+  // never disagrees with today's (no hydration mismatch).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <div className="text-xs text-gray-400" data-testid="home-loading">Loading Home…</div>;
 
   return (
     <div className="space-y-5 text-gray-900" data-testid="home">

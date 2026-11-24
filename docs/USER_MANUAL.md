@@ -2164,7 +2164,24 @@ The internal quarterly report includes the limits table.
 ### 7.32d Risk report (internal, phase L)
 
 On the Reports tab, **Risk report (internal)** (owners and editors; never in
-the shareable report) shows, as of the quarter end:
+the shareable report) shows, as of the quarter end, grouped by similar risks
+(user, 11/24). The screen, the Excel and the PDF all use the same order:
+1. **Summary** (on top of every risk report). It starts with three cards:
+   the watch list (assets flagged and the top three), concentrations that
+   rose since last quarter, and whether the report has been issued for this
+   date (latest version, when and by whom). Then the full **Watch list**,
+   **Change vs. last quarter**, and **Issued risk reports**.
+2. **Tenant and Leasing:** lease expirations and rollover, and lease risk
+   flags.
+3. **Financial:** debt, TI funding coverage, stress tests, and valuation
+   (marks vs. cost).
+4. **Concentration:** fund limits, largest tenants, industry, geography,
+   debt by lender, rate cap counterparties, and the concentration limits
+   used.
+5. **Operational:** execution (the IRR gap, budget variances, the plan gap),
+   insurance certificates, and environmental and climate.
+
+Each section in detail:
 - **Watch list:** assets ranked by a risk score (each flag weighs 1–3), with
   the reasons; and **fund-level flags** (concentration limits, fund limit
   breaches).
@@ -2702,9 +2719,27 @@ firm.
 - **Excel** of every quarter and a summary per submarket.
 - On **Home**, the Market lane shows the submarkets tracked, the assets
   tagged and the average submarket vacancy.
-- Still to come: a PDF market summary; showing the market next to the
-  asset on Valuation and the business plan; and stress tests labelled in
-  standard deviations, with a simulation.
+- **PDF** market summary: each submarket's latest figures and trends, its
+  quarterly statistics, and the assets tagged to it against the market.
+- **Stress Testing in standard deviations** (`lib/stressSigma.js`): each
+  shock is labelled in σ, its size divided by that factor's volatility (one
+  standard deviation of a one-year move). For example, +120 bp on rates is
+  1.0σ at the default 120 bp.
+  - Vacancy, rent growth and cap rates take their volatility from the
+    asset's submarket when it has at least three years of history.
+  - The rest use editable defaults: rates 120 bp (the app reads only
+    today's SOFR, not its history), opex 5% and construction 8%.
+  - The table shows each volatility and its source; an edited value says
+    "edited".
+  - **All shocks together** gives the whole stress as one σ figure, taking
+    into account how the factors tend to move together.
+  - **Run simulation (2,000 years)** draws correlated one-year shocks and
+    runs the asset model for each. It shows the spread of IRRs (5th
+    percentile, median, 95th) and where the stressed case falls, worded as
+    "this outcome or worse ≈ 1 year in N". The bars as bad as the stressed
+    case or worse are red.
+- Still to come: showing the market next to the asset on Valuation and the
+  business plan.
 
 ### 7.33 Fund plan vs. actual (`lib/fundPlan.js`, phase K)
 
@@ -3814,7 +3849,7 @@ each phase and the decisions behind it are in
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
 | S. Fund Debt | Fund Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ✅ Built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Yardi construction upload and TI spend by unit with overrun flags, construction test data, Home items (§7.46) |
-| U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | 🔨 Part 1 built 11/23: Market group, Market Data tab (submarket statistics by quarter with sources, uploads with remembered columns, trends, asset vs. market, Excel), Home lane (§7.47); stress tests in σ with a simulation and a PDF next |
+| U. Market | Market Data tab: submarket statistics with sources; Stress Testing shocks shown in standard deviations, with a simulation of how likely the stressed case is | ✅ Built 11/23: Market group, Market Data tab (submarket statistics by quarter with sources, uploads with remembered columns, trends, asset vs. market, Excel and PDF), Home lane, stress tests in standard deviations with a correlated simulation (§7.47) |
 | V. Automated workflow | Approvals and reminders | ⏸ Later |
 | X. Distribution Analysis | New tab in Portfolio Management after Fund Return: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
@@ -3822,6 +3857,7 @@ each phase and the decisions behind it are in
 | Fund picker | "Working on" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Working on dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⛓ After the fund picker |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so the Sales Comps tab, valuations and reports show a full set | ⛓ Future release |
+| More external reports | A few more LP-facing reports, to choose from: LP capital account statements, an ILPA-template quarterly report, an annual report, property-level investor updates, ESG / GRESB data | ⛓ Future release (pick which first) |
 | Y. Benchmarking | New tab in Portfolio Management: fund and asset returns vs. NCREIF (property, time-weighted), Preqin and Cambridge Associates (fund vintage quartiles) from your licensed data uploads, and a public market equivalent against the FTSE Nareit Industrial index and a small-bay REIT basket (EastGroup, Rexford, Terreno, STAG) | ⛓ After L |
 | W. GP Economics | New tab in Portfolio Management after Fund Return: fee revenue by year (the fund management fee, which is the asset management fee, plus property and construction management fees), promote kept separate, GP co-invest returns and GP ROE; firm-wide, by fund and by asset; internal PDF and Excel | ⛓ After L |
 

@@ -2147,6 +2147,7 @@ export default function Home() {
             )}
             {activeTab === "stress" && (
               <StressTest
+                market={comps?.market ?? null}
                 inputs={inputs}
                 results={results}
                 savedDeals={fundDeals}

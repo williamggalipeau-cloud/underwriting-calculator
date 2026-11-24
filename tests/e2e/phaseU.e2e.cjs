@@ -76,6 +76,28 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const [dl] = await Promise.all([p.waitForEvent("download"), p.getByTestId("market-data").getByRole("button", { name: "Excel" }).click()]);
   check(/market-data\.xlsx$/.test(dl.suggestedFilename()), "Excel export");
 
+  const [pdf] = await Promise.all([p.waitForEvent("download"), p.getByTestId("market-data").getByRole("button", { name: "PDF", exact: true }).click()]);
+  check(/market-summary\.pdf$/.test(pdf.suggestedFilename()), "market summary PDF");
+
+  // ── Part 2: Stress Testing in standard deviations, and the simulation ──
+  await p.getByRole("group", { name: "Portfolio Management" }).getByRole("button", { name: "Stress Testing" }).click();
+  await p.waitForTimeout(1000);
+  const sig = p.getByTestId("stress-sigma");
+  check((await sig.getByTestId("vol-row").count()) === 6 && /SOFR history not loaded/.test(await sig.innerText()), "a volatility per factor, with its source");
+  const rateRow = p.locator("div.flex.items-center.gap-4", { hasText: "Interest Rate Rise" }).first();
+  await rateRow.locator("input[type=number]").fill("120");
+  await p.waitForTimeout(400);
+  check(/= 1\.0σ/.test(await rateRow.innerText()), "a +120 bp rate shock is labelled 1.0σ");
+  check(/All shocks together: \d\.\dσ from the base case/.test(await p.getByTestId("combined-sigma").innerText()), "the combined stress in σ");
+  await sig.getByLabel("Interest rate volatility").fill("60");
+  await p.waitForTimeout(300);
+  check(/= 2\.0σ/.test(await rateRow.innerText()) && /edited/.test(await sig.getByTestId("vol-row").filter({ hasText: "Interest rate" }).innerText()), "an edited volatility changes the label");
+  await sig.getByRole("button", { name: /Run simulation/ }).click();
+  await p.waitForSelector("[data-testid=sim-headline]", { timeout: 20000 });
+  const head = await p.getByTestId("sim-headline").innerText();
+  check(/Stressed IRR -?[\d.]+%: (this outcome or worse ≈ 1 year in \d+|about as likely as not|worse than every one)/.test(head), `simulation: ${head}`);
+  check(/5th percentile/.test(await p.getByTestId("sim-result").innerText()) && (await p.getByTestId("sim-result").getByRole("img").count()) === 1, "the distribution, with percentiles");
+
   // ── Home lane ──
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);

@@ -41,6 +41,19 @@ function T({ head, rows, right = [] }) {
 }
 const over = (v, lim) => (v > lim ? <span className="font-semibold text-red-700">{pct(v)}</span> : pct(v));
 
+// A heading over related sections (user, 11/24: group the report by similar risks).
+function Group({ id, title, desc, children }) {
+  return (
+    <section className="space-y-3" data-testid={`risk-group-${id}`} aria-label={title}>
+      <div className="border-b-2 border-red-200 pb-1 pt-2">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-800">{title}</h2>
+        <p className="text-[11px] text-gray-500">{desc}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
 export default function RiskReport({ fundName, terms, deals, values, asOf, curve, planGap, lineBalance = 0, email, canEdit, onFundTermsChange, onApplyDeal, workspaceId = null, prev = null }) {
   const [docs, setDocs] = useState(null);
   const [docsErr, setDocsErr] = useState("");
@@ -94,6 +107,27 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         </span>
       </div>
 
+      {/* Summary at the top of every risk report (user, 11/24): watch list, change vs. last quarter, issued reports. */}
+      <Group id="summary" title="Summary" desc="The watch list, what moved since last quarter, and the reports issued for this date; details by risk follow.">
+      <div className="grid gap-2 sm:grid-cols-3" data-testid="risk-summary">
+        <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs">
+          <p className="text-[11px] text-gray-500">Watch list</p>
+          <p className="text-sm font-semibold">{r.watch.length} asset{r.watch.length === 1 ? "" : "s"} flagged{r.fundFlags.length ? ` · ${r.fundFlags.length} fund-level flag${r.fundFlags.length === 1 ? "" : "s"}` : ""}</p>
+          <p className="text-gray-600">{r.watch.slice(0, 3).map((w) => `${w.name} (${w.score})`).join(", ") || "Nothing flagged"}</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
+          <p className="text-[11px] text-gray-500">Change vs. last quarter</p>
+          {!prevR ? <p className="text-gray-400">No prior quarter to compare with.</p> : (() => {
+            const up = change.filter((c) => c.change != null && c.change > 1e-9 && !/HHI/.test(c.label)).sort((a, b) => b.change - a.change);
+            return <><p className="text-sm font-semibold">{up.length} concentration{up.length === 1 ? "" : "s"} up</p><p className="text-gray-600">{up.slice(0, 3).map((c) => `${c.label} +${c.change.toFixed(1)} pts`).join(", ") || "None rose"}</p></>;
+          })()}
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
+          <p className="text-[11px] text-gray-500">Issued reports ({usDate(asOf)})</p>
+          <p className="text-sm font-semibold">{issued.length ? `${issued.length} issued · latest v${issued.at(-1).v}` : "Draft (not issued)"}</p>
+          <p className="text-gray-600">{issued.length ? `${usDate(issued.at(-1).at.slice(0, 10))}${issued.at(-1).by ? ` by ${issued.at(-1).by}` : ""}` : "Issue it to freeze its figures."}</p>
+        </div>
+      </div>
       <Sec title="Watch list" testId="risk-watch">
         {r.watch.length === 0 ? <p className="text-xs text-gray-400">No asset flags.</p> : (
           <T head={["Asset", "Score", "Reasons"]} right={[1]} rows={r.watch.map((w) => [w.name, w.score, <ul key="r" className="list-disc pl-4">{w.reasons.map((x, i) => <li key={i}>{x}</li>)}</ul>])} />
@@ -101,12 +135,48 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         {r.fundFlags.length > 0 && <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-red-800" data-testid="risk-fund-flags">{r.fundFlags.map((f, i) => <li key={i}>{f.section}: {f.text}</li>)}</ul>}
       </Sec>
 
-      {r.fundLimits.length > 0 && (
-        <Sec title="Fund limits (LPA / PPM and internal)" testId="risk-fund-limits">
-          <T head={["Limit", "Source", "Limit", "Actual", "Largest", "Status"]} right={[2, 3]} rows={r.fundLimits.map((l) => [l.label, l.source, l.unit === "text" ? l.limit : `${l.limit}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.actual == null ? "—" : `${l.actual.toFixed(1)}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.what || "—", <span key="s" className={l.status === "breached" ? "font-semibold text-red-700" : l.status === "near" ? "text-amber-700" : ""}>{l.status}</span>])} />
-        </Sec>
-      )}
+      <Sec title={`Change vs. last quarter${prev ? ` (${usDate(prev.asOf)})` : ""}`} testId="risk-change">
+        {!prevR ? <p className="text-xs text-gray-400">No prior quarter to compare with.</p> : (
+          <T head={["Concentration", "Now", "Last quarter", "Change"]} right={[1, 2, 3]} rows={change.map((c) => {
+            const hh = /HHI/.test(c.label);
+            const f = (v) => (v == null ? "—" : hh ? Math.round(v).toLocaleString("en-US") : pct(v));
+            return [`${c.label}${c.name ? ` · ${c.name}` : ""}`, f(c.now), `${f(c.prev)}${c.prevName && c.prevName !== c.name ? ` · ${c.prevName}` : ""}`, c.change == null ? "—" : <span className={Math.abs(c.change) < 1e-9 ? "text-gray-400" : c.change > 0 ? "text-red-700" : "text-emerald-700"}>{`${c.change > 0 ? "+" : ""}${hh ? Math.round(c.change) : `${c.change.toFixed(1)} pts`}`}</span>];
+          })} />
+        )}
+      </Sec>
 
+      <Sec title={`Issued risk reports · ${usDate(asOf)}`} testId="risk-issued">
+        {issued.length === 0 ? <p className="text-xs text-gray-400">None issued for this date.</p> : (
+          <ul className="space-y-1 text-xs">{issued.map((x) => (
+            <li key={x.id} className="flex items-center justify-between rounded border border-gray-100 px-2 py-1"><span>v{x.v} · issued {usDate(x.at.slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · {x.report.watch.length} assets on the watch list</span><button type="button" onClick={() => pdf(x.report, x)} className="rounded border border-gray-300 px-2 py-0.5">PDF</button></li>
+          ))}</ul>
+        )}
+      </Sec>
+      </Group>
+
+      <Group id="tenant" title="Tenant and Leasing" desc="Lease expirations and rollover, and risks written into the leases.">
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Sec title="Leasing: expirations by year (% of rent)" testId="risk-leasing">
+          <T head={["", ...r.leasing.years.map(String), "12-mo rollover", "Vacant (SF)"]} right={[1, 2, 3, 4, 5, 6, 7, 8]}
+            rows={[["Fund", ...r.leasing.fund.by.map((b) => pct(b.rentPct, 0)), pct(r.leasing.fund.rollover12RentPct, 0), pct(r.leasing.fund.vacancyPct, 0)],
+              ...r.leasing.assets.map((a) => [a.name, ...a.by.map((b) => pct(b.rentPct, 0)), pct(a.rollover12RentPct, 0), pct(a.vacancyPct, 0)])]} />
+        </Sec>
+        <Sec title="Lease risk flags" testId="risk-lease-flags">
+          {!r.leaseFlags ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading leases…") : "Sign in to see the lease risk flags."}</p> : r.leaseFlags.rows.length === 0 ? <p className="text-xs text-gray-400">No abstracted leases with risk flags.</p> : (
+            <>
+              <T head={["Type", "Flags", "High"]} right={[1, 2]} rows={r.leaseFlags.byType.map((x) => [x.type, x.n, x.high])} />
+              <T head={["Asset", "Tenant", "Flag", "Severity"]} rows={r.leaseFlags.rows.filter((x) => x.severity === "high").slice(0, 15).map((x) => [x.asset, x.tenant, x.title, x.severity])} />
+            </>
+          )}
+        </Sec>
+      </div>
+      </Group>
+
+      <Group id="financial" title="Financial" desc="Debt and coverage, TI funding, stress tests and marks.">
+      <Sec title="Debt" testId="risk-debt">
+        <T head={["Asset", "Loan", "LTV", "Lender", "SOFR +", "Matures", "DSCR", "Test", "Cap strike", "Cap expires", "Provider", "Cap value"]} right={[1, 2, 4, 6, 7, 8, 11]}
+          rows={r.debt.map((d) => [d.name, fmtM(d.loan), pct(d.ltv), d.lender || "—", pct(d.spreadPct, 2), usDate(d.maturity), d.dscr == null ? "—" : <span className={d.dscr < d.minDscr ? "font-semibold text-red-700" : ""}>{d.dscr.toFixed(2)}x</span>, `${d.minDscr.toFixed(2)}x`, d.capped ? pct(d.strike, 2) : "none", d.capped ? usDate(d.capEnd) : "—", d.provider || (d.capped ? <span className="text-amber-700">not entered</span> : "—"), fmtM(d.capValue)])} />
+      </Sec>
       {r.ti && (
         <Sec title={`TI funding coverage, next 8 quarters${withActions ? " · with scenario actions" : ""}`} testId="risk-ti" right={<span className="flex items-center gap-3 text-[11px] text-gray-500"><span>Facility → asset cash flow → sub line (to {usDate(r.ti.lineExpires)}) → capital call</span><label className="flex items-center gap-1 text-gray-700"><input type="checkbox" aria-label="Show with scenario actions" checked={withActions} onChange={(e) => setWithActions(e.target.checked)} />With scenario actions ({actions.length})</label></span>}>
           <div className="overflow-x-auto">
@@ -166,29 +236,23 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-gray-600">{Object.entries(TI_COLORS).map(([k, c]) => <span key={k} className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded" style={{ background: c.fill }} />{c.label}</span>)}</div>
         </Sec>
       )}
-
       <Sec title="Stress tests (levered IRR; red = DSCR below its test in some year)" testId="risk-stress">
         <T head={["", "Base", ...r.stress.shocks.map((x) => x.label)]} right={[1, 2, 3, 4, 5, 6]}
           rows={[["Fund (equity-weighted)", pct(r.stress.fund.baseIrr), ...r.stress.fund.byShock.map((x) => `${pct(x.irr)}${x.breaches ? ` · ${x.breaches} breach${x.breaches > 1 ? "es" : ""}` : ""}`)],
             ...r.stress.assets.map((a) => [a.name, pct(a.baseIrr), ...a.results.map((x) => <span key={x.key} className={x.breach ? "font-semibold text-red-700" : ""} title={x.minDscr != null ? `Lowest DSCR ${x.minDscr.toFixed(2)}x (test ${a.test.toFixed(2)}x)` : undefined}>{pct(x.irr)}</span>)])]} />
       </Sec>
-
-      <Sec title={`Change vs. last quarter${prev ? ` (${usDate(prev.asOf)})` : ""}`} testId="risk-change">
-        {!prevR ? <p className="text-xs text-gray-400">No prior quarter to compare with.</p> : (
-          <T head={["Concentration", "Now", "Last quarter", "Change"]} right={[1, 2, 3]} rows={change.map((c) => {
-            const hh = /HHI/.test(c.label);
-            const f = (v) => (v == null ? "—" : hh ? Math.round(v).toLocaleString("en-US") : pct(v));
-            return [`${c.label}${c.name ? ` · ${c.name}` : ""}`, f(c.now), `${f(c.prev)}${c.prevName && c.prevName !== c.name ? ` · ${c.prevName}` : ""}`, c.change == null ? "—" : <span className={Math.abs(c.change) < 1e-9 ? "text-gray-400" : c.change > 0 ? "text-red-700" : "text-emerald-700"}>{`${c.change > 0 ? "+" : ""}${hh ? Math.round(c.change) : `${c.change.toFixed(1)} pts`}`}</span>];
-          })} />
-        )}
-      </Sec>
-
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Sec title="Leasing: expirations by year (% of rent)" testId="risk-leasing">
-          <T head={["", ...r.leasing.years.map(String), "12-mo rollover", "Vacant (SF)"]} right={[1, 2, 3, 4, 5, 6, 7, 8]}
-            rows={[["Fund", ...r.leasing.fund.by.map((b) => pct(b.rentPct, 0)), pct(r.leasing.fund.rollover12RentPct, 0), pct(r.leasing.fund.vacancyPct, 0)],
-              ...r.leasing.assets.map((a) => [a.name, ...a.by.map((b) => pct(b.rentPct, 0)), pct(a.rollover12RentPct, 0), pct(a.vacancyPct, 0)])]} />
+        <Sec title="Valuation: marks vs. cost" testId="risk-valuation">
+          <T head={["Asset", "Cost", "Value", "vs. cost", "Implied cap", "Exit cap"]} right={[1, 2, 3, 4, 5]} rows={r.valuation.map((v) => [v.name, fmtM(v.cost), fmtM(v.value), v.unrealizedPct == null ? "—" : <span className={v.unrealizedPct < 0 ? "text-red-700" : ""}>{pct(v.unrealizedPct)}</span>, pct(v.impliedCap, 2), pct(v.exitCap, 2)])} />
         </Sec>
+      </Group>
+
+      <Group id="concentration" title="Concentration" desc="Fund limits, and exposure to single tenants, industries, places, lenders and cap counterparties.">
+      {r.fundLimits.length > 0 && (
+        <Sec title="Fund limits (LPA / PPM and internal)" testId="risk-fund-limits">
+          <T head={["Limit", "Source", "Limit", "Actual", "Largest", "Status"]} right={[2, 3]} rows={r.fundLimits.map((l) => [l.label, l.source, l.unit === "text" ? l.limit : `${l.limit}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.actual == null ? "—" : `${l.actual.toFixed(1)}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.what || "—", <span key="s" className={l.status === "breached" ? "font-semibold text-red-700" : l.status === "near" ? "text-amber-700" : ""}>{l.status}</span>])} />
+        </Sec>
+      )}
+      <div className="grid gap-3 lg:grid-cols-2">
         <Sec title={`Largest tenants (limit ${lim.tenantFundPct}% of fund rent)`} testId="risk-tenants">
           <T head={["Tenant", "Rent", "% fund", "Asset", "Expires"]} right={[1, 2]} rows={r.tenants.map((x) => [x.tenant, fmtM(x.rent), over(x.pct, lim.tenantFundPct), x.assets.join(", "), usDate(x.leaseEnd)])} />
         </Sec>
@@ -197,17 +261,12 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           <T head={["Asset", "Largest industry", "% of asset rent"]} right={[2]} rows={r.industry.assets.map((a) => [a.name, a.groups[0]?.title ?? "—", a.groups[0] ? over(a.groups[0].rentPct, lim.industryAssetPct) : "—"])} />
           {r.industry.unclassifiedPct > 0 && <p className="mt-1 text-[11px] text-gray-500">{pct(r.industry.unclassifiedPct)} of rent has no SIC code (Unit Roll).</p>}
         </Sec>
+      </div>
         <Sec title="Geography (share of value)" testId="risk-geo">
           <StateTileMap states={r.geography.states} limitPct={lim.statePct} />
           <T head={["State", "% value", "% NOI", "Assets"]} right={[1, 2, 3]} rows={r.geography.states.map((s) => [s.name, over(s.valuePct, lim.statePct), pct(s.noiPct), s.assets])} />
           <T head={["Metro (city)", "% value", "% NOI", "Assets"]} right={[1, 2, 3]} rows={r.geography.metros.map((s) => [s.name, over(s.valuePct, lim.metroPct), pct(s.noiPct), s.assets])} />
         </Sec>
-      </div>
-
-      <Sec title="Debt" testId="risk-debt">
-        <T head={["Asset", "Loan", "LTV", "Lender", "SOFR +", "Matures", "DSCR", "Test", "Cap strike", "Cap expires", "Provider", "Cap value"]} right={[1, 2, 4, 6, 7, 8, 11]}
-          rows={r.debt.map((d) => [d.name, fmtM(d.loan), pct(d.ltv), d.lender || "—", pct(d.spreadPct, 2), usDate(d.maturity), d.dscr == null ? "—" : <span className={d.dscr < d.minDscr ? "font-semibold text-red-700" : ""}>{d.dscr.toFixed(2)}x</span>, `${d.minDscr.toFixed(2)}x`, d.capped ? pct(d.strike, 2) : "none", d.capped ? usDate(d.capEnd) : "—", d.provider || (d.capped ? <span className="text-amber-700">not entered</span> : "—"), fmtM(d.capValue)])} />
-      </Sec>
       <div className="grid gap-3 lg:grid-cols-2">
         <Sec title={`Debt by lender · HHI ${r.lenders.hhi.toLocaleString("en-US")} · limit ${lim.lenderPct}%`} testId="risk-lenders">
           <T head={["Lender", "Balance", "% of debt", "Loans", "Spread", "Maturities"]} right={[1, 2, 3, 4]} rows={r.lenders.rows.map((l) => [l.lender, fmtM(l.balance), over(l.pct, lim.lenderPct), l.loans, pct(l.spreadPct, 2), l.maturities.map(usDate).join(", ")])} />
@@ -217,36 +276,33 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           {r.caps.missing.length > 0 && <p className="mt-1 text-[11px] text-amber-800">No provider entered (Debt tab → Rate cap): {r.caps.missing.join(", ")}.</p>}
         </Sec>
       </div>
+      <Sec title="Concentration limits used here" testId="risk-limits">
+        <div className="flex flex-wrap gap-3 text-xs">
+          {Object.entries(DEFAULT_RISK_LIMITS).map(([k]) => (
+            <label key={k} className="flex items-center gap-1">
+              <span className="text-gray-600">{{ industryAssetPct: "Industry, % of asset rent", industryFundPct: "Industry, % of fund rent", lenderPct: "Lender, % of debt", capProviderPct: "Cap counterparty, % of capped", statePct: "State, % of value", metroPct: "Metro, % of value", tenantFundPct: "Tenant, % of fund rent" }[k]}</span>
+              <input aria-label={`Risk limit ${k}`} type="number" disabled={!canEdit} value={lim[k]} onChange={(e) => setLimit(k, e.target.value)} className="w-16 rounded border border-gray-300 px-1 py-0.5 text-right" />%
+            </label>
+          ))}
+        </div>
+      </Sec>
+      </Group>
 
+      <Group id="operational" title="Operational" desc="Executing the plan, insurance, and environmental and climate.">
       <div className="grid gap-3 lg:grid-cols-2">
-        <Sec title="Valuation: marks vs. cost" testId="risk-valuation">
-          <T head={["Asset", "Cost", "Value", "vs. cost", "Implied cap", "Exit cap"]} right={[1, 2, 3, 4, 5]} rows={r.valuation.map((v) => [v.name, fmtM(v.cost), fmtM(v.value), v.unrealizedPct == null ? "—" : <span className={v.unrealizedPct < 0 ? "text-red-700" : ""}>{pct(v.unrealizedPct)}</span>, pct(v.impliedCap, 2), pct(v.exitCap, 2)])} />
-        </Sec>
         <Sec title="Execution" testId="risk-execution">
           <T head={["Asset", "IRR underwritten", "IRR now", "Gap"]} right={[1, 2, 3]} rows={r.execution.uw.map((x) => [x.name, pct(x.uwIrr), pct(x.irr), isFinite(x.gap) ? `${x.gap >= 0 ? "+" : ""}${x.gap.toFixed(1)} pts` : "—"])} />
           {r.execution.budget.map((b) => <p key={b.id} className="mt-1 text-[11px] text-gray-600">{b.name}: over budget on {b.lines.join(", ")}</p>)}
           {r.execution.planGap && <p className="mt-1 text-[11px] text-gray-600">Fund plan: projected net LP IRR {pct(r.execution.planGap.current)} vs. plan {pct(r.execution.planGap.plan)}.</p>}
           {!r.execution.uw.length && !r.execution.budget.length && <p className="text-xs text-gray-400">No baselines or budget actuals yet.</p>}
         </Sec>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-2">
         <Sec title="Insurance certificates" testId="risk-insurance">
           {!r.insurance ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading documents…") : "Sign in to check the insurance certificates on file."}</p> : (
             <T head={["Asset", "Certificates", "Gaps"]} right={[1]} rows={r.insurance.map((x) => [x.name, x.certificates, x.gaps.length ? <ul key="g" className="list-disc pl-4">{x.gaps.map((g, i) => <li key={i} className={g.severity === "high" ? "text-red-700" : g.severity === "medium" ? "text-amber-800" : ""}>{g.text}</li>)}</ul> : "—"])} />
           )}
           <p className="mt-1 text-[11px] text-gray-400">Expired or expiring (60 days) policies, missing tenant certificates, and tenant coverage below the lease&apos;s requirements (Documents tab). Coverage against loan requirements comes once loan agreements carry them.</p>
         </Sec>
-        <Sec title="Lease risk flags" testId="risk-lease-flags">
-          {!r.leaseFlags ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading leases…") : "Sign in to see the lease risk flags."}</p> : r.leaseFlags.rows.length === 0 ? <p className="text-xs text-gray-400">No abstracted leases with risk flags.</p> : (
-            <>
-              <T head={["Type", "Flags", "High"]} right={[1, 2]} rows={r.leaseFlags.byType.map((x) => [x.type, x.n, x.high])} />
-              <T head={["Asset", "Tenant", "Flag", "Severity"]} rows={r.leaseFlags.rows.filter((x) => x.severity === "high").slice(0, 15).map((x) => [x.asset, x.tenant, x.title, x.severity])} />
-            </>
-          )}
-        </Sec>
       </div>
-
       <Sec title="Environmental and climate" testId="risk-env" right={<span className="text-[11px] text-gray-500">Entered per asset; upload Phase I / II reports on the Documents tab.</span>}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -273,25 +329,8 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           </table>
         </div>
       </Sec>
+      </Group>
 
-      <Sec title="Concentration limits used here" testId="risk-limits">
-        <div className="flex flex-wrap gap-3 text-xs">
-          {Object.entries(DEFAULT_RISK_LIMITS).map(([k]) => (
-            <label key={k} className="flex items-center gap-1">
-              <span className="text-gray-600">{{ industryAssetPct: "Industry, % of asset rent", industryFundPct: "Industry, % of fund rent", lenderPct: "Lender, % of debt", capProviderPct: "Cap counterparty, % of capped", statePct: "State, % of value", metroPct: "Metro, % of value", tenantFundPct: "Tenant, % of fund rent" }[k]}</span>
-              <input aria-label={`Risk limit ${k}`} type="number" disabled={!canEdit} value={lim[k]} onChange={(e) => setLimit(k, e.target.value)} className="w-16 rounded border border-gray-300 px-1 py-0.5 text-right" />%
-            </label>
-          ))}
-        </div>
-      </Sec>
-
-      <Sec title={`Issued risk reports · ${usDate(asOf)}`} testId="risk-issued">
-        {issued.length === 0 ? <p className="text-xs text-gray-400">None issued for this date.</p> : (
-          <ul className="space-y-1 text-xs">{issued.map((x) => (
-            <li key={x.id} className="flex items-center justify-between rounded border border-gray-100 px-2 py-1"><span>v{x.v} · issued {usDate(x.at.slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · {x.report.watch.length} assets on the watch list</span><button type="button" onClick={() => pdf(x.report, x)} className="rounded border border-gray-300 px-2 py-0.5">PDF</button></li>
-          ))}</ul>
-        )}
-      </Sec>
     </div>
   );
 }

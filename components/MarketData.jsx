@@ -51,6 +51,7 @@ export default function MarketData({ comps, onChange, deals = [], canEdit = fals
         <div><h2 className="text-lg font-bold">Market Data</h2><p className="text-xs text-gray-500">Submarket statistics by quarter, with each figure&apos;s source and date. Tag assets to their submarket to see their assumptions next to the market.</p></div>
         <div className="flex items-center gap-2 text-xs">
           {canEdit && <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium">Upload CoStar / broker report<input type="file" accept=".csv,.xlsx,.xls" className="hidden" data-testid="market-file" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload(f); }} /></label>}
+          <button type="button" disabled={!market.stats.length} onClick={async () => { const { marketPdf } = await import("@/lib/marketPdf"); downloadBlob(await marketPdf(market, deals), "market-summary.pdf"); }} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">PDF</button>
           <button type="button" disabled={!market.stats.length} onClick={async () => downloadBlob(await writeXlsx(marketXlsx(market), { sheetName: "Market data" }), "market-data.xlsx")} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">Excel</button>
         </div>
       </div>
