@@ -4,7 +4,7 @@
 // statistics by quarter with trends, uploads (CoStar / broker reports),
 // assets tagged to submarkets, and each asset's assumptions vs. the market.
 import { useState } from "react";
-import { STAT_FIELDS, assetVsMarket, detectMarketMapping, importMarket, makeStat, makeSubmarket, marketOf, marketXlsx, quarterKey, quarterLabel, seriesFor, submarketSummary } from "@/lib/market";
+import { STAT_FIELDS, assetVsMarket, detectMarketMapping, importMarket, makeStat, makeSubmarket, marketOf, marketCsvTemplate, marketXlsx, quarterKey, quarterLabel, seriesFor, submarketSummary } from "@/lib/market";
 import { parseCSV, downloadBlob } from "@/lib/fundTerms";
 import { readXlsxGrid, writeXlsx } from "@/lib/xlsx";
 
@@ -28,10 +28,11 @@ export default function MarketData({ comps, onChange, deals = [], canEdit = fals
   const setMarket = (fn) => onChange((c) => ({ ...c, market: fn(marketOf(c)) }));
   const series = cur ? seriesFor(market, cur.id) : [];
 
-  async function upload(file) {
+  // kind "csv": the Upload CSV button (any file name is read as CSV).
+  async function upload(file, kind = "") {
     setMsg(null);
     try {
-      const grid = file.name.toLowerCase().endsWith(".csv") ? parseCSV(await file.text()) : await readXlsxGrid(await file.arrayBuffer());
+      const grid = kind === "csv" || file.name.toLowerCase().endsWith(".csv") ? parseCSV(await file.text()) : await readXlsxGrid(await file.arrayBuffer());
       const det = detectMarketMapping(grid, market.mapping);
       if (!det.ok) { setMsg("Couldn't find a quarter column and at least two statistics. Check the header row."); return; }
       setPending({ grid, det, name: file.name });
@@ -50,7 +51,9 @@ export default function MarketData({ comps, onChange, deals = [], canEdit = fals
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div><h2 className="text-lg font-bold">Market Data</h2><p className="text-xs text-gray-500">Submarket statistics by quarter, with each figure&apos;s source and date. Tag assets to their submarket to see their assumptions next to the market.</p></div>
         <div className="flex items-center gap-2 text-xs">
-          {canEdit && <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium">Upload CoStar / broker report<input type="file" accept=".csv,.xlsx,.xls" className="hidden" data-testid="market-file" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload(f); }} /></label>}
+          {canEdit && <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium">Upload Excel (CoStar / broker)<input type="file" accept=".xlsx,.xls,.csv" className="hidden" data-testid="market-file" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload(f); }} /></label>}
+          {canEdit && <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium" title="A comma-separated file: one row per submarket and quarter">Upload CSV<input type="file" accept=".csv,text/csv" className="hidden" aria-label="Upload CSV" data-testid="market-csv" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload(f, "csv"); }} /></label>}
+          {canEdit && <button type="button" onClick={() => downloadBlob(new Blob([marketCsvTemplate()], { type: "text/csv" }), "market-data-template.csv")} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium" data-testid="market-csv-template">CSV template</button>}
           <button type="button" disabled={!market.stats.length} onClick={async () => { const { marketPdf } = await import("@/lib/marketPdf"); downloadBlob(await marketPdf(market, deals), "market-summary.pdf"); }} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">PDF</button>
           <button type="button" disabled={!market.stats.length} onClick={async () => downloadBlob(await writeXlsx(marketXlsx(market), { sheetName: "Market data" }), "market-data.xlsx")} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium disabled:opacity-40">Excel</button>
         </div>

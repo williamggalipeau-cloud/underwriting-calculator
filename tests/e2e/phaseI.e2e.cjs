@@ -68,9 +68,9 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // Documents: issue badges on estoppel, CAM and billing cards (from phase H)
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
-  await main.getByRole("button", { name: /Whole fund/ }).click();
+  await FX.docAsset(main, "");
   await p.waitForTimeout(600);
-  const badge = async (t) => (await main.getByTestId("doc-card").filter({ hasText: t }).first().getByTestId("doc-issues").innerText().catch(() => ""));
+  const badge = async (t) => (await (await FX.docCard(main, t)).getByTestId("doc-issues").innerText().catch(() => ""));
   const be = await badge("Desert Aero Parts estoppel"), bc = await badge("Lakeshore 2025 CAM"), bb = await badge("Riverside billing");
   check(/2 issues: Expiration; Landlord/.test(be) && /over-billed \$966/.test(bc) && /under-billed \$166\.67/.test(bb), `issue badges on the cards: ${be} | ${bc} | ${bb}`);
 

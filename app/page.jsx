@@ -55,6 +55,7 @@ import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImp
 import { revertRoot, revertCheck, applyRevert, restoreAsOf, recentlyDeleted } from "@/lib/revert";
 import { ALL_FUNDS, workingOnOptions, validWorkingOn, scopeDeals, scopeFunds, scopeOpenDeals, scopeLabel } from "@/lib/workingOn";
 import { isPipeline } from "@/lib/fundImpact";
+import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -84,6 +85,7 @@ import {
 } from "@/lib/cloud";
 import ChangeLog from "@/components/ChangeLog";
 import FundTermsEditor from "@/components/FundTermsEditor";
+import WorkflowDocs from "@/components/WorkflowDocs";
 import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
 import { FIGURE_DEFS, firmSummary, fmtAum } from "@/lib/enterprise";
 import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
@@ -493,7 +495,7 @@ const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 const TAB_COUNT_TITLES = { pipeline: "Active pipeline deals", forsale: "Sales in progress", offers: "Offers on sales in progress" };
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "documents", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
 
 
 export default function Home() {
@@ -1395,6 +1397,8 @@ export default function Home() {
   const fundDeals = useMemo(() => scopeDeals(firmFundDeals, scope, resolveFund), [firmFundDeals, scope, resolveFund]);
   const viewFunds = useMemo(() => scopeFunds(funds, scope), [funds, scope]);
   const viewDeals = useMemo(() => scopeOpenDeals(deals, scope, resolveFund, pipeline), [deals, scope, resolveFund, pipeline]);
+  // Document Library (user, 11/24): every deal, open or saved, firm-wide.
+  const libraryDeals = useMemo(() => { const seen = new Set(); return [...deals, ...savedDeals].filter((d) => d?.id && !seen.has(d.id) && seen.add(d.id)); }, [deals, savedDeals]);
   // Tab count badges (11/24): active pipeline deals, sales in progress, offers on them.
   const tabCounts = useMemo(() => {
     const pl = (pipeline?.deals ?? []).filter((d) => PIPELINE_ACTIVE.includes(d.stage) && (!scope || d.targetFund === scope));
@@ -1581,6 +1585,17 @@ export default function Home() {
     if (!n) { window.alert("The sample assets already have lenders, cap providers and environmental entries."); return; }
     noteAudit(`Added risk test data (lenders, cap providers, environmental) to ${n} sample asset${n === 1 ? "" : "s"}`);
     setDeals((prev) => prev.map(withRiskTestData));
+  }
+
+  // Mock comps (user, 11/24): fictional sales comps (Comps) and rent comps
+  // (Active Leasing) for each sample asset that has none.
+  function handleAddSampleComps() {
+    if (!requireEdit()) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const n = deals.filter((d) => withSampleComps(d, today) !== d).length;
+    if (!n) { window.alert("Every sample asset already has sales and rent comps."); return; }
+    noteAudit(`Added fictional sales and rent comps to ${n} sample asset${n === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map((d) => withSampleComps(d, today)));
   }
 
   // Sample data menu: the fictional construction jobs and invoices (mock TI actuals) for Model Fund I.
@@ -1873,6 +1888,7 @@ export default function Home() {
                             { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
+                            { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
                             { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
                             { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
                             { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
@@ -2491,6 +2507,24 @@ export default function Home() {
                 />
               </div>
             )}
+            {/* Documents panels in workflow tabs (user, 11/24): the library's documents of each tab's types. */}
+            {session && dbLink?.id && ["funddebt", "valuations", "leases", "insurance", "fundsummary", "assets"].includes(activeTab) && (
+              <div className="mt-4">
+                <WorkflowDocs
+                  key={activeTab + (DEAL_TABS.has(activeTab) ? activeDealId : "")}
+                  label={{ funddebt: "Debt documents", valuations: "Appraisals", leases: "Estoppels, CAM and billing", insurance: "Insurance certificates", fundsummary: "Governing documents", assets: "Asset documents" }[activeTab]}
+                  workspaceId={dbLink.id}
+                  canEdit={dbLink.role !== "viewer"}
+                  email={session?.user?.email ?? null}
+                  types={{ funddebt: ["loan", "rate_cap", "loan_term_sheet"], valuations: ["appraisal"], leases: ["estoppel", "cam", "billing"], insurance: ["insurance_cert"], fundsummary: ["lpa", "ppm", "jva", "sma"], assets: null }[activeTab]}
+                  uploadTypes={{ funddebt: ["loan", "rate_cap"], valuations: ["appraisal"], leases: ["estoppel", "cam", "billing"], insurance: ["insurance_cert"], fundsummary: ["lpa", "ppm", "jva", "sma"], assets: [] }[activeTab]}
+                  deals={DEAL_TABS.has(activeTab) ? [activeDeal] : activeTab === "funddebt" ? viewDeals.filter((d) => d.inputs.fundName?.trim()) : activeTab === "fundsummary" ? [] : fundDeals}
+                  portfolios={activeTab === "fundsummary" ? Object.keys(viewFunds) : []}
+                  funds={funds}
+                  onOpenLibrary={() => goTab("documents")}
+                />
+              </div>
+            )}
             {activeTab === "documents" && (
               <Documents
                 workspace={session && dbLink?.id ? dbLink : null}
@@ -2499,8 +2533,9 @@ export default function Home() {
                 userId={session?.user?.id ?? null}
                 canEdit={!!(session && dbLink?.id && dbLink.role !== "viewer")}
                 deal={activeDeal}
-                fundDeals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === resolveFund(inputs.fundName))}
-                fundName={resolveFund(inputs.fundName)}
+                allDeals={libraryDeals}
+                resolve={resolveFund}
+                scopePortfolio={scope || ""}
                 funds={funds}
                 dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
                 onApplyDeal={applyToDeal}
@@ -2509,6 +2544,11 @@ export default function Home() {
                 onAddPipeline={handleAddPipelineFromOM}
                 marks={valuations}
                 onApplyMark={applyToMark}
+                onOpenTab={async (tab, dealId) => {
+                  if (!(await confirmLeave())) return;
+                  if (dealId && deals.some((d) => d.id === dealId)) setActiveDealId(dealId);
+                  setActiveTab(tab);
+                }}
               />
             )}
             {activeTab === "acqdocs" && (

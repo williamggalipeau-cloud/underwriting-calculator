@@ -45,12 +45,17 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await FX.openTab(p, "GP Economics");
   await p.waitForTimeout(2500);
   const g = p.getByTestId("gp-economics");
-  check(/Internal/.test(await g.innerText()) && /Promote is kept apart from fee revenue/.test(await g.innerText()), "marked internal; promote apart from fees");
+  check(/Internal/.test(await g.innerText()) && /kept apart from capital gains/.test(await g.innerText()), "marked internal; fee income apart from capital gains");
   const money = async (id) => Number((await p.getByTestId(id).locator("p").nth(1).innerText()).replace(/[$M,]/g, ""));
   const fees = await money("gp-fees"), promote = await money("gp-promote"), co = await money("gp-coinvest"), total = await money("gp-total");
   check(fees > 0 && promote > 0 && Math.abs(fees + promote + co - total) < 0.03, `fees ${fees}M + promote ${promote}M + co-invest ${co}M = total ${total}M`);
-  check(/% of GP income/.test(await p.getByTestId("gp-fees").innerText()) && /PV \$[\d.]+M at 8%/.test(await p.getByTestId("gp-fees").innerText()), "shares and the fees' present value");
+  check(/% of total GP economics/.test(await p.getByTestId("gp-fees").innerText()) && !/PV/.test(await p.getByTestId("gp-fees").innerText()) && (await g.getByLabel("Discount rate").count()) === 0, "shares; no discount rate or present value (user, 11/24)");
   check((await p.getByTestId("gp-share-bar").locator("div").count()) === 3, "share bar: fees, promote, co-invest");
+  check(/^Consolidated/.test(await p.getByTestId("gp-totals-label").innerText()), "the cards are labelled Consolidated (user, 11/24)");
+  // Revenue Yield (user, 11/24): the fifth card
+  const ryc = await p.getByTestId("gp-revenue-yield").innerText();
+  check(/Revenue Yield/i.test(ryc) && /\d+\.\d\d%/.test(ryc) && /a year/.test(ryc) && /To date:/.test(ryc) && /committed/.test(ryc), `Revenue Yield card: ${ryc.replace(/\s+/g, " ")}`);
+  check(/Committed capital/i.test(await p.getByTestId("gp-by-type").locator("thead").innerText()) && /never promote or co-invest profit/.test(await p.getByTestId("gp-ry-note").innerText()), "Consolidated: Revenue Yield columns and the definition");
   // Consolidated by portfolio type (11/24): the default view
   const con = p.getByTestId("gp-by-type");
   check((await con.count()) === 1 && /Fund/.test(await con.innerText()) && /All portfolios/.test(await con.locator("tfoot").innerText()) && (await p.getByTestId("gp-type-years").count()) === 1, "Consolidated: subtotals by portfolio type, all portfolios, income by year and type");
@@ -59,16 +64,12 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await p.waitForTimeout(300);
   const yrs = p.getByTestId("gp-years");
   check((await yrs.locator("tbody tr").count()) >= 5 && /Life of portfolios/.test(await yrs.locator("tfoot").innerText()), "by year, with life-of-portfolio totals");
-  // Discount rate changes the PV only
-  const pv8 = await p.getByTestId("gp-fees").innerText();
-  await g.getByLabel("Discount rate").fill("12");
-  await p.waitForTimeout(400);
-  const pv12 = await p.getByTestId("gp-fees").innerText();
-  check(pv8 !== pv12 && /at 12%/.test(pv12) && (await money("gp-fees")) === fees, "a higher discount rate lowers the PV, not the total");
+  check(/Fee income/i.test(await yrs.locator("thead").innerText()) && /Capital gains \(on sale\)/i.test(await yrs.locator("thead").innerText()) && /not income/.test(await p.getByTestId("gp-years-note").innerText()), "by year: fee income, and capital gains (promote, co-invest profit) beside it (user, 11/24)");
   // By fund, by asset
   await g.getByRole("tab", { name: "By portfolio" }).click();
   await p.waitForTimeout(300);
   const fr = await p.getByTestId("gp-funds").locator("tbody tr").first().innerText();
+  check(/LP \+ GP \(default\)/.test(fr) && /\d+\.\d\d%/.test(fr), `by portfolio: Revenue Yield and its basis (${fr.replace(/\s+/g, " ").slice(-60)})`);
   check(/Model Fund I/.test(fr) && /x/.test(fr), `by fund: ${fr.replace(/\s+/g, " ").slice(0, 90)}`);
   await g.getByRole("tab", { name: "By asset" }).click();
   await p.waitForTimeout(300);
@@ -85,7 +86,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   const [dp] = await Promise.all([p.waitForEvent("download"), g.getByRole("button", { name: "PDF", exact: true }).click()]);
   const pdfPath = `${S}/gp-economics.pdf`; await dp.saveAs(pdfPath);
   const txt = require("child_process").execFileSync("pdftotext", ["-layout", pdfPath, "-"]).toString();
-  check(/GP economics/.test(txt) && /INTERNAL - not for distribution/.test(txt) && /Total GP income/.test(txt) && /Model Fund I/.test(txt), "PDF: internal, totals, funds and assets");
+  check(/GP economics/.test(txt) && /INTERNAL - not for distribution/.test(txt) && /Total GP economics/.test(txt) && /Model Fund I/.test(txt), "PDF: internal, totals, funds and assets");
   await p.screenshot({ path: `${S}/gp-economics.png`, fullPage: true });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();

@@ -58,7 +58,9 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   const main = p.locator("main");
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1500);
-  check((await main.getByTestId("doc-card").count()) === 5, `asset view: 5 Airport Flex documents (${await main.getByTestId("doc-card").count()})`);
+  await FX.docAsset(main, "Airport Flex Park");
+  const afRows = main.getByTestId("doc-row").filter({ hasNotText: "Lease –" });
+  check((await afRows.count()) === 5, `asset filter: 5 Airport Flex documents besides its leases (${await afRows.count()}: ${(await main.getByTestId("doc-row").allInnerTexts()).map((x) => x.split("\n")[0]).join(" | ")})`);
 
   // Upload a document
   await main.getByLabel("Document type").selectOption("loi");
@@ -68,7 +70,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check(uploads.length === 1 && docs.some((d) => d.doc_type === "loi"), "LOI uploaded to the deal-docs bucket and listed");
 
   // Review with Claude + Save abstract (OM)
-  const omCard = main.getByTestId("doc-card").filter({ hasText: "Offering memo" }).first();
+  const omCard = await FX.docCard(main, "Offering memo");
   await omCard.getByRole("button", { name: "Review with Claude" }).click();
   await omCard.getByLabel("Document abstract JSON").fill(JSON.stringify(abs("airport-flex-om")));
   await omCard.getByRole("button", { name: "Save abstract" }).click();
@@ -78,7 +80,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await omCard.getByTestId("doc-mismatch").innerText()).includes("differ"), "OM mismatch badge vs the model");
 
   // T-12: apply one line
-  const t12 = main.getByTestId("doc-card").filter({ hasText: "T-12" }).first();
+  const t12 = await FX.docCard(main, "T-12");
   await t12.getByRole("button", { name: "Apply", exact: true }).click();
   const ap = t12.getByTestId("doc-apply");
   const taxRow = ap.getByTestId("doc-row-real_estate_taxes→realEstateTaxPSF");
@@ -94,7 +96,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await t12.getByTestId("doc-mismatch").innerText()).match(/\d+/)[0] !== "0", "badge stays on fields not taken");
 
   // IC memo: baseline + conditions
-  const ic = main.getByTestId("doc-card").filter({ hasText: "Final IC memo" }).first();
+  const ic = await FX.docCard(main, "Final IC memo");
   await ic.getByRole("button", { name: "Apply", exact: true }).click();
   await ic.getByTestId("doc-apply").getByRole("button", { name: /^Apply 2 field/ }).click();
   await p.waitForTimeout(1200);
@@ -107,16 +109,16 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await conds.innerText()).includes("3 open") && (await conds.innerText()).includes("t@example.com"), "condition ticked off with who and when");
 
   // Insurance: gap vs the lease
-  const ins = main.getByTestId("doc-card").filter({ hasText: "Insurance certificate" }).first();
+  const ins = await FX.docCard(main, "Insurance certificate");
   await ins.getByRole("button", { name: "Check coverage" }).click();
   const gaps = await ins.getByTestId("insurance-gap").allInnerTexts();
   check(gaps.length === 1 && /umbrella \$1,000,000 is below the lease's \$2,000,000/.test(gaps[0]), `insurance gap: ${gaps.join(" | ")}`);
   await p.screenshot({ path: S + "/e_docs.png", fullPage: false });
 
   // Fund view: LPA limits to the fund
-  await main.getByRole("button", { name: /Whole fund/ }).click();
+  await FX.docAsset(main, "");
   await p.waitForTimeout(600);
-  const lpa = main.getByTestId("doc-card").filter({ hasText: "Fund LPA" }).first();
+  const lpa = await FX.docCard(main, "Fund LPA");
   await lpa.getByRole("button", { name: "Apply", exact: true }).click();
   const la = lpa.getByTestId("doc-apply");
   check((await la.getByRole("checkbox", { checked: true }).count()) === 8, "LPA: 8 limits differ (fund terms already match)");

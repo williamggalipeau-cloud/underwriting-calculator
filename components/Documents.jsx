@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DOC_TYPES, TYPE, BLOCKS, FIELDS, checkLocally, dealDocPrompt, parseDealAbstract } from "@/lib/dealDocTypes";
 import { applyDoc, applyRentRoll, appraisalMark, billingCheck, camCheck, capChecks, capFromDoc, compareDoc, estoppelChecks, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
 import { fundType } from "@/lib/fundTypes";
 import { createDealDoc, createDealDocWithFallback, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
-import { listLeases, PROJECT_REF, fmtBytes, MAX_FILE_MB } from "@/lib/leaseDocs";
+import { listLeases, PROJECT_REF, fmtBytes, MAX_FILE_MB, fileLink as leaseFileLink } from "@/lib/leaseDocs";
+import { WORKFLOWS, attachesTo, filterRows, groupRows, libraryCounts, libraryRows, workflowOfType, STATUS_LABEL as LIB_STATUS } from "@/lib/docLibrary";
+const LEASE_STATUS = { uploaded: "Uploaded", abstracted: "Abstracted – review", applied: "Applied to rent roll" };
 import { newUnit } from "@/components/UnitRoll";
 import { underwrite } from "@/lib/calculations";
 
@@ -389,15 +391,46 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks
   );
 }
 
-export default function Documents({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, funds, dealInputs, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onAddPipeline }) {
-  const [scope, setScope] = useState("asset");
+const GROUPS = [["portfolio", "Portfolio"], ["asset", "Asset"], ["workflow", "Workflow"], ["none", "None (newest first)"]];
+const LEVEL_BADGE = { portfolio: ["Portfolio", "border-violet-200 bg-violet-50 text-violet-700"], asset: ["Asset", "border-cyan-200 bg-cyan-50 text-cyan-700"] };
+const sel = "rounded-md border border-gray-300 bg-white px-2 py-1.5";
+
+// A lease from Asset Management → Leases: its files, and a link there to abstract it.
+function LeaseFiles({ lease, onOpenTab, onError }) {
+  const open = async (path) => {
+    try { const url = await leaseFileLink(path); window.open(url, "_blank", "noopener"); } catch (e) { onError(e.message || String(e)); }
+  };
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid="lease-card">
+      <ol className="divide-y divide-gray-100 rounded-lg border border-gray-100">
+        {(lease.files ?? []).map((f, i) => (
+          <li key={f.path ?? i} className="flex items-center gap-2 px-2 py-1.5"><span className="w-5 text-right text-gray-400">{i + 1}.</span>
+            <button type="button" onClick={() => open(f.path)} className="min-w-0 flex-1 truncate text-left font-medium text-blue-700 hover:underline">{f.name}</button>
+            <span className="text-gray-400">{f.size ? fmtBytes(f.size) : ""}</span></li>
+        ))}
+      </ol>
+      <button type="button" onClick={() => onOpenTab("leases", lease.deal_id)} className={`${btn} mt-2 border-blue-200 bg-blue-50 text-blue-700`}>Abstract and apply on Leases →</button>
+    </div>
+  );
+}
+
+// Library → Documents (user, 11/24): every portfolio- and asset-level
+// document across the firm, grouped by portfolio, with upload. A row opens
+// its card (review with Claude, apply); its last column links to the
+// workflow tab where the document is used.
+export default function Documents({ workspace, signedIn, email, userId, canEdit, deal, allDeals = [], resolve = (n) => (n ?? "").trim(), scopePortfolio = "", funds, dealInputs, marks, onApplyMark, onApplyDeal, onApplyFund, onNewDeal, onAddPipeline, onOpenTab = () => {} }) {
   const [docs, setDocs] = useState(null);
   const [leases, setLeases] = useState([]);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState({ portfolio: scopePortfolio, asset: "", level: "", tab: "", type: "", status: "", q: "" });
+  const [groupBy, setGroupBy] = useState("portfolio");
+  const [openKeys, setOpenKeys] = useState(() => new Set());
+  const toggle = (k) => setOpenKeys((o) => { const n = new Set(o); if (n.has(k)) n.delete(k); else n.add(k); return n; });
   const [type, setType] = useState("om");
   const [title, setTitle] = useState("");
   const [leaseId, setLeaseId] = useState("");
-  const [fundSel, setFundSel] = useState("");
+  const [upPortfolio, setUpPortfolio] = useState(null);
+  const [upAsset, setUpAsset] = useState(null);
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef(null);
@@ -416,27 +449,39 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
     refresh();
   }, [refresh]);
 
-  const fundIds = useMemo(() => new Set(fundDeals.map((d) => d.id)), [fundDeals]);
-  const assetName = (id) => (id === deal?.id ? deal.inputs.propertyName : fundDeals.find((d) => d.id === id)?.inputs?.propertyName ?? "Asset not in this fund");
-  const inputsOf = (id) => (id === deal?.id ? deal.inputs : dealInputs?.(id) ?? fundDeals.find((d) => d.id === id)?.inputs ?? null);
-  const shown = (docs ?? []).filter((d) => (scope === "asset" ? d.deal_id === deal?.id : (d.deal_id && fundIds.has(d.deal_id)) || (!d.deal_id && d.fund_name === fundName)));
-  const fundDocs = shown.filter((d) => !d.deal_id);
-  const assetDocs = shown.filter((d) => d.deal_id);
-  const fundList = [...new Set([fundName, ...Object.keys(funds ?? {})].filter(Boolean))].sort();
-  // A JVA only for a joint venture, an SMA only for a separate account (11/24).
-  const govOk = (x) => !x.fundType || fundType(funds?.[fundSel && fundList.includes(fundSel) ? fundSel : fundName || fundList[0]]?.type) === x.fundType;
-  const types = (deal ? DOC_TYPES : DOC_TYPES.filter((x) => x.scope === "fund")).filter(govOk);
-  const t = TYPE[types.some((x) => x.id === type) ? type : types[0]?.id] ?? TYPE[type];
-  const toFund = fundSel && fundList.includes(fundSel) ? fundSel : fundName || fundList[0] || "";
-  const assetLeases = leases.filter((l) => l.deal_id === deal?.id);
-  const icDeals = scope === "fund" ? fundDeals.filter((d) => inputsOf(d.id)?.icApproved) : deal?.inputs?.icApproved ? [deal] : [];
+  const set = (k) => (e) => setFilter((f) => ({ ...f, [k]: e.target.value, ...(k === "portfolio" ? { asset: "" } : {}) }));
+  const byId = useMemo(() => new Map(allDeals.map((d) => [d.id, d])), [allDeals]);
+  const inputsOf = (id) => dealInputs?.(id) ?? byId.get(id)?.inputs ?? null;
+  const fundList = useMemo(() => [...new Set([...Object.keys(funds ?? {}), ...allDeals.map((d) => resolve(d.inputs?.fundName))].filter(Boolean))].sort(), [funds, allDeals, resolve]);
+  const rows = useMemo(() => libraryRows({ docs: docs ?? [], leases, deals: allDeals, funds, resolve }), [docs, leases, allDeals, funds, resolve]);
+  const scoped = filterRows(rows, { portfolio: filter.portfolio, asset: filter.asset });
+  const shown = filterRows(scoped, filter);
+  const counts = libraryCounts(scoped);
+  const groups = groupRows(shown, groupBy);
+  const assetOptions = allDeals.filter((d) => !filter.portfolio || resolve(d.inputs?.fundName) === filter.portfolio).sort((a, b) => (a.inputs?.propertyName ?? "").localeCompare(b.inputs?.propertyName ?? ""));
+  const typeOptions = [...new Set(scoped.map((r) => r.typeLabel))].sort();
+  const tabOptions = [...new Set(scoped.map((r) => r.tab))].filter((t) => WORKFLOWS[t]).sort((a, b) => WORKFLOWS[a].localeCompare(WORKFLOWS[b]));
+
+  // Upload: the type decides whether it attaches to a portfolio or an asset.
+  const toFund = upPortfolio != null && (upPortfolio === "" || fundList.includes(upPortfolio)) ? upPortfolio : (filter.portfolio || resolve(deal?.inputs?.fundName) || fundList[0] || "");
+  const govOk = (x) => !x.fundType || fundType(funds?.[toFund]?.type) === x.fundType;
+  const types = DOC_TYPES.filter(govOk);
+  const t = TYPE[types.some((x) => x.id === type) ? type : types[0]?.id] ?? TYPE.om;
+  const level = attachesTo(t.id);
+  const upAssets = allDeals.filter((d) => (resolve(d.inputs?.fundName) || "") === toFund).sort((a, b) => (a.inputs?.propertyName ?? "").localeCompare(b.inputs?.propertyName ?? ""));
+  const toAsset = upAsset && upAssets.some((d) => d.id === upAsset) ? upAsset : upAssets.some((d) => d.id === deal?.id) ? deal.id : upAssets[0]?.id ?? "";
+  const toAssetName = byId.get(toAsset)?.inputs?.propertyName ?? "";
+  const assetLeases = leases.filter((l) => l.deal_id === toAsset);
+  const icDeal = filter.asset ? byId.get(filter.asset) : null;
+  const ic = icDeal ? inputsOf(icDeal.id)?.icApproved : null;
 
   async function upload(e) {
     e.preventDefault();
     if (!files.length) return;
+    if (level === "asset" && !toAsset) { setError("Choose the asset this document is for."); return; }
     setBusy(true);
     try {
-      await createDealDocWithFallback(wsId, { dealId: t.scope === "fund" ? null : deal.id, fundName: t.scope === "fund" ? toFund : fundName ?? "", docType: t.id, title: title.trim(), leaseId: (type === "insurance_cert" || type === "estoppel") && leaseId ? leaseId : null, files }, email);
+      await createDealDocWithFallback(wsId, { dealId: level === "portfolio" ? null : toAsset, fundName: toFund, docType: t.id, title: title.trim(), leaseId: (t.id === "insurance_cert" || t.id === "estoppel") && leaseId ? leaseId : null, files }, email);
       setFiles([]); setTitle(""); setLeaseId("");
       await refresh();
     } catch (err) { setError(err.message || String(err)); } finally { setBusy(false); }
@@ -446,7 +491,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
     <DocCard
       key={d.id}
       doc={d}
-      assetName={d.deal_id ? assetName(d.deal_id) : `${d.fund_name || fundName} (fund)`}
+      assetName={d.deal_id ? byId.get(d.deal_id)?.inputs?.propertyName ?? "Asset not found" : `${d.fund_name || "No portfolio"} (portfolio)`}
       inputs={d.deal_id ? inputsOf(d.deal_id) : null}
       terms={!d.deal_id ? funds?.[d.fund_name] ?? {} : null}
       units={d.deal_id ? inputsOf(d.deal_id)?.units ?? [] : []}
@@ -466,52 +511,65 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
       fundList={fundList}
     />
   );
+  const chip = (k, n, label, patch) => {
+    const on = k === "review" ? filter.status === "abstracted" : filter.status ? false : k === "all" ? !filter.level && !filter.type : k === "portfolio" || k === "asset" ? filter.level === k : k === "leases" ? filter.type === "Lease" : false;
+    return <button key={k} type="button" onClick={() => setFilter((f) => ({ ...f, level: "", type: "", status: "", ...patch }))} className={`rounded-full border px-2.5 py-1 ${on ? "border-blue-300 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-700"}`} data-testid={`doc-count-${k}`}><b>{n}</b> {label}</button>;
+  };
 
   return (
     <div className="space-y-4 text-gray-900">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold">Documents</h2>
-          <p className="text-xs text-gray-500">Deal and fund documents: offering memo, rent roll, T-12, LOI, PSA, IC memo, closing statements, insurance certificates and the fund&apos;s LPA and PPM. Review each with Claude (CREparser Deal Review connector), check the values against their quotes, and apply them to the model field by field. Deadlines appear on Leases → Critical dates.</p>
-        </div>
-        <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-xs">
-          {[["asset", deal?.inputs?.propertyName || "This asset"], ["fund", `Whole fund${fundName ? ` (${fundName})` : ""}`]].map(([k, l]) => (
-            <button key={k} type="button" onClick={() => setScope(k)} className={`rounded-md px-3 py-1 font-medium ${scope === k ? "bg-white text-blue-700 shadow-sm" : "text-gray-500"}`}>{l}</button>
-          ))}
-        </div>
+      <div>
+        <h2 className="text-lg font-bold">Document Library</h2>
+        <p className="text-xs text-gray-500">Every portfolio- and asset-level document across the firm. Each is attached to a portfolio or an asset by its type, and also shows in the workflow tab it belongs to (last column). Open a document to review it with Claude (CREparser Deal Review connector), check the values against their quotes, and apply them field by field. Leases are listed here and abstracted on Leases; photos aren&apos;t included.</p>
       </div>
       {!signedIn || !wsId ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-xs text-gray-500">Documents are stored in the database. Sign in and open a workspace to see and upload them.</div>
       ) : (
         <>
           {error && <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800"><span className="flex-1">{error}</span><button type="button" onClick={() => setError(null)} aria-label="Dismiss">✕</button></p>}
-          {canEdit && (deal || fundList.length > 0) && (
+          {canEdit && (allDeals.length > 0 || fundList.length > 0) && (
             <form onSubmit={upload} className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3 text-xs" data-testid="doc-upload">
-              <h3 className="text-sm font-semibold">Add a document</h3>
+              <h3 className="text-sm font-semibold">Upload document</h3>
               <div className="flex flex-wrap items-end gap-3">
                 <label className="flex flex-col gap-0.5"><span className="text-gray-600">Type</span>
-                  <select value={t.id} onChange={(e) => setType(e.target.value)} className="rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Document type">
-                    {types.map((x) => <option key={x.id} value={x.id}>{x.label}{x.scope === "fund" ? " (fund)" : ""}</option>)}
+                  <select value={t.id} onChange={(e) => setType(e.target.value)} className={sel} aria-label="Document type">
+                    {types.map((x) => <option key={x.id} value={x.id}>{x.label}{attachesTo(x.id) === "portfolio" ? " (portfolio)" : ""}</option>)}
                   </select>
                 </label>
-                <label className="flex flex-col gap-0.5"><span className="text-gray-600">Title (optional)</span><input value={title} onChange={(e) => setTitle(e.target.value)} className="w-56 rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Document title" /></label>
-                {(type === "insurance_cert" || type === "estoppel") && (
-                  <label className="flex flex-col gap-0.5"><span className="text-gray-600">{type === "estoppel" ? "Tenant (lease)" : "Whose policies"}</span>
-                    <select value={leaseId} onChange={(e) => setLeaseId(e.target.value)} className="w-64 rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Insured">
-                      <option value="">{type === "estoppel" ? "Choose the lease…" : "Owner (the asset's policies)"}</option>
+                {level === "portfolio" ? (
+                  <label className="flex flex-col gap-0.5"><span className="text-gray-600">Assign to portfolio</span>
+                    <select value={toFund} onChange={(e) => setUpPortfolio(e.target.value)} className={`${sel} w-56`} aria-label="Assign to fund" data-testid="doc-fund-select">
+                      {fundList.map((f) => <option key={f} value={f}>{f}</option>)}
+                    </select>
+                  </label>
+                ) : (
+                  <>
+                    <label className="flex flex-col gap-0.5"><span className="text-gray-600">Portfolio</span>
+                      <select value={toFund} onChange={(e) => { setUpPortfolio(e.target.value); setUpAsset(null); }} className={`${sel} w-48`} aria-label="Upload portfolio">
+                        {fundList.map((f) => <option key={f} value={f}>{f}</option>)}
+                        <option value="">Not yet in a portfolio</option>
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-0.5"><span className="text-gray-600">Asset</span>
+                      <select value={toAsset} onChange={(e) => setUpAsset(e.target.value)} className={`${sel} w-56`} aria-label="Upload asset" data-testid="doc-asset-select">
+                        {upAssets.length === 0 && <option value="">No assets</option>}
+                        {upAssets.map((d) => <option key={d.id} value={d.id}>{d.inputs?.propertyName || "Untitled"}</option>)}
+                      </select>
+                    </label>
+                  </>
+                )}
+                <label className="flex flex-col gap-0.5"><span className="text-gray-600">Title (optional)</span><input value={title} onChange={(e) => setTitle(e.target.value)} className={`${sel} w-56`} aria-label="Document title" /></label>
+                {level === "asset" && (t.id === "insurance_cert" || t.id === "estoppel") && (
+                  <label className="flex flex-col gap-0.5"><span className="text-gray-600">{t.id === "estoppel" ? "Tenant (lease)" : "Whose policies"}</span>
+                    <select value={leaseId} onChange={(e) => setLeaseId(e.target.value)} className={`${sel} w-64`} aria-label="Insured">
+                      <option value="">{t.id === "estoppel" ? "Choose the lease…" : "Owner (the asset's policies)"}</option>
                       {assetLeases.map((l) => <option key={l.id} value={l.id}>Tenant: {l.tenant || "lease"}</option>)}
                     </select>
                   </label>
                 )}
-                {t.scope === "fund" && (
-                  <label className="flex flex-col gap-0.5"><span className="text-gray-600">Assign to fund</span>
-                    <select value={toFund} onChange={(e) => setFundSel(e.target.value)} className="w-56 rounded-md border border-gray-300 bg-white px-2 py-1.5" aria-label="Assign to fund" data-testid="doc-fund-select">
-                      {fundList.map((f) => <option key={f} value={f}>{f}</option>)}
-                    </select>
-                  </label>
-                )}
-                <span className="pb-1.5 text-gray-500">{t.scope === "fund" ? `Stored with the fund ${toFund}` : `For ${deal.inputs.propertyName}`} · applies to {t.applies}</span>
               </div>
+              <p className="text-gray-600" data-testid="doc-upload-where"><span className={`mr-1 rounded-full border px-1.5 py-px text-[10px] font-semibold ${LEVEL_BADGE[level][1]}`}>{LEVEL_BADGE[level][0]}</span>
+                {level === "portfolio" ? `Attached to the portfolio ${toFund}` : `Attached to ${toAssetName || "the asset"}`} · also appears in {WORKFLOWS[workflowOfType(t.id)]} · applies to {t.applies}. Leases are uploaded on Leases.</p>
               <div className="flex flex-wrap items-center gap-2">
                 <input ref={fileRef} type="file" accept="application/pdf,.pdf" multiple className="sr-only" aria-label="Choose document PDFs" onChange={(e) => { setFiles([...(e.target.files ?? [])]); e.target.value = ""; }} />
                 <button type="button" onClick={() => fileRef.current?.click()} className={`${btn} border-blue-200 bg-white text-blue-700`}>Choose PDFs…</button>
@@ -521,21 +579,79 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
             </form>
           )}
           {!canEdit && <p className="text-xs text-gray-500">You can open these documents and their abstracts. Owners and editors can add, review and apply them.</p>}
-          {icDeals.map((d) => (
-            <div key={d.id} className="space-y-2">
-              {scope === "fund" && <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">{d.inputs.propertyName}</h3>}
-              <IcVarianceTable ic={inputsOf(d.id).icApproved} inputs={inputsOf(d.id)} />
-              {canEdit && <Conditions deal={d.id} inputs={inputsOf(d.id)} onApplyDeal={onApplyDeal} email={email} />}
+          <div className="flex flex-wrap items-end gap-3 text-xs" data-testid="doc-filters">
+            <label className="flex flex-col gap-0.5"><span className="text-gray-600">Portfolio</span>
+              <select value={filter.portfolio} onChange={set("portfolio")} className={sel} aria-label="Filter portfolio">
+                <option value="">All portfolios</option>
+                {fundList.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select></label>
+            <label className="flex flex-col gap-0.5"><span className="text-gray-600">Asset</span>
+              <select value={filter.asset} onChange={set("asset")} className={`${sel} max-w-[14rem]`} aria-label="Filter asset">
+                <option value="">All assets</option>
+                {assetOptions.map((d) => <option key={d.id} value={d.id}>{d.inputs?.propertyName || "Untitled"}</option>)}
+              </select></label>
+            <label className="flex flex-col gap-0.5"><span className="text-gray-600">Attached to</span>
+              <select value={filter.level} onChange={set("level")} className={sel} aria-label="Attached to">
+                <option value="">Portfolio and asset</option><option value="portfolio">Portfolio only</option><option value="asset">Asset only</option>
+              </select></label>
+            <label className="flex flex-col gap-0.5"><span className="text-gray-600">Workflow</span>
+              <select value={filter.tab} onChange={set("tab")} className={`${sel} max-w-[16rem]`} aria-label="Workflow">
+                <option value="">All workflows</option>
+                {tabOptions.map((k) => <option key={k} value={k}>{WORKFLOWS[k]}</option>)}
+              </select></label>
+            <label className="flex flex-col gap-0.5"><span className="text-gray-600">Type</span>
+              <select value={filter.type} onChange={set("type")} className={`${sel} max-w-[14rem]`} aria-label="Type">
+                <option value="">All types</option>
+                {typeOptions.map((k) => <option key={k} value={k}>{k}</option>)}
+              </select></label>
+            <label className="flex flex-col gap-0.5"><span className="text-gray-600">Search</span>
+              <input value={filter.q} onChange={set("q")} placeholder="Title, file, tenant…" className={`${sel} w-44`} aria-label="Search documents" /></label>
+            <label className="flex flex-col gap-0.5"><span className="text-gray-600">Group by</span>
+              <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} className={sel} aria-label="Group by">
+                {GROUPS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+              </select></label>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {chip("all", counts.all, "documents", {})}
+            {chip("portfolio", counts.portfolio, "portfolio-level", { level: "portfolio" })}
+            {chip("asset", counts.asset, "asset-level", { level: "asset" })}
+            {chip("leases", counts.leases, "leases", { type: "Lease" })}
+            {chip("review", counts.review, "awaiting review", { status: "abstracted" })}
+          </div>
+          {ic && (
+            <div className="space-y-2">
+              <IcVarianceTable ic={ic} inputs={inputsOf(icDeal.id)} />
+              {canEdit && <Conditions deal={icDeal.id} inputs={inputsOf(icDeal.id)} onApplyDeal={onApplyDeal} email={email} />}
             </div>
-          ))}
+          )}
           {docs === null ? <p className="text-xs text-gray-400">Loading documents…</p> : shown.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">No documents yet. Sample documents for Airport Flex Park and Model Fund I are in the repository under docs/sample-deal-docs.</div>
+            <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">{rows.length ? "No documents match these filters." : "No documents yet. Sample documents for Airport Flex Park and Model Fund I are in the repository under docs/sample-deal-docs."}</div>
           ) : (
-            <div className="space-y-3">
-              {fundDocs.length > 0 && <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Fund documents</h3>}
-              {fundDocs.map(card)}
-              {scope === "fund" && assetDocs.length > 0 && <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Asset documents</h3>}
-              {assetDocs.map(card)}
+            <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+              <table className="w-full text-xs" data-testid="doc-library">
+                <thead><tr className="border-b border-gray-200 bg-gray-50 text-left text-[10px] uppercase tracking-wide text-gray-500">
+                  <th className="px-2 py-1.5">Document</th><th className="px-2 py-1.5">Type</th><th className="px-2 py-1.5">Attached to</th><th className="px-2 py-1.5">Uploaded</th><th className="px-2 py-1.5">Status</th><th className="px-2 py-1.5"></th><th className="px-2 py-1.5">Workflow tab</th>
+                </tr></thead>
+                {groups.map((g) => (
+                  <tbody key={g.key || "_none"}>
+                    {g.label && <tr className="bg-gray-100" data-testid="doc-group"><td colSpan={7} className="px-2 py-1.5 text-[11px] font-semibold text-gray-700">{g.label}</td></tr>}
+                    {g.rows.map((r) => (
+                      <Fragment key={r.key}>
+                        <tr className="border-b border-gray-100 align-top" data-testid="doc-row">
+                          <td className="px-2 py-1.5"><div className="font-semibold">{r.name}</div><div className="text-[10px] text-gray-400">{r.files.map((f) => f.name).join(", ")}</div></td>
+                          <td className="px-2 py-1.5">{r.typeLabel}</td>
+                          <td className="px-2 py-1.5"><span className={`mr-1 rounded-full border px-1.5 py-px text-[10px] font-semibold ${LEVEL_BADGE[r.level][1]}`}>{LEVEL_BADGE[r.level][0]}</span>{r.level === "asset" ? r.assetName : r.portfolio || "No portfolio"}</td>
+                          <td className="whitespace-nowrap px-2 py-1.5">{fmtWhen(r.uploadedAt)}{r.by && <div className="text-[10px] text-gray-400">{r.by}</div>}</td>
+                          <td className="px-2 py-1.5"><span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]?.[1] ?? STATUS.uploaded[1]}`}>{r.kind === "lease" ? LEASE_STATUS[r.status] ?? "Uploaded" : LIB_STATUS[r.status] ?? "Uploaded"}</span></td>
+                          <td className="px-2 py-1.5"><button type="button" onClick={() => toggle(r.key)} className="font-medium text-blue-700 hover:underline" aria-label={`Open ${r.name}`} data-testid="doc-open">{openKeys.has(r.key) ? "Close" : "Open"}</button></td>
+                          <td className="px-2 py-1.5">{r.workflow && <button type="button" onClick={() => onOpenTab(r.tab, r.dealId)} className="text-left text-blue-700 hover:underline" data-testid="doc-workflow">{r.workflow}</button>}</td>
+                        </tr>
+                        {openKeys.has(r.key) && <tr><td colSpan={7} className="bg-gray-50 p-2">{r.kind === "lease" ? <LeaseFiles lease={r.lease} onOpenTab={onOpenTab} onError={setError} /> : card(r.doc)}</td></tr>}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                ))}
+              </table>
             </div>
           )}
         </>

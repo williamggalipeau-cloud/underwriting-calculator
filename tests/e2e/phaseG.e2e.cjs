@@ -53,9 +53,9 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
 
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
-  await main.getByRole("button", { name: /Whole fund/ }).click();
+  await FX.docAsset(main, "");
   await p.waitForTimeout(600);
-  const af = main.getByTestId("doc-card").filter({ hasText: "Airport Flex Park appraisal" }).first();
+  const af = await FX.docCard(main, "Airport Flex Park appraisal");
   check((await af.getByTestId("doc-mismatch").innerText()).includes("differ"), "appraisal not applied yet: mismatch badge");
   await af.getByRole("button", { name: "Apply", exact: true }).click();
   const ap = af.getByTestId("doc-apply");
@@ -66,7 +66,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await ap.getByRole("button", { name: /Apply to the .* mark/ }).click();
   await p.waitForTimeout(1200);
   check(docs[0].status === "applied" && docs[0].applied_fields["mark:2026-09-30"], "appraisal marked applied (Q3 2026 mark)");
-  const r9 = main.getByTestId("doc-card").filter({ hasText: "Route 9 Small Bay appraisal" }).first();
+  const r9 = await FX.docCard(main, "Route 9 Small Bay appraisal");
   await r9.getByRole("button", { name: "Apply", exact: true }).click();
   check((await r9.getByTestId("cost-hold-warning").count()) === 1, "Route 9 Q2 2026: cost hold warning");
 

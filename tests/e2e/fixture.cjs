@@ -20,7 +20,7 @@ const SAVED_IDS = ["test-fx-eastside", "test-fx-northgate", "test-fx-riverside"]
 function workspaceData() {
   const testRoll = generateTestScenario().savedDeals[0].inputs.units.map((u, i) => ({ ...u, id: `fx-unit-${i + 1}` }));
   // Sample deals start without the drawn photos and plan (phase L tests add them).
-  const sample = sp.buildSampleDeals(TEST_INPUTS).map((d) => ({ id: d.id, inputs: { ...d.inputs, units: [], fundName: FUND, assetMedia: undefined } }));
+  const sample = sp.buildSampleDeals(TEST_INPUTS).map((d) => ({ id: d.id, inputs: { ...d.inputs, units: [], fundName: FUND, assetMedia: undefined, salesComps: undefined, leasing: undefined } }));
   return {
     v: 1,
     savedAt: "2026-11-22T00:00:00.000Z",
@@ -87,4 +87,23 @@ module.exports.saveLoadUpgrade = async (p) => {
     await btn.click();
     await p.waitForTimeout(800);
   }
+};
+
+// Document Library (user, 11/24): open the first row matching text (if its
+// card isn't open yet) and return the card; filter the library by asset or
+// portfolio ("" for all).
+module.exports.docCard = async (main, text) => {
+  const card = main.getByTestId("doc-card").filter({ hasText: text }).first();
+  if (await card.count()) return card;
+  await main.getByTestId("doc-row").filter({ hasText: text }).first().getByTestId("doc-open").click();
+  await card.waitFor();
+  return card;
+};
+module.exports.docAsset = async (main, name) => {
+  await main.getByLabel("Filter asset").selectOption(name ? { label: name } : "");
+  await main.page().waitForTimeout(300);
+};
+module.exports.docPortfolio = async (main, name) => {
+  await main.getByLabel("Filter portfolio").selectOption(name || "");
+  await main.page().waitForTimeout(300);
 };

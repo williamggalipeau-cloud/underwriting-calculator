@@ -106,24 +106,25 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   // ── Documents: checks ──
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1200);
-  await main.getByRole("button", { name: /Whole fund/ }).click();
+  await FX.docAsset(main, "");
   await p.waitForTimeout(600);
-  const est = main.getByTestId("doc-card").filter({ hasText: "Desert Aero Parts estoppel" }).first();
+  const est = await FX.docCard(main, "Desert Aero Parts estoppel");
   await est.getByRole("button", { name: "Check", exact: true }).click();
   const er = est.getByTestId("estoppel-row");
   const ert = await er.allInnerTexts();
   check(ert.some((x) => /⚠ Expiration/.test(x) && x.includes("2028-02-28") && x.includes("2028-02-29")) && ert.some((x) => /✓ Monthly base rent/.test(x)), "estoppel check: expiration mismatch, rent matches");
-  const cam = main.getByTestId("doc-card").filter({ hasText: "Lakeshore 2025 CAM" }).first();
+  const cam = await FX.docCard(main, "Lakeshore 2025 CAM");
   await cam.getByRole("button", { name: "Check", exact: true }).click();
   const camt = await cam.getByTestId("cam-row").first().innerText();
   check(camt.includes("5.5%") && camt.includes("6%") && camt.includes("$966") && /over the lease's 4% cap/.test(camt), "CAM check: share 6% vs 5.5%, fee over cap, +$966");
-  const bill = main.getByTestId("doc-card").filter({ hasText: "Riverside billing" }).first();
+  const bill = await FX.docCard(main, "Riverside billing");
   await bill.getByRole("button", { name: "Check", exact: true }).click();
   const bt = await bill.getByTestId("billing-row").allInnerTexts();
   check(bt.length === 2 && /✓/.test(bt[0]) && /under-billed \$166\.67/.test(bt[1]), "billing check: December under-billed $166.67");
   await p.screenshot({ path: S + "/h_docs.png", fullPage: true });
 
   // ── Fund assignment: LPA to Model Fund II, then move it back ──
+  await FX.docPortfolio(main, "Model Fund I");
   const up = main.getByTestId("doc-upload");
   await up.getByLabel("Document type").selectOption("lpa");
   const fs1 = up.getByTestId("doc-fund-select");
@@ -134,7 +135,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.waitForTimeout(1200);
   const lp = posted.find((x) => x.doc_type === "lpa");
   check(lp && lp.fund_name === "Model Fund II" && lp.deal_id === null, "LPA stored with Model Fund II (no asset)");
-  check((await main.getByTestId("doc-card").filter({ hasText: "Fund LPA" }).count()) === 0, "it is not listed under Model Fund I");
+  check((await main.getByTestId("doc-row").filter({ hasText: "Fund LPA" }).count()) === 0, "it is not listed under Model Fund I");
   // Make it visible by moving it back via the database row, then check the card's picker
   docs.find((x) => x.doc_type === "lpa").fund_name = "Model Fund I";
   await up.getByLabel("Document type").selectOption("ppm");
@@ -145,12 +146,12 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.waitForTimeout(1200);
   const ppm = posted.find((x) => x.doc_type === "ppm");
   check(ppm && ppm.fund_name === "Model Fund I", "PPM stored with Model Fund I");
-  const lpaCard = main.getByTestId("doc-card").filter({ hasText: "Fund LPA" }).first();
+  const lpaCard = await FX.docCard(main, "Fund LPA");
   await lpaCard.getByTestId("doc-card-fund").selectOption("Model Fund II");
   await p.waitForTimeout(1000);
   check(patched.some((x) => x.fund_name === "Model Fund II"), "card: move the LPA to Model Fund II");
-  check((await main.getByTestId("doc-card").filter({ hasText: "Fund LPA" }).count()) === 0, "after the move it leaves Model Fund I's list");
-  check((await up.getByLabel("Document type").locator("option").allInnerTexts()).filter((x) => /\(fund\)/.test(x)).length === 2, "only the LPA and PPM are fund documents");
+  check((await main.getByTestId("doc-row").filter({ hasText: "Fund LPA" }).count()) === 0, "after the move it leaves Model Fund I's list");
+  check((await up.getByLabel("Document type").locator("option").allInnerTexts()).filter((x) => /\(portfolio\)/.test(x)).length === 2, "only the LPA and PPM are portfolio documents (for a fund)");
 
   await p.waitForTimeout(20000);
   const dl = saved?.new_data?.funds?.["Model Fund I"]?.delinquency;
