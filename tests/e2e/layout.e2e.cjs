@@ -55,8 +55,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   }
   await p.getByTestId("function-area").last().click();
   check((await p.getByTestId("home-button").count()) === 1 && (await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0, "Home is in the header, not in Functions");
-  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Research", "Sell/Hold Analysis", "Assets for Sale", "Offers", "Track Record", "Sale Documents", "Asset Summary", "Asset Business Plan", "Rent Roll", "Leases", "Active Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Return", "GP Economics", "Fund Debt", "Distribution Analysis", "Stress Testing", "Benchmarking", "Market Data", "Documents", "Reports"];
-  // Each tab found after the previous one (names can contain earlier ones, e.g. "Sale Documents").
+  const order = ["Pipeline", "Deal Screener", "Fund Impact", "Research", "Sell/Hold Analysis", "Assets for Sale", "Offers", "Track Record", "Disposition Documents", "Asset Summary", "Asset Business Plan", "Rent Roll", "Leases", "Active Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Fund Summary", "Fund Return", "Fund Debt", "Distribution Analysis", "Stress Testing", "Benchmarking", "GP Economics", "Market Data", "Documents", "Reports"];
+  // Each tab found after the previous one (names can contain earlier ones, e.g. "Disposition Documents").
   const pos = [];
   for (const t of order) pos.push(nav.indexOf(t, pos.length ? pos[pos.length - 1] + 1 : 0));
   check(pos.every((x) => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "tabs in the agreed order with the new names");

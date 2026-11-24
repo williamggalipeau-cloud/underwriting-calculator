@@ -1,4 +1,4 @@
-// Phase W Playwright: GP Economics tab after Fund Return: fee revenue,
+// Phase W Playwright: GP Economics tab, last in Portfolio Management: fee revenue,
 // promote and co-invest with shares, by year / fund / asset, the discount
 // rate, the fund-type filter, Excel and an internal PDF. Fictional fixture
 // (with the sample 1.5% fund fee); Supabase mocked.
@@ -37,7 +37,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await FX.openArea(p, "Fund Debt");
   const pm = p.getByRole("group", { name: "Portfolio Management" });
   const tabs = await pm.getByRole("button").allInnerTexts();
-  check(tabs.findIndex((t) => /^GP Economics/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "a GP Economics tab right after Fund Return");
+  check(/^GP Economics/.test(tabs.at(-1)), "GP Economics is the last Portfolio Management tab (user, 11/24)");
   await FX.openTab(p, "GP Economics");
   await p.waitForTimeout(2500);
   const g = p.getByTestId("gp-economics");

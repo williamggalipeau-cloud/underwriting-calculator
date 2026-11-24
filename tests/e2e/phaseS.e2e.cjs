@@ -37,7 +37,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await FX.openArea(p, "Fund Debt");
   const pm = p.getByRole("group", { name: "Portfolio Management" });
   const tabs = await pm.getByRole("button").allInnerTexts();
-  check(tabs.findIndex((t) => /^Fund Debt/.test(t)) === tabs.findIndex((t) => /^GP Economics/.test(t)) + 1 && tabs.findIndex((t) => /^GP Economics/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "Fund Debt after Fund Return and GP Economics");
+  check(tabs.findIndex((t) => /^Fund Debt/.test(t)) === tabs.findIndex((t) => /^Fund Return/.test(t)) + 1, "Fund Debt right after Fund Return");
   const before = saves;
   await FX.openTab(p, "Fund Debt");
   await p.waitForTimeout(1500);
