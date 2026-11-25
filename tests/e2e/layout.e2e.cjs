@@ -39,7 +39,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // Name and title
   check((await p.title()) === "Baywise · Industrial Real Estate Management", `browser tab title: ${await p.title()}`);
-  check(/^Baywise\s+v1\.0$/.test((await p.locator("header h1").innerText()).trim()) && (await p.getByTestId("app-version").innerText()) === "v1.0", "header: Baywise, with the version (v1.0, user 11/25)");
+  check(/^Baywise\s+v\d+\.\d+(\.\d+)?$/.test((await p.locator("header h1").innerText()).trim()) && /^v\d+\.\d+/.test(await p.getByTestId("app-version").innerText()), "header: Baywise, with the version (user 11/25)");
   check((await p.locator("header").innerText()).includes("Industrial Real Estate Management"), "header: tagline");
 
   // Function areas (11/24), in order; each opens its tabs, with the renamed tabs

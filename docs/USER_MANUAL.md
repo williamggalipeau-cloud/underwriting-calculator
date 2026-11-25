@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.0.0** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.0** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -301,11 +301,11 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Asset Business Plan** | The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Portfolio Return shows NOI vs budget by asset. Below the plan: **photos** (caption, date, order, cover), a **location map** (Google Maps, map or satellite) and a **floor plan** (uploaded image with unit boxes colored by lease status, or a schematic), where vacant units can be **demised** or **combined** (§7.31). |
+| **Asset Business Plan** | **Market check** (1.1, §7.57): the plan's exit cap, lease-up rents, vacancy and rent growth against the asset's submarket, flagged at the portfolio's levels. The asset's business plan by revision (§7.30): thesis and strategy, KPIs vs target, leasing plan unit by unit, capital plan (spent vs budget), operating, financing and exit plans, milestones (late ones flagged; open ones on Leases → Critical dates), risks and a hold / sell / refinance recommendation. **Create business plan (revision 1)** seeds it from the IC memo and the closing model and locks the closing budget; **Edit plan** → **Save as revision n** (revision 1 never changes); **Compare with** any revision; a banner offers a new revision when the rent roll, loan, exit or capex budget changes. **Import actuals** (monthly income statement, CSV or Excel, for the whole fund) and **Budget vs. plan vs. actual** by month, quarter, year to date or since closing, in $ and $/SF, flagged amber / red over the threshold, with a comment per line. **PDF** (any revision) and **Excel**. Portfolio Return shows NOI vs budget by asset. Below the plan: **photos** (caption, date, order, cover), a **location map** (Google Maps, map or satellite) and a **floor plan** (uploaded image with unit boxes colored by lease status, or a schematic), where vacant units can be **demised** or **combined** (§7.31). |
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. Details also has **Underwritten vs. actual** (freeze a baseline; by-year and returns comparison, the IRR gap by cause, Excel and a PDF report; §7.32). |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
-| **Valuation** | Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, each asset's quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. (Fund NAV and the fund's gross / net LP interim returns and value change are on Portfolio Return.) |
+| **Valuation** | **Market check** (1.1, §7.57): each asset's latest mark cap rate, rent, vacancy and growth against its submarket, flagged at the portfolio's levels. Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, each asset's quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. (Fund NAV and the fund's gross / net LP interim returns and value change are on Portfolio Return.) |
 | **Research** (Acquisitions) | **Comps**: import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. Each asset keeps its own comps. **Third-Party**: the reports the underwriting used (market reports, appraisals, BOVs, rent surveys, environmental, PCA, credit, zoning), each a PDF or a link with a summary of what it supports; Excel and PDF (§7.48). |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. The live NY Fed SOFR and forward-curve panel is at the top of this tab. |
 | **Cash Flow** | Sources and uses, annual cash-flow statement, levered vs. unlevered returns, cumulative cash chart, peak equity and payback. |
@@ -3323,6 +3323,72 @@ portfolios with an outside sponsor** lists the others greyed):
 When this firm is both GP and sponsor, the two tabs add up to its total (a
 line on each tab says so). Both tabs export **Excel** and **PDF** (internal).
 
+### 7.56 Disposition documents read by Claude (`lib/dispositionApply.js`, version 1.1)
+
+A sale's documents (Dispositions → Assets for Sale → a sale, its offers, or
+Disposition Documents) can be read by Claude and applied:
+- **Which documents:** BOV, offer letter / LOI, PSA (and amendments) and
+  closing statement. Each shows its status (Uploaded, Abstracted – review,
+  Applied).
+- **Review with Claude:** makes the prompt for a Claude session with the
+  CREparser Deal Review connector. The LOI is validated by the connector; the
+  others are checked against their quotes. Save the abstract it returns (or
+  Claude saves it).
+- **Apply:** each field shows what the sale or offer has now, what the
+  document says, and the quote. Changed fields are ticked; nothing changes
+  until you apply. Every change is in the change log.
+  - **BOV:** that broker's BOV entry (broker, value, cap rate, proposed fee,
+    notes with the range, list price and timeline), or a new one. The sale's
+    target price takes the recommended list price only if you tick it.
+  - **LOI:** that buyer's offer (matched by the offer it's filed on, else the
+    buyer's name): date, price, deposit, due diligence, closing days,
+    financing contingency. The offer's earlier terms are kept in its
+    **History** (Offers tab). A new buyer gets a new offer. Net proceeds
+    recalculate.
+  - **PSA:** the contract: signed date, price (logged as a price change),
+    deposits (initial plus additional), hard date, due diligence end and
+    closing. The sale moves to Under contract. The dates go to the Dashboard.
+  - **Closing statement:** closes the sale with the closing date, price,
+    selling costs (with credits to the buyer) and loan payoff. A whole sale
+    sets the asset's realized sale. The statement's net proceeds show for
+    checking.
+
+### 7.57 Market check (`lib/marketCheck.js`, version 1.1)
+
+Assumptions next to the asset's submarket (Research → Market Data; tag the
+asset to a submarket there):
+- **Valuation tab:** each asset's latest mark cap rate (else the exit cap),
+  market rent, vacancy and rent growth against the submarket's latest cap
+  rate, small-bay (else market) asking rent, vacancy and 4-quarter rent trend.
+- **Asset Business Plan:** the plan's exit cap, average lease-up target rent
+  (latest revision), vacancy and rent growth.
+- **Difference:** this asset minus the market: cap rate in bp, rent in %,
+  vacancy and growth in points.
+- **Flags:** amber past the level, red past the level × the red multiple.
+- **Levels per portfolio:** Edit fund / JV / SMA → **Market check flag
+  levels**. The defaults, which the sample data uses, are 50 bp, 10%, 2 pts,
+  1 pt and red at 1.5×.
+
+### 7.58 Sample documents (`lib/sampleDocs.js`, version 1.1)
+
+**Sample data → Add sample documents** (owners) uploads the fictional Model
+Fund I documents bundled with the site (`public/sample-docs`, copied from
+`docs/` by `scripts/sample-deal-docs/copy_public.cjs`) into the firm's
+document store, each with its abstract already saved:
+- **Fund documents:** the LPA and PPM, on Model Fund I.
+- **Asset documents:** 18 for Airport Flex Park, Route 9 Small Bay and
+  Lakeshore Service Center. The tenant's insurance certificate and estoppel
+  are linked to its lease.
+- **Sale documents:** a BOV, LOI, PSA and closing statement for each of Route
+  9, Harbor Light and Mill Creek. They're filed on the asset's active sale, or
+  on a new fictional sample sale.
+- **Leases:** the 9 sample leases (with amendments).
+- **No doubles:** anything already uploaded is skipped (same asset or fund
+  and file name, or a lease for the same tenant), so it can be clicked again
+  safely.
+
+**Load Model Fund I** also adds the three sample pipeline deals (version 1.1).
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -4322,7 +4388,7 @@ Model Fund I → Open**.
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market data on the Valuation tab | Next |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4333,6 +4399,19 @@ Model Fund I → Open**.
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1
+
+- **Disposition documents read by Claude (§7.56):** BOV, LOI / offer letter, PSA and closing statement. **Review with Claude** on a sale's or offer's document, or on Disposition Documents, then **Apply** field by field:
+  - a BOV updates the sale's BOV;
+  - an LOI updates that buyer's offer, keeping its earlier terms in the offer's **History**;
+  - a PSA sets the contract terms and dates (to the Dashboard);
+  - a closing statement records the closing.
+- **Market check (§7.57):** the Valuation tab and the Asset Business Plan compare assumptions with the asset's submarket in Market Data. Flags are amber or red at levels set per portfolio (Edit fund / JV / SMA → Market check flag levels).
+- **Sample data (§7.58):**
+  - **Add sample documents** uploads every fictional Model Fund I document (LPA, PPM, asset, sale and lease documents) with its abstract.
+  - **Load Model Fund I** also adds the sample pipeline deals.
+  - 12 fictional disposition documents are in `docs/sample-deal-docs/dispositions/`.
 
 ### What's in 1.0
 
