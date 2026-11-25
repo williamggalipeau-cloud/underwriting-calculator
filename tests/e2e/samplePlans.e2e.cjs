@@ -88,7 +88,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const [, withP, without] = sum.match(/(\d+) with active prospects · (\d+) with none/) ?? [];
   check(Number(withP) >= 8 && Number(without) >= 3, `most units now have prospects: ${sum}`);
   const firstWith = vu.getByTestId("vacant-unit").filter({ hasNot: p.getByTestId("no-prospects") }).first();
-  check(/(Tour|Proposal|LOI|Lease out|Inquiry)[\s\S]*prospect/.test(await firstWith.innerText()) && /avg of \d/.test(await firstWith.getByTestId("vacant-comps").innerText()), `a unit's best prospect, next step and rent comps: ${(await firstWith.innerText()).replace(/\s+/g, " ")}`);
+  check(/(Tour|Proposal|LOI|Lease out|Inquiry)/.test(await firstWith.innerText()) && /\d+ d$/.test((await firstWith.innerText()).split("\n").find((l) => /· \d+ d/.test(l)) ?? "") && /avg of \d/.test(await firstWith.getByTestId("vacant-comps").innerText()), `a unit's best prospect, next step and rent comps: ${(await firstWith.innerText()).replace(/\s+/g, " ")}`);
+  const pc = (await vu.getByTestId("cell-prospects").allInnerTexts()).map(Number);
+  check(pc.length > 0 && pc.every((n) => Number.isInteger(n) && n >= 0) && pc.some((n) => n > 1) && pc.some((n) => n === 0), `a Prospects column with each unit's active prospects (${pc.join(", ")})`);
   const dv = await vu.getByTestId("cell-days-vacant").allInnerTexts();
   check(dv.length > 0 && dv.every((t) => /^\d[\d,]* d\s+since (\d+\/\d+\/\d{4}|acquisition)$/.test(t.trim())) && dv.some((t) => /since \d/.test(t)), `days vacant on each unit, since a date or the acquisition: ${dv.slice(0, 3).map((t) => t.replace(/\s+/g, " ")).join(" | ")}`);
   // Open asset → that asset's view: its units only, no Asset column, + Prospect
@@ -110,6 +112,25 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(1200);
   const main = await p.locator("main").innerText();
   check(/Route 9 Small Bay/.test(main) && /Net operating income/.test(main), "Open → Route 9's Asset Business Plan, with its budget vs. actual");
+
+  // ── Load Model Fund I (1.1.4): rebuilt with sample plans and prospects ──
+  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  await sm.getByRole("button", { name: /Sample data/ }).click();
+  await p.waitForTimeout(200);
+  await sm.getByRole("menuitem", { name: /Load Model Fund I/ }).click();
+  await p.waitForTimeout(2000);
+  await p.getByTestId("home-button").click();
+  await p.waitForTimeout(1200);
+  const t3 = await p.getByTestId("watch-asset").allInnerTexts();
+  check(t3.length === 2 && t3.some((t) => /Route 9 Small Bay[\s\S]*At Risk/.test(t)) && t3.some((t) => /Harbor Light Industrial[\s\S]*Off Plan/.test(t)), `Load Model Fund I: the Watch List shows Route 9 At Risk and Harbor Light Off Plan at once (${t3.map((t) => t.split("\n")[0]).join(", ")})`);
+  await FX.openTab(p, "Active Leasing");
+  await p.waitForTimeout(800);
+  await lz.getByRole("button", { name: /^All (of |assets)/ }).click();
+  await p.waitForTimeout(400);
+  const sum3 = await lz.getByTestId("vacant-summary").innerText();
+  check(/^([89]|\d\d) with active prospects/.test(sum3) && (await lz.getByTestId("prospect-row").count()) >= 15, `and the leasing pipeline: ${sum3}; ${await lz.getByTestId("prospect-row").count()} prospects`);
+  await p.getByTestId("home-button").click();
+  await p.waitForTimeout(800);
 
   // ── The live case: plans already there, no actuals → actuals added, plans kept ──
   ws.data = data2; ws.version += 1;
