@@ -1663,10 +1663,15 @@ export default function Home() {
     if (!requireEdit()) return;
     const r = addSamplePlans(deals, { todayISO: new Date().toISOString().slice(0, 10) });
     const ids = Object.keys(r.updates);
-    if (!ids.length) { window.alert(r.skipped.length ? `Every sample asset already has a business plan of its own (${r.skipped.join(", ")}); nothing was changed.` : "Load Model Fund I first: the sample business plans are for its assets."); return; }
-    noteAudit(`Added sample business plans and actuals to ${ids.length} sample asset${ids.length === 1 ? "" : "s"}`);
+    if (!ids.length) { window.alert(r.skipped.length ? `Every sample asset already has a business plan with actuals (${r.skipped.join(", ")}); nothing was changed.` : "Load Model Fund I first: the sample business plans are for its assets."); return; }
+    const fresh = ids.length - r.actualsOnly.length;
+    noteAudit(`Added sample business plans and actuals: ${fresh} new plan${fresh === 1 ? "" : "s"}, sample actuals on ${r.actualsOnly.length} existing plan${r.actualsOnly.length === 1 ? "" : "s"}`);
     setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, businessPlan: r.updates[d.id] } } : d)));
-    window.alert(`Added sample business plans to ${ids.length} sample asset${ids.length === 1 ? "" : "s"}.${r.skipped.length ? ` Kept the plans you made on ${r.skipped.join(", ")}.` : ""}`);
+    window.alert([
+      fresh ? `Added sample business plans to ${fresh} sample asset${fresh === 1 ? "" : "s"}.` : "",
+      r.actualsOnly.length ? `Added sample actuals to the existing plans on ${r.actualsOnly.length} asset${r.actualsOnly.length === 1 ? "" : "s"} (the plans themselves are unchanged).` : "",
+      r.skipped.length ? `Left ${r.skipped.join(", ")} alone (plans with actuals).` : "",
+    ].filter(Boolean).join(" "));
   }
 
   // Sample data → Add sample prospects (user, 11/25, 1.1.2): a fictional

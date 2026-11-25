@@ -3424,9 +3424,12 @@ and the quarterly report have something to show:
     (NOI about 5–6% under plan); its capital plan is over budget.
 - **The others run 1–4% ahead of plan,** with their past milestones done, so
   they stay off the Watch List.
-- **Safe to click again:** earlier sample plans are replaced; a plan you made
-  on a sample asset is kept. The rent roll and everything else stay as they
-  are.
+- **Plans already there:** where a sample asset already has a plan someone
+  made and no actuals, the plan is kept exactly as it is and the fictional
+  actuals are added against its closing budget (Route 9 and Harbor Light
+  still miss their plan). A plan with real actuals is left alone.
+- **Safe to click again:** earlier sample plans and sample actuals are
+  replaced. The rent roll and everything else stay as they are.
 
 The IRR column stays "—" for these assets: the IRR test needs a year of
 ownership. Vacant units' lease-up targets are the asset's market rent.

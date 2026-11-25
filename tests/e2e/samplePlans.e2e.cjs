@@ -6,6 +6,17 @@ const { chromium } = require("playwright");
 const FX = require("./fixture.cjs");
 const S = FX.outDir();
 const data = FX.workspaceData();
+const R = require("path").resolve(__dirname, "..", "..");
+const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
+const SP = j(R + "/lib/samplePlans.js");
+const TODAY = new Date().toISOString().slice(0, 10);
+// The live firm's case: every sample asset already has a plan someone made, with no actuals.
+const data2 = FX.workspaceData();
+data2.deals = data2.deals.map((d) => {
+  if (!d.id.startsWith("sample-deal-") || d.inputs.acquisitionDate > TODAY) return d;
+  const bp = SP.samplePlanFor(d.inputs, { todayISO: TODAY });
+  return { ...d, inputs: { ...d.inputs, businessPlan: { ...bp, actuals: {}, actualsSource: null, revisions: bp.revisions.map((r) => ({ ...r, by: "pm@example.com", note: "Plan made by the team" })) } } };
+});
 const now = Math.floor(Date.now() / 1000);
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com", role: "authenticated", exp: now + 3600, aud: "authenticated" })}.sig`;
@@ -92,6 +103,21 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(1200);
   const main = await p.locator("main").innerText();
   check(/Route 9 Small Bay/.test(main) && /Net operating income/.test(main), "Open → Route 9's Asset Business Plan, with its budget vs. actual");
+
+  // ── The live case: plans already there, no actuals → actuals added, plans kept ──
+  ws.data = data2; ws.version += 1;
+  await p.goto(FX.BASE_URL);
+  await p.waitForTimeout(3500);
+  await FX.saveLoadUpgrade(p);
+  check((await p.getByTestId("watch-asset").count()) === 0, "existing plans without actuals: the Watch List is empty");
+  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  await sm.getByRole("button", { name: /Sample data/ }).click();
+  await p.waitForTimeout(200);
+  await sm.getByRole("menuitem", { name: /Add sample business plans/ }).click();
+  await p.waitForTimeout(1500);
+  check(/^Added sample actuals to the existing plans on 9 assets \(the plans themselves are unchanged\)\.$/.test(alerts.at(-1)), `actuals added to the existing plans: ${alerts.at(-1)}`);
+  const t2 = await p.getByTestId("watch-asset").allInnerTexts();
+  check(t2.length === 2 && t2.some((t) => /Route 9 Small Bay[\s\S]*At Risk/.test(t)) && t2.some((t) => /Harbor Light Industrial[\s\S]*Off Plan/.test(t)), `then Route 9 At Risk and Harbor Light Off Plan (${t2.map((t) => t.split("\n")[0]).join(", ")})`);
 
   check(errs.length === 0, `no page errors ${errs.join(" | ")}`);
   await b.close();
