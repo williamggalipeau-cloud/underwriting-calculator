@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.1** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.2** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -2569,6 +2569,20 @@ loaded; the only thing it saves is which actions were marked done.
      Other goals missed (occupancy, rent, WALT below target; late milestones;
      capital over budget), Next event (from Upcoming Events) and a link to the
      asset's business plan. The risk report's other flags stay in Reports.
+4. **Vacant Units** (1.1.2): what's leasable now. Every vacant unit on the
+   rent rolls of the portfolio chosen in Select Portfolio; the **asset** list
+   narrows it to one asset. Columns: Asset, Unit, **Days vacant** (from the
+   unit's Vacant since date, else a lease end that has passed, else the
+   acquisition, labelled "since acquisition"; over 180 days in red; the total
+   row shows the SF-weighted average), **Leasing manager** (the
+   unit's, else the asset's; "Unassigned" when neither is set), SF, Asking
+   rent (the asset's market rent), Plan target (the business plan's lease-up
+   rent), **Rent comps** (the average of the asset's rent comps in Active
+   Leasing, and how many; comps belong to the asset and apply to whichever
+   unit is being leased), Best prospect (the furthest-along active
+   prospect on the unit, and how many), Next step (the soonest, with its
+   date) and **Active Leasing →**. The total counts the units with and
+   without active prospects. Ten units show; **Show all** for the rest.
 
 **Columns of Actions Needed and Upcoming Events:** Asset name, Due date,
 Action type, Owner, Status and **Details** (opens the tab where the item is
@@ -3390,6 +3404,65 @@ document store, each with its abstract already saved:
   safely.
 
 **Load Model Fund I** also adds the three sample pipeline deals (version 1.1).
+
+### 7.59 Sample business plans (`lib/samplePlans.js`, version 1.1.2)
+
+**Sample data → Add sample business plans** (owners) gives each Model Fund I
+sample asset a fictional business plan and monthly actuals, so the
+Dashboard's **Asset Watch List**, the Asset Business Plan's budget vs. actual
+and the quarterly report have something to show:
+- **The plan:** revision 1 ("Closing", by "Sample data (fictional)"), seeded
+  from the asset's model (leasing, capital, milestones and KPI targets) with
+  its locked closing budget.
+- **The actuals:** each month from the first full month after closing to last
+  month. Assets bought this month have a plan but no actuals yet.
+- **Two assets miss their plan on purpose:**
+  - **Route 9 Small Bay, At Risk:** a tenant left early and lease-up is slow
+    (NOI about 15% under plan); it's short of its 95% occupancy target and a
+    lease-up milestone is late.
+  - **Harbor Light Industrial, Off Plan:** roof and dock repairs over budget
+    (NOI about 5–6% under plan); its capital plan is over budget.
+- **The others run 1–4% ahead of plan,** with their past milestones done, so
+  they stay off the Watch List.
+- **Plans already there:** where a sample asset already has a plan someone
+  made and no actuals, the plan is kept exactly as it is and the fictional
+  actuals are added against its closing budget (Route 9 and Harbor Light
+  still miss their plan). A plan with real actuals is left alone.
+- **Safe to click again:** earlier sample plans and sample actuals are
+  replaced. The rent roll and everything else stay as they are.
+
+The IRR column stays "—" for these assets: the IRR test needs a year of
+ownership. Vacant units' lease-up targets are the asset's market rent.
+
+### 7.60 Sample prospects, leasing managers and rent comps (`lib/sampleLeasing.js`, version 1.1.2)
+
+**Sample data → Add sample prospects** (owners) gives every Model Fund I
+asset a fictional leasing pipeline (Asset Management → Active Leasing):
+- **Prospects on the vacant units** at different stages (inquiry, tour,
+  proposal, LOI, lease out; one lost, with a reason), with asking and
+  proposed rent, term, free rent, TI and a next step over the coming weeks
+  (some within 7 days, so they show in Actions Needed). Some vacant units
+  have none, so Vacant Units shows what still needs a tenant.
+- **A renewal** on each asset's next lease to expire, so every asset has a
+  pipeline.
+- **Rent comps on the asset:** the asset's standard set of six fictional
+  leases (as **Add sample comps**), added only where the asset has none.
+  Comps belong to the asset and apply to whichever unit is being leased.
+- **A leasing manager** on each asset (fictional names; an asset's own is
+  kept), and one Harbor Light unit with its own.
+- **A Vacant since date** (30 to 300 days ago) on each vacant unit that has
+  none.
+- **Safe to click again:** earlier sample prospects are replaced;
+  prospects and comps you entered are kept.
+
+**Leasing manager** (1.1.2): set for the asset under Edit asset → Property
+(next to Asset Manager), and for a unit in the rent roll's **Lease details**
+(blank: the asset's). **Vacant since** (1.1.2), also in Lease details, sets
+the start of a vacant unit's Days vacant.
+
+Also in 1.1.2: an occupancy, rent or WALT goal counts as missed only when it's
+short at the precision shown, so the Watch List no longer lists "Rent
+$42.49/SF vs $42.49/SF".
 
 ## 8. Worked example: the default deal
 
@@ -4390,11 +4463,11 @@ Model Fund I → Open**.
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
-| **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
+| **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
 
 **How releases work:**
 - **One live version.** The site runs one release at a time.
@@ -4402,6 +4475,14 @@ Model Fund I → Open**.
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.2
+
+- **Vacant Units on the Dashboard:** every vacant unit, by asset, with its days vacant, leasing manager, asking rent, plan target, rent comps, best prospect and next step (§2, Dashboard).
+- **Leasing manager and Vacant since:** new fields (leasing manager on the asset, with a unit override; vacant since on the unit).
+- **Add sample prospects (§7.60):** a fictional leasing pipeline and leasing managers for every Model Fund I asset, with rent comps on assets that have none.
+- **Add sample business plans (§7.59):** a new Sample data item. Each Model Fund I asset gets a fictional business plan and monthly actuals; Route 9 shows on the Asset Watch List as At Risk and Harbor Light as Off Plan.
+- **Watch List fix:** a goal counts as missed only when it's short at the precision shown.
 
 ### What's in 1.1.1
 
@@ -4471,7 +4552,7 @@ each phase and the decisions behind it are in
 | V. Automated workflow | Approvals and reminders | 🟡 Scoping (11/24): questions on what needs approval, approvers, thresholds, reminders and gating |
 | X. Distribution Analysis | New tab, last in Portfolio Management: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
-| Z. Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions (the last Functions area from 1.1.1); follows Select Portfolio (§7.42) |
+| Z. Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions (the last Functions area from 1.1.1), Vacant Units (1.1.2); follows Select Portfolio (§7.42) |
 | Fund picker | "Select Portfolio" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Select Portfolio dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⏸ Skipped for now (user, 11/24) |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Comps, valuations and reports show a full set | ✅ Built 11/24 (§7.54) |

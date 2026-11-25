@@ -18,6 +18,8 @@ import FundDebt from "@/components/FundDebt";
 import PropertyMgmt from "@/components/PropertyMgmt";
 import MarketData from "@/components/MarketData";
 import { importConstruction, parseInvoices, parseJobs } from "@/lib/construction";
+import { addSamplePlans } from "@/lib/samplePlans";
+import { addSampleLeasing } from "@/lib/sampleLeasing";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -1654,6 +1656,36 @@ export default function Home() {
     setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: r.updates[d.id] } } : d)));
   }
 
+  // Sample data → Add sample business plans (user, 11/25, 1.1.2): a fictional
+  // plan and monthly actuals for each Model Fund I asset; Route 9 runs At Risk
+  // and Harbor Light Off Plan, so the Asset Watch List has something to show.
+  function handleAddSamplePlans() {
+    if (!requireEdit()) return;
+    const r = addSamplePlans(deals, { todayISO: new Date().toISOString().slice(0, 10) });
+    const ids = Object.keys(r.updates);
+    if (!ids.length) { window.alert(r.skipped.length ? `Every sample asset already has a business plan with actuals (${r.skipped.join(", ")}); nothing was changed.` : "Load Model Fund I first: the sample business plans are for its assets."); return; }
+    const fresh = ids.length - r.actualsOnly.length;
+    noteAudit(`Added sample business plans and actuals: ${fresh} new plan${fresh === 1 ? "" : "s"}, sample actuals on ${r.actualsOnly.length} existing plan${r.actualsOnly.length === 1 ? "" : "s"}`);
+    setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, businessPlan: r.updates[d.id] } } : d)));
+    window.alert([
+      fresh ? `Added sample business plans to ${fresh} sample asset${fresh === 1 ? "" : "s"}.` : "",
+      r.actualsOnly.length ? `Added sample actuals to the existing plans on ${r.actualsOnly.length} asset${r.actualsOnly.length === 1 ? "" : "s"} (the plans themselves are unchanged).` : "",
+      r.skipped.length ? `Left ${r.skipped.join(", ")} alone (plans with actuals).` : "",
+    ].filter(Boolean).join(" "));
+  }
+
+  // Sample data → Add sample prospects (user, 11/25, 1.1.2): a fictional
+  // leasing pipeline for every Model Fund I asset (prospects on the vacant
+  // units, a renewal each), and the asset's rent comps where it has none.
+  function handleAddSampleLeasing() {
+    if (!requireEdit()) return;
+    const r = addSampleLeasing(deals, { todayISO: new Date().toISOString().slice(0, 10) });
+    if (!r.counts.assets) { window.alert("Load Model Fund I first: the sample prospects are for its assets."); return; }
+    noteAudit(`Added sample leasing prospects (${r.counts.prospects}) to ${r.counts.assets} sample assets${r.counts.comps ? ` and ${r.counts.comps} rent comps` : ""}`);
+    setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...r.updates[d.id] } } : d)));
+    window.alert(`Added ${r.counts.prospects} sample prospects on ${r.counts.assets} sample assets${r.counts.comps ? `, and ${r.counts.comps} rent comps on assets that had none` : ""}.`);
+  }
+
   function handleClearTest() {
     if (!requireEdit()) return;
     noteAudit("Cleared test and sample data");
@@ -1925,6 +1957,8 @@ export default function Home() {
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
                             { label: "Add sample documents", sub: "Fictional Model Fund I documents (LPA, PPM, asset, sale and lease documents) with their abstracts, into the Document Library (skips any already there)", run: handleAddSampleDocs, ask: "Upload the fictional Model Fund I sample documents to the firm's document store, with their abstracts? Documents already there are skipped. Disposition documents go on a sale (a new fictional sample sale where an asset has none)." },
+                            { label: "Add sample business plans", sub: "A fictional business plan and monthly actuals for each Model Fund I asset; Route 9 runs At Risk and Harbor Light Off Plan (replaces earlier sample plans; plans you made are kept)", run: handleAddSamplePlans, ask: "Add fictional business plans and monthly actuals to the Model Fund I sample assets? Earlier sample plans are replaced; plans you made yourself are kept, and nothing else changes." },
+                            { label: "Add sample prospects", sub: "A fictional leasing pipeline for each Model Fund I asset (prospects on the vacant units and a renewal), leasing managers, and rent comps where an asset has none (replaces earlier sample prospects; yours are kept)", run: handleAddSampleLeasing, ask: "Add a fictional leasing pipeline to the Model Fund I sample assets, with rent comps where an asset has none? Earlier sample prospects are replaced; prospects and comps you entered are kept." },
                             { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
                             { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
                             { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
