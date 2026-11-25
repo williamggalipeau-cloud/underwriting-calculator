@@ -1,0 +1,81 @@
+{
+ "doc_type": "closing_disp",
+ "title": "Route 9 Small Bay closing statement",
+ "summary": "Route 9 Small Bay sold to Example Logistics REIT for $14,500,000; net proceeds $4,740,000.",
+ "fields": [
+  {
+   "key": "closing_date",
+   "value": "January 29, 2027",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Closing date: January 29, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "sale_price",
+   "value": "$14,500,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Sale price: $14,500,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "credits",
+   "value": "$45,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Credits to Buyer (rent prorations and repairs): $45,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "selling_costs",
+   "value": "$315,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Seller's closing costs, including brokerage commission, title and transfer tax: $315,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "loan_payoff",
+   "value": "$9,400,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Payoff of the existing loan, including interest to the closing date: $9,400,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "net_proceeds",
+   "value": "$4,740,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Net proceeds due to Seller: $4,740,000.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "route9-closing-disp.pdf"
+  ]
+ }
+}

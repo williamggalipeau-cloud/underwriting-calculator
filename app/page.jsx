@@ -2119,6 +2119,7 @@ export default function Home() {
                 initialOpen={saleOpen}
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
                 email={session?.user?.email ?? null}
+                userId={session?.user?.id ?? null}
                 funds={funds}
                 fundDeals={firmFundDeals}
                 view={activeTab}
