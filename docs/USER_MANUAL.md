@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.1** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.2** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -3391,6 +3391,36 @@ document store, each with its abstract already saved:
 
 **Load Model Fund I** also adds the three sample pipeline deals (version 1.1).
 
+### 7.59 Sample business plans (`lib/samplePlans.js`, version 1.1.2)
+
+**Sample data → Add sample business plans** (owners) gives each Model Fund I
+sample asset a fictional business plan and monthly actuals, so the
+Dashboard's **Asset Watch List**, the Asset Business Plan's budget vs. actual
+and the quarterly report have something to show:
+- **The plan:** revision 1 ("Closing", by "Sample data (fictional)"), seeded
+  from the asset's model (leasing, capital, milestones and KPI targets) with
+  its locked closing budget.
+- **The actuals:** each month from the first full month after closing to last
+  month. Assets bought this month have a plan but no actuals yet.
+- **Two assets miss their plan on purpose:**
+  - **Route 9 Small Bay, At Risk:** a tenant left early and lease-up is slow
+    (NOI about 15% under plan); it's short of its 95% occupancy target and a
+    lease-up milestone is late.
+  - **Harbor Light Industrial, Off Plan:** roof and dock repairs over budget
+    (NOI about 5–6% under plan); its capital plan is over budget.
+- **The others run 1–4% ahead of plan,** with their past milestones done, so
+  they stay off the Watch List.
+- **Safe to click again:** earlier sample plans are replaced; a plan you made
+  on a sample asset is kept. The rent roll and everything else stay as they
+  are.
+
+The IRR column stays "—" for these assets: the IRR test needs a year of
+ownership.
+
+Also in 1.1.2: an occupancy, rent or WALT goal counts as missed only when it's
+short at the precision shown, so the Watch List no longer lists "Rent
+$42.49/SF vs $42.49/SF".
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -4390,7 +4420,7 @@ Model Fund I → Open**.
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Add sample business plans, so the Asset Watch List shows two sample assets (tag `v1.1.2`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4402,6 +4432,11 @@ Model Fund I → Open**.
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.2
+
+- **Add sample business plans (§7.59):** a new Sample data item. Each Model Fund I asset gets a fictional business plan and monthly actuals; Route 9 shows on the Asset Watch List as At Risk and Harbor Light as Off Plan.
+- **Watch List fix:** a goal counts as missed only when it's short at the precision shown.
 
 ### What's in 1.1.1
 
