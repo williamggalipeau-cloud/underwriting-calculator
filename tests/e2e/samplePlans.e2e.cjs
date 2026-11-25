@@ -113,6 +113,20 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const main = await p.locator("main").innerText();
   check(/Route 9 Small Bay/.test(main) && /Net operating income/.test(main), "Open → Route 9's Asset Business Plan, with its budget vs. actual");
 
+  // ── Add sample marks and market data (1.1.5) ──
+  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  await sm.getByRole("button", { name: /Sample data/ }).click();
+  await p.waitForTimeout(200);
+  await sm.getByRole("menuitem", { name: /Add sample marks and market data/ }).click();
+  await p.waitForTimeout(1500);
+  check(/^Added 9 sample submarkets with 72 quarters of statistics \(9 assets tagged\) and \d+ sample marks?\./.test(alerts.at(-1)), `sample market data and marks added: ${alerts.at(-1)}`);
+  await FX.openTab(p, "Market Data");
+  await p.waitForTimeout(800);
+  const md = await p.locator("main").innerText();
+  check(/Kent Small Bay \(fictional\)/.test(md) && /Long Beach Small Bay \(fictional\)/.test(md), "Market Data lists the sample submarkets");
+  await p.getByTestId("home-button").click();
+  await p.waitForTimeout(800);
+
   // ── Load Model Fund I (1.1.4): rebuilt with sample plans and prospects ──
   if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();

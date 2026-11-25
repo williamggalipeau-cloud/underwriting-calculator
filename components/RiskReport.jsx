@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { listDealDocs } from "@/lib/dealDocs";
 import { listLeases } from "@/lib/leaseDocs";
-import { DEFAULT_RISK_LIMITS, ENV_FIELDS, LEVELS, concentrationChange, riskReport, riskXlsx } from "@/lib/riskReport";
+import { DEFAULT_RISK_LIMITS, concentrationChange, riskReport, riskXlsx } from "@/lib/riskReport";
 import { COLORS as TI_COLORS } from "@/lib/tiFunding";
 import StateTileMap from "@/components/StateTileMap";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
@@ -81,7 +81,6 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
   const issued = (store.riskIssued ?? []).filter((x) => x.asOf === asOf);
   const base = `${safeFileName(fundName)}-risk-report-${asOf}`;
   const setLimit = (k, v) => canEdit && onFundTermsChange(fundName, { riskLimits: { ...(terms.riskLimits ?? {}), [k]: v === "" ? DEFAULT_RISK_LIMITS[k] : Number(v) } });
-  const setEnv = (dealId, name, k, v) => onApplyDeal?.(dealId, (inp) => ({ ...inp, envRisk: { ...(inp.envRisk ?? {}), [k]: v } }), [{ key: `envRisk.${k}`, field: `Environmental: ${ENV_FIELDS.find(([f]) => f === k)?.[1] ?? k}`, from: "", to: String(v) }], "Environmental and climate");
 
   async function pdf(rep, issuedAt) {
     setBusy(true);
@@ -107,8 +106,8 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         </span>
       </div>
 
-      {/* Summary at the top of every risk report (user, 11/24): watch list, change vs. last quarter, issued reports. */}
-      <Group id="summary" title="Summary" desc="The watch list, what moved since last quarter, and the reports issued for this date; details by risk follow.">
+      {/* Summary at the top of every risk report (user, 11/24): watch list, KRI Trending (1.1.5). */}
+      <Group id="summary" title="Summary" desc="The watch list and the KRIs that moved since last quarter; details by risk follow, and the reports issued for this date are at the bottom.">
       <div className="grid gap-2 sm:grid-cols-3" data-testid="risk-summary">
         <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs">
           <p className="text-[11px] text-gray-500">Watch list</p>
@@ -116,10 +115,10 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           <p className="text-gray-600">{r.watch.slice(0, 3).map((w) => `${w.name} (${w.score})`).join(", ") || "Nothing flagged"}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
-          <p className="text-[11px] text-gray-500">Change vs. last quarter</p>
+          <p className="text-[11px] text-gray-500">KRI Trending</p>
           {!prevR ? <p className="text-gray-400">No prior quarter to compare with.</p> : (() => {
             const up = change.filter((c) => c.change != null && c.change > 1e-9 && !/HHI/.test(c.label)).sort((a, b) => b.change - a.change);
-            return <><p className="text-sm font-semibold">{up.length} concentration{up.length === 1 ? "" : "s"} up</p><p className="text-gray-600">{up.slice(0, 3).map((c) => `${c.label} +${c.change.toFixed(1)} pts`).join(", ") || "None rose"}</p></>;
+            return <><p className="text-sm font-semibold">{up.length} KRI{up.length === 1 ? "" : "s"} up vs. last quarter</p><p className="text-gray-600">{up.slice(0, 3).map((c) => `${c.label} +${c.change.toFixed(1)} pts`).join(", ") || "None rose"}</p></>;
           })()}
         </div>
         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
@@ -135,9 +134,9 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         {r.fundFlags.length > 0 && <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-red-800" data-testid="risk-fund-flags">{r.fundFlags.map((f, i) => <li key={i}>{f.section}: {f.text}</li>)}</ul>}
       </Sec>
 
-      <Sec title={`Change vs. last quarter${prev ? ` (${usDate(prev.asOf)})` : ""}`} testId="risk-change">
+      <Sec title={`KRI Trending${prev ? ` (vs. ${usDate(prev.asOf)})` : ""}`} testId="risk-change">
         {!prevR ? <p className="text-xs text-gray-400">No prior quarter to compare with.</p> : (
-          <T head={["Concentration", "Now", "Last quarter", "Change"]} right={[1, 2, 3]} rows={change.map((c) => {
+          <T head={["KRI", "Now", "Last quarter", "Change"]} right={[1, 2, 3]} rows={change.map((c) => {
             const hh = /HHI/.test(c.label);
             const f = (v) => (v == null ? "—" : hh ? Math.round(v).toLocaleString("en-US") : pct(v));
             return [`${c.label}${c.name ? ` · ${c.name}` : ""}`, f(c.now), `${f(c.prev)}${c.prevName && c.prevName !== c.name ? ` · ${c.prevName}` : ""}`, c.change == null ? "—" : <span className={Math.abs(c.change) < 1e-9 ? "text-gray-400" : c.change > 0 ? "text-red-700" : "text-emerald-700"}>{`${c.change > 0 ? "+" : ""}${hh ? Math.round(c.change) : `${c.change.toFixed(1)} pts`}`}</span>];
@@ -145,13 +144,6 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         )}
       </Sec>
 
-      <Sec title={`Issued risk reports · ${usDate(asOf)}`} testId="risk-issued">
-        {issued.length === 0 ? <p className="text-xs text-gray-400">None issued for this date.</p> : (
-          <ul className="space-y-1 text-xs">{issued.map((x) => (
-            <li key={x.id} className="flex items-center justify-between rounded border border-gray-100 px-2 py-1"><span>v{x.v} · issued {usDate(x.at.slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · {x.report.watch.length} assets on the watch list</span><button type="button" onClick={() => pdf(x.report, x)} className="rounded border border-gray-300 px-2 py-0.5">PDF</button></li>
-          ))}</ul>
-        )}
-      </Sec>
       </Group>
 
       <Group id="tenant" title="Tenant and Leasing" desc="Lease expirations and rollover, and risks written into the leases.">
@@ -288,7 +280,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
       </Sec>
       </Group>
 
-      <Group id="operational" title="Operational" desc="Executing the plan, insurance, and environmental and climate.">
+      <Group id="operational" title="Operational" desc="Executing the plan and insurance.">
       <div className="grid gap-3 lg:grid-cols-2">
         <Sec title="Execution" testId="risk-execution">
           <T head={["Asset", "IRR underwritten", "IRR now", "Gap"]} right={[1, 2, 3]} rows={r.execution.uw.map((x) => [x.name, pct(x.uwIrr), pct(x.irr), isFinite(x.gap) ? `${x.gap >= 0 ? "+" : ""}${x.gap.toFixed(1)} pts` : "—"])} />
@@ -303,34 +295,17 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           <p className="mt-1 text-[11px] text-gray-400">Expired or expiring (60 days) policies, missing tenant certificates, and tenant coverage below the lease&apos;s requirements (Documents tab). Coverage against loan requirements comes once loan agreements carry them.</p>
         </Sec>
       </div>
-      <Sec title="Environmental and climate" testId="risk-env" right={<span className="text-[11px] text-gray-500">Entered per asset; upload Phase I / II reports on the Documents tab.</span>}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="bg-gray-50 text-gray-500"><tr><th className={`${th} text-left`}>Asset</th>{ENV_FIELDS.map(([k, l]) => <th key={k} className={`${th} text-left`}>{l}</th>)}<th className={`${th} text-left`}>Open items</th></tr></thead>
-            <tbody>
-              {r.environmental.map((e) => (
-                <tr key={e.id} className="border-t border-gray-100" data-testid="env-row">
-                  <td className={td}>{e.name}</td>
-                  {ENV_FIELDS.map(([k, l, kind]) => (
-                    <td key={k} className={td}>
-                      {kind === "bool" ? (
-                        <input type="checkbox" aria-label={`${l} ${e.name}`} disabled={!canEdit} checked={!!e[k]} onChange={(ev) => setEnv(e.id, e.name, k, ev.target.checked)} />
-                      ) : kind === "level" ? (
-                        <select aria-label={`${l} ${e.name}`} disabled={!canEdit} value={e[k] ?? ""} onChange={(ev) => setEnv(e.id, e.name, k, ev.target.value)} className="rounded border border-gray-300 px-1 py-0.5">{LEVELS.map((v) => <option key={v} value={v}>{v || "—"}</option>)}</select>
-                      ) : (
-                        <input aria-label={`${l} ${e.name}`} type={kind === "date" ? "date" : "text"} disabled={!canEdit} defaultValue={e[k] ?? ""} onBlur={(ev) => ev.target.value !== (e[k] ?? "") && setEnv(e.id, e.name, k, ev.target.value)} className="w-28 rounded border border-gray-300 px-1 py-0.5" />
-                      )}
-                    </td>
-                  ))}
-                  <td className={`${td} text-amber-800`}>{e.open.join("; ") || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Sec>
+      {/* Environmental and climate removed from the risk report (user, 11/25, 1.1.5: not critical); the entries stay on each asset. */}
       </Group>
 
+      {/* Issued risk reports (user, 11/25, 1.1.5): at the bottom of the report. */}
+      <Sec title={`Issued risk reports · ${usDate(asOf)}`} testId="risk-issued">
+        {issued.length === 0 ? <p className="text-xs text-gray-400">None issued for this date.</p> : (
+          <ul className="space-y-1 text-xs">{issued.map((x) => (
+            <li key={x.id} className="flex items-center justify-between rounded border border-gray-100 px-2 py-1"><span>v{x.v} · issued {usDate(x.at.slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · {x.report.watch.length} assets on the watch list</span><button type="button" onClick={() => pdf(x.report, x)} className="rounded border border-gray-300 px-2 py-0.5">PDF</button></li>
+          ))}</ul>
+        )}
+      </Sec>
     </div>
   );
 }
