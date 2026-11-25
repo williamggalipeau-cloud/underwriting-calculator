@@ -186,13 +186,17 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const groups = await rk.locator("section[data-testid^=risk-group-]").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
   check(groups.join() === "Summary,Tenant and Leasing,Financial,Concentration,Operational", `risk report grouped: ${groups.join(", ")}`);
   const inGroup = async (g, id) => (await rk.getByTestId(`risk-group-${g}`).getByTestId(id).count()) === 1;
-  check(await inGroup("summary", "risk-summary") && await inGroup("summary", "risk-watch") && await inGroup("summary", "risk-change") && await inGroup("summary", "risk-issued"), "summary on top: at a glance, watch list, change, issued reports");
-  check(await inGroup("tenant", "risk-leasing") && await inGroup("tenant", "risk-lease-flags") && await inGroup("financial", "risk-debt") && await inGroup("financial", "risk-stress") && await inGroup("financial", "risk-valuation") && await inGroup("concentration", "risk-tenants") && await inGroup("concentration", "risk-fund-limits") && await inGroup("concentration", "risk-lenders") && await inGroup("operational", "risk-execution") && await inGroup("operational", "risk-env"), "each section in its group (largest tenants and fund limits under Concentration)");
+  check(await inGroup("summary", "risk-summary") && await inGroup("summary", "risk-watch") && await inGroup("summary", "risk-change") && (await rk.locator("section[data-testid^=risk-group-]").getByTestId("risk-issued").count()) === 0, "summary on top: at a glance, watch list, KRI Trending (issued reports moved out, 1.1.5)");
+  const yIssued = (await rk.getByTestId("risk-issued").boundingBox())?.y ?? -1, yOps = (await rk.getByTestId("risk-group-operational").boundingBox())?.y ?? 1e9;
+  check(yIssued > yOps, "issued risk reports at the bottom, after Operational (1.1.5)");
+  const kh = await rk.getByTestId("risk-change").innerText();
+  check(/^KRI Trending \(vs\. 6\/30\/2026\)/.test(kh.trim()) && /\bKRI\b\s+Now/.test(kh) && !/Concentration\s+Now/.test(kh) && /KRI Trending/.test(await rk.getByTestId("risk-summary").innerText()), "KRI Trending (vs. 6/30/2026), with a KRI column (1.1.5)");
+  check(await inGroup("tenant", "risk-leasing") && await inGroup("tenant", "risk-lease-flags") && await inGroup("financial", "risk-debt") && await inGroup("financial", "risk-stress") && await inGroup("financial", "risk-valuation") && await inGroup("concentration", "risk-tenants") && await inGroup("concentration", "risk-fund-limits") && await inGroup("concentration", "risk-lenders") && await inGroup("operational", "risk-execution") && (await rk.getByTestId("risk-env").count()) === 0, "each section in its group (no Environmental and climate, 1.1.5) (largest tenants and fund limits under Concentration)");
   check(/assets? flagged/.test(await rk.getByTestId("risk-summary").innerText()) && /Draft \(not issued\)|issued · latest/.test(await rk.getByTestId("risk-summary").innerText()), "summary cards");
   check(/Fund leverage/.test(await rk.getByTestId("risk-fund-limits").innerText()), "fund limits in the risk report");
   check((await rk.getByTestId("risk-stress").locator("tbody tr").count()) >= 8 && /All four together/.test(await rk.getByTestId("risk-stress").innerText()), "stress tests: fund and each asset under five shocks");
   check(/No owner's insurance certificate/.test(await rk.getByTestId("risk-insurance").innerText()) && /No abstracted leases/.test(await rk.getByTestId("risk-lease-flags").innerText()), "insurance and lease flags load from the database (none on file here)");
-  check((await rk.getByTestId("risk-change").locator("tbody tr").count()) === 10 && /Largest lender/.test(await rk.getByTestId("risk-change").innerText()) && /6\/30\/2026/.test(await rk.getByTestId("risk-change").innerText()), "change vs. last quarter (6/30/2026)");
+  check((await rk.getByTestId("risk-change").locator("tbody tr").count()) === 10 && /Largest lender/.test(await rk.getByTestId("risk-change").innerText()) && /6\/30\/2026/.test(await rk.getByTestId("risk-change").innerText()), "KRI Trending rows (6/30/2026)");
   check((await rk.getByTestId("state-map").count()) === 1 && (await rk.getByTestId("state-tile-held").count()) >= 4, "geography: assets on a drawn state map, sized by value");
   const tiRows = rk.getByTestId("ti-row");
   const nTi = await tiRows.count();
@@ -213,15 +217,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await rk.getByTestId("ti-action-list").locator("li").count()) === 1 && /cut 50%/.test(await rk.getByTestId("ti-action-list").innerText()) && (await rk.getByLabel("Show with scenario actions").isChecked()), "TI action added to the scenario and shown");
   const need1 = await rk.getByTestId("ti-row").filter({ hasText: "Route 9 Small Bay" }).getByTestId("ti-cell").filter({ hasText: /\d/ }).first().innerText();
   check(need1 !== need0, `cut 50% lowers that quarter's need (${need0} → ${need1})`);
-  const envHl = rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" });
-  check(/RECs without a no-further-action letter/.test(await envHl.innerText()), "environmental: Harbor Light's open REC");
-  await envHl.getByLabel("No-further-action letter Harbor Light Industrial").check();
-  await p.waitForTimeout(1200);
-  check(!/RECs without/.test(await rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" }).innerText()), "ticking the NFA letter closes the REC item");
+  check((await rk.getByTestId("env-row").count()) === 0 && !/RECs without/.test(await rk.innerText()), "no environmental section or flags in the risk report (removed in 1.1.5)");
   const [rpdf] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), rk.getByRole("button", { name: "PDF", exact: true }).first().click()]);
   const rPath = S + "/l_risk.pdf"; await rpdf.saveAs(rPath);
   const rTxt = execFileSync("pdftotext", ["-layout", rPath, "-"]).toString();
-  check(/Risk report/.test(rTxt) && /INTERNAL - not for distribution/.test(rTxt) && /Cascade Commercial Bank/.test(rTxt) && /Environmental/.test(rTxt), "risk PDF: internal, lenders, environmental");
+  check(/Risk report/.test(rTxt) && /INTERNAL - not for distribution/.test(rTxt) && /Cascade Commercial Bank/.test(rTxt) && !/Environmental/.test(rTxt) && /KRI/.test(rTxt), "risk PDF: internal, lenders, KRI Trending; no environmental section (1.1.5)");
   await rk.getByRole("button", { name: "Issue risk report" }).click();
   await p.waitForTimeout(1000);
   check(/v1 · issued/.test(await rk.getByTestId("risk-issued").innerText()), "risk report issued as v1");
@@ -236,7 +236,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.tiScenario?.actions?.[0]?.kind === "cut", "saved: the TI scenario on the fund");
   check(sfr?.riskIssued?.length === 1 && sfr.riskIssued[0].report?.lenders?.rows?.length >= 3, "saved: the issued risk report");
   const hlSaved = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.inputs.propertyName === "Harbor Light Industrial")?.inputs;
-  check(hlSaved?.envRisk?.nfa === true, "saved: Harbor Light's NFA letter on the deal");
+  check(hlSaved?.envRisk && typeof hlSaved.envRisk === "object", "saved: Harbor Light's environmental entries are kept on the deal (not shown in the report since 1.1.5)");
 
   console.log("errors", errs);
   if (errs.length) fails++;

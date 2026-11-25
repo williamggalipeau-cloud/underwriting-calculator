@@ -55,7 +55,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   }
   await p.getByTestId("function-area").last().click();
   check((await p.getByTestId("home-button").count()) === 1 && (await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0, "Home is in the header, not in Functions");
-  const order = ["Pipeline", "Deal Screener", "Portfolio Impact", "Comps", "Sell/Hold Analysis", "Assets for Sale", "Offers", "Track Record", "Disposition Documents", "Asset Summary", "Asset Business Plan", "Rent Roll", "Leases", "Active Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Portfolio Summary", "Portfolio Return", "Portfolio Debt", "Distribution Analysis", "Stress Testing", "Benchmarking", "GP Economics", "Market Data", "Documents", "Reports"];
+  const order = ["Pipeline", "Deal Screener", "Portfolio Impact", "Comps", "Disposition Candidates", "Sell/Hold Analysis", "Assets for Sale", "Offers", "Track Record", "Disposition Documents", "Asset Summary", "Asset Business Plan", "Rent Roll", "Leases", "Active Leasing", "Valuation", "Debt", "Cash Flow", "Asset Return", "Return Sensitivity", "Property Taxes", "Insurance", "Property Condition", "Service Contracts", "Portfolio Summary", "Portfolio Return", "Portfolio Debt", "Distribution Analysis", "Stress Testing", "Benchmarking", "GP Economics", "Market Data", "Documents", "Reports"];
   // Each tab found after the previous one (names can contain earlier ones, e.g. "Disposition Documents").
   const pos = [];
   for (const t of order) pos.push(nav.indexOf(t, pos.length ? pos[pos.length - 1] + 1 : 0));
@@ -77,7 +77,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(300);
   const items = await sm.getByRole("menuitem").allInnerTexts();
-  check(items.length === 11 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add sample documents/.test(items[3]) && /Add sample business plans/.test(items[4]) && /Add sample prospects/.test(items[5]) && /Add sample comps/.test(items[6]) && /Add sample pipeline deals/.test(items[7]) && /Add construction test data/.test(items[8]) && /Load test scenario/.test(items[9]) && /Clear test data/.test(items[10]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
+  check(items.length === 12 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add sample documents/.test(items[3]) && /Add sample business plans/.test(items[4]) && /Add sample prospects/.test(items[5]) && /Add sample marks and market data/.test(items[6]) && /Add sample comps/.test(items[7]) && /Add sample pipeline deals/.test(items[8]) && /Add construction test data/.test(items[9]) && /Load test scenario/.test(items[10]) && /Clear test data/.test(items[11]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
   check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.getByRole("button", { name: "More", exact: true }).click();

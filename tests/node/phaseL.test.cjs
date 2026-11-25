@@ -168,11 +168,11 @@ const rx = RK.riskXlsx("Model Fund I", rr);
   ok(RK.RISK_GROUPS.join() === "SUMMARY,TENANT AND LEASING,FINANCIAL,CONCENTRATION,OPERATIONAL" && idx.every((x, i) => x > 0 && (i === 0 || x > idx[i - 1])), "Excel: the five groups, in order");
   const within = (label, g) => { const i = rx.findIndex((r2) => r2[0] === label); const k = RK.RISK_GROUPS.indexOf(g); return i > idx[k] && (k === idx.length - 1 || i < idx[k + 1]); };
   ok(idx[0] === 2 && within("At a glance", "SUMMARY") && within("Watch list", "SUMMARY") && within("Lease expirations (fund)", "TENANT AND LEASING") && within("Lease risk flags", "TENANT AND LEASING") || !rx.some((r2) => r2[0] === "Lease risk flags"), "summary first; leasing items under Tenant and Leasing");
-  ok(within("Stress (levered IRR %)", "FINANCIAL") && within("Valuation", "FINANCIAL") && within("Tenant", "CONCENTRATION") && within("Lender", "CONCENTRATION") && within("Cap counterparty", "CONCENTRATION") && within("Environmental", "OPERATIONAL"), "stress and valuation under Financial; tenants, lenders and caps under Concentration; environmental under Operational");
+  ok(within("Stress (levered IRR %)", "FINANCIAL") && within("Valuation", "FINANCIAL") && within("Tenant", "CONCENTRATION") && within("Lender", "CONCENTRATION") && within("Cap counterparty", "CONCENTRATION") && !rx.some((r2) => r2[0] === "Environmental"), "stress and valuation under Financial; tenants, lenders and caps under Concentration; no environmental section (1.1.5)");
   const glance = rx.find((r2) => r2[0] === "Watch list (assets flagged)");
   ok(glance && glance[1] === rr.watch.length, "summary: the watch list count");
 }
-ok(/INTERNAL/.test(rx[0][0]) && rx.some((r2) => r2[0] === "Lender") && rx.some((r2) => r2[0] === "Cap counterparty") && rx.some((r2) => r2[0] === "Environmental"), "Excel: internal title and every section");
+ok(/INTERNAL/.test(rx[0][0]) && rx.some((r2) => r2[0] === "Lender") && rx.some((r2) => r2[0] === "Cap counterparty") && !rx.some((r2) => r2[0] === "Environmental"), "Excel: internal title and every section (environmental removed, 1.1.5)");
 
 // ── TI funding coverage (lib/tiFunding.js) ──
 const TI = j(R + "/lib/tiFunding.js");

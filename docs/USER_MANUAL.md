@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.4** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.5** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -260,7 +260,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
 | **Acquisitions** | Pipeline · Deal Screener · Portfolio Impact · Comps · Acquisition Documents | |
-| **Dispositions** | Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Disposition Documents | |
+| **Dispositions** | Disposition Candidates (1.1.5) · Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Disposition Documents | |
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
 | **Portfolio Management** | Portfolio Summary (with Plan vs. actual) · Portfolio Return · Portfolio Debt · Distribution Analysis · Stress Testing · Benchmarking | |
@@ -2232,10 +2232,11 @@ On the Reports tab, **Risk report (internal)** (owners and editors; never in
 the shareable report) shows, as of the quarter end, grouped by similar risks
 (user, 11/24). The screen, the Excel and the PDF all use the same order:
 1. **Summary** (on top of every risk report). It starts with three cards:
-   the watch list (assets flagged and the top three), concentrations that
-   rose since last quarter, and whether the report has been issued for this
-   date (latest version, when and by whom). Then the full **Watch list**,
-   **Change vs. last quarter**, and **Issued risk reports**.
+   the watch list (assets flagged and the top three), **KRI Trending** (the
+   key risk indicators that rose since last quarter), and whether the report
+   has been issued for this date (latest version, when and by whom). Then the
+   full **Watch list** and **KRI Trending**. **Issued risk reports** are at
+   the bottom of the report (1.1.5).
 2. **Tenant and Leasing:** lease expirations and rollover, and lease risk
    flags.
 3. **Financial:** debt, TI funding coverage, stress tests, and valuation
@@ -2244,7 +2245,8 @@ the shareable report) shows, as of the quarter end, grouped by similar risks
    debt by lender, rate cap counterparties, and the concentration limits
    used.
 5. **Operational:** execution (the IRR gap, budget variances, the plan gap),
-   insurance certificates, and environmental and climate.
+   and insurance certificates. (Environmental and climate was removed in
+   1.1.5 as not critical; the entries stay on each asset.)
 
 Each section in detail:
 - **Watch list:** assets ranked by a risk score (each flag weighs 1–3), with
@@ -2272,11 +2274,6 @@ Each section in detail:
 - **Valuation:** marks vs. cost (flag 5%+ below cost), implied vs. exit cap.
 - **Execution:** IRR gap to underwriting (phase J), budget lines over the
   threshold (phase I), the fund plan gap (phase K).
-- **Environmental and climate,** entered per asset: Phase I date, RECs,
-  Phase II / remediation, no-further-action letter, tenants using hazardous
-  materials, FEMA flood zone, wildfire and heat exposure, notes. Open items:
-  no Phase I or one over 5 years old, RECs without an NFA letter, flood zone
-  A or V, high wildfire or heat.
 - **TI funding coverage** (heat map): for each asset and the next 8
   quarters, the TI and leasing commissions due (expiring leases at the
   renewal / new-lease mix the cash flow uses, vacant units leased in the
@@ -2310,10 +2307,12 @@ Each section in detail:
   to check them.
 - **Lease risk flags** (abstracted leases): counts by type and the high ones,
   which go on the watch list.
-- **Change vs. last quarter:** the largest lender, cap counterparty, state,
-  metro, industry and tenant shares, the 12-month rollover, vacancy and both
-  HHIs, now and at the previous quarter end, with the change (red = more
-  concentrated).
+- **KRI Trending (vs. the previous quarter end)** (1.1.5, formerly Change vs.
+  last quarter): one row per key risk indicator (**KRI**): the largest
+  lender, cap counterparty, state, metro, industry and tenant shares, the
+  12-month rollover, vacancy and both HHIs, now and at the previous quarter
+  end, with the change (red = more concentrated). In the Excel export the
+  column reads "KRI (KRI Trending vs. last quarter)".
 - **TI actions (modeling only):** click a heat-map cell to postpone its TI to
   a later quarter, cut it by a percentage, or plan a capital call (shown
   blue). Actions are saved as the fund's TI scenario; tick **With scenario
@@ -2588,6 +2587,19 @@ A **Dispositions** group sits right after Acquisitions. Each asset's sales
 are kept on the asset itself, so they save and log like any other edit, and
 they follow the **Select Portfolio** (was Working on) picker.
 
+- **Disposition Candidates** (1.1.5, the first tab; `lib/dispositionCandidates.js`):
+  a screener of the owned assets whose **business plan exit** falls in the
+  next 12 months, or has passed while the asset is still owned. The exit is
+  the latest plan revision's target exit date, or the acquisition date plus
+  its hold years; assets with no business plan aren't listed, and sold
+  assets drop off. Columns: Asset, Portfolio, Acquired, Planned exit (with
+  the plan revision), Months left (red when past the plan), Plan
+  recommendation, **Sell/Hold decision** (the one saved on Sell/Hold
+  Analysis; past the plan it reads "Held past plan: Hold to year n", or "Past
+  plan exit, no Sell/Hold decision" in red), Sale (its stage, or "No sale
+  started") and **Sell/Hold →**. With none, it says so and names the next
+  planned exit. (In the 1.2 workflow, each candidate will need a fresh
+  sell/hold analysis.)
 - **Assets for Sale:** **Start sale** for an owned asset: the whole asset or
   selected units, and the reason (business plan complete, hold reached, fund
   term, opportunistic). Each sale opens to:
@@ -3408,11 +3420,26 @@ document store, each with its abstract already saved:
   and file name, or a lease for the same tenant), so it can be clicked again
   safely.
 
+**Sample data → Add sample marks and market data** (1.1.5, `lib/sampleMarket.js`):
+- **Market Data:** one fictional submarket per Model Fund I asset ("Kent
+  Small Bay (fictional)" and so on), with eight quarters of statistics to the
+  last completed quarter, set near each asset's own assumptions. Each asset
+  is tagged to its submarket, so the market check on the Valuation tab and
+  the Asset Business Plan reads "In line" for most of them; Route 9's rent is
+  amber (about 13% above market) and Harbor Light's cap rate red (about
+  85 bp below market).
+- **Marks:** an appraisal at Q2 / Q4 and an internal mark at Q1 / Q3 for
+  every completed quarter after an asset's first six months (assets are held
+  at cost before that), near cost; Route 9 and Harbor Light a little below.
+- **Safe to click again:** earlier sample entries are replaced; your own
+  submarkets, stats, marks and asset tags are kept.
+
 **Load Model Fund I** also adds the three sample pipeline deals (version 1.1),
 and from 1.1.4 rebuilds the sample assets with the sample business plans and
 actuals (§7.59) and the sample prospects, leasing managers, vacant-since
-dates and rent comps (§7.60), so the Asset Watch List, Active Leasing and
-Vacant Units have data in one click.
+dates and rent comps (§7.60), and from 1.1.5 the sample marks and market data, so the Asset
+Watch List, Active Leasing, Vacant Units, Valuation and Market Data have data
+in one click.
 
 ### 7.59 Sample business plans (`lib/samplePlans.js`, version 1.1.2)
 
@@ -4473,7 +4500,7 @@ Model Fund I → Open**.
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4485,6 +4512,12 @@ Model Fund I → Open**.
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.5
+
+- **Add sample marks and market data:** a fictional submarket per Model Fund I asset (each asset tagged, market check mostly in line) and quarterly marks; Load Model Fund I includes them.
+- **Disposition Candidates:** a new first tab in Dispositions, listing the assets whose business plan exit falls in the next 12 months (or has passed), with their Sell/Hold decision and sale status (§7.43).
+- **Risk report:** "Change vs. last quarter" becomes **KRI Trending (vs. date)** with a **KRI** column; **Issued risk reports** move to the bottom; **Environmental and climate** is removed.
 
 ### What's in 1.1.4
 
