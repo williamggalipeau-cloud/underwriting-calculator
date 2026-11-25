@@ -101,14 +101,17 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await p.getByTestId("fund-card").count()) === 0 && (await p.getByTestId("lanes").count()) === 0 && (await p.getByTestId("recent-activity").count()) === 0, "no Funds, Workflows or Recent activity sections");
   check((await p.getByTestId("functions-title").innerText()) === "Functions" && (await p.getByRole("navigation", { name: "Functions" }).count()) === 1, "the tab bar is titled Functions");
 
-  // ── Order: Functions, Setup & Maintenance (under Functions, every page); then Actions Needed, Upcoming Events, Asset Watch List ──
+  // ── Order: Functions (Setup & Maintenance is its last area, 1.1.1); then Actions Needed, Upcoming Events, Asset Watch List ──
+  const areaNames = await p.getByTestId("function-areas").getByRole("button").evaluateAll((els) => els.map((e) => e.textContent.replace(/[▾▴\d]/g, "").trim()));
+  check(areaNames.at(-1) === "Setup & Maintenance" && (await p.getByTestId("setup-maintenance").count()) === 0, `Setup & Maintenance is the last Functions area, closed by default (${areaNames.join(" | ")})`);
+  await FX.openSetup(p);
   await p.evaluate(() => window.scrollTo(0, 0));
   await p.waitForTimeout(200);
   const ys = [];
   for (const id of ["functions-title", "setup-maintenance", "attention", "calendar", "assets-watch"]) ys.push((await p.getByTestId(id).boundingBox())?.y ?? -1);
-  check(ys.every((y, i) => y >= 0 && (i === 0 || y > ys[i - 1])), `order: Functions, Setup & Maintenance, Actions Needed, Upcoming Events, Asset Watch List (${ys.map(Math.round).join(", ")})`);
+  check(ys.every((y, i) => y >= 0 && (i === 0 || y > ys[i - 1])), `order: Functions, its Setup & Maintenance row, Actions Needed, Upcoming Events, Asset Watch List (${ys.map(Math.round).join(", ")})`);
   check((await p.getByTestId("home").getByTestId("setup-maintenance").count()) === 0, "Setup & Maintenance is under Functions, not inside the dashboard");
-  check(/^Actions Needed/.test(await p.getByTestId("attention").locator("h3").innerText()) && /Setup & Maintenance/i.test(await p.getByTestId("setup-maintenance").innerText()), "Actions Needed; Setup & Maintenance holds the quick actions");
+  check(/^Actions Needed/.test(await p.getByTestId("attention").locator("h3").innerText()) && (await p.getByTestId("setup-maintenance").getByRole("button", { name: "New asset" }).count()) === 1, "Actions Needed; Setup & Maintenance holds the quick actions");
   const aw = await p.getByTestId("assets-watch").innerText();
   check(/^Asset Watch List/.test(aw) && /business plan/.test(aw) && !/risk report/i.test(aw) && ((await p.getByTestId("watch-asset").count()) > 0 || /No assets under plan/.test(aw)), `Asset Watch List: plan performance only: ${aw.replace(/\s+/g, " ").slice(0, 140)}`);
 
@@ -121,11 +124,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── Home returns to the dashboard; quick action ──
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
+  await FX.openSetup(p);
   await p.getByTestId("quick-actions").getByRole("button", { name: "New fund setup" }).click();
   await p.waitForTimeout(600);
   check((await p.getByRole("dialog", { name: "New fund" }).count()) === 1, "quick action: New fund setup opens the fund editor");
   await p.getByRole("dialog", { name: "New fund" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
   await p.waitForTimeout(400);
+  await FX.openSetup(p);
   const qa = await p.getByTestId("quick-actions").innerText();
   check(["New asset", "New fund setup", "Upload rent roll", "Upload Yardi actuals", "Import marks", "Record capital activity", "New report"].every((x) => qa.includes(x)), "all seven quick actions");
 

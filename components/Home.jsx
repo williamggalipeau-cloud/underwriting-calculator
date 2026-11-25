@@ -226,13 +226,13 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
   );
 }
 
-// Setup & Maintenance (11/24: under Functions, on every page): New / Edit
-// asset and fund, uploads, marks, capital activity, reports.
+// Setup & Maintenance (1.1.1: the last Functions area; this is the row it
+// opens): New / Edit asset and fund, uploads, marks, capital activity, reports.
 export function SetupMaintenance({ actions = [] }) {
   return (
-    <section className="mt-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm" data-testid="setup-maintenance">
+    <div className="mt-1.5 border-t border-gray-100 pt-1.5" role="group" aria-label="Setup & Maintenance" data-testid="setup-maintenance">
+      <span className="sr-only">Setup &amp; Maintenance</span>
       <div className="flex flex-wrap items-center gap-1.5" data-testid="setup-buttons">
-        <span className="mr-2 text-lg font-bold text-gray-900">Setup &amp; Maintenance</span>
         <div className="contents" data-testid="quick-actions">
           {actions.map((a) => a.kind === "select" ? (
             <select key={a.label} aria-label={a.label} value="" onChange={(e) => e.target.value && a.run(e.target.value)} className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700">
@@ -244,6 +244,6 @@ export function SetupMaintenance({ actions = [] }) {
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }

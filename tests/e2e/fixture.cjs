@@ -107,3 +107,10 @@ module.exports.docPortfolio = async (main, name) => {
   await main.getByLabel("Filter portfolio").selectOption(name || "");
   await main.page().waitForTimeout(300);
 };
+// Setup & Maintenance (1.1.1): the last Functions area; open it to reach the
+// setup actions (New asset, Edit asset / fund, uploads, …).
+module.exports.openSetup = async (p) => {
+  const b = p.getByTestId("setup-area");
+  if ((await b.getAttribute("aria-expanded")) !== "true") { await b.click(); await p.waitForTimeout(150); }
+  return p.getByTestId("setup-buttons");
+};

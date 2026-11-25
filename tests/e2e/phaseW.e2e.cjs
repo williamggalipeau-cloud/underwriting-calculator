@@ -97,6 +97,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   // ── Parties: an outside operator; the firm becomes the GP only ──
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(800);
+  await FX.openSetup(p);
   await p.getByTestId("setup-buttons").getByLabel("Edit fund").selectOption("Model Fund I");
   await p.waitForTimeout(800);
   const parties = p.getByTestId("parties");

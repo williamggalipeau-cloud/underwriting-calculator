@@ -38,9 +38,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const main = p.locator("main");
 
   check((await p.getByTestId("asset-panel").count()) === 0, "no inputs panel on load: the tabs use the full width");
+  check((await p.getByTestId("setup-buttons").count()) === 0 && (await p.getByTestId("setup-area").getAttribute("aria-expanded")) === "false", "Setup & Maintenance is closed until you open it (1.1.1)");
   const sb = p.getByTestId("setup-buttons");
-  check((await sb.getByRole("button", { name: "New asset" }).count()) === 1 && (await sb.getByLabel("Edit asset").count()) === 1 && (await sb.getByRole("button", { name: "New fund" }).count()) === 1 && (await sb.getByLabel("Edit fund").count()) === 1, "Setup & Maintenance (under Functions): New asset, Edit asset, New fund, Edit fund");
-  check((await p.getByTestId("setup-maintenance").getByTestId("setup-buttons").count()) === 1, "the setup controls live in Setup & Maintenance, not a toolbar row");
+  await FX.openSetup(p);
+  check((await sb.getByRole("button", { name: "New asset" }).count()) === 1 && (await sb.getByLabel("Edit asset").count()) === 1 && (await sb.getByRole("button", { name: "New fund" }).count()) === 1 && (await sb.getByLabel("Edit fund").count()) === 1, "Setup & Maintenance (the last Functions area): New asset, Edit asset, New fund, Edit fund");
+  check((await p.getByTestId("setup-maintenance").getByTestId("setup-buttons").count()) === 1 && (await p.getByRole("navigation", { name: "Functions" }).getByTestId("setup-maintenance").count()) === 1, "the setup controls are the Setup & Maintenance row inside Functions");
   for (const t of ["Asset Summary", "Rent Roll", "Portfolio Return", "Deal Screener", "Documents"]) {
     await FX.openTab(p, new RegExp(`^${t}`));
     await p.waitForTimeout(400);
@@ -52,6 +54,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // Edit asset (from the Dashboard)
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(500);
+  await FX.openSetup(p);
   await sb.getByLabel("Edit asset").selectOption("sample-deal-3");
   await p.waitForTimeout(600);
   const panel = p.getByTestId("asset-panel");
@@ -78,6 +81,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const before = await main.locator("#asset-picker option").count();
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(500);
+  await FX.openSetup(p);
   await sb.getByRole("button", { name: "New asset" }).click();
   await p.waitForTimeout(800);
   check((await p.getByTestId("asset-panel").count()) === 1 && /New Deal/.test(await p.getByTestId("asset-panel").innerText()), "New asset opens the panel on a new deal");
@@ -97,11 +101,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // Funds
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(500);
+  await FX.openSetup(p);
   await sb.getByRole("button", { name: "New fund" }).click();
   await p.waitForTimeout(600);
   check((await p.getByRole("dialog", { name: "New fund" }).count()) === 1, "New fund opens the fund editor");
   await p.getByRole("dialog", { name: "New fund" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
   await p.waitForTimeout(400);
+  await FX.openSetup(p);
   await sb.getByLabel("Edit fund").selectOption("Model Fund I");
   await p.waitForTimeout(600);
   check((await p.getByRole("dialog").filter({ hasText: "Model Fund I" }).count()) >= 1, "Edit fund opens Model Fund I's terms");

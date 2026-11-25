@@ -113,6 +113,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // ── Flag levels per portfolio ──
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(800);
+  await FX.openSetup(p);
   await p.getByTestId("setup-buttons").getByLabel("Edit fund").selectOption("Model Fund I");
   await p.waitForTimeout(800);
   const mf = p.getByTestId("market-flags");

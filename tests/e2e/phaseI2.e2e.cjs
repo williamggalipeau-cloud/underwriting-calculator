@@ -64,6 +64,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   const main = p.locator("main");
+  await FX.openSetup(p);
   await p.getByLabel("Edit asset").selectOption("sample-deal-2");
   await p.waitForTimeout(400);
   await p.getByRole("button", { name: "Done", exact: true }).click();

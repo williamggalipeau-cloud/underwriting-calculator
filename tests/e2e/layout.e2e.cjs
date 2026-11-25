@@ -64,7 +64,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // Backup buttons (11/23): no Reset; Download backup; owner-only Restore
   check((await p.getByRole("button", { name: /Reset workspace|Export workspace|Import workspace/ }).count()) === 0, "workspace buttons removed");
-  check((await p.getByTestId("setup-buttons").count()) === 1 && (await p.getByTestId("setup-maintenance").getByTestId("setup-buttons").count()) === 1, "no toolbar row: setup lives in Setup & Maintenance (11/24)");
+  await FX.openSetup(p);
+  check((await p.getByTestId("setup-buttons").count()) === 1 && (await p.getByRole("navigation", { name: "Functions" }).getByTestId("setup-buttons").count()) === 1, "no toolbar row: setup lives in the Setup & Maintenance area of Functions (1.1.1)");
   check((await p.getByRole("button", { name: "Download backup" }).count()) === 0, "backup is off the main view");
   await p.getByRole("button", { name: "More", exact: true }).click();
   await p.waitForTimeout(200);

@@ -16,10 +16,11 @@ version:
 | Version | Scope | Status |
 |---|---|---|
 | 1.0 | Everything built through 11/24 (the phases below marked built) | ✅ Released 2026-11-25 |
-| 1.1 | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions (the "Later" item in phase P); market data on the Valuation tab and the Asset Business Plan (the "Later" item in phase U), with flag levels per portfolio; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (manual §7.56–7.58). Decided 11/25: an LOI updates that buyer's offer and keeps the earlier terms in its history; market check on both Valuation and the Business Plan; flag levels per portfolio (defaults 50 bp, 10%, 2 pts, 1 pt; red at 1.5×), chosen by the user for live data |
+| 1.1 | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions (the "Later" item in phase P); market data on the Valuation tab and the Asset Business Plan (the "Later" item in phase U), with flag levels per portfolio; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (manual §7.56–7.58). Decided 11/25: an LOI updates that buyer's offer and keeps the earlier terms in its history; market check on both Valuation and the Business Plan; flag levels per portfolio (defaults 50 bp, 10%, 2 pts, 1 pt; red at 1.5×), chosen by the user for live data. Patch 1.1.1 (user, 11/25): Setup & Maintenance becomes the last Functions area, its actions on the row it opens; the separate bar is removed |
 | 1.2 | Workflow: approvals, reminders and gating (phase V; the five scoping questions) | Next |
 | 1.3 | Expanded reporting (the "More external reports" options) | Planned |
 | 1.4 | Demo firm; Yardi API connection | Planned |
+| 1.5 | Construction Management (user, 11/25): capital project budgets, costs to date and change orders; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Builds on the existing construction jobs and invoices (lib/construction.js) | Planned |
 
 Release process (user, 11/25):
 - **Option A.** Each version is built on its own branch; the live site stays on the current release until the user approves the next, then it goes live in one step.
@@ -1363,7 +1364,7 @@ under, Off Plan up to 10%). Both lists show Asset name, Due date, Action
 type, Owner (asset manager or portfolio manager) and Status (Past Due, Due
 now, Upcoming, Completed). Home moved to the header and saves edits before
 leaving; Functions became one button per area, showing that area's tabs;
-Setup & Maintenance sits under Functions. The Workflows lanes, fund cards and
+Setup & Maintenance sits under Functions (from 1.1.1, as the last Functions area). The Workflows lanes, fund cards and
 recent activity below were removed. The original 11/23 plan follows.
 
 A **Home** page the app opens on, organised by workflow (user, 11/23):
