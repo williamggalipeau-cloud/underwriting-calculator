@@ -87,6 +87,8 @@ import ChangeLog from "@/components/ChangeLog";
 import { APP_VERSION, RELEASE_DATE, versionLabel } from "@/lib/version";
 import FundTermsEditor from "@/components/FundTermsEditor";
 import WorkflowDocs from "@/components/WorkflowDocs";
+import MarketCheck from "@/components/MarketCheck";
+import { flagsOf, marketCheck } from "@/lib/marketCheck";
 import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
 import { FIGURE_DEFS, firmSummary, fmtAum } from "@/lib/enterprise";
 import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
@@ -1566,6 +1568,13 @@ export default function Home() {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
       return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
     });
+    // The fictional pipeline deals load with the sample fund too (1.1, user
+    // 11/25); ones already there are kept as they are.
+    setPipeline((p) => {
+      const have = new Set((p?.deals ?? []).map((d) => d.id));
+      const add = samplePipelineDeals(new Date().toISOString().slice(0, 10), { by: session?.user?.email ?? "", targetFund: SAMPLE_FUND_NAME }).filter((r) => !have.has(r.id));
+      return add.length ? { ...p, deals: [...(p?.deals ?? []), ...add] } : p;
+    });
     setActiveTab("fund");
   }
 
@@ -1887,7 +1896,7 @@ export default function Home() {
                             For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
                           </p>
                           {[
-                            { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost)", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
+                            { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost) and add the sample pipeline deals", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
                             { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
@@ -2442,6 +2451,7 @@ export default function Home() {
               <Valuations
                 deals={fundDeals}
                 funds={viewFunds}
+                market={comps?.market ?? null}
                 marks={valuations}
                 onMarksChange={setValuations}
                 onOpenFundReturn={() => setActiveTab("fund")}
@@ -2490,6 +2500,11 @@ export default function Home() {
                 onApplyUnits={handleApplyLease}
                 extraDates={entityDates(funds[resolveFund(inputs.fundName)]?.entities ?? [], resolveFund(inputs.fundName))}
               />
+            )}
+            {activeTab === "plan" && (
+              <div className="mb-4">
+                <MarketCheck title="Market check · plan assumptions" valueLabel="Plan" testId="plan-market-check" check={marketCheck(inputs, comps?.market ?? null, { mode: "plan", flags: flagsOf(funds[resolveFund(inputs.fundName)]) })} />
+              </div>
             )}
             {activeTab === "plan" && (
               <BusinessPlan

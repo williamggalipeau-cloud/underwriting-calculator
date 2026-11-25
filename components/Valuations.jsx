@@ -1,5 +1,7 @@
 "use client";
 
+import { StatusChip } from "@/components/MarketCheck";
+import { flagsOf, gapLabel, latestMark, marketCheck } from "@/lib/marketCheck";
 import { fundOptionLabel, fundType } from "@/lib/fundTypes";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
@@ -241,7 +243,7 @@ function ImportPanel({ deals, valuation, onImport, onClose }) {
   );
 }
 
-export default function Valuations({ deals, funds = {}, marks = {}, onMarksChange, curve, onOpenDoc, onOpenFundReturn }) {
+export default function Valuations({ deals, funds = {}, marks = {}, onMarksChange, curve, onOpenDoc, onOpenFundReturn, market = null }) {
   const fundNames = useMemo(() => [...new Set(deals.map((d) => d.inputs.fundName?.trim()).filter(Boolean))], [deals]);
   const [fundPick, setFundPick] = useState(null);
   const fundName = fundNames.includes(fundPick) ? fundPick : fundNames[0];
@@ -453,6 +455,33 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
               </tbody>
             </table>
           </div>
+
+          {/* Market check (1.1, user 11/25): each asset's latest mark and model assumptions vs. its submarket. */}
+          {(() => {
+            const flags = flagsOf(terms);
+            const checks = fundDeals.map((d) => ({ d, c: marketCheck(d.inputs, market, { mark: latestMark(marks[d.id]), flags }) }));
+            const tagged = checks.filter((x) => x.c.submarket);
+            return (
+              <div className="space-y-1.5" data-testid="valuation-market-check">
+                <h3 className="text-sm font-semibold text-gray-900">Market check <span className="font-normal text-gray-500">· latest mark and assumptions vs. each asset&apos;s submarket (Research → Market Data)</span></h3>
+                {tagged.length === 0 ? <p className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-500">No asset in {fundName} is tagged to a submarket yet. Tag assets on Research → Market Data to compare them with the market.</p> : (
+                  <div className="overflow-x-auto rounded-xl border border-gray-200">
+                    <table className="w-full text-xs tabular-nums">
+                      <thead className="bg-gray-50 text-gray-500"><tr>{["Asset", "Submarket", "Cap rate", "Market rent", "Vacancy", "Rent growth"].map((h) => <th key={h} className="px-2 py-1.5 text-left font-medium">{h}</th>)}</tr></thead>
+                      <tbody>{checks.map(({ d, c }) => (
+                        <tr key={d.id} className="border-t border-gray-100" data-testid="valuation-market-row">
+                          <td className="px-2 py-1.5 font-medium">{d.inputs.propertyName}</td>
+                          <td className="px-2 py-1.5 text-gray-600">{c.submarket ? `${c.submarket.name}${c.quarter ? ` · ${c.quarter.replace("-", " ")}` : ""}` : <span className="text-gray-400">not tagged</span>}</td>
+                          {["cap", "rent", "vacancy", "growth"].map((k) => { const r = c.rows.find((x) => x.kind === k); return <td key={k} className="px-2 py-1.5">{r ? <span className="flex flex-wrap items-center gap-1"><span className="text-gray-600">{gapLabel(r)}</span><StatusChip r={r} /></span> : "—"}</td>; })}
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                )}
+                <p className="text-[10px] text-gray-400">Difference = this asset minus the market (cap rate in bp, rent in %, vacancy and growth in points). Cap rate is the latest mark&apos;s, else the exit cap. Flags at {fundName}&apos;s levels: ±{flags.capBp} bp, ±{flags.rentPct}%, ±{flags.vacancyPts} pts, ±{flags.growthPts} pt; red past {flags.redMultiple}× (Edit fund → Market check flag levels).</p>
+              </div>
+            );
+          })()}
 
           <ValueTrend trend={valueTrend(val, asOf, 4)} />
 

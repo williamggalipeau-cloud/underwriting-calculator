@@ -3,6 +3,7 @@
 import { FUND_TYPES, fundType } from "@/lib/fundTypes";
 import { useEffect, useState } from "react";
 import { FEE_KEYS, FEE_PAYEES, gpPartiesOf, partiesOf, firmRoleLabel } from "@/lib/gpEconomics";
+import { MARKET_FLAG_FIELDS, flagsOf } from "@/lib/marketCheck";
 import { compareDoc } from "@/lib/dealDocApply";
 import { createDealDocWithFallback, listDealDocs } from "@/lib/dealDocs";
 import {
@@ -302,6 +303,17 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 <Num label="Incentive hurdle" suffix="% IRR" step={0.5} value={t.incentiveHurdlePct ?? t.prefPct ?? 0} onChange={set("incentiveHurdlePct")} hint="Client IRR before the incentive fee" />
               </div>
             )}
+          </section>
+
+          {/* Market check flag levels (1.1, user 11/25): per portfolio. */}
+          <section className="space-y-2" data-testid="market-flags">
+            <h3 className="text-sm font-semibold text-gray-900">Market check flag levels</h3>
+            <p className="text-[11px] text-gray-500">When an asset&apos;s valuation or business plan assumption differs from its submarket (Research → Market Data) by more than these, it&apos;s flagged amber; past the multiple, red. Shown on the Valuation tab and the Asset Business Plan.</p>
+            <div className="grid grid-cols-5 gap-3">
+              {MARKET_FLAG_FIELDS.map(([k, label, unit]) => (
+                <Num key={k} label={label} suffix={unit} step={k === "redMultiple" ? 0.25 : k === "capBp" ? 5 : 0.5} value={flagsOf(t)[k]} onChange={(v) => setT((p) => ({ ...p, marketFlags: { ...flagsOf(p), [k]: v === "" ? null : Number(v) } }))} />
+              ))}
+            </div>
           </section>
 
           {/* Parties and economics (user, 11/24) */}
