@@ -18,9 +18,16 @@ banks / treasury systems (cash). Baywise reads from them (imports now, live
 connections later), analyzes, plans, decides and reports, and stores what
 lives nowhere else (underwriting, business plans, decisions, marks, plans and
 workflow). It never processes transactions or keeps a second set of books.
+It is also **not a CRM or an investor portal** (user, 11/25): contacts,
+relationships and fundraising stay in the firm's CRM (Salesforce, DealCloud,
+Juniper Square…), and LPs receive documents through the investor portal.
+Baywise works with them the same way as with the books of record: it reads
+what it needs, and its reports are handed to the portal for delivery, never
+published to LPs from Baywise. The Pipeline's broker and seller names stay
+deal facts, not a contact database.
 Every new feature is checked against this: Property Management stays light
 on purpose; Treasury (1.6) imports balances rather than keeping a ledger; LP
-statements (1.3) only for self-administered funds; fund administrator
+statements (1.3) only for self-administered funds, delivered through the investor portal; fund administrator
 integration is 2.0.
 
 ## Where we left off (end of 11/25)

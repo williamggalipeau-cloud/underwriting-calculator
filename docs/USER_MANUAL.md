@@ -44,6 +44,15 @@ analyzes, plans and reports, and records the decisions and plans that live
 nowhere else. It doesn't process transactions or keep a second set of
 books.
 
+Likewise, Baywise is **not a CRM or an investor portal**. Contacts,
+relationships and fundraising stay in the firm's CRM (Salesforce, DealCloud,
+Juniper Square and the like), and LPs get their documents from the investor
+portal. Baywise works with those systems the same way it works with the
+books of record: it reads what it needs from them, and the reports it
+produces (quarterly reports, LP statements for self-administered funds) are
+handed to the portal for delivery rather than published to LPs from
+Baywise.
+
 - **No app server.** It is a static website. All math runs in your
   browser. Files you upload (rent rolls, fund terms, forward curves, sales
   comps) are read in the browser and never sent anywhere. Signing in and
