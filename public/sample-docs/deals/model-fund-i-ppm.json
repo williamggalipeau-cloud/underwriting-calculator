@@ -1,0 +1,75 @@
+{
+ "doc_type": "ppm",
+ "title": "Model Fund I PPM (excerpt)",
+ "summary": "PPM for Model Fund I: $100M target, 1.5% fee, 9% pref, small-bay industrial and flex in the West and Southwest, 35% state limit.",
+ "fields": [
+  {
+   "key": "fund_name",
+   "value": "Model Fund I, L.P.",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This Private Placement Memorandum describes an offering of interests in Model Fund I, L.P.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "commitments",
+   "value": "$100,000,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Partnership is targeting Aggregate Commitments of $100,000,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "mgmt_fee_pct",
+   "value": "1.5%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Limited Partners will pay a Management Fee of 1.5% per year.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "pref_pct",
+   "value": "9%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Preferred Return is 9% per year.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "limits": [
+  {
+   "key": "state_pct",
+   "label": "Single state, % of gross asset value",
+   "limit": 35,
+   "unit": "%",
+   "basis": "",
+   "clause": "Strategy and limits",
+   "evidence": [
+    {
+     "quote": "The Partnership will not invest more than 35% of its gross asset value in any one state.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "model-fund-i-ppm.pdf"
+  ]
+ }
+}

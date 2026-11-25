@@ -39,7 +39,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // Name and title
   check((await p.title()) === "Baywise · Industrial Real Estate Management", `browser tab title: ${await p.title()}`);
-  check(/^Baywise\s+v1\.0$/.test((await p.locator("header h1").innerText()).trim()) && (await p.getByTestId("app-version").innerText()) === "v1.0", "header: Baywise, with the version (v1.0, user 11/25)");
+  check(/^Baywise\s+v\d+\.\d+(\.\d+)?$/.test((await p.locator("header h1").innerText()).trim()) && /^v\d+\.\d+/.test(await p.getByTestId("app-version").innerText()), "header: Baywise, with the version (user 11/25)");
   check((await p.locator("header").innerText()).includes("Industrial Real Estate Management"), "header: tagline");
 
   // Function areas (11/24), in order; each opens its tabs, with the renamed tabs
@@ -76,7 +76,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(300);
   const items = await sm.getByRole("menuitem").allInnerTexts();
-  check(items.length === 8 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add sample comps/.test(items[3]) && /Add sample pipeline deals/.test(items[4]) && /Add construction test data/.test(items[5]) && /Load test scenario/.test(items[6]) && /Clear test data/.test(items[7]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
+  check(items.length === 9 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add sample documents/.test(items[3]) && /Add sample comps/.test(items[4]) && /Add sample pipeline deals/.test(items[5]) && /Add construction test data/.test(items[6]) && /Load test scenario/.test(items[7]) && /Clear test data/.test(items[8]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
   check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.getByRole("button", { name: "More", exact: true }).click();

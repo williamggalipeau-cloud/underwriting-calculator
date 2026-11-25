@@ -25,7 +25,7 @@ const show = (kind, v) => {
 };
 
 // Values with their quotes, page links and status.
-function DocViewer({ doc, onOpen }) {
+export function DocViewer({ doc, onOpen }) {
   const a = doc.abstract;
   const t = TYPE[doc.doc_type];
   const fields = FIELDS[doc.doc_type] ?? [];
@@ -78,7 +78,7 @@ function DocViewer({ doc, onOpen }) {
 }
 
 // Review with Claude: the prompt, and Save abstract (paste).
-function ReviewPanel({ doc, assetName, userId, email, onSaved, onError }) {
+export function ReviewPanel({ doc, assetName, userId, email, onSaved, onError }) {
   const [prompt, setPrompt] = useState("");
   const [paste, setPaste] = useState("");
   const [errors, setErrors] = useState([]);

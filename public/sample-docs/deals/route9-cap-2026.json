@@ -1,0 +1,162 @@
+{
+ "doc_type": "rate_cap",
+ "title": "Route 9 Small Bay cap 2026",
+ "summary": "Executed 3.91% Term SOFR cap from Example Derivatives Corp (BBB+) on $9,000,000, March 16, 2026 to March 16, 2027, premium $51,045.",
+ "fields": [
+  {
+   "key": "counterparty",
+   "value": "Example Derivatives Corp",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This Confirmation sets out the terms of the interest rate cap entered into between Example Derivatives Corp (Party A) and the owner of Route 9 Small Bay (Party B), reference EDC-26-0316.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "counterparty_rating",
+   "value": "BBB+",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Party A is rated BBB+ by S&P.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "trade_date",
+   "value": "March 12, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Trade Date: March 12, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "effective_date",
+   "value": "March 16, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Effective Date: March 16, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "termination_date",
+   "value": "March 16, 2027",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Termination Date: March 16, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "notional",
+   "value": "$9,000,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Notional Amount: $9,000,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "index",
+   "value": "1-month Term SOFR",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Floating Rate Option: USD Term SOFR, 1 month.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "strike_pct",
+   "value": "3.91%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Cap Rate: 3.91%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "premium",
+   "value": "$51,045",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Fixed Amount (premium): $51,045, payable by Party B on the Effective Date.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "payment_date",
+   "value": "March 16, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Fixed Amount (premium): $51,045, payable by Party B on the Effective Date.",
+     "page": 1
+    },
+    {
+     "quote": "Effective Date: March 16, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "day_count",
+   "value": "Actual/360",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Floating Rate Day Count Fraction: Actual/360.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "calculation_agent",
+   "value": "Example Derivatives Corp",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Calculation Agent: Example Derivatives Corp.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "assigned_to",
+   "value": "Fictional Bank, N.A.",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Party B has collaterally assigned its rights under this Transaction to Fictional Bank, N.A., as Lender.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "route9-cap-2026.pdf"
+  ]
+ }
+}

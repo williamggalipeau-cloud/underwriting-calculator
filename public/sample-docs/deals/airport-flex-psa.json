@@ -1,0 +1,252 @@
+{
+ "doc_type": "psa",
+ "title": "Airport Flex Park PSA",
+ "summary": "PSA at $7,200,000 with $250,000 in deposits going hard on December 29, 2025 and closing January 30, 2026.",
+ "fields": [
+  {
+   "key": "psa_date",
+   "value": "November 14, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This Purchase and Sale Agreement is effective as of November 14, 2025.",
+     "page": 1
+    }
+   ],
+   "clause": "Preamble"
+  },
+  {
+   "key": "purchase_price",
+   "value": "$7,200,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Purchase Price is $7,200,000.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "initial_deposit",
+   "value": "$150,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer shall deliver an Initial Deposit of $150,000.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "additional_deposit",
+   "value": "$100,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Upon expiration of the Due Diligence Period Buyer shall deliver an Additional Deposit of $100,000.",
+     "page": 1
+    }
+   ],
+   "clause": "1"
+  },
+  {
+   "key": "deposit_hard_date",
+   "value": "December 29, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Due Diligence Period expires on December 29, 2025, and the Deposits become non-refundable on December 29, 2025.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "dd_expiry",
+   "value": "December 29, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Due Diligence Period expires on December 29, 2025, and the Deposits become non-refundable on December 29, 2025.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "title_objection_date",
+   "value": "December 5, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer shall deliver title objections by December 5, 2025.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "survey_objection_date",
+   "value": "December 12, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer shall deliver survey objections by December 12, 2025.",
+     "page": 1
+    }
+   ],
+   "clause": "2"
+  },
+  {
+   "key": "closing_date",
+   "value": "January 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Closing shall occur on January 30, 2026.",
+     "page": 1
+    }
+   ],
+   "clause": "3"
+  },
+  {
+   "key": "extension",
+   "value": "Once by 15 days on 5 business days' notice with an additional $50,000 deposit",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer may extend Closing once by 15 days on 5 business days' notice with an additional $50,000 deposit.",
+     "page": 1
+    }
+   ],
+   "clause": "3"
+  },
+  {
+   "key": "estoppels",
+   "value": "Tenants leasing at least 75% of leased SF, no later than 10 days before Closing",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Seller shall deliver tenant estoppels from tenants leasing at least 75% of the leased square feet no later than 10 days before Closing.",
+     "page": 1
+    }
+   ],
+   "clause": "3"
+  },
+  {
+   "key": "reps_survival_months",
+   "value": "9 months",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Seller's representations survive Closing for 9 months.",
+     "page": 1
+    }
+   ],
+   "clause": "4"
+  },
+  {
+   "key": "reps_cap",
+   "value": "$216,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Seller's liability for breach of representations is capped at $216,000.",
+     "page": 1
+    }
+   ],
+   "clause": "4"
+  },
+  {
+   "key": "assignment",
+   "value": "To an affiliate without Seller's consent",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer may assign this Agreement to an affiliate without Seller's consent.",
+     "page": 1
+    }
+   ],
+   "clause": "5"
+  },
+  {
+   "key": "default_remedies",
+   "value": "Specific performance or refund of the Deposits",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "If Seller defaults, Buyer may seek specific performance or a refund of the Deposits.",
+     "page": 1
+    }
+   ],
+   "clause": "5"
+  }
+ ],
+ "critical_dates": [
+  {
+   "date": "2025-12-05",
+   "kind": "deadline",
+   "label": "Title objections due",
+   "action": "Deliver title objections",
+   "clause": "2",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer shall deliver title objections by December 5, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2025-12-12",
+   "kind": "deadline",
+   "label": "Survey objections due",
+   "action": "Deliver survey objections",
+   "clause": "2",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer shall deliver survey objections by December 12, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2025-12-29",
+   "kind": "deadline",
+   "label": "Due diligence expires; deposits go hard",
+   "action": "Terminate or deliver the Additional Deposit",
+   "clause": "2",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Due Diligence Period expires on December 29, 2025, and the Deposits become non-refundable on December 29, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-01-30",
+   "kind": "deadline",
+   "label": "Closing",
+   "action": "Close or extend",
+   "clause": "3",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Closing shall occur on January 30, 2026.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-psa.pdf"
+  ]
+ }
+}

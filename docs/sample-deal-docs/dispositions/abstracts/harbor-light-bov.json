@@ -1,0 +1,125 @@
+{
+ "doc_type": "bov",
+ "title": "Harbor Light Industrial BOV",
+ "summary": "Sample Coastal Brokerage values Harbor Light Industrial at $11,300,000–$12,100,000, most likely $11,700,000, and recommends listing at $11,950,000.",
+ "fields": [
+  {
+   "key": "broker",
+   "value": "Sample Coastal Brokerage",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Prepared by Sample Coastal Brokerage for Model Fund I Harbor Light LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "bov_date",
+   "value": "November 2, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This opinion of value is dated November 2, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_low",
+   "value": "$11,300,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We estimate the market value of Harbor Light Industrial at between $11,300,000 and $12,100,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_mid",
+   "value": "$11,700,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Our most likely value is $11,700,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_high",
+   "value": "$12,100,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We estimate the market value of Harbor Light Industrial at between $11,300,000 and $12,100,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "price_psf",
+   "value": "325",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "That value is $325 per square foot.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cap_rate",
+   "value": "5.60%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The most likely value reflects a 5.60% cap rate on in-place net operating income.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "list_price",
+   "value": "$11,950,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We recommend a list price of $11,950,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "listing_fee_pct",
+   "value": "1.00%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Our proposed listing fee is 1.00% of the sale price.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "marketing_timeline",
+   "value": "ten weeks",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We expect a marketing period of ten weeks from launch to a call for offers.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "harbor-light-bov.pdf"
+  ]
+ }
+}

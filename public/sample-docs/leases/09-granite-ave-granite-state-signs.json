@@ -1,0 +1,1182 @@
+{
+ "title": "Granite State Signs & Graphics — Granite Ave Industrial, Unit 3",
+ "summary": "Triple net (NNN) industrial lease of 2,150 RSF (Unit 3) to Granite State Signs & Graphics, dated September 1, 2025, for 60 months from November 1, 2025 to October 31, 2030, at $15.60/RSF. No renewal option.",
+ "property_type": "industrial",
+ "fields": [
+  {
+   "key": "landlord",
+   "value": "Model Fund I — Granite Avenue LLC, a Delaware limited liability company",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Model Fund I — Granite Avenue LLC, a Delaware limited liability company",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant",
+   "value": "Granite State Signs & Graphics, Inc., a California corporation",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Granite State Signs & Graphics, Inc., a California corporation",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant_business",
+   "value": "Design, fabrication and installation of commercial signage and vehicle graphics",
+   "status": "found",
+   "label": "Tenant business",
+   "section": "parties",
+   "clause": "1, 7.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall use the Premises only for design, fabrication and installation of commercial signage and vehicle graphics, with related office use (the \"Permitted Use\"), and for no other purpose.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "sic_code",
+   "value": "3993 — Signs & advertising specialties",
+   "status": "calculated",
+   "label": "SIC code",
+   "section": "use",
+   "clause": "7.1",
+   "calculation": "Business: design, fabrication and installation of commercial signage and vehicle graphics → SIC 3993 Signs & advertising specialties",
+   "evidence": [
+    {
+     "quote": "Tenant shall use the Premises only for design, fabrication and installation of commercial signage and vehicle graphics, with related office use (the \"Permitted Use\"), and for no other purpose.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "guarantor",
+   "value": "None",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Granite State Signs & Graphics, Inc., a California corporation None Granite Ave Industrial,",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "guaranty",
+   "value": "None",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Granite State Signs & Graphics, Inc., a California corporation None Granite Ave Industrial,",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "property",
+   "value": "Granite Ave Industrial, 15020 Granite Avenue, Fontana, California 92335",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Granite Ave Industrial, 15020 Granite Avenue, Fontana, California 92335",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "premises",
+   "value": "Unit 3",
+   "status": "found",
+   "clause": "1",
+   "evidence": [
+    {
+     "quote": "Unit 3, containing approximately 2,150 rentable square feet",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rentable_area",
+   "value": "2,150 rentable square feet",
+   "status": "found",
+   "clause": "1, 2.1",
+   "evidence": [
+    {
+     "quote": "Unit 3, containing approximately 2,150 rentable square feet",
+     "page": 1
+    },
+    {
+     "quote": "is agreed and is not subject to remeasurement",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "pro_rata_share",
+   "value": "8.27% (of 26,000 RSF building)",
+   "status": "found",
+   "clause": "1, 5.1",
+   "evidence": [
+    {
+     "quote": "In addition to Base Rent, Tenant shall pay Tenant's Share (8.27%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+     "page": 2
+    },
+    {
+     "quote": "26,000 rentable square feet",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "lease_date",
+   "value": "September 1, 2025",
+   "status": "found",
+   "clause": "Preamble",
+   "evidence": [
+    {
+     "quote": "This Industrial Lease is made as of September 1, 2025",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "lease_type",
+   "value": "Triple net (NNN)",
+   "status": "found",
+   "clause": "5.1",
+   "evidence": [
+    {
+     "quote": "This is a triple net lease.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "term_length",
+   "value": "60 months, November 1, 2025 to October 31, 2030",
+   "status": "found",
+   "clause": "1, 3.1",
+   "evidence": [
+    {
+     "quote": "sixty (60) months",
+     "page": 1
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025, and ends on the Expiration Date, October 31, 2030",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "commencement_date",
+   "value": "November 1, 2025",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "expiration_date",
+   "value": "October 31, 2030",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "ends on the Expiration Date, October 31, 2030",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_commencement_date",
+   "value": "January 1, 2026",
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2026 October 31, $15.60 $2,795.00 2026",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "rent_abatement",
+   "value": "Base Rent (but not Tenant's Share of Operating Expenses) is abated for the first two (2) months of the Term.",
+   "status": "found",
+   "clause": "4.3",
+   "evidence": [
+    {
+     "quote": "Base Rent (but not Tenant's Share of Operating Expenses) is abated for the first two (2) months of the Term.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "base_rent",
+   "value": "$15.60/RSF/yr initially; currently $16.22/RSF ($2,906.08/month)",
+   "status": "found",
+   "clause": "1, 4.1",
+   "evidence": [
+    {
+     "quote": "$15.60 per rentable square foot per year, as scheduled in Section 4",
+     "page": 1
+    },
+    {
+     "quote": "November 1, October 31, $16.22 $2,906.08 2026 2027",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "rent_escalations",
+   "value": "4% on each anniversary of the Commencement Date",
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "Base Rent increases by 4% on each anniversary of the Commencement Date.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "late_charge",
+   "value": "5% of the overdue amount if not received within 5 days after due",
+   "status": "found",
+   "clause": "4.2",
+   "evidence": [
+    {
+     "quote": "Any rent not received within five (5) days after its",
+     "page": 2
+    },
+    {
+     "quote": "due date bears a late charge of five percent (5%) of the overdue amount.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "security_deposit",
+   "value": "$2,795.00; restore within 10 days after demand",
+   "status": "found",
+   "clause": "6.1, 6.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall deposit $2,795.00 with Landlord",
+     "page": 2
+    },
+    {
+     "quote": "within ten (10) days after demand",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "letter_of_credit",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "renewal_option",
+   "value": "None",
+   "status": "found",
+   "clause": "16.1",
+   "evidence": [
+    {
+     "quote": "Tenant has no option to extend the Term.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "termination_option",
+   "value": "None",
+   "status": "found",
+   "clause": "17.1",
+   "evidence": [
+    {
+     "quote": "Tenant has no right to terminate this Lease before the Expiration Date.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "expansion_rights",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "relocation_right",
+   "value": "Once during the Term, on at least 90 days' notice, to substantially similar premises in the Project; Landlord pays moving and improvement costs and Base Rent does not increase",
+   "status": "found",
+   "clause": "18.1",
+   "evidence": [
+    {
+     "quote": "Relocation: Once during the Term, on at least ninety (90) days' notice, Landlord may relocate Tenant to other premises in the Project of substantially similar size and utility.",
+     "page": 5
+    },
+    {
+     "quote": "Landlord shall pay Tenant's reasonable moving costs",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "purchase_option",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "permitted_use",
+   "value": "Design, fabrication and installation of commercial signage and vehicle graphics, with related office use",
+   "status": "found",
+   "clause": "1, 7.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall use the Premises only for design, fabrication and installation of commercial signage and vehicle graphics, with related office use (the \"Permitted Use\"), and for no other purpose.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "exclusive_use",
+   "value": "None",
+   "status": "found",
+   "clause": "7.3",
+   "evidence": [
+    {
+     "quote": "Tenant has no exclusive right to conduct any business in the Project.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "co_tenancy",
+   "value": "None — obligations not conditioned on other tenants",
+   "status": "found",
+   "clause": "7.4",
+   "evidence": [
+    {
+     "quote": "Tenant's obligations under this Lease are not conditioned on the occupancy or operation of any other tenant.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "prohibited_uses",
+   "value": "Any use that creates a nuisance, emits odors or vibrations noticeable outside the Premises, or increases Landlord's insurance premiums",
+   "status": "found",
+   "clause": "7.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall not use the Premises for any use that creates a nuisance, emits odors or vibrations noticeable outside the Premises, or increases Landlord's insurance premiums.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "hazardous_materials",
+   "value": "Tenant may use only those Hazardous Materials customarily used in general office and light industrial operations, in small quantities, stored and disposed of in compliance with all Environmental Laws; Tenant indemnity survives; Tenant remediates its releases",
+   "status": "found",
+   "clause": "8.1, 8.3, 8.4",
+   "evidence": [
+    {
+     "quote": "Tenant may use only those Hazardous Materials customarily used in general office and light industrial operations, in small quantities, stored and disposed of in compliance with all Environmental Laws.",
+     "page": 3
+    },
+    {
+     "quote": "This indemnity survives the expiration or termination of this Lease.",
+     "page": 3
+    },
+    {
+     "quote": "Tenant shall promptly remediate, at its sole cost and to the standard required by the governing agency",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "environmental_baseline",
+   "value": "Exhibit D, if any (not included)",
+   "status": "unclear",
+   "label": "Environmental baseline",
+   "section": "legal",
+   "detail": "The exhibit list names an environmental baseline exhibit 'if any', and exhibits are not included, so it is unclear whether a baseline exists.",
+   "evidence": [
+    {
+     "quote": "Environmental baseline (if any)",
+     "page": 6
+    },
+    {
+     "quote": "(Exhibits are not included in this sample.)",
+     "page": 6
+    }
+   ],
+   "clause": "25.1"
+  },
+  {
+   "key": "insurance_requirements",
+   "value": "CGL $1,000,000 per occurrence and $2,000,000 in the aggregate; umbrella $2,000,000; auto $1,000,000 combined single limit; property at replacement cost; workers' comp; additional insureds; mutual waiver of subrogation",
+   "status": "found",
+   "clause": "12.1-12.3",
+   "evidence": [
+    {
+     "quote": "commercial general liability insurance of at least $1,000,000 per occurrence and $2,000,000 in the aggregate",
+     "page": 4
+    },
+    {
+     "quote": "umbrella or excess liability insurance of at least $2,000,000",
+     "page": 4
+    },
+    {
+     "quote": "business automobile liability insurance of at least $1,000,000 combined single limit",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "indemnification",
+   "value": "Tenant indemnifies Landlord for claims from its use or acts, except Landlord's negligence or willful misconduct",
+   "status": "found",
+   "clause": "13.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall indemnify, defend and hold Landlord harmless from all claims arising from Tenant's use of the Premises or",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "landlord_maintenance",
+   "value": "Roof: Landlord, as an Operating Expense; Structure: Landlord, at its sole cost (foundation, exterior walls and structural elements); Parking, truck court and yard: Landlord, as an Operating Expense (paving, striping, lighting and sweeping)",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+     "page": 3
+    },
+    {
+     "quote": "Landlord, as an Operating Expense (paving, striping, lighting and sweeping)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "tenant_maintenance",
+   "value": "Interior: Tenant, at its sole cost (doors, dock levelers, plumbing and electrical within the Premises)",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Tenant, at its sole cost (doors, dock levelers, plumbing and electrical within the Premises)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "roof_structure",
+   "value": "Roof: Landlord, as an Operating Expense; structure: Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Roof Landlord, as an Operating Expense",
+     "page": 3
+    },
+    {
+     "quote": "Landlord, at its sole cost (foundation, exterior walls and structural elements)",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "hvac_maintenance",
+   "value": "Tenant, under a quarterly service contract with a licensed contractor; Landlord replaces units at the end of their useful life, amortized as an Operating Expense",
+   "status": "found",
+   "clause": "9.1",
+   "evidence": [
+    {
+     "quote": "Tenant, under a quarterly service contract with a licensed",
+     "page": 3
+    },
+    {
+     "quote": "end of their useful life, amortized as an Operating Expense",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "repair_caps",
+   "value": "None",
+   "status": "found",
+   "label": "Caps on tenant repairs",
+   "section": "obligations",
+   "clause": "9.2",
+   "evidence": [
+    {
+     "quote": "Caps on Tenant's repair obligations: None.",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "key": "operating_hours",
+   "value": "24 hours a day, 7 days a week, subject to the Rules and Regulations",
+   "status": "found",
+   "label": "Hours",
+   "section": "use",
+   "clause": "15.1",
+   "evidence": [
+    {
+     "quote": "Operating hours: Tenant may access and operate in the Premises 24 hours a day, 7 days a week, subject to the Rules and Regulations.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "parking",
+   "value": "Non-exclusive use of the parking areas at 1.5 spaces per 1,000 rentable square feet",
+   "status": "found",
+   "clause": "15.2",
+   "evidence": [
+    {
+     "quote": "Parking: Tenant shall have non-exclusive use of the parking areas of the Project at a ratio of 1.5 spaces per 1,000 rentable square feet of the Premises.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "truck_court_yard",
+   "value": "Tenant may use the truck court only for loading and unloading, and may not park trailers overnight",
+   "status": "found",
+   "label": "Truck court and yard",
+   "section": "use",
+   "clause": "15.3",
+   "evidence": [
+    {
+     "quote": "Truck court and yard: Tenant may use the truck court only for loading and unloading, and may not park trailers overnight.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "loading_docks",
+   "value": "Not addressed",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "signage",
+   "value": "One (1) illuminated sign on the Building parapet and one (1) panel on the Project monument sign, each at Tenant's cost",
+   "status": "found",
+   "clause": "15.5",
+   "evidence": [
+    {
+     "quote": "Signage: Tenant may install one (1) illuminated sign on the Building parapet and one (1) panel on the Project monument sign, each at Tenant's cost.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "outdoor_storage",
+   "value": "Not permitted",
+   "status": "found",
+   "clause": "15.4",
+   "evidence": [
+    {
+     "quote": "Outside storage: No outside storage of any kind is permitted.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "operating_expenses",
+   "value": "This is a triple net lease. In addition to Base Rent, Tenant shall pay Tenant's Share (8.27%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+   "status": "found",
+   "clause": "5.1",
+   "evidence": [
+    {
+     "quote": "This is a triple net lease.",
+     "page": 2
+    },
+    {
+     "quote": "In addition to Base Rent, Tenant shall pay Tenant's Share (8.27%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "real_estate_taxes",
+   "value": "In addition to Base Rent, Tenant shall pay Tenant's Share (8.27%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+   "status": "found",
+   "clause": "5.1",
+   "evidence": [
+    {
+     "quote": "In addition to Base Rent, Tenant shall pay Tenant's Share (8.27%) of all Operating Expenses and Real Estate Taxes of the Project, in monthly estimated installments, reconciled annually.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "expense_cap",
+   "value": "None",
+   "status": "found",
+   "clause": "5.4",
+   "evidence": [
+    {
+     "quote": "Operating Expenses are not subject to any cap.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "management_fee",
+   "value": "Capped at 4% of gross revenues of the Project",
+   "status": "found",
+   "clause": "5.3",
+   "evidence": [
+    {
+     "quote": "shall not exceed 4% of gross revenues of the Project",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "audit_rights",
+   "value": "Notice within 120 days after the annual statement; Landlord pays if overstated by more than 3%",
+   "status": "found",
+   "clause": "5.5",
+   "evidence": [
+    {
+     "quote": "hundred twenty (120) days after receiving Landlord's annual statement",
+     "page": 2
+    },
+    {
+     "quote": "overstated by more than 3%, Landlord shall pay the reasonable cost of the audit",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "key": "base_year",
+   "value": "Not addressed (no base year)",
+   "status": "not_in_lease",
+   "evidence": []
+  },
+  {
+   "key": "subordination",
+   "value": "Subordinate to mortgages with non-disturbance; SNDA within fifteen (15) days after request",
+   "status": "found",
+   "clause": "21.1",
+   "evidence": [
+    {
+     "quote": "subordination, non-disturbance and attornment agreement (SNDA) within fifteen (15) days after request",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "estoppel",
+   "value": "Within ten (10) days after request",
+   "status": "found",
+   "clause": "21.2",
+   "evidence": [
+    {
+     "quote": "Within ten (10) days after Landlord's request, Tenant shall deliver a signed estoppel certificate",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "default_cure",
+   "value": "Monetary: 5 days after written notice; non-monetary: 30 days (longer if diligently pursued); insolvency or abandonment",
+   "status": "found",
+   "clause": "19.1",
+   "evidence": [
+    {
+     "quote": "Tenant fails to pay any rent within five (5) days after",
+     "page": 5
+    },
+    {
+     "quote": "written notice that it is past due",
+     "page": 5
+    },
+    {
+     "quote": "Tenant fails to perform any other obligation within thirty (30) days after",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "landlord_default_cure",
+   "value": "30 days after written notice (longer if diligently pursued)",
+   "status": "found",
+   "label": "Landlord default and cure",
+   "section": "legal",
+   "clause": "19.3",
+   "evidence": [
+    {
+     "quote": "Landlord is in default only if it fails to perform an obligation within thirty (30) days after written notice",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "holdover",
+   "value": "Tenant at sufferance at 150% of the last Base Rent",
+   "status": "found",
+   "clause": "20.1",
+   "evidence": [
+    {
+     "quote": "shall pay Base Rent at 150% of the rate in effect at the end of the Term",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "key": "assignment_subletting",
+   "value": "Landlord consent, not unreasonably withheld; Landlord may recapture and takes 50% of any transfer premium",
+   "status": "found",
+   "clause": "14.1",
+   "evidence": [
+    {
+     "quote": "which shall not be unreasonably withheld, conditioned or delayed",
+     "page": 4
+    },
+    {
+     "quote": "Landlord may recapture the space proposed to be assigned or sublet and is entitled to 50% of any transfer premium.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "governing_law",
+   "value": "California",
+   "status": "found",
+   "clause": "25.1",
+   "evidence": [
+    {
+     "quote": "This Lease is governed by the laws of the State of California.",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "notices",
+   "value": "In writing by hand, overnight courier or certified mail; Landlord c/o Model Fund I, Tenant at the Premises",
+   "status": "found",
+   "clause": "23.1",
+   "evidence": [
+    {
+     "quote": "Notices shall be in writing and delivered by hand, overnight courier or certified mail",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "ti_allowance",
+   "value": "Landlord shall provide an improvement allowance of $10.00 per rentable square foot ($21,500.00) for improvements approved by Landlord. As of the date of this Lease, $8,000.00 has been disbursed and $13,500.00 remains available.",
+   "status": "found",
+   "clause": "11.2",
+   "evidence": [
+    {
+     "quote": "Landlord shall provide an improvement allowance of $10.00 per rentable square foot ($21,500.00) for improvements approved by Landlord.",
+     "page": 4
+    },
+    {
+     "quote": "As of the date of this Lease, $8,000.00 has been disbursed and $13,500.00 remains available.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "ti_unpaid_balance",
+   "value": "$13,500.00 remains available",
+   "status": "found",
+   "label": "Unpaid allowance balance",
+   "section": "obligations",
+   "clause": "11.2",
+   "evidence": [
+    {
+     "quote": "As of the date of this Lease, $8,000.00 has been disbursed and $13,500.00 remains available.",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "landlord_work",
+   "value": "Landlord shall install a 200-amp electrical subpanel and two (2) 10-foot by 12-foot grade-level doors before the Commencement Date",
+   "status": "found",
+   "label": "Landlord's work",
+   "section": "obligations",
+   "clause": "11.1",
+   "evidence": [
+    {
+     "quote": "Landlord's work: Landlord shall install a 200-amp electrical subpanel and two (2) 10-foot by 12-foot",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "alterations",
+   "value": "Landlord consent required, except non-structural interior work under $10,000 a year (notice only)",
+   "status": "found",
+   "clause": "10.1",
+   "evidence": [
+    {
+     "quote": "non-structural interior Alterations costing less than $10,000 in the",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "key": "surrender",
+   "value": "Broom clean and in good condition, reasonable wear and tear and casualty excepted",
+   "status": "found",
+   "clause": "22.1",
+   "evidence": [
+    {
+     "quote": "Tenant shall surrender the Premises broom clean and in good condition",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "restoration",
+   "value": "Tenant shall remove its paint booth, vinyl plotters and any signage installed on the Building and restore the affected areas to their condition on the Commencement Date, reasonable wear and tear excepted",
+   "status": "found",
+   "label": "Restoration",
+   "section": "obligations",
+   "clause": "22.2",
+   "evidence": [
+    {
+     "quote": "Tenant shall remove its paint booth, vinyl plotters and any signage installed on the Building and restore the affected areas to their condition on the Commencement Date, reasonable wear and tear excepted.",
+     "page": 6
+    }
+   ]
+  },
+  {
+   "key": "amendments",
+   "value": "None in the document provided",
+   "status": "not_in_lease",
+   "evidence": []
+  }
+ ],
+ "rent_schedule": [
+  {
+   "period": "November 1, 2025 – December 31, 2025",
+   "start": "2025-11-01",
+   "end": "2025-12-31",
+   "rate": 15.6,
+   "monthly_rent": 0.0,
+   "status": "calculated",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "November 1, December 31, $15.60 $0.00 Base Rent abated (2 months); Operating 2025 2025",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "note": "Base Rent abated (2 months); Operating Expenses payable",
+   "calculation": "Commencement Date November 1, 2025; Base Rent abated for the first 2 months: November 1, 2025 + 2 months − 1 day = December 31, 2025"
+  },
+  {
+   "period": "Lease Year 2",
+   "start": "2026-01-01",
+   "end": "2026-10-31",
+   "rate": 15.6,
+   "monthly_rent": 2795.0,
+   "status": "calculated",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2026 October 31, $15.60 $2,795.00 2026",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 2 months = January 1, 2026; November 1, 2025 + 12 months − 1 day = October 31, 2026"
+  },
+  {
+   "period": "Lease Year 3",
+   "start": "2026-11-01",
+   "end": "2027-10-31",
+   "rate": 16.22,
+   "monthly_rent": 2906.08,
+   "status": "calculated",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "November 1, October 31, $16.22 $2,906.08 2026 2027",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 1 year = November 1, 2026; + 12 months − 1 day = October 31, 2027"
+  },
+  {
+   "period": "Lease Year 4",
+   "start": "2027-11-01",
+   "end": "2028-10-31",
+   "rate": 16.87,
+   "monthly_rent": 3022.54,
+   "status": "calculated",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "November 1, October 31, $16.87 $3,022.54 2027 2028",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 2 years = November 1, 2027; + 12 months − 1 day = October 31, 2028"
+  },
+  {
+   "period": "Lease Year 5",
+   "start": "2028-11-01",
+   "end": "2029-10-31",
+   "rate": 17.55,
+   "monthly_rent": 3144.38,
+   "status": "calculated",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "November 1, October 31, $17.55 $3,144.38 2028 2029",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 3 years = November 1, 2028; + 12 months − 1 day = October 31, 2029"
+  },
+  {
+   "period": "Lease Year 6",
+   "start": "2029-11-01",
+   "end": "2030-10-31",
+   "rate": 18.25,
+   "monthly_rent": 3269.79,
+   "status": "calculated",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "November 1, October 31, $18.25 $3,269.79 2029 2030",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 4 years = November 1, 2029; + 12 months − 1 day = October 31, 2030"
+  }
+ ],
+ "critical_dates": [
+  {
+   "date": "2025-09-01",
+   "kind": "lease_date",
+   "label": "Lease signed",
+   "status": "found",
+   "clause": "Preamble",
+   "evidence": [
+    {
+     "quote": "This Industrial Lease is made as of September 1, 2025",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2025-11-01",
+   "kind": "commencement",
+   "label": "Commencement",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-01-01",
+   "kind": "rent_commencement",
+   "label": "Rent commencement (free rent ends)",
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "January 1, 2026 October 31, $15.60 $2,795.00 2026",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "date": "2027-11-01",
+   "kind": "rent_increase",
+   "label": "Rent increase to $16.87/RSF",
+   "status": "calculated",
+   "clause": "4.1",
+   "action": "Bill $3,022.54/month",
+   "evidence": [
+    {
+     "quote": "November 1, October 31, $16.87 $3,022.54 2027 2028",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 2 years = November 1, 2027; rate $16.87/RSF"
+  },
+  {
+   "date": "2028-11-01",
+   "kind": "rent_increase",
+   "label": "Rent increase to $17.55/RSF",
+   "status": "calculated",
+   "clause": "4.1",
+   "action": "Bill $3,144.38/month",
+   "evidence": [
+    {
+     "quote": "November 1, October 31, $17.55 $3,144.38 2028 2029",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 3 years = November 1, 2028; rate $17.55/RSF"
+  },
+  {
+   "date": "2029-11-01",
+   "kind": "rent_increase",
+   "label": "Rent increase to $18.25/RSF",
+   "status": "calculated",
+   "clause": "4.1",
+   "action": "Bill $3,269.79/month",
+   "evidence": [
+    {
+     "quote": "November 1, October 31, $18.25 $3,269.79 2029 2030",
+     "page": 2
+    },
+    {
+     "quote": "The Term begins on the Commencement Date, November 1, 2025",
+     "page": 1
+    }
+   ],
+   "calculation": "November 1, 2025 + 4 years = November 1, 2029; rate $18.25/RSF"
+  },
+  {
+   "date": "2030-10-31",
+   "kind": "expiration",
+   "label": "Expiration",
+   "status": "found",
+   "clause": "3.1",
+   "action": "Re-lease, renew or document an extension; holdover is at 150% of the last Base Rent",
+   "evidence": [
+    {
+     "quote": "ends on the Expiration Date, October 31, 2030",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "risks": [
+  {
+   "severity": "medium",
+   "title": "Landlord relocation right",
+   "clause": "18.1",
+   "detail": "Once during the Term, on at least 90 days' notice, Landlord may move Tenant to substantially similar premises in the Project (Landlord pays moving and improvement costs; Base Rent does not increase).",
+   "evidence": [
+    {
+     "quote": "Relocation: Once during the Term, on at least ninety (90) days' notice, Landlord may relocate Tenant to other premises in the Project of substantially similar size and utility.",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "severity": "medium",
+   "title": "Uncapped operating expenses",
+   "clause": "5.4",
+   "detail": "Operating Expenses have no cap, so the tenant bears all increases.",
+   "evidence": [
+    {
+     "quote": "Operating Expenses are not subject to any cap.",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "severity": "medium",
+   "title": "Thin credit support",
+   "clause": "1, 6.1",
+   "detail": "No guarantor; security deposit $2,795.00.",
+   "evidence": [
+    {
+     "quote": "Granite State Signs & Graphics, Inc., a California corporation None Granite Ave Industrial,",
+     "page": 1
+    },
+    {
+     "quote": "Tenant shall deposit $2,795.00 with Landlord",
+     "page": 2
+    }
+   ]
+  },
+  {
+   "severity": "low",
+   "title": "Free rent",
+   "clause": "4.1",
+   "detail": "1 rent period(s) at $0 before rent starts on January 1, 2026.",
+   "evidence": [
+    {
+     "quote": "November 1, December 31, $15.60 $0.00 Base Rent abated (2 months); Operating 2025 2025",
+     "page": 2
+    }
+   ]
+  }
+ ],
+ "app": {
+  "tenant_business": "Design, fabrication and installation of commercial signage and vehicle graphics",
+  "sic_code": "3993",
+  "files": [
+   "09-granite-ave-granite-state-signs.pdf"
+  ],
+  "made_with": "CREparser Lease Abstraction",
+  "template": "Light industrial (Model Fund I)",
+  "version": 1,
+  "draft_id": "a9deae61c9970dd7df625f682b1bcad3",
+  "validated": true
+ }
+}

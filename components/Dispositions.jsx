@@ -4,13 +4,15 @@
 // Sales live on each asset (inputs.dispositions); onUpdate(dealId, fn) edits
 // one asset's inputs (saved and logged like any edit).
 import { CONTRACT_DATES } from "@/lib/contractDates";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   ACTIVE_SALE_STAGES, BUYER_TYPES, ROUNDS, SALE_REASONS, SALE_STAGES, activeSales, allSales, changeContractPrice, closeSale, makeBov, makeOffer, makeSale,
   netProceeds, offersCompared, reasonLabel, saleDistribution, saleSubject, salesXlsx, selectOffer, stageLabel, trackRecord, trackTotals, trackXlsx,
 } from "@/lib/dispositions";
 import { CLOSED_DOC_TYPES, DISP_DOC_TYPES, OFFER_DOC_TYPES, SALE_DOC_TYPES, dispTypeLabel, dispositionDocs, uploadDispDoc } from "@/lib/dispositionDocs";
-import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+import { dealFileLink, listDealDocs, updateDealDoc } from "@/lib/dealDocs";
+import { DISP_REVIEW_TYPES, applyDisposition, canReview, dispositionRows } from "@/lib/dispositionApply";
+import { DocViewer, ReviewPanel } from "@/components/Documents";
 import { DEFAULT_FUND_TERMS } from "@/lib/fundTerms";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
@@ -27,18 +29,82 @@ function Field({ label, children }) {
   return <label className="flex flex-col gap-0.5"><span className="text-[10px] text-gray-500">{label}</span>{children}</label>;
 }
 
+const STATUS = { uploaded: ["Uploaded", "border-gray-200 bg-gray-50 text-gray-700"], abstracted: ["Abstracted – review", "border-amber-200 bg-amber-50 text-amber-800"], applied: ["Applied", "border-emerald-200 bg-emerald-50 text-emerald-800"] };
+const showV = (kind, v) => (v == null || v === "" ? "—" : kind === "money" ? money(v) : kind === "pct" ? `${Number(v).toFixed(2)}%` : kind === "bool" ? (v ? "Yes" : "None") : kind === "date" ? usDate(v) : kind === "text" && v === "contract" ? "Under contract" : String(v));
+
+// Version 1.1 (user, 11/25): one disposition document read by Claude and
+// applied field by field to its sale, offer or closing.
+function DispDocCard({ d, docCtx }) {
+  const [panel, setPanel] = useState(null);
+  const [ticks, setTicks] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const doc = { ...d.doc, doc_type: d.type }; // a document filed as "other" reads as its real type
+  const inputs = docCtx.inputsOf(d.dealId);
+  const { rows, target, error } = inputs && doc.abstract ? dispositionRows(inputs, d, doc.abstract) : { rows: [] };
+  const checked = ticks ?? Object.fromEntries(rows.map((x) => [x.key, x.checked]));
+  const keys = rows.filter((x) => checked[x.key] && !x.info).map((x) => x.key);
+  const open = async (path, page) => { try { const url = await dealFileLink(path); window.open(page ? `${url}#page=${page}` : url, "_blank", "noopener"); } catch (e) { setMsg(e.message); } };
+  async function apply() {
+    docCtx.onUpdate(d.dealId, (inp) => applyDisposition(inp, d, doc.abstract, keys, { docId: d.id, by: docCtx.email ?? "", todayISO: docCtx.todayISO }).inputs);
+    try { await updateDealDoc(d.id, { status: "applied", applied_at: new Date().toISOString(), applied_by_email: docCtx.email ?? null }); } catch { /* the inputs are saved either way */ }
+    setMsg(`Applied ${keys.length} field${keys.length === 1 ? "" : "s"} to ${target}.`);
+    setPanel(null); setTicks(null);
+    await docCtx.reload();
+  }
+  const st = STATUS[d.doc.status] ?? STATUS.uploaded;
+  return (
+    <div className="mt-1 rounded-lg border border-gray-200 bg-white p-2 text-xs" data-testid="disp-doc-card">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${st[1]}`}>{st[0]}</span>
+        <span className="text-[11px] text-gray-500">Applies to: {DISP_REVIEW_TYPES[d.type]}</span>
+      </div>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {doc.abstract && <button type="button" onClick={() => setPanel(panel === "view" ? null : "view")} className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800">{panel === "view" ? "Hide abstract" : "View abstract"}</button>}
+        {docCtx.canEdit && doc.abstract && <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className="rounded border border-emerald-300 bg-white px-2 py-0.5 text-[11px] font-medium text-emerald-800" data-testid="disp-apply-open">{panel === "apply" ? "Close" : "Apply"}</button>}
+        {docCtx.canEdit && <button type="button" onClick={() => setPanel(panel === "review" ? null : "review")} className="rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">{doc.abstract ? "Re-review with Claude" : "Review with Claude"}</button>}
+      </div>
+      {msg && <p className="mt-1 text-[11px] text-emerald-700" role="status">{msg}</p>}
+      {panel === "view" && doc.abstract && <DocViewer doc={doc} onOpen={open} />}
+      {panel === "review" && <ReviewPanel doc={doc} assetName={d.asset} userId={docCtx.userId} email={docCtx.email} onError={setMsg} onSaved={async () => { setPanel("apply"); await docCtx.reload(); }} />}
+      {panel === "apply" && doc.abstract && (
+        <div className="mt-2 space-y-2" data-testid="disp-apply">
+          {error ? <p className="text-red-700">{error}</p> : <p className="font-semibold">Apply to {target}</p>}
+          {rows.length > 0 && (
+            <table className="w-full">
+              <thead className="text-[10px] uppercase tracking-wide text-gray-500"><tr><th className="w-6" /><th className="text-left">Field</th><th className="text-left">Now</th><th className="text-left">Document says</th><th className="text-left">Quote</th></tr></thead>
+              <tbody>{rows.map((x) => (
+                <tr key={x.key} className={`border-t border-gray-100 align-top ${x.differs ? "bg-amber-50/60" : ""}`} data-testid="disp-apply-row">
+                  <td>{!x.info && <input type="checkbox" aria-label={`Apply ${x.label}`} checked={!!checked[x.key]} onChange={(e) => setTicks({ ...checked, [x.key]: e.target.checked })} />}</td>
+                  <td className="pr-2">{x.label}</td>
+                  <td className="pr-2 text-gray-600">{showV(x.kind, x.appValue)}</td>
+                  <td className="pr-2 font-semibold">{showV(x.kind, x.docValue)}{!x.differs && !x.info ? <span className="ml-1 font-normal text-emerald-700">✓ matches</span> : null}</td>
+                  <td className="text-[10.5px] italic text-gray-500">{x.quote ? `"${x.quote}"` : ""}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          )}
+          {!error && <button type="button" disabled={!keys.length} onClick={apply} className="rounded-lg border border-blue-600 bg-blue-600 px-3 py-1 text-[11px] font-medium text-white disabled:opacity-40" data-testid="disp-apply-go">Apply {keys.length} field{keys.length === 1 ? "" : "s"}</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Upload area for a sale, offer or closed sale (signed in, editors only).
 function DocBox({ docs = [], types, docCtx, label = "Documents", compact = false }) {
   const ref = useRef(null);
   const [type, setType] = useState(types[0]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [shown, setShown] = useState(null);
   const open = async (d) => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); };
   if (!docCtx) return compact ? null : <p className="text-[11px] text-gray-400">{label}: sign in to the firm to upload (BOVs, listing agreement, OM, PSA, closing statement…).</p>;
   return (
     <div className={compact ? "" : "rounded border border-gray-200 bg-white p-2"} data-testid="disp-docs">
       {!compact && <p className="mb-1 font-semibold">{label}</p>}
-      {docs.length > 0 && <ul className="mb-1 space-y-0.5">{docs.map((d) => <li key={d.id}><button type="button" onClick={() => open(d)} className="text-left text-blue-700 hover:underline">{d.typeLabel}: {d.name}</button>{d.by ? <span className="text-gray-400"> · {d.by}</span> : null}</li>)}</ul>}
+      {docs.length > 0 && <ul className="mb-1 space-y-0.5">{docs.map((d) => <li key={d.id}><button type="button" onClick={() => open(d)} className="text-left text-blue-700 hover:underline">{d.typeLabel}: {d.name}</button>{d.by ? <span className="text-gray-400"> · {d.by}</span> : null}
+        {canReview(d.type) && docCtx.inputsOf && <button type="button" onClick={() => setShown(shown === d.id ? null : d.id)} className="ml-1.5 text-[11px] text-blue-700 hover:underline" data-testid="disp-doc-claude">{shown === d.id ? "Close" : d.doc.abstract ? "Review / apply" : "Review with Claude"}</button>}
+        {shown === d.id && <DispDocCard d={d} docCtx={docCtx} />}</li>)}</ul>}
       {docCtx.canEdit && (
         <div className="flex flex-wrap items-center gap-1.5">
           {types.length > 1 && <select aria-label="Document type" value={type} onChange={(e) => setType(e.target.value)} className={inp}>{types.map((k) => <option key={k} value={k}>{dispTypeLabel(k)}</option>)}</select>}
@@ -182,7 +248,7 @@ function NewSale({ deals, onStart }) {
   );
 }
 
-export default function Dispositions({ view = "forsale", deals = [], valuations = {}, canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null, funds = {}, fundDeals = [], initialOpen = null }) {
+export default function Dispositions({ view = "forsale", deals = [], valuations = {}, canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null, userId = null, funds = {}, fundDeals = [], initialOpen = null }) {
   const [open, setOpen] = useState(initialOpen);
   const [showDone, setShowDone] = useState(false);
   const [allDocs, setAllDocs] = useState([]);
@@ -190,7 +256,8 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
   const reload = () => (workspaceId ? listDealDocs(workspaceId).then(setAllDocs).catch(() => {}) : Promise.resolve());
   useEffect(() => { reload(); }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
   const dDocs = useMemo(() => dispositionDocs(allDocs, deals), [allDocs, deals]);
-  const docCtx = workspaceId ? { canEdit, upload: async (a) => { await uploadDispDoc(workspaceId, a, email); await reload(); } } : null;
+  const [docOpen, setDocOpen] = useState(null);
+  const docCtx = workspaceId ? { canEdit, email, userId, todayISO, reload, onUpdate, inputsOf: (id) => deals.find((x) => x.id === id)?.inputs ?? null, upload: async (a) => { await uploadDispDoc(workspaceId, a, email); await reload(); } } : null;
   const docsFor = (saleId, offerId = undefined) => dDocs.filter((d) => d.saleId === saleId && (offerId === undefined || d.offerId === offerId));
   const splitFor = (x) => {
     if (!x.sale.closing || !x.fund || !funds[x.fund]) return null;
@@ -220,10 +287,11 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
               <Field label="Type"><select aria-label="Filter type" value={docFilter.type} onChange={(e) => setDocFilter({ ...docFilter, type: e.target.value })} className={inp}><option value="">All</option>{DISP_DOC_TYPES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
             </div>
             {rowsD.length === 0 ? <p className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">No disposition documents yet.</p> : (
-              <table className="w-full text-xs"><thead className="bg-gray-50 text-gray-500"><tr>{["Asset", "Sale", "Offer", "Type", "File", "Uploaded by"].map((h) => <th key={h} className="px-2 py-1.5 text-left font-medium">{h}</th>)}</tr></thead>
+              <table className="w-full text-xs"><thead className="bg-gray-50 text-gray-500"><tr>{["Asset", "Sale", "Offer", "Type", "File", "Uploaded by", "Status", ""].map((h, i) => <th key={i} className="px-2 py-1.5 text-left font-medium">{h}</th>)}</tr></thead>
                 <tbody>{rowsD.map((d) => {
                   const offer = d.offerId ? sales.flatMap((x) => x.sale.offers ?? []).find((o) => o.id === d.offerId) : null;
-                  return <tr key={d.id} className="border-t border-gray-100" data-testid="disp-doc-row"><td className="px-2 py-1">{d.asset}</td><td className="px-2 py-1 text-gray-600">{saleName.get(d.saleId) ?? "removed sale"}</td><td className="px-2 py-1 text-gray-600">{offer ? offer.buyer || "offer" : ""}</td><td className="px-2 py-1">{d.typeLabel}</td><td className="px-2 py-1"><button type="button" onClick={async () => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); }} className="text-blue-700 hover:underline">{d.name}</button></td><td className="px-2 py-1 text-gray-500">{d.by ?? ""}</td></tr>;
+                  return <Fragment key={d.id}><tr className="border-t border-gray-100" data-testid="disp-doc-row"><td className="px-2 py-1">{d.asset}</td><td className="px-2 py-1 text-gray-600">{saleName.get(d.saleId) ?? "removed sale"}</td><td className="px-2 py-1 text-gray-600">{offer ? offer.buyer || "offer" : ""}</td><td className="px-2 py-1">{d.typeLabel}</td><td className="px-2 py-1"><button type="button" onClick={async () => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); }} className="text-blue-700 hover:underline">{d.name}</button></td><td className="px-2 py-1 text-gray-500">{d.by ?? ""}</td><td className="px-2 py-1"><span className={`rounded border px-1.5 py-0.5 text-[10px] ${(STATUS[d.doc.status] ?? STATUS.uploaded)[1]}`}>{(STATUS[d.doc.status] ?? STATUS.uploaded)[0]}</span></td><td className="px-2 py-1">{canReview(d.type) && <button type="button" onClick={() => setDocOpen(docOpen === d.id ? null : d.id)} className="text-blue-700 hover:underline" data-testid="disp-doc-review">{docOpen === d.id ? "Close" : d.doc.abstract ? "Review / apply" : "Review with Claude"}</button>}</td></tr>
+                  {docOpen === d.id && <tr><td colSpan={8} className="bg-gray-50 px-2 pb-2"><DispDocCard d={d} docCtx={docCtx} /></td></tr>}</Fragment>;
                 })}</tbody></table>
             )}
           </>
@@ -277,7 +345,8 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
               <thead className="text-gray-500"><tr>{["Buyer", "Type", "Broker", "Date", "Round", "Price", "Deposit", "DD days", "Close days", "Financing", "Notes", "Net proceeds", ""].map((h) => <th key={h} className="px-1 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>{(() => { const list = offersCompared(x.inputs, x.sale, { allSales: sales, todayISO, sort: false }); const best = Math.max(...list.filter((z) => z.price).map((z) => z.net)); return list.map((o) => (
                 <tr key={o.id} className={`border-t border-gray-100 ${o.selected ? "bg-emerald-50" : ""}`}>
-                  <td className="px-1"><input aria-label="Buyer" value={o.buyer} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { buyer: e.target.value })} className={`${inp} w-32`} />{o.earlier.length > 0 && <div className="text-[10px] text-violet-700">Earlier: {o.earlier.map((e) => `${e.asset} ${money(e.price)}`).join("; ")}</div>}</td>
+                  <td className="px-1"><input aria-label="Buyer" value={o.buyer} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { buyer: e.target.value })} className={`${inp} w-32`} />{o.earlier.length > 0 && <div className="text-[10px] text-violet-700">Earlier: {o.earlier.map((e) => `${e.asset} ${money(e.price)}`).join("; ")}</div>}
+                    {(o.history ?? []).length > 0 && <details className="text-[10px] text-gray-500" data-testid="offer-history"><summary className="cursor-pointer">History ({o.history.length})</summary>{[...o.history].reverse().map((h, i) => <div key={i}>{usDate(h.at)}: {money(h.terms.price)}{h.terms.deposit != null ? `, ${money(h.terms.deposit)} deposit` : ""}{h.terms.ddDays != null ? `, ${h.terms.ddDays}-day DD` : ""}{h.terms.financingContingency ? ", financing contingency" : ""}</div>)}</details>}</td>
                   <td className="px-1"><select aria-label="Buyer type" value={o.buyerType} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { buyerType: e.target.value })} className={inp}>{BUYER_TYPES.map((t) => <option key={t}>{t}</option>)}</select></td>
                   <td className="px-1"><input aria-label="Offer broker" value={o.broker} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { broker: e.target.value })} className={`${inp} w-24`} /></td>
                   <td className="px-1"><input aria-label="Offer date" type="date" value={o.date} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { date: e.target.value })} className={inp} /></td>
