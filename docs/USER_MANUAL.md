@@ -3418,6 +3418,21 @@ http://localhost:3000/underwriting-calculator).
 
 **Deploy:** merge to `main`. `.github/workflows/deploy.yml` builds and
 publishes to GitHub Pages, usually within a few minutes.
+- **Two jobs:** the build job uploads the site package, then the deploy job
+  publishes it.
+- **Automatic retry:** GitHub sometimes doesn't yet list a package that was
+  just uploaded. When that happens, the deploy waits a minute and tries once
+  more.
+- **If both tries fail:** the live site stays on the previous version. Re-run
+  the failed job from the Actions tab.
+- **Check it went live:** confirm the "Deploy to GitHub Pages" run is green
+  before saying a change is live.
+
+**Releases:** see §13 (tags `v1.0.0`, …). To revert to an earlier release,
+run the deploy workflow on that release's tag (Actions → Deploy to GitHub
+Pages → Run workflow → the tag). If GitHub's Pages settings only allow
+deploying from `main`, put `main` back to the tag's code with a revert
+commit instead; the tag itself never changes.
 
 **Refresh the forward curve:**
 - **In the app:** Deal Screener → Update from Pensford, then upload
