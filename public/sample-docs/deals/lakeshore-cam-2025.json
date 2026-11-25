@@ -1,0 +1,100 @@
+{
+ "doc_type": "cam",
+ "title": "Lakeshore 2025 CAM reconciliation",
+ "summary": "2025 CAM reconciliation: $180,000 of expenses; North Texas Fleet billed at a 6.00% share (lease 5.50%) and a management fee of 4.5% of revenue (lease cap 4%).",
+ "fields": [
+  {
+   "key": "year",
+   "value": "2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This statement reconciles Operating Expenses at Lakeshore Service Center for calendar year 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "total_opex",
+   "value": "$180,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Total Operating Expenses for 2025 were $180,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "controllable_opex",
+   "value": "$96,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Controllable Operating Expenses were $96,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "management_fee",
+   "value": "$10,800",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The management fee charged was $10,800 on gross revenues of $240,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "gross_revenue",
+   "value": "$240,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The management fee charged was $10,800 on gross revenues of $240,000.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "tenants": [
+  {
+   "tenant": "North Texas Fleet Service LLC",
+   "share_pct": 6.0,
+   "billed": 10800,
+   "base_year_amount": 0,
+   "estimates_paid": 10200,
+   "balance_due": 600,
+   "evidence": [
+    {
+     "quote": "North Texas Fleet Service LLC: share 6.00%, share of expenses $10,800, estimates paid $10,200, balance due $600.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "tenant": "Prairie Auto Glass Inc.",
+   "share_pct": 7.5,
+   "billed": 13500,
+   "base_year_amount": 0,
+   "estimates_paid": 13500,
+   "balance_due": 0,
+   "evidence": [
+    {
+     "quote": "Prairie Auto Glass Inc.: share 7.50%, share of expenses $13,500, estimates paid $13,500, balance due $0.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "lakeshore-cam-2025.pdf"
+  ]
+ }
+}

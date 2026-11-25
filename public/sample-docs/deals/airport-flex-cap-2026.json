@@ -1,0 +1,162 @@
+{
+ "doc_type": "rate_cap",
+ "title": "Airport Flex Park cap 2026",
+ "summary": "Executed 3.91% Term SOFR cap from Fictional Capital Markets LLC (A+) on $4,980,000, January 30, 2026 to January 30, 2027, premium $27,858.",
+ "fields": [
+  {
+   "key": "counterparty",
+   "value": "Fictional Capital Markets LLC",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This Confirmation sets out the terms of the interest rate cap entered into between Fictional Capital Markets LLC (Party A) and the owner of Airport Flex Park (Party B), reference FCM-26-0131.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "counterparty_rating",
+   "value": "A+",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Party A is rated A+ by S&P.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "trade_date",
+   "value": "January 26, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Trade Date: January 26, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "effective_date",
+   "value": "January 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Effective Date: January 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "termination_date",
+   "value": "January 30, 2027",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Termination Date: January 30, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "notional",
+   "value": "$4,980,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Notional Amount: $4,980,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "index",
+   "value": "1-month Term SOFR",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Floating Rate Option: USD Term SOFR, 1 month.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "strike_pct",
+   "value": "3.91%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Cap Rate: 3.91%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "premium",
+   "value": "$27,858",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Fixed Amount (premium): $27,858, payable by Party B on the Effective Date.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "payment_date",
+   "value": "January 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Fixed Amount (premium): $27,858, payable by Party B on the Effective Date.",
+     "page": 1
+    },
+    {
+     "quote": "Effective Date: January 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "day_count",
+   "value": "Actual/360",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Floating Rate Day Count Fraction: Actual/360.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "calculation_agent",
+   "value": "Fictional Capital Markets LLC",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Calculation Agent: Fictional Capital Markets LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "assigned_to",
+   "value": "Fictional Bank, N.A.",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Party B has collaterally assigned its rights under this Transaction to Fictional Bank, N.A., as Lender.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-cap-2026.pdf"
+  ]
+ }
+}

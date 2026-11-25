@@ -1,0 +1,70 @@
+{
+ "doc_type": "rent_roll",
+ "title": "Airport Flex Park rent roll (excerpt)",
+ "summary": "Excerpt of the seller's rent roll: four units, including Desert Aero Parts in Building B Suite 104.",
+ "fields": [
+  {
+   "key": "as_of",
+   "value": "December 31, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Rent roll as of December 31, 2025.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "units": [
+  {
+   "name": "001",
+   "tenant": "Ironwood Electrical Contractors",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 17.93,
+   "lease_start": "2024-08-01",
+   "lease_end": "2026-07-30",
+   "escalation_pct": 3,
+   "business": "Electrical contractor"
+  },
+  {
+   "name": "002",
+   "tenant": "Evergreen Food Distributors",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 18.4,
+   "lease_start": "2025-02-01",
+   "lease_end": "2028-01-31",
+   "escalation_pct": 3,
+   "business": "Food distribution"
+  },
+  {
+   "name": "Building B Suite 104",
+   "tenant": "Desert Aero Parts LLC",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "MG",
+   "rent_psf": 15.5,
+   "lease_start": "2025-03-01",
+   "lease_end": "2028-02-29",
+   "escalation_pct": 3.33,
+   "business": "Aircraft parts distribution"
+  },
+  {
+   "name": "012",
+   "tenant": "",
+   "sf": 2000,
+   "status": "vacant"
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-rent-roll.pdf"
+  ]
+ }
+}

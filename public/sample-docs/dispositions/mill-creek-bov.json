@@ -1,0 +1,125 @@
+{
+ "doc_type": "bov",
+ "title": "Mill Creek Business Park BOV",
+ "summary": "Example Northwest Capital Markets values Mill Creek Business Park at $17,200,000–$18,300,000, most likely $17,800,000, and recommends listing at $18,200,000.",
+ "fields": [
+  {
+   "key": "broker",
+   "value": "Example Northwest Capital Markets",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Prepared by Example Northwest Capital Markets for Model Fund I Mill Creek LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "bov_date",
+   "value": "November 2, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This opinion of value is dated November 2, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_low",
+   "value": "$17,200,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We estimate the market value of Mill Creek Business Park at between $17,200,000 and $18,300,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_mid",
+   "value": "$17,800,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Our most likely value is $17,800,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_high",
+   "value": "$18,300,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We estimate the market value of Mill Creek Business Park at between $17,200,000 and $18,300,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "price_psf",
+   "value": "356",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "That value is $356 per square foot.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cap_rate",
+   "value": "5.75%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The most likely value reflects a 5.75% cap rate on in-place net operating income.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "list_price",
+   "value": "$18,200,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We recommend a list price of $18,200,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "listing_fee_pct",
+   "value": "1.10%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Our proposed listing fee is 1.10% of the sale price.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "marketing_timeline",
+   "value": "eight weeks",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We expect a marketing period of eight weeks from launch to a call for offers.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "mill-creek-bov.pdf"
+  ]
+ }
+}

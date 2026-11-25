@@ -1,0 +1,216 @@
+{
+ "doc_type": "ic_memo",
+ "title": "Airport Flex Park final IC memo",
+ "summary": "IC approved Airport Flex Park on December 18, 2025 at $7,200,000 (29.5% IRR, 2.80x) subject to four conditions.",
+ "fields": [
+  {
+   "key": "approval_date",
+   "value": "December 18, 2025",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Investment Committee approved the acquisition on December 18, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "approvers",
+   "value": "A. Sample, B. Example and C. Placeholder",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Approved by the Investment Committee: A. Sample, B. Example and C. Placeholder.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "price",
+   "value": "$7,200,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Approved purchase price: $7,200,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "total_cost",
+   "value": "$7,788,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Total cost including closing costs and capex: $7,788,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "loan",
+   "value": "$4,980,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Senior loan: $4,980,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "equity",
+   "value": "$2,900,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Equity: $2,900,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "noi1",
+   "value": "$462,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Year-1 NOI: $462,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "going_in_cap",
+   "value": "6.42%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Going-in cap rate: 6.42%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "exit_cap",
+   "value": "6.75%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Exit cap rate: 6.75%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "irr",
+   "value": "29.5%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Projected IRR: 29.5%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "multiple",
+   "value": "2.80x",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Projected equity multiple: 2.80x.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "coc1",
+   "value": "4.0%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Year-1 cash-on-cash: 4.0%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "hold_years",
+   "value": "4 years",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Hold period: 4 years.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "capex",
+   "value": "$300,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Capex budget: $300,000.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "conditions": [
+  {
+   "text": "Phase I environmental report with no recognized environmental conditions",
+   "deadline": "2026-01-15"
+  },
+  {
+   "text": "Lender term sheet at 65% LTV or better",
+   "deadline": "2026-01-10"
+  },
+  {
+   "text": "Tenant estoppels from at least 75% of leased square feet",
+   "deadline": "2026-01-20"
+  },
+  {
+   "text": "Asset management plan presented to the Committee",
+   "deadline": "2026-04-30"
+  }
+ ],
+ "critical_dates": [
+  {
+   "date": "2025-12-18",
+   "kind": "deadline",
+   "label": "IC approval",
+   "action": "",
+   "clause": "",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Investment Committee approved the acquisition on December 18, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-04-30",
+   "kind": "deadline",
+   "label": "IC condition: asset management plan due",
+   "action": "Present the asset management plan to IC",
+   "clause": "",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Condition 4: Asset management plan presented to the Committee by April 30, 2026.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-ic-memo.pdf"
+  ]
+ }
+}

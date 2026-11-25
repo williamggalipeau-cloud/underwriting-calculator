@@ -1,0 +1,1 @@
+Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.

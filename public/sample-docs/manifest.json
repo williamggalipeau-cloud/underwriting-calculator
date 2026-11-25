@@ -1,0 +1,403 @@
+{
+ "deals": [
+  {
+   "name": "airport-flex-appraisal-2026q3",
+   "file": "deals/airport-flex-appraisal-2026q3.pdf",
+   "abstract": "deals/airport-flex-appraisal-2026q3.json",
+   "docType": "appraisal",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park appraisal September 30, 2026"
+  },
+  {
+   "name": "airport-flex-cap-2026",
+   "file": "deals/airport-flex-cap-2026.pdf",
+   "abstract": "deals/airport-flex-cap-2026.json",
+   "docType": "rate_cap",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park cap 2026"
+  },
+  {
+   "name": "airport-flex-closing-acq",
+   "file": "deals/airport-flex-closing-acq.pdf",
+   "abstract": "deals/airport-flex-closing-acq.json",
+   "docType": "closing_acq",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park acquisition settlement statement"
+  },
+  {
+   "name": "airport-flex-estoppel-desert-aero",
+   "file": "deals/airport-flex-estoppel-desert-aero.pdf",
+   "abstract": "deals/airport-flex-estoppel-desert-aero.json",
+   "docType": "estoppel",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": "Desert Aero Parts LLC",
+   "title": "Desert Aero Parts estoppel"
+  },
+  {
+   "name": "airport-flex-ic-memo",
+   "file": "deals/airport-flex-ic-memo.pdf",
+   "abstract": "deals/airport-flex-ic-memo.json",
+   "docType": "ic_memo",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park final IC memo"
+  },
+  {
+   "name": "airport-flex-insurance-desert-aero",
+   "file": "deals/airport-flex-insurance-desert-aero.pdf",
+   "abstract": "deals/airport-flex-insurance-desert-aero.json",
+   "docType": "insurance_cert",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": "Desert Aero Parts LLC",
+   "title": "Desert Aero Parts 2026–27"
+  },
+  {
+   "name": "airport-flex-insurance-owner",
+   "file": "deals/airport-flex-insurance-owner.pdf",
+   "abstract": "deals/airport-flex-insurance-owner.json",
+   "docType": "insurance_cert",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Owner policies 2026"
+  },
+  {
+   "name": "airport-flex-loan",
+   "file": "deals/airport-flex-loan.pdf",
+   "abstract": "deals/airport-flex-loan.json",
+   "docType": "loan",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park loan agreement"
+  },
+  {
+   "name": "airport-flex-loi",
+   "file": "deals/airport-flex-loi.pdf",
+   "abstract": "deals/airport-flex-loi.json",
+   "docType": "loi",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park LOI"
+  },
+  {
+   "name": "airport-flex-om",
+   "file": "deals/airport-flex-om.pdf",
+   "abstract": "deals/airport-flex-om.json",
+   "docType": "om",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park offering memo"
+  },
+  {
+   "name": "airport-flex-psa",
+   "file": "deals/airport-flex-psa.pdf",
+   "abstract": "deals/airport-flex-psa.json",
+   "docType": "psa",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park PSA"
+  },
+  {
+   "name": "airport-flex-rent-roll",
+   "file": "deals/airport-flex-rent-roll.pdf",
+   "abstract": "deals/airport-flex-rent-roll.json",
+   "docType": "rent_roll",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park rent roll (excerpt)"
+  },
+  {
+   "name": "airport-flex-t12",
+   "file": "deals/airport-flex-t12.pdf",
+   "abstract": "deals/airport-flex-t12.json",
+   "docType": "t12",
+   "asset": "Airport Flex Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Airport Flex Park T-12 (2025)"
+  },
+  {
+   "name": "lakeshore-cam-2025",
+   "file": "deals/lakeshore-cam-2025.pdf",
+   "abstract": "deals/lakeshore-cam-2025.json",
+   "docType": "cam",
+   "asset": "Lakeshore Service Center",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Lakeshore 2025 CAM reconciliation"
+  },
+  {
+   "name": "model-fund-i-lpa",
+   "file": "deals/model-fund-i-lpa.pdf",
+   "abstract": "deals/model-fund-i-lpa.json",
+   "docType": "lpa",
+   "asset": null,
+   "fund": "Model Fund I",
+   "leaseTenant": null,
+   "title": "Model Fund I LPA (excerpt)"
+  },
+  {
+   "name": "model-fund-i-ppm",
+   "file": "deals/model-fund-i-ppm.pdf",
+   "abstract": "deals/model-fund-i-ppm.json",
+   "docType": "ppm",
+   "asset": null,
+   "fund": "Model Fund I",
+   "leaseTenant": null,
+   "title": "Model Fund I PPM (excerpt)"
+  },
+  {
+   "name": "route9-appraisal-2026q2",
+   "file": "deals/route9-appraisal-2026q2.pdf",
+   "abstract": "deals/route9-appraisal-2026q2.json",
+   "docType": "appraisal",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay appraisal June 30, 2026"
+  },
+  {
+   "name": "route9-cap-2026",
+   "file": "deals/route9-cap-2026.pdf",
+   "abstract": "deals/route9-cap-2026.json",
+   "docType": "rate_cap",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay cap 2026"
+  },
+  {
+   "name": "route9-closing-disp",
+   "file": "deals/route9-closing-disp.pdf",
+   "abstract": "deals/route9-closing-disp.json",
+   "docType": "closing_disp",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay sale (test)"
+  },
+  {
+   "name": "route9-loan",
+   "file": "deals/route9-loan.pdf",
+   "abstract": "deals/route9-loan.json",
+   "docType": "loan",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay loan agreement"
+  }
+ ],
+ "dispositions": [
+  {
+   "name": "harbor-light-bov",
+   "file": "dispositions/harbor-light-bov.pdf",
+   "abstract": "dispositions/harbor-light-bov.json",
+   "docType": "bov",
+   "asset": "Harbor Light Industrial",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Harbor Light Industrial BOV"
+  },
+  {
+   "name": "harbor-light-closing-disp",
+   "file": "dispositions/harbor-light-closing-disp.pdf",
+   "abstract": "dispositions/harbor-light-closing-disp.json",
+   "docType": "closing_disp",
+   "asset": "Harbor Light Industrial",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Harbor Light Industrial closing statement"
+  },
+  {
+   "name": "harbor-light-loi",
+   "file": "dispositions/harbor-light-loi.pdf",
+   "abstract": "dispositions/harbor-light-loi.json",
+   "docType": "offer_letter",
+   "asset": "Harbor Light Industrial",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Harbor Light Industrial LOI from Fictional Pacific Industrial Fund II"
+  },
+  {
+   "name": "harbor-light-psa",
+   "file": "dispositions/harbor-light-psa.pdf",
+   "abstract": "dispositions/harbor-light-psa.json",
+   "docType": "psa",
+   "asset": "Harbor Light Industrial",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Harbor Light Industrial PSA"
+  },
+  {
+   "name": "mill-creek-bov",
+   "file": "dispositions/mill-creek-bov.pdf",
+   "abstract": "dispositions/mill-creek-bov.json",
+   "docType": "bov",
+   "asset": "Mill Creek Business Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Mill Creek Business Park BOV"
+  },
+  {
+   "name": "mill-creek-closing-disp",
+   "file": "dispositions/mill-creek-closing-disp.pdf",
+   "abstract": "dispositions/mill-creek-closing-disp.json",
+   "docType": "closing_disp",
+   "asset": "Mill Creek Business Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Mill Creek Business Park closing statement"
+  },
+  {
+   "name": "mill-creek-loi",
+   "file": "dispositions/mill-creek-loi.pdf",
+   "abstract": "dispositions/mill-creek-loi.json",
+   "docType": "offer_letter",
+   "asset": "Mill Creek Business Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Mill Creek Business Park LOI from Demo Flex Owners LLC"
+  },
+  {
+   "name": "mill-creek-psa",
+   "file": "dispositions/mill-creek-psa.pdf",
+   "abstract": "dispositions/mill-creek-psa.json",
+   "docType": "psa",
+   "asset": "Mill Creek Business Park",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Mill Creek Business Park PSA"
+  },
+  {
+   "name": "route9-bov",
+   "file": "dispositions/route9-bov.pdf",
+   "abstract": "dispositions/route9-bov.json",
+   "docType": "bov",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay BOV"
+  },
+  {
+   "name": "route9-closing-disp",
+   "file": "dispositions/route9-closing-disp.pdf",
+   "abstract": "dispositions/route9-closing-disp.json",
+   "docType": "closing_disp",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay closing statement"
+  },
+  {
+   "name": "route9-loi",
+   "file": "dispositions/route9-loi.pdf",
+   "abstract": "dispositions/route9-loi.json",
+   "docType": "offer_letter",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay LOI from Example Logistics REIT"
+  },
+  {
+   "name": "route9-psa",
+   "file": "dispositions/route9-psa.pdf",
+   "abstract": "dispositions/route9-psa.json",
+   "docType": "psa",
+   "asset": "Route 9 Small Bay",
+   "fund": null,
+   "leaseTenant": null,
+   "title": "Route 9 Small Bay PSA"
+  }
+ ],
+ "leases": [
+  {
+   "asset": "Airport Flex Park",
+   "tenant": "Desert Aero Parts LLC",
+   "files": [
+    "leases/02-airport-flex-park-desert-aero.pdf"
+   ],
+   "abstract": "leases/02-airport-flex-park-desert-aero.json"
+  },
+  {
+   "asset": "Route 9 Small Bay",
+   "tenant": "Cascade Cabinet Works Inc.",
+   "files": [
+    "leases/03-route-9-small-bay-cascade-cabinet.pdf"
+   ],
+   "abstract": "leases/03-route-9-small-bay-cascade-cabinet.json"
+  },
+  {
+   "asset": "Harbor Light Industrial",
+   "tenant": "Portside Marine Electric",
+   "files": [
+    "leases/04-harbor-light-portside-marine.pdf",
+    "leases/04a-harbor-light-portside-marine-first-amendment.pdf"
+   ],
+   "abstract": "leases/04-harbor-light-portside-marine.json"
+  },
+  {
+   "asset": "Ridgeway Trade Center",
+   "tenant": "Lone Star HVAC Supply LLC",
+   "files": [
+    "leases/05-ridgeway-lone-star-hvac.pdf"
+   ],
+   "abstract": "leases/05-ridgeway-lone-star-hvac.json"
+  },
+  {
+   "asset": "Canal Street Workshops",
+   "tenant": "Bayou Fabrication Studio LLC",
+   "files": [
+    "leases/06-canal-street-bayou-fabrication.pdf"
+   ],
+   "abstract": "leases/06-canal-street-bayou-fabrication.json"
+  },
+  {
+   "asset": "Mill Creek Business Park",
+   "tenant": "Snohomish Brewing Equipment Co.",
+   "files": [
+    "leases/07-mill-creek-snohomish-brewing.pdf",
+    "leases/07a-mill-creek-snohomish-brewing-first-amendment.pdf"
+   ],
+   "abstract": "leases/07-mill-creek-snohomish-brewing.json"
+  },
+  {
+   "asset": "Southpoint Flex",
+   "tenant": "Sunrise Solar Installers LLC",
+   "files": [
+    "leases/08-southpoint-sunrise-solar.pdf"
+   ],
+   "abstract": "leases/08-southpoint-sunrise-solar.json"
+  },
+  {
+   "asset": "Granite Ave Industrial",
+   "tenant": "Granite State Signs & Graphics",
+   "files": [
+    "leases/09-granite-ave-granite-state-signs.pdf"
+   ],
+   "abstract": "leases/09-granite-ave-granite-state-signs.json"
+  },
+  {
+   "asset": "Lakeshore Service Center",
+   "tenant": "North Texas Fleet Service LLC",
+   "files": [
+    "leases/10-lakeshore-north-texas-fleet.pdf",
+    "leases/10a-lakeshore-north-texas-fleet-first-amendment.pdf"
+   ],
+   "abstract": "leases/10-lakeshore-north-texas-fleet.json"
+  }
+ ]
+}
