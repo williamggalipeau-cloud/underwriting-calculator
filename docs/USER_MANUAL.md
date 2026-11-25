@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.0** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.1** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -2528,9 +2528,11 @@ loaded; the only thing it saves is which actions were marked done.
   shows its tabs on a second row; choosing it again closes it. The area of
   the tab you're on is highlighted and opens by itself when a dashboard link
   takes you to one of its tabs.
-- **Setup & Maintenance**, under Functions on every page: New asset, New fund
-  setup, Edit asset…, Edit fund…, Upload rent roll, Upload Yardi actuals,
-  Import marks, Record capital activity and New report.
+- **Setup & Maintenance**, the last button in Functions (1.1.1): opening it
+  shows a row with New asset, New fund setup, Edit asset…, Edit fund…, Upload
+  rent roll, Upload Yardi actuals, Import marks, Record capital activity and
+  New report. Choosing it again closes it; the page below stays on the tab
+  you were on.
 - Download backup, Restore from backup and the owner-only Sample data menu are
   under **⋯ More** in the header.
 
@@ -3152,7 +3154,7 @@ under its real type here.
 
 A **portfolio** is a fund, a joint venture (**JV**) or a separate account
 (**SMA**); some, mainly separate accounts, hold a single asset. Each is set
-up the same way (Setup & Maintenance → New fund setup / Edit fund; the
+up the same way (Functions → Setup & Maintenance → New fund setup / Edit fund; the
 dialog calls it a fund, a JV or an SMA by its type, never "fund" for the
 others) and chosen in **Select Portfolio** (formerly Working on).
 
@@ -4388,7 +4390,7 @@ Model Fund I → Open**.
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4399,6 +4401,10 @@ Model Fund I → Open**.
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.1
+
+- **Setup & Maintenance is the last Functions area.** The separate bar under Functions is gone; open **Setup & Maintenance** in Functions to get the same nine actions on its row.
 
 ### What's in 1.1
 
@@ -4464,7 +4470,7 @@ each phase and the decisions behind it are in
 | V. Automated workflow | Approvals and reminders | 🟡 Scoping (11/24): questions on what needs approval, approvers, thresholds, reminders and gating |
 | X. Distribution Analysis | New tab, last in Portfolio Management: distributable cash from asset cash (Yardi upload or entered, else the model's projected cash, labelled as projected) and fund cash, after 3 months of asset and 6 months of fund expenses and any sub line repayment the term sheet requires; choose the distribution (LP / GP split per the LPA); projected yield on contributed capital and NAV; last 4 quarters of distributions | ✅ Built 11/23: distributable cash by asset and fund, Yardi cash upload with the projected fallback, sub line rule, LP / GP split per the waterfall, yields, 4-quarter history, proposals and record as paid, Excel and PDF (§7.34) |
 | Revert | Revert any change from the change log, restore a deal or fund as of a date, and bring back deleted ones | ✅ Built 11/23: Revert button, Restore as of a date with preview, Recently deleted (§7.41) |
-| Z. Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions; follows Select Portfolio (§7.42) |
+| Z. Dashboard | The page the app opens on | ✅ Built 11/23, reworked 11/24: Actions Needed (Done tracking), Upcoming Events (a year back and ahead), Asset Watch List (plan performance: At Risk / Off Plan), Asset / Due date / Action type / Owner / Status columns, Home in the header (saves first), Functions as area buttons, Setup & Maintenance under Functions (the last Functions area from 1.1.1); follows Select Portfolio (§7.42) |
 | Fund picker | "Select Portfolio" dropdown in the header (All funds, or one Fund / SMA / JV) that filters every tab and is remembered for each person | ✅ Built 11/23: header Select Portfolio dropdown; every tab, the header figures and the asset list follow it; remembered on the sign-in (§7.40) |
 | Demo firm | A separate Demo firm for the sample fund and test deals, so the real firm holds only real assets; the Sample data menu moves there | ⏸ Skipped for now (user, 11/24) |
 | Mock comps | Fictional sales comps and lease comps for each Model Fund I asset, so Comps, valuations and reports show a full set | ✅ Built 11/24 (§7.54) |

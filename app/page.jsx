@@ -1787,6 +1787,7 @@ export default function Home() {
   }, [lastSavedAt]);
   const areaOf = (id) => TAB_GROUPS.find((g) => g.tabs.some((t) => t.id === id))?.label ?? "";
   const shownArea = openArea ?? areaOf(activeTab);
+  const SETUP_AREA = "Setup & Maintenance";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -2088,7 +2089,13 @@ export default function Home() {
                   </button>
                 );
               })}
+              {/* Setup & Maintenance (user, 1.1.1): the last area; its row holds the setup actions. */}
+              <button type="button" data-testid="setup-area" aria-expanded={shownArea === SETUP_AREA} onClick={() => setOpenArea(shownArea === SETUP_AREA ? "" : SETUP_AREA)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all ${shownArea === SETUP_AREA ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`} title="Setup & Maintenance: new and edit asset or fund, uploads, marks, capital activity, reports">
+                Setup &amp; Maintenance
+                <span aria-hidden="true" className="text-[10px] opacity-60">{shownArea === SETUP_AREA ? "▴" : "▾"}</span>
+              </button>
             </div>
+            {shownArea === SETUP_AREA && <SetupMaintenance actions={setupActions} />}
             {TAB_GROUPS.filter((g) => g.tabs.length && g.label === shownArea).map((g) => (
               <div key={g.label} className="mt-1.5 border-t border-gray-100 pt-1.5" role="group" aria-label={g.label} data-testid="tab-group">
                 <span className="sr-only">{g.label}</span>
@@ -2126,7 +2133,6 @@ export default function Home() {
               </div>
             ))}
           </nav>
-          <SetupMaintenance actions={setupActions} />
           </div>
 
           {/* Panel */}

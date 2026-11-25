@@ -105,6 +105,7 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
 
   // An edit saves within ~2 s, only that deal, with its version.
   // The asset inputs open from Edit asset (phase O slide-over).
+  await FX.openSetup(p);
   await p.getByLabel("Edit asset").selectOption("sample-deal-1");
   await p.waitForTimeout(500);
   const nameInput = p.locator("aside div.flex.flex-col", { has: p.locator("label", { hasText: /^Property Name$/ }) }).locator("input");
