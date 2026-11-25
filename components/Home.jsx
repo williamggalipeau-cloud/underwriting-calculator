@@ -7,8 +7,7 @@
 // year ahead) and Asset Watch List (the risk report's watch list). Setup &
 // Maintenance sits under the Functions tab bar on every page.
 import { useEffect, useMemo, useState } from "react";
-import { actionsAndCalendar, planWatchList, vacantUnits } from "@/lib/home";
-import { stageLabel } from "@/lib/leasing";
+import { actionsAndCalendar, planWatchList } from "@/lib/home";
 import { listLeases } from "@/lib/leaseDocs";
 
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "");
@@ -90,12 +89,6 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
   const attention = ac.actions;
   const watch = useMemo(() => planWatchList(deals, funds, valuations, { todayISO, calendar: ac.calendar }), [deals, funds, valuations, todayISO, ac.calendar]);
   const [allWatch, setAllWatch] = useState(false);
-  // Vacant Units (1.1.2): what's leasable, narrowed to one asset if chosen.
-  const vacant = useMemo(() => vacantUnits(deals, { todayISO }), [deals, todayISO]);
-  const [vacAsset, setVacAsset] = useState("");
-  const vacAssets = [...new Map(vacant.map((v) => [v.dealId, v.asset])).entries()];
-  const vacRows = vacAsset && vacAssets.some(([id]) => id === vacAsset) ? vacant.filter((v) => v.dealId === vacAsset) : vacant;
-  const [allVac, setAllVac] = useState(false);
   const open = (a) => (a.dealId && onOpenDeal ? onOpenDeal(a.dealId, a.tab) : onOpenTab?.(a.tab));
   const [allAtt, setAllAtt] = useState(false);
   const shown = allAtt ? attention : attention.slice(0, 12);
@@ -225,74 +218,6 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
               </table>
             </div>
             {watch.assets.length > 8 && <button type="button" onClick={() => setAllWatch(!allWatch)} className="mt-1 text-[11px] text-blue-700 hover:underline">{allWatch ? "Show fewer" : `Show all ${watch.assets.length}`}</button>}
-          </>
-        )}
-      </section>
-
-      {/* 3. Vacant Units (user, 11/25, 1.1.2): every vacant unit on the rent
-          rolls, by asset, with its leasing activity: what's leasable now. */}
-      <section className="rounded-xl border border-blue-200 bg-white p-4" data-testid="vacant-units">
-        <div className="mb-0.5 flex flex-wrap items-center gap-2">
-          <h3 className="text-sm font-semibold">Vacant Units {vacRows.length > 0 && <span className="ml-1 rounded-full bg-blue-50 px-1.5 text-[11px] text-blue-700" data-testid="vacant-count">{vacRows.length} unit{vacRows.length === 1 ? "" : "s"} · {vacRows.reduce((s, v) => s + v.sf, 0).toLocaleString("en-US")} SF</span>}</h3>
-          {vacAssets.length > 1 && (
-            <select aria-label="Vacant units: asset" value={vacAsset} onChange={(e) => { setVacAsset(e.target.value); setAllVac(false); }} className="ml-auto rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700">
-              <option value="">All assets ({vacAssets.length})</option>
-              {vacAssets.map(([id, name]) => <option key={id} value={id}>{name} ({vacant.filter((v) => v.dealId === id).length})</option>)}
-            </select>
-          )}
-        </div>
-        <p className="mb-2 text-[11px] text-gray-500">What&apos;s leasable now, from each asset&apos;s rent roll, with the leasing activity on each unit. Asking rent is the asset&apos;s market rent; plan target is the business plan&apos;s lease-up rent; rent comps are the average of the asset&apos;s rent comps (Active Leasing).</p>
-        {vacRows.length === 0 ? (
-          <p className="text-xs text-gray-500">No vacant units on the rent rolls.</p>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs" data-testid="vacant-table">
-                <thead className="border-b border-gray-200 bg-gray-50">
-                  <tr>
-                    <th className={TH}>Asset</th>
-                    <th className={TH}>Unit</th>
-                    <th className={`${TH} text-right`}>Days vacant</th>
-                    <th className={TH}>Leasing manager</th>
-                    <th className={`${TH} text-right`}>SF</th>
-                    <th className={`${TH} text-right`}>Asking rent</th>
-                    <th className={`${TH} text-right`}>Plan target</th>
-                    <th className={`${TH} text-right`}>Rent comps</th>
-                    <th className={TH}>Best prospect</th>
-                    <th className={TH}>Next step</th>
-                    <th className={`${TH} text-right`}>Details</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {(allVac ? vacRows : vacRows.slice(0, 10)).map((v) => (
-                    <tr key={`${v.dealId}-${v.unitId}`} data-testid="vacant-unit" className="align-top">
-                      <td className="px-2 py-1.5 font-medium" data-testid="cell-asset">{v.asset}<span className="block text-[10px] font-normal text-gray-400">{v.fund}</span></td>
-                      <td className="px-2 py-1.5">{v.unit || "—"}</td>
-                      <td className={`whitespace-nowrap px-2 py-1.5 text-right tabular-nums ${v.daysVacant > 180 ? "font-medium text-red-700" : ""}`} data-testid="cell-days-vacant">{v.daysVacant.toLocaleString("en-US")} d<span className="block text-[10px] font-normal text-gray-400">{v.vacantBasis === "acquisition" ? "since acquisition" : `since ${usDate(v.vacantSince)}`}</span></td>
-                      <td className="whitespace-nowrap px-2 py-1.5" data-testid="cell-leasing-manager">{v.leasingManager || <span className="text-amber-700">Unassigned</span>}</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums">{v.sf.toLocaleString("en-US")}</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums">{v.askingRentPSF != null ? `$${v.askingRentPSF.toFixed(2)}` : "—"}</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums">{v.planTargetPSF != null ? `$${v.planTargetPSF.toFixed(2)}` : <span className="text-gray-400">—</span>}</td>
-                      <td className="px-2 py-1.5 text-right tabular-nums" data-testid="vacant-comps">{v.compAvgPSF != null ? <>${v.compAvgPSF.toFixed(2)}<span className="block text-[10px] text-gray-400">avg of {v.comps}</span></> : <span className="text-gray-400">—</span>}</td>
-                      <td className="px-2 py-1.5">{v.best ? <><span className="mr-1 inline-block rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">{stageLabel(v.best.stage)}</span>{v.best.tenant || "Prospect"}<span className="block text-[10px] text-gray-400">{v.prospects} prospect{v.prospects === 1 ? "" : "s"}</span></> : <span className="text-amber-700" data-testid="no-prospects">No prospects</span>}</td>
-                      <td className="px-2 py-1.5">{v.next ? <>{v.next.text}<span className={`block text-[10px] ${v.next.days < 0 ? "text-red-700" : "text-gray-500"}`}>{usDate(v.next.date)} · {v.next.days < 0 ? `${-v.next.days} d overdue` : `${v.next.days} d`}</span></> : <span className="text-gray-400">—</span>}</td>
-                      <td className="whitespace-nowrap px-2 py-1.5 text-right">{onOpenDeal && <button type="button" aria-label={`Open ${v.asset} unit ${v.unit}`} onClick={() => onOpenDeal(v.dealId, "leasing")} className="whitespace-nowrap rounded border border-gray-200 px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">{tabLabels.leasing ?? "Open"} →</button>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="border-t border-gray-200">
-                  <tr className="font-semibold">
-                    <td className="px-2 py-1.5">Total</td>
-                    <td className="px-2 py-1.5">{vacRows.length} unit{vacRows.length === 1 ? "" : "s"}</td>
-                    <td className="px-2 py-1.5 text-right font-normal text-gray-600 tabular-nums" title="Average days vacant, weighted by SF">{(() => { const sf = vacRows.reduce((s, v) => s + v.sf, 0); return sf ? `${Math.round(vacRows.reduce((s, v) => s + v.daysVacant * v.sf, 0) / sf)} d avg` : ""; })()}</td>
-                    <td />
-                    <td className="px-2 py-1.5 text-right tabular-nums">{vacRows.reduce((s, v) => s + v.sf, 0).toLocaleString("en-US")}</td>
-                    <td colSpan={6} className="px-2 py-1.5 font-normal text-gray-600" data-testid="vacant-summary">{vacRows.filter((v) => v.prospects > 0).length} with active prospects · {vacRows.filter((v) => !v.prospects).length} with none</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            {vacRows.length > 10 && <button type="button" onClick={() => setAllVac(!allVac)} className="mt-1 text-[11px] text-blue-700 hover:underline">{allVac ? "Show fewer" : `Show all ${vacRows.length}`}</button>}
           </>
         )}
       </section>

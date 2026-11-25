@@ -2245,6 +2245,7 @@ export default function Home() {
                 deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
                 canEdit={!locked}
                 onUpdate={updateDealInputs}
+                onOpenDeal={(id) => setActiveDealId(id)}
                 scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
             )}
