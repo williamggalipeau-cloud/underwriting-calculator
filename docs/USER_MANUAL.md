@@ -50,7 +50,7 @@ Juniper Square and the like), and LPs get their documents from the investor
 portal. Baywise works with those systems the same way it works with the
 books of record: it reads what it needs from them.
 
-Baywise is **used inside the firm**. It doesn't produce official client
+Baywise is **used inside the firm**: only the firm's employees have access (account setup and access control are planned for 2.0). It doesn't produce official client
 documents: quarterly statements, capital account statements, capital call
 and distribution notices and annual financial reports come from the fund
 administrator and the firm's investor relations process. What Baywise does
@@ -4533,7 +4533,7 @@ Model Fund I → Open**.
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
 | **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
 | **1.6** | Treasury Management (fund and asset bank accounts): cash position, unrestricted vs. restricted; bank concentration (flag above 25% at one bank); cash above FDIC limits (per entity, per bank); the interest rate cash earns and its cash drag against the fund's target and actual IRR; accounts a loan requires at the lender; **Lender Cash Sweep** (accounts swept after a covenant failure, and how much); a quarterly forecast for a rolling year against minimum cash of one quarter of planned expenses. Imports from manual entry, CSV, BAI2, CAMT.053 / MT940 and Yardi, built so treasury systems such as Kyriba can connect later. New **Treasury**, **Bank Accounts** and **Cash Forecast** tabs at the front of **Finance**; Distribution Analysis reads its balances from Treasury; the Dashboard alerts on Lender Cash Sweeps | Planned (added 11/25) |
-| **2.0** | Fund administrator integration: import the administrator's quarterly NAV package, capital accounts and capital activity, and tie them out against Baywise (NAV, called capital, distributions, fees, accrued promote), flagging differences; each fund marked self-administered or administered by a third party. Files first, administrator APIs later, using the same adapter design as 1.6 Treasury. ESG / GRESB parked here too | Planned (added 11/25) |
+| **2.0** | Fund administrator integration: import the administrator's quarterly NAV package, capital accounts and capital activity, and tie them out against Baywise (NAV, called capital, distributions, fees, accrued promote), flagging differences; each fund marked self-administered or administered by a third party. Files first, administrator APIs later, using the same adapter design as 1.6 Treasury. ESG / GRESB parked here too; user account setup and access control | Planned (added 11/25) |
 
 **How releases work:**
 - **One live version.** The site runs one release at a time.
