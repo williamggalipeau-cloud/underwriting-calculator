@@ -10,7 +10,8 @@ const FX = require(R + "/tests/e2e/fixture.cjs");
 let fail = 0; const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail++; };
 const T = "2026-11-25";
 const data = FX.workspaceData();
-let deals = data.deals.filter((d) => d.inputs.fundName === "Model Fund I").map((d) => ({ ...d, inputs: M.withMarkToMarket(d.inputs, M.mtmIndex(d.inputs.propertyName), T) }));
+const base0 = () => data.deals.filter((d) => d.inputs.fundName === "Model Fund I").map((d) => ({ ...d, inputs: M.withMarkToMarket(d.inputs, M.mtmIndex(d.inputs.propertyName), T) }));
+let deals = base0();
 const sample = deals.filter((d) => d.id.startsWith("sample-deal-"));
 const vacantOf = (d) => (d.inputs.units ?? []).filter((u) => u.leaseStatus !== "occupied");
 
@@ -35,6 +36,9 @@ ok(all.some((p) => p.nextDate && p.nextDate <= "2026-12-02"), "some next steps f
 const comps = deals.filter((d) => updates[d.id]).map((d) => d.inputs.leasing.comps);
 ok(comps.every((cs) => cs.length === 6 && cs.every((c) => /\(fictional\)/.test(c.address) && c.signDate < T && c.rentPSF > 0)), "each sample asset without comps gets its standard set of six fictional rent comps");
 ok(L.addSampleLeasing(deals, { todayISO: T }).counts.comps === 0, "an asset that has comps gets no more (rent comps belong to the asset)");
+const blank = base0().map((d) => (d.id === "sample-deal-1" ? { ...d, inputs: { ...d.inputs, leasing: { prospects: [], comps: [{ id: "rc-blank", rentPSF: null, include: false }] } } } : d));
+const bl = L.addSampleLeasing(blank, { todayISO: T }).updates["sample-deal-1"].leasing.comps;
+ok(bl.length === 7 && bl.some((c) => c.id === "rc-blank"), "an asset whose only comps have no rent gets the sample set (the blank row is kept)");
 // Vacant Units after
 const after = H.vacantUnits(deals, { todayISO: T });
 const withP = after.filter((v) => v.prospects > 0), none = after.filter((v) => !v.prospects);

@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.3** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.4** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -2655,8 +2655,10 @@ asset, so its edits save and log like any other.
   "Unassigned" when neither is set), SF, Asking rent (the asset's market
   rent), Plan target (the business plan's lease-up rent), **Rent comps**
   (the average of the asset's rent comps below, and how many; comps belong
-  to the asset and apply to whichever unit is leased), Best prospect (the
-  furthest-along active prospect on the unit, and how many) and Next step
+  to the asset and apply to whichever unit is leased), **Prospects** (1.1.4:
+  the unit's active prospects, inquiry to lease out; 0 in amber; the total
+  row adds them up), Best prospect (the furthest-along active prospect on
+  the unit) and Next step
   (the soonest, with its date). **+ Prospect** (one asset, editors) starts a
   prospect on that unit in the pipeline; **Open asset →** (all assets)
   switches to that asset. The total counts the units with and without
@@ -3406,7 +3408,11 @@ document store, each with its abstract already saved:
   and file name, or a lease for the same tenant), so it can be clicked again
   safely.
 
-**Load Model Fund I** also adds the three sample pipeline deals (version 1.1).
+**Load Model Fund I** also adds the three sample pipeline deals (version 1.1),
+and from 1.1.4 rebuilds the sample assets with the sample business plans and
+actuals (§7.59) and the sample prospects, leasing managers, vacant-since
+dates and rent comps (§7.60), so the Asset Watch List, Active Leasing and
+Vacant Units have data in one click.
 
 ### 7.59 Sample business plans (`lib/samplePlans.js`, version 1.1.2)
 
@@ -3449,7 +3455,8 @@ asset a fictional leasing pipeline (Asset Management → Active Leasing):
 - **A renewal** on each asset's next lease to expire, so every asset has a
   pipeline.
 - **Rent comps on the asset:** the asset's standard set of six fictional
-  leases (as **Add sample comps**), added only where the asset has none.
+  leases (as **Add sample comps**), added only where the asset has none
+  with a rent (a blank comp row doesn't count, 1.1.4).
   Comps belong to the asset and apply to whichever unit is being leased.
 - **A leasing manager** on each asset (fictional names; an asset's own is
   kept), and one Harbor Light unit with its own.
@@ -4466,7 +4473,7 @@ Model Fund I → Open**.
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4478,6 +4485,12 @@ Model Fund I → Open**.
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.4
+
+- **Prospects column on Vacant Units (§7.44):** each vacant unit's number of active prospects, 0 in amber, with a total.
+- **Load Model Fund I** now also adds the sample business plans, actuals and prospects (§7.58), so a reload gives a complete test fund.
+- **Add sample prospects** adds rent comps to an asset whose only comps have no rent.
 
 ### What's in 1.1.3
 

@@ -1558,10 +1558,19 @@ export default function Home() {
   // active deal in the sample fund, and opens the Portfolio Return tab.
   function handleLoadSamplePortfolio() {
     if (!requireEdit()) return;
-    noteAudit("Loaded Model Fund I (sample assets rebuilt)");
+    noteAudit("Loaded Model Fund I (sample assets rebuilt, with sample business plans and prospects)");
+    // 1.1.4 (user, 11/25): the rebuilt assets come with the sample business
+    // plans and actuals and the sample leasing pipeline, so the Watch List,
+    // Active Leasing and Vacant Units have data in one click.
+    const todayISO = new Date().toISOString().slice(0, 10);
+    let built = buildSampleDeals(DEFAULT_INPUTS);
+    const plans = addSamplePlans(built, { todayISO });
+    built = built.map((d) => (plans.updates[d.id] ? { ...d, inputs: { ...d.inputs, businessPlan: plans.updates[d.id] } } : d));
+    const leasing = addSampleLeasing(built, { todayISO });
+    built = built.map((d) => (leasing.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...leasing.updates[d.id] } } : d));
     setDeals((prev) => [
       ...prev.filter((d) => !d.id.startsWith("sample-deal-")),
-      ...buildSampleDeals(DEFAULT_INPUTS),
+      ...built,
     ]);
     // Make sure the fund has terms (a workspace saved before the rename
     // keeps the terms it had under the old name) and $100M of commitments
@@ -1953,7 +1962,7 @@ export default function Home() {
                             For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
                           </p>
                           {[
-                            { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost) and add the sample pipeline deals", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone; any edits to them are lost." },
+                            { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost), with sample business plans, actuals and prospects, and add the sample pipeline deals", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone, with sample business plans, actuals and prospects; any edits to them are lost." },
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
                             { label: "Add sample documents", sub: "Fictional Model Fund I documents (LPA, PPM, asset, sale and lease documents) with their abstracts, into the Document Library (skips any already there)", run: handleAddSampleDocs, ask: "Upload the fictional Model Fund I sample documents to the firm's document store, with their abstracts? Documents already there are skipped. Disposition documents go on a sale (a new fictional sample sale where an asset has none)." },

@@ -1,7 +1,8 @@
 "use client";
 // Vacant Units (user, 11/25; on Active Leasing from 1.1.3): every vacant unit
 // on the rent rolls with its days vacant, leasing manager, asking rent, plan
-// target, the asset's rent comps and the leasing activity on it: what's
+// target, the asset's rent comps, its active prospects (1.1.4) and the
+// leasing activity on it: what's
 // leasable now. One asset (no Asset column; + Prospect starts a prospect on
 // the unit) or all assets (with the Asset column; Open asset → switches to
 // that asset's view).
@@ -39,6 +40,7 @@ export default function VacantUnits({ deals = [], todayISO = new Date().toISOStr
                   <th className={`${TH} text-right`}>Asking rent</th>
                   <th className={`${TH} text-right`}>Plan target</th>
                   <th className={`${TH} text-right`}>Rent comps</th>
+                  <th className={`${TH} text-right`}>Prospects</th>
                   <th className={TH}>Best prospect</th>
                   <th className={TH}>Next step</th>
                   <th className={TH} />
@@ -55,7 +57,8 @@ export default function VacantUnits({ deals = [], todayISO = new Date().toISOStr
                     <td className="px-2 py-1.5 text-right tabular-nums">{v.askingRentPSF != null ? `$${v.askingRentPSF.toFixed(2)}` : "—"}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{v.planTargetPSF != null ? `$${v.planTargetPSF.toFixed(2)}` : <span className="text-gray-400">—</span>}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums" data-testid="vacant-comps">{v.compAvgPSF != null ? <>${v.compAvgPSF.toFixed(2)}<span className="block text-[10px] text-gray-400">avg of {v.comps}</span></> : <span className="text-gray-400">—</span>}</td>
-                    <td className="px-2 py-1.5">{v.best ? <><span className="mr-1 inline-block rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">{stageLabel(v.best.stage)}</span>{v.best.tenant || "Prospect"}<span className="block text-[10px] text-gray-400">{v.prospects} prospect{v.prospects === 1 ? "" : "s"}</span></> : <span className="text-amber-700" data-testid="no-prospects">No prospects</span>}</td>
+                    <td className={`px-2 py-1.5 text-right tabular-nums ${v.prospects ? "" : "font-medium text-amber-700"}`} data-testid="cell-prospects">{v.prospects}</td>
+                    <td className="px-2 py-1.5">{v.best ? <><span className="mr-1 inline-block rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">{stageLabel(v.best.stage)}</span>{v.best.tenant || "Prospect"}</> : <span className="text-amber-700" data-testid="no-prospects">No prospects</span>}</td>
                     <td className="px-2 py-1.5">{v.next ? <>{v.next.text}<span className={`block text-[10px] ${v.next.days < 0 ? "text-red-700" : "text-gray-500"}`}>{usDate(v.next.date)} · {v.next.days < 0 ? `${-v.next.days} d overdue` : `${v.next.days} d`}</span></> : <span className="text-gray-400">—</span>}</td>
                     <td className="whitespace-nowrap px-2 py-1.5 text-right">
                       {showAsset
@@ -71,7 +74,9 @@ export default function VacantUnits({ deals = [], todayISO = new Date().toISOStr
                   <td className="px-2 py-1.5 text-right font-normal text-gray-600 tabular-nums" title="Average days vacant, weighted by SF">{sf ? `${Math.round(rows.reduce((s, v) => s + v.daysVacant * v.sf, 0) / sf)} d avg` : ""}</td>
                   <td />
                   <td className="px-2 py-1.5 text-right tabular-nums">{sf.toLocaleString("en-US")}</td>
-                  <td colSpan={6} className="px-2 py-1.5 font-normal text-gray-600" data-testid="vacant-summary">{rows.filter((v) => v.prospects > 0).length} with active prospects · {rows.filter((v) => !v.prospects).length} with none</td>
+                  <td colSpan={3} />
+                  <td className="px-2 py-1.5 text-right tabular-nums" title="Active prospects on the vacant units">{rows.reduce((s, v) => s + v.prospects, 0)}</td>
+                  <td colSpan={3} className="px-2 py-1.5 font-normal text-gray-600" data-testid="vacant-summary">{rows.filter((v) => v.prospects > 0).length} with active prospects · {rows.filter((v) => !v.prospects).length} with none</td>
                 </tr>
               </tfoot>
             </table>
