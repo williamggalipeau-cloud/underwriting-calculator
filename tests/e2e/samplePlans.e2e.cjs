@@ -72,6 +72,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(Number(withP) >= 8 && Number(without) >= 3, `most units now have prospects: ${sum}`);
   const firstWith = vu.getByTestId("vacant-unit").filter({ hasNot: p.getByTestId("no-prospects") }).first();
   check(/(Tour|Proposal|LOI|Lease out|Inquiry)[\s\S]*prospect/.test(await firstWith.innerText()) && /avg of \d/.test(await firstWith.getByTestId("vacant-comps").innerText()), `a unit's best prospect, next step and rent comps: ${(await firstWith.innerText()).replace(/\s+/g, " ")}`);
+  const dv = await vu.getByTestId("cell-days-vacant").allInnerTexts();
+  check(dv.length > 0 && dv.every((t) => /^\d[\d,]* d\s+since (\d+\/\d+\/\d{4}|acquisition)$/.test(t.trim())) && dv.some((t) => /since \d/.test(t)), `days vacant on each unit, since a date or the acquisition: ${dv.slice(0, 3).map((t) => t.replace(/\s+/g, " ")).join(" | ")}`);
   // Narrow to one asset
   const pickAsset = vu.getByLabel("Vacant units: asset");
   await pickAsset.selectOption({ label: (await pickAsset.locator("option", { hasText: "Route 9 Small Bay" }).innerText()) });

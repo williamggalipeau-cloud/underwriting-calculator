@@ -50,6 +50,14 @@ ok(hl.length >= 2 && hl[0].leasingManager !== hl[1].leasingManager, `a unit can 
 ok(after.filter((v) => !v.dealId.startsWith("sample-deal-")).every((v) => v.leasingManager === ""), "no manager set: blank (shown as Unassigned)");
 const own = L.addSampleLeasing(deals.map((d) => (d.id === "sample-deal-4" ? { ...d, inputs: { ...d.inputs, leasingManager: "Pat Example" } } : d)), { todayISO: T });
 ok(own.updates["sample-deal-4"].leasingManager === "Pat Example", "an asset's own leasing manager is kept");
+// Days vacant
+ok(before.every((v) => v.vacantBasis === "acquisition" && v.daysVacant === Math.round((Date.parse(T) - Date.parse(deals.find((d) => d.id === v.dealId).inputs.acquisitionDate)) / 864e5)), "no Vacant since date: days counted from the acquisition");
+const sv = after.filter((v) => v.dealId.startsWith("sample-deal-"));
+ok(sv.every((v) => v.vacantBasis === "date" && v.daysVacant >= 30 && v.daysVacant <= 300), `sample vacant units: a Vacant since date 30–300 days ago (${sv.map((v) => v.daysVacant).join(", ")})`);
+const ended = H.vacantUnits([{ id: "x", inputs: { fundName: "F", propertyName: "X", acquisitionDate: "2025-01-01", units: [{ id: "u", name: "1", squareFeet: 1000, leaseStatus: "vacant", leaseEnd: "2026-10-26" }] } }], { todayISO: T })[0];
+ok(ended.vacantBasis === "date" && ended.daysVacant === 30, "a lease end that has passed counts as the vacant-since date");
+const kept = L.addSampleLeasing(deals, { todayISO: T }).updates["sample-deal-2"].units;
+ok(!kept, "a rerun keeps the Vacant since dates already set");
 
 // Reruns and user data
 const mine = deals.map((d) => (d.id === "sample-deal-2" ? { ...d, inputs: { ...d.inputs, leasing: { ...d.inputs.leasing, prospects: [...d.inputs.leasing.prospects, { id: "lp-mine", unitId: vacantOf(d)[0].id, stage: "tour", tenant: "My Own Prospect" }], comps: [...d.inputs.leasing.comps, { id: "rc-mine", rentPSF: 10, sf: 2000 }] } } } : d));

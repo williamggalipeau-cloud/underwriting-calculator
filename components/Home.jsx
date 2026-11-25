@@ -252,6 +252,7 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
                   <tr>
                     <th className={TH}>Asset</th>
                     <th className={TH}>Unit</th>
+                    <th className={`${TH} text-right`}>Days vacant</th>
                     <th className={TH}>Leasing manager</th>
                     <th className={`${TH} text-right`}>SF</th>
                     <th className={`${TH} text-right`}>Asking rent</th>
@@ -267,6 +268,7 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
                     <tr key={`${v.dealId}-${v.unitId}`} data-testid="vacant-unit" className="align-top">
                       <td className="px-2 py-1.5 font-medium" data-testid="cell-asset">{v.asset}<span className="block text-[10px] font-normal text-gray-400">{v.fund}</span></td>
                       <td className="px-2 py-1.5">{v.unit || "—"}</td>
+                      <td className={`whitespace-nowrap px-2 py-1.5 text-right tabular-nums ${v.daysVacant > 180 ? "font-medium text-red-700" : ""}`} data-testid="cell-days-vacant">{v.daysVacant.toLocaleString("en-US")} d<span className="block text-[10px] font-normal text-gray-400">{v.vacantBasis === "acquisition" ? "since acquisition" : `since ${usDate(v.vacantSince)}`}</span></td>
                       <td className="whitespace-nowrap px-2 py-1.5" data-testid="cell-leasing-manager">{v.leasingManager || <span className="text-amber-700">Unassigned</span>}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{v.sf.toLocaleString("en-US")}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{v.askingRentPSF != null ? `$${v.askingRentPSF.toFixed(2)}` : "—"}</td>
@@ -282,6 +284,7 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
                   <tr className="font-semibold">
                     <td className="px-2 py-1.5">Total</td>
                     <td className="px-2 py-1.5">{vacRows.length} unit{vacRows.length === 1 ? "" : "s"}</td>
+                    <td className="px-2 py-1.5 text-right font-normal text-gray-600 tabular-nums" title="Average days vacant, weighted by SF">{(() => { const sf = vacRows.reduce((s, v) => s + v.sf, 0); return sf ? `${Math.round(vacRows.reduce((s, v) => s + v.daysVacant * v.sf, 0) / sf)} d avg` : ""; })()}</td>
                     <td />
                     <td className="px-2 py-1.5 text-right tabular-nums">{vacRows.reduce((s, v) => s + v.sf, 0).toLocaleString("en-US")}</td>
                     <td colSpan={6} className="px-2 py-1.5 font-normal text-gray-600" data-testid="vacant-summary">{vacRows.filter((v) => v.prospects > 0).length} with active prospects · {vacRows.filter((v) => !v.prospects).length} with none</td>

@@ -2571,7 +2571,10 @@ loaded; the only thing it saves is which actions were marked done.
      asset's business plan. The risk report's other flags stay in Reports.
 4. **Vacant Units** (1.1.2): what's leasable now. Every vacant unit on the
    rent rolls of the portfolio chosen in Select Portfolio; the **asset** list
-   narrows it to one asset. Columns: Asset, Unit, **Leasing manager** (the
+   narrows it to one asset. Columns: Asset, Unit, **Days vacant** (from the
+   unit's Vacant since date, else a lease end that has passed, else the
+   acquisition, labelled "since acquisition"; over 180 days in red; the total
+   row shows the SF-weighted average), **Leasing manager** (the
    unit's, else the asset's; "Unassigned" when neither is set), SF, Asking
    rent (the asset's market rent), Plan target (the business plan's lease-up
    rent), **Rent comps** (the average of the asset's rent comps within 25% of
@@ -3442,12 +3445,15 @@ asset a fictional leasing pipeline (Asset Management → Active Leasing):
   about 15% of each vacant unit, around its asking rent.
 - **A leasing manager** on each asset (fictional names; an asset's own is
   kept), and one Harbor Light unit with its own.
+- **A Vacant since date** (30 to 300 days ago) on each vacant unit that has
+  none.
 - **Safe to click again:** earlier sample prospects and unit comps are
   replaced; prospects and comps you entered are kept.
 
 **Leasing manager** (1.1.2): set for the asset under Edit asset → Property
 (next to Asset Manager), and for a unit in the rent roll's **Lease details**
-(blank: the asset's).
+(blank: the asset's). **Vacant since** (1.1.2), also in Lease details, sets
+the start of a vacant unit's Days vacant.
 
 Also in 1.1.2: an occupancy, rent or WALT goal counts as missed only when it's
 short at the precision shown, so the Watch List no longer lists "Rent
@@ -4467,8 +4473,8 @@ Model Fund I → Open**.
 
 ### What's in 1.1.2
 
-- **Vacant Units on the Dashboard:** every vacant unit, by asset, with its leasing manager, asking rent, plan target, rent comps, best prospect and next step (§2, Dashboard).
-- **Leasing manager:** a new field on the asset and, to override it, on each unit.
+- **Vacant Units on the Dashboard:** every vacant unit, by asset, with its days vacant, leasing manager, asking rent, plan target, rent comps, best prospect and next step (§2, Dashboard).
+- **Leasing manager and Vacant since:** new fields (leasing manager on the asset, with a unit override; vacant since on the unit).
 - **Add sample prospects (§7.60):** a fictional leasing pipeline, unit rent comps and leasing managers for every Model Fund I asset.
 - **Add sample business plans (§7.59):** a new Sample data item. Each Model Fund I asset gets a fictional business plan and monthly actuals; Route 9 shows on the Asset Watch List as At Risk and Harbor Light as Off Plan.
 - **Watch List fix:** a goal counts as missed only when it's short at the precision shown.
