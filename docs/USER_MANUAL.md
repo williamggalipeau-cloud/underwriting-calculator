@@ -4531,6 +4531,27 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
+### Design principles (user, 11/25)
+
+Every future release is checked against these:
+
+1. **A workbench, not a book of record.** Baywise sits on top of the
+   systems of record (property accounting, the fund administrator, general
+   ledgers, banks and treasury systems), reads from them, and analyzes,
+   plans, decides and reports. It doesn't process transactions or keep a
+   second set of books.
+2. **Not a CRM or an investor portal.** It reads what it needs from them.
+3. **For use inside the firm.** Only the firm's employees have access. No
+   official client documents; custom, unofficial reports for investor
+   inquiries.
+4. **The database is the middle layer.** It consolidates the firm's many
+   sources into one clean set. Imported data carries its source and date
+   and can be refreshed; Baywise's own work is kept apart and never
+   overwritten.
+5. **Sources plug in through adapters.** One standard format per kind of
+   data, one adapter per source (file, API, later a firm's own data
+   warehouse), so new sources never change the screens.
+
 ### Releases (user, 11/25)
 
 | Version | What it covers | Status |

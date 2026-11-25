@@ -7,46 +7,59 @@ and a pull request; nothing merges without the user. CREparser connectors are
 used to validate only, staying within the user's free allowance. Nothing
 changes the model without the user clicking to apply it.
 
-## Principle: Baywise is not a book of record (user, 11/25)
+## Design principles (user, 11/25): apply to every future release
 
-Baywise is a workspace that brings everything a CRE investment manager needs
-into one workbench. It sits on top of the books of record: the property
-accounting system (Yardi / MRI: property GL, tenant billing and receivables,
-payables, CAM), the fund administrator (fund accounting, NAV, LP capital
-accounts, allocations, notices, K-1s), other general ledger systems, and
-banks / treasury systems (cash). Baywise reads from them (imports now, live
-connections later), analyzes, plans, decides and reports, and stores what
-lives nowhere else (underwriting, business plans, decisions, marks, plans and
-workflow). It never processes transactions or keeps a second set of books.
-Access: **only the firm's employees** use Baywise (user, 11/25; account setup and access control are scoped in 2.0). It is also **not a CRM or an investor portal** (user, 11/25): contacts,
-relationships and fundraising stay in the firm's CRM (Salesforce, DealCloud,
-Juniper Square…), and LPs receive documents through the investor portal.
-Baywise works with them the same way as with the books of record: it reads
-what it needs. Baywise is **used inside the firm** and does **not produce
-official client documents** (quarterly statements, capital account
-statements, capital call and distribution notices, annual financial
-reports): those come from the fund administrator and investor relations.
-For investors it produces **custom reports for bespoke and ad hoc
-performance inquiries**, marked unofficial (the administrator's figures
-govern). The Pipeline's broker and seller names stay
-deal facts, not a contact database.
-Every new feature is checked against this: Property Management stays light
-on purpose; Treasury (1.6) imports balances rather than keeping a ledger; LP
-no official LP statements (1.3 is custom reports for investor inquiries); fund administrator
-integration is 2.0.
+Every feature and release is checked against these before it is scoped. A
+feature that breaks one goes back to the user.
 
-**Supabase is the middle layer, not a book of record** (user, 11/25). It is
-Baywise's data warehouse: firms have many sources (accounting GL, property
-accounting, fund administrator, CRM, banks, spreadsheets), and Supabase pulls
-them into one clean, consolidated set for Baywise to work from. It holds two
-kinds of data, kept apart:
-- **Imported copies** of other systems' data. Each carries its source, as-of
-  date and import time, and can be refreshed from the source at any time.
-- **Baywise's own work**, which exists nowhere else: underwriting, business
-  plans, Sell/Hold decisions, marks, prospects, notes and the audit log.
-  Supabase is the only record of these, so a refresh never overwrites them.
-New features record source and as-of on every imported row (1.6 Treasury
-does); older imports are retrofitted over time.
+1. **A workbench, not a book of record.** Baywise brings everything a CRE
+   investment manager needs into one workspace and sits on top of the systems
+   of record: property accounting (Yardi / MRI: property GL, tenant billing
+   and receivables, payables, CAM), the fund administrator (fund accounting,
+   NAV, LP capital accounts, allocations, notices, K-1s), other general
+   ledgers, and banks / treasury systems. It reads from them, analyzes,
+   plans, decides and reports. It never processes transactions or keeps a
+   second set of books.
+2. **Not a CRM or an investor portal.** Contacts, relationships and
+   fundraising stay in the firm's CRM (Salesforce, DealCloud, Juniper
+   Square…); LPs receive documents through the investor portal. Baywise
+   reads what it needs from them, as with the books of record. The
+   Pipeline's broker and seller names stay deal facts, not a contact
+   database.
+3. **For use inside the firm.** Only the firm's employees have access
+   (account setup and access control: 2.0). Baywise doesn't produce official
+   client documents (quarterly statements, capital account statements,
+   capital call and distribution notices, annual financial reports); those
+   come from the fund administrator and investor relations. For investors it
+   produces custom reports for bespoke and ad hoc performance inquiries,
+   marked unofficial (the administrator's figures govern).
+4. **The database is the middle layer.** Supabase is Baywise's data
+   warehouse, not a book of record: it pulls the firm's many sources
+   (general ledger, property accounting, fund administrator, CRM, banks,
+   spreadsheets) into one clean, consolidated set. It holds two kinds of
+   data, kept apart:
+   - **Imported copies:** each row carries its source, as-of date and import
+     time, and can be refreshed from the source at any time.
+   - **Baywise's own work** (underwriting, business plans, Sell/Hold
+     decisions, marks, prospects, notes, the audit log): Supabase is its
+     only record, so a refresh never overwrites it.
+   New features record source and as-of on every imported row; older
+   imports are retrofitted over time.
+5. **Sources plug in through adapters.** Each kind of data has one standard
+   format; each source (manual entry, a file, an API, later a firm's own
+   data warehouse) gets an adapter that converts into it, with account /
+   entity matching confirmed once and remembered. Screens read only the
+   standard format, so adding a source never changes a screen. Credentials
+   never go in the browser or the repo (the app has no server; live
+   connections run as Supabase Edge Functions). 1.6 Treasury is the first
+   full use; 3.0 extends it to the firm's own warehouse.
+
+**Where these already shape the roadmap:** Property Management stays light
+on purpose; Treasury (1.6) imports balances rather than keeping a ledger;
+1.3 is custom reports for investor inquiries, not official LP statements;
+the "Shareable" report versions are removed (1.1.7); fund administrator
+integration and access control are 2.0; Baywise on the firm's own data
+warehouse is 3.0.
 
 ## Where we left off (end of 11/25)
 
