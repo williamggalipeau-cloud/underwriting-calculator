@@ -19,10 +19,11 @@ const tone = (v) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-400" : v > 0 ?
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "—");
 const btn = "rounded-lg border px-3 py-1.5 text-xs font-medium";
 
-export default function FundImpact({ deals, funds, curve, canEdit, email, preselect = [], onFundTermsChange, onAddToFund }) {
+export default function FundImpact({ deals, funds, curve, canEdit, email, preselect = [], initialFund = "", onFundTermsChange, onAddToFund }) {
   const today = new Date().toISOString().slice(0, 10);
   const names = Object.keys(funds);
-  const [pick, setPick] = useState(null);
+  // Opens in the fund the Screener's deal targets (user, 11/25, 1.1.6).
+  const [pick, setPick] = useState(initialFund || null);
   const fund = names.includes(pick) ? pick : names[0];
   const [base, setBase] = useState("all");
   const terms = useMemo(() => (fund ? { ...DEFAULT_FUND_TERMS, ...(funds[fund] ?? {}), name: fund } : null), [funds, fund]);

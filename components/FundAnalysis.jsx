@@ -835,6 +835,55 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         </div>
       </div>
 
+      {/* Fund terms: at the top of the card, under the fund name (user, 11/25, 1.1.6) */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
+        <span className="font-semibold text-gray-700">Fund terms</span>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Final close
+          <input type="date" value={fund.finalClose} onChange={setFundField("finalClose")} className="border border-gray-200 rounded-md px-2 py-1 text-gray-900" />
+        </label>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Investment period
+          <input type="number" min={0} step={0.5} value={fund.investmentPeriodYears} onChange={setFundField("investmentPeriodYears")} className="w-14 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          yrs
+        </label>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Term
+          <input type="number" min={1} step={1} value={fund.termYears} onChange={setFundField("termYears")} className="w-14 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          yrs
+        </label>
+        <label className="flex items-center gap-1.5 text-gray-600">
+          Extensions
+          <input type="number" min={0} step={1} value={fund.extensionCount} onChange={setFundField("extensionCount")} className="w-12 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          ×
+          <input type="number" min={0} step={1} value={fund.extensionYears} onChange={setFundField("extensionYears")} className="w-12 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
+          yr
+        </label>
+        <span className="text-gray-400">
+          Term ends {fmtDate(fd.fundEnd)} · fully extended {fmtDate(fd.extendedEnd)}
+        </span>
+      </div>
+
+      {(outsideIP.length > 0 || pastExtensions.length > 0 || usingExtensions.length > 0) && (
+        <ul className="space-y-1.5 text-xs">
+          {outsideIP.length > 0 && (
+            <li className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Acquired outside the investment period: {outsideIP.map((d) => d.inputs.propertyName).join(", ")}.
+            </li>
+          )}
+          {usingExtensions.length > 0 && (
+            <li className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Sold after the {fund.termYears}-year term, using extensions: {usingExtensions.map((d) => d.inputs.propertyName).join(", ")}.
+            </li>
+          )}
+          {pastExtensions.length > 0 && (
+            <li className="text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              Sold after the fully extended term: {pastExtensions.map((d) => d.inputs.propertyName).join(", ")}.
+            </li>
+          )}
+        </ul>
+      )}
+
       {/* Fund-level GP commitment */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
         <label htmlFor={`gp-commit-${fundName}`} className="text-xs font-semibold text-gray-700">
@@ -1010,55 +1059,6 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         )}
         <CapitalActivity fundName={fundName} activity={activity} autoActivity={flows.autoActivity ?? []} deals={deals} otherAssets={otherAssets} commitments={terms.targetEquity ?? 0} onChange={(next) => onTermsChange({ capitalActivity: next })} />
       </div>
-
-      {/* Fund terms */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
-        <span className="font-semibold text-gray-700">Fund terms</span>
-        <label className="flex items-center gap-1.5 text-gray-600">
-          Final close
-          <input type="date" value={fund.finalClose} onChange={setFundField("finalClose")} className="border border-gray-200 rounded-md px-2 py-1 text-gray-900" />
-        </label>
-        <label className="flex items-center gap-1.5 text-gray-600">
-          Investment period
-          <input type="number" min={0} step={0.5} value={fund.investmentPeriodYears} onChange={setFundField("investmentPeriodYears")} className="w-14 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
-          yrs
-        </label>
-        <label className="flex items-center gap-1.5 text-gray-600">
-          Term
-          <input type="number" min={1} step={1} value={fund.termYears} onChange={setFundField("termYears")} className="w-14 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
-          yrs
-        </label>
-        <label className="flex items-center gap-1.5 text-gray-600">
-          Extensions
-          <input type="number" min={0} step={1} value={fund.extensionCount} onChange={setFundField("extensionCount")} className="w-12 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
-          ×
-          <input type="number" min={0} step={1} value={fund.extensionYears} onChange={setFundField("extensionYears")} className="w-12 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
-          yr
-        </label>
-        <span className="text-gray-400">
-          Term ends {fmtDate(fd.fundEnd)} · fully extended {fmtDate(fd.extendedEnd)}
-        </span>
-      </div>
-
-      {(outsideIP.length > 0 || pastExtensions.length > 0 || usingExtensions.length > 0) && (
-        <ul className="space-y-1.5 text-xs">
-          {outsideIP.length > 0 && (
-            <li className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Acquired outside the investment period: {outsideIP.map((d) => d.inputs.propertyName).join(", ")}.
-            </li>
-          )}
-          {usingExtensions.length > 0 && (
-            <li className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Sold after the {fund.termYears}-year term, using extensions: {usingExtensions.map((d) => d.inputs.propertyName).join(", ")}.
-            </li>
-          )}
-          {pastExtensions.length > 0 && (
-            <li className="text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              Sold after the fully extended term: {pastExtensions.map((d) => d.inputs.propertyName).join(", ")}.
-            </li>
-          )}
-        </ul>
-      )}
 
       <FundTimeline deals={deals} fund={fund} />
 
