@@ -4,6 +4,7 @@
 // and Rent Comps for one asset, with a whole-fund view of the pipeline.
 // Data lives on each asset (inputs.leasing); onUpdate(dealId, fn) edits it.
 import { useEffect, useRef, useState } from "react";
+import VacantUnits from "@/components/VacantUnits";
 import {
   ACTIVE_PROSPECT_STAGES, PROSPECT_SOURCES, PROSPECT_STAGES, RENT_COMP_FIELDS, allProspects, detectRentCompMapping, filterRentComps, importRentComps, leasingOf,
   leasingXlsx, makeProspect, makeRentComp, netEffective, pipelineTotals, rentCompStats, rentCompsFromFile, rentVsComps, stageLabel, vsPlan,
@@ -43,7 +44,7 @@ const psf = (v) => (v == null || !Number.isFinite(v) ? "—" : `$${v.toFixed(2)}
 const pct = (v) => (v == null || !Number.isFinite(v) ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`);
 const STAGE_CLS = { inquiry: "bg-gray-100 text-gray-700", tour: "bg-sky-50 text-sky-800", proposal: "bg-indigo-50 text-indigo-800", loi: "bg-violet-50 text-violet-800", leaseout: "bg-amber-50 text-amber-800", signed: "bg-emerald-50 text-emerald-800", lost: "bg-red-50 text-red-700" };
 
-export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null }) {
+export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, onOpenDeal = null, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null }) {
   const [scope, setScope] = useState("asset");
   const [showDone, setShowDone] = useState(false);
   const [f, setF] = useState({ since: "", minSF: "", maxSF: "", submarket: "", leaseType: "" });
@@ -105,6 +106,15 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, t
           <button type="button" onClick={exportX} className={`${btn} border-gray-300 bg-white`}>Excel</button>
         </div>
       </div>
+
+      {/* ── Vacant Units (1.1.3, moved from the Dashboard) ── */}
+      <VacantUnits
+        deals={scope === "fund" ? deals : [deal]}
+        todayISO={todayISO}
+        showAsset={scope === "fund"}
+        onAddProspect={canEdit ? (dealId, unitId, sf) => edit((l) => ({ ...l, prospects: [...l.prospects, makeProspect({ unitId, sf: sf || null })] })) : null}
+        onOpenAsset={onOpenDeal ? (id) => { onOpenDeal(id); setScope("asset"); } : null}
+      />
 
       {/* ── Leasing Pipeline ── */}
       <section className="space-y-2" data-testid="leasing-pipeline">

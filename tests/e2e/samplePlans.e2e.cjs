@@ -65,13 +65,19 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/Off Plan/.test(hl) && /-\d\.\d%/.test(hl) && /Capital .* budget/.test(hl), `Harbor Light: Off Plan, capital over budget: ${hl.replace(/\s+/g, " ")}`);
   await p.getByTestId("assets-watch").screenshot({ path: S + "/samplePlans_watch.png" });
 
-  // ── Vacant Units (1.1.2): every vacant unit, with the plan's target ──
-  const vu = p.getByTestId("vacant-units");
+  // ── Vacant Units (1.1.3: on Active Leasing, no longer on the Dashboard) ──
+  check((await p.getByTestId("home").getByTestId("vacant-units").count()) === 0, "the Dashboard has no Vacant Units section");
+  await FX.openTab(p, "Active Leasing");
+  await p.waitForTimeout(800);
+  const lz = p.getByTestId("leasing");
+  const vu = lz.getByTestId("vacant-units");
+  check((await vu.count()) === 1 && (await lz.locator("section").first().getAttribute("data-testid")) === "vacant-units", "Vacant Units is the first section on Active Leasing, above the Leasing Pipeline");
+  await lz.getByRole("button", { name: /^All (of |assets)/ }).click();
+  await p.waitForTimeout(400);
   const nVac = await vu.getByTestId("vacant-unit").count();
-  const vacText = await vu.innerText();
-  check(nVac > 0 && /Vacant Units/.test(vacText) && (await vu.getByTestId("no-prospects").count()) === nVac, `Vacant Units lists the vacant units, none with prospects yet (${nVac} shown; ${(await vu.getByTestId("vacant-count").innerText())})`);
+  check(nVac > 0 && (await vu.getByTestId("no-prospects").count()) === nVac && (await vu.getByTestId("cell-asset").count()) === nVac, `all assets: every vacant unit, with the Asset column, none with prospects yet (${nVac} shown; ${await vu.getByTestId("vacant-count").innerText()})`);
   check(/\$\d+\.\d\d[\s\S]*\$\d+\.\d\d/.test(await vu.getByTestId("vacant-unit").first().innerText()), "asking rent and the plan's target rent on a unit");
-  // Add sample prospects: a pipeline on each asset, comps near each unit
+  // Add sample prospects: a pipeline on each asset
   if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(200);
@@ -85,16 +91,17 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/(Tour|Proposal|LOI|Lease out|Inquiry)[\s\S]*prospect/.test(await firstWith.innerText()) && /avg of \d/.test(await firstWith.getByTestId("vacant-comps").innerText()), `a unit's best prospect, next step and rent comps: ${(await firstWith.innerText()).replace(/\s+/g, " ")}`);
   const dv = await vu.getByTestId("cell-days-vacant").allInnerTexts();
   check(dv.length > 0 && dv.every((t) => /^\d[\d,]* d\s+since (\d+\/\d+\/\d{4}|acquisition)$/.test(t.trim())) && dv.some((t) => /since \d/.test(t)), `days vacant on each unit, since a date or the acquisition: ${dv.slice(0, 3).map((t) => t.replace(/\s+/g, " ")).join(" | ")}`);
-  // Narrow to one asset
-  const pickAsset = vu.getByLabel("Vacant units: asset");
-  await pickAsset.selectOption({ label: (await pickAsset.locator("option", { hasText: "Route 9 Small Bay" }).innerText()) });
-  await p.waitForTimeout(300);
+  // Open asset → that asset's view: its units only, no Asset column, + Prospect
+  if (await vu.getByRole("button", { name: /^Show all/ }).count()) { await vu.getByRole("button", { name: /^Show all/ }).click(); await p.waitForTimeout(200); }
+  await vu.getByRole("button", { name: "Open Route 9 Small Bay" }).first().click();
+  await p.waitForTimeout(800);
   const r9rows = await vu.getByTestId("vacant-unit").allInnerTexts();
-  check(r9rows.length >= 1 && r9rows.every((t) => /Route 9 Small Bay/.test(t)), `choosing Route 9 shows only its ${r9rows.length} vacant units`);
+  check(r9rows.length === 2 && (await vu.getByTestId("cell-asset").count()) === 0 && /Route 9 Small Bay/.test(await lz.locator("h2 + p").innerText()), `Open asset → Route 9's view: its ${r9rows.length} vacant units, no Asset column`);
   await vu.screenshot({ path: S + "/samplePlans_vacant.png" });
-  await vu.getByRole("button", { name: /^Open Route 9 Small Bay unit/ }).first().click();
-  await p.waitForTimeout(1200);
-  check(/Route 9 Small Bay/.test(await p.locator("main").innerText()) && (await p.getByRole("button", { name: "Active Leasing", exact: false }).first().getAttribute("class")).includes("bg-blue-600"), "→ opens Active Leasing on Route 9");
+  const before = await lz.getByTestId("prospect-row").count();
+  await vu.getByRole("button", { name: /^Add a prospect for unit/ }).last().click();
+  await p.waitForTimeout(600);
+  check((await lz.getByTestId("prospect-row").count()) === before + 1, `+ Prospect adds a prospect on that unit to the pipeline (${before} → ${await lz.getByTestId("prospect-row").count()})`);
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(1000);
 

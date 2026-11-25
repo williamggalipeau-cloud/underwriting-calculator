@@ -99,7 +99,7 @@ const CSV = [
   await p.getByRole("button", { name: /^All assets|^All of/ }).click();
   await p.waitForTimeout(300);
   check(/Airport Flex Park/.test(await p.getByTestId("prospect-row").first().innerText()) && (await p.getByTestId("rent-comps").count()) === 0, "whole-fund view lists prospects by asset");
-  await p.getByRole("button", { name: "Airport Flex Park" }).click();
+  await p.getByRole("button", { name: "Airport Flex Park", exact: true }).click();
 
   // ── Rent comps ──
   const rc = p.getByTestId("rent-comps");
