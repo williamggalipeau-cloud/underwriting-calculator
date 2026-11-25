@@ -20,6 +20,7 @@ version:
 | 1.2 | Workflow: approvals, reminders and gating (phase V; the five scoping questions) | Next |
 | 1.3 | Expanded reporting (the "More external reports" options) | Planned |
 | 1.4 | Demo firm; Yardi API connection | Planned |
+| 1.5 | Construction Management (user, 11/25; scope to be defined) | Planned |
 
 Release process (user, 11/25):
 - **Option A.** Each version is built on its own branch; the live site stays on the current release until the user approves the next, then it goes live in one step.

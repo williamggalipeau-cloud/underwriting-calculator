@@ -4394,6 +4394,7 @@ Model Fund I → Open**.
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
+| **1.5** | Construction Management (scope to be defined) | Planned (added 11/25) |
 
 **How releases work:**
 - **One live version.** The site runs one release at a time.
