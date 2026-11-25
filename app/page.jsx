@@ -1707,6 +1707,9 @@ export default function Home() {
         onProgress: (t) => setSampleDocMsg(`Adding sample documents… ${t}`),
       });
       noteAudit(`Added ${r.done.length} sample document${r.done.length === 1 ? "" : "s"} (fictional)`);
+      // A sale created for the sale documents is saved at once, not left for
+      // autosave (1.1.7; found in the 11/25 test fund load).
+      setTimeout(() => saveRef.current?.(), 300);
       setSampleDocMsg("");
       window.alert(`${fromLoad ? `Model Fund I loaded. ${removed ? `Replaced ${removed} unnamed sample lease${removed === 1 ? "" : "s"}. ` : ""}` : ""}Added ${r.done.length} sample document${r.done.length === 1 ? "" : "s"} with their abstracts.${r.skipped.length ? ` ${r.skipped.length} skipped (already uploaded, or the asset isn't in the firm).` : ""}${r.failed.length ? `\n\n${r.failed.length} couldn't be added:\n${r.failed.slice(0, 5).map((f) => `• ${f.title ?? f.tenant}: ${f.error}`).join("\n")}` : ""}\n\nSee Library → Documents.`);
     } catch (e) {

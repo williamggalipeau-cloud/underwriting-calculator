@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.6** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.7** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -3684,8 +3684,25 @@ http://localhost:3000/underwriting-calculator).
 **Check:** `npm run lint`, then `npm run build` (writes the static site to
 `out/`).
 
-**Deploy:** merge to `main`. `.github/workflows/deploy.yml` builds and
-publishes to GitHub Pages, usually within a few minutes.
+**Hosting (1.1.7, user 11/25): moving from GitHub Pages to Vercel.** The
+code stays on GitHub; Vercel (Pro plan) builds and hosts the site from it.
+- **Same code, both hosts during the move:** `next.config.js` serves the site
+  at the root of the Vercel address (Vercel sets `VERCEL=1` when it builds)
+  and under `/underwriting-calculator` on GitHub Pages.
+- **Production:** every merge to `main` is built and published by Vercel.
+- **Preview links:** every pull request gets its own Vercel preview address,
+  so a patch can be clicked through before it's merged. Previews use the same
+  database, so treat them as the live firm's data.
+- **Rollback:** Vercel → the project → Deployments → an earlier deployment →
+  **Promote to Production** (one click), as well as redeploying a release tag.
+- **Sign-in:** Supabase must list the Vercel address (and the preview
+  pattern) under Authentication → URL Configuration (§12.1).
+- **Switching off GitHub Pages:** once sign-in, saving and documents are
+  checked on Vercel, the GitHub Pages deploy is retired.
+
+**Deploy (GitHub Pages, until it's switched off):** merge to `main`.
+`.github/workflows/deploy.yml` builds and publishes to GitHub Pages, usually
+within a few minutes.
 - **Two jobs:** the build job uploads the site package, then the deploy job
   publishes it.
 - **Automatic retry:** GitHub sometimes doesn't yet list a package that was
@@ -4358,7 +4375,7 @@ and nothing is saved; nothing is ever saved in the browser.
 | Setup script | [`supabase/setup.sql`](../supabase/setup.sql) |
 | Client library | `@supabase/supabase-js` 2.x |
 | Sign-in method | Email + password (Authentication → Sign In / Providers → Email). Email is used to confirm new accounts and for password resets. |
-| Site / Redirect URL | `https://williamggalipeau-cloud.github.io/underwriting-calculator/` (Authentication → URL Configuration) |
+| Site / Redirect URL | `https://williamggalipeau-cloud.github.io/underwriting-calculator/` (Authentication → URL Configuration). From 1.1.7 also the Vercel address and its preview pattern (§10, Hosting); the Vercel address becomes the Site URL once GitHub Pages is switched off. |
 
 ### 12.2 One-time setup
 
@@ -4611,7 +4628,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions are removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4626,6 +4643,11 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.7
+
+- **Hosting moves to Vercel (§10):** the same code builds for Vercel (at the root of its address) and for GitHub Pages until that's switched off. Every pull request gets a Vercel preview link to click through before merging; rollback is one click.
+- **Load Model Fund I / Add sample documents:** the sample sales the sale documents are filed on are saved at once, instead of waiting for autosave.
 
 ### What's in 1.1.6
 
