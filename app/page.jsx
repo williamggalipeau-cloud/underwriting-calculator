@@ -26,6 +26,7 @@ import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
 import Documents from "@/components/Documents";
 import SellHold from "@/components/SellHold";
+import DispositionCandidates from "@/components/DispositionCandidates";
 import { withLocation } from "@/lib/assetLocations";
 import { MTM_MODEL, mtmIndex, toRentRollNOI, withMarkToMarket } from "@/lib/sampleRentRolls";
 import { withSicCodes } from "@/lib/sicCodes";
@@ -452,6 +453,7 @@ const TAB_GROUPS = [
     { id: "acqdocs",     label: "Acquisition Documents" },
   ] },
   { label: "Dispositions", tabs: [
+    { id: "dispcand",    label: "Disposition Candidates" },
     { id: "sellhold",    label: "Sell/Hold Analysis" },
     { id: "forsale",     label: "Assets for Sale" },
     { id: "offers",      label: "Offers" },
@@ -2528,6 +2530,15 @@ export default function Home() {
                 canEdit={!locked}
                 email={session?.user?.email ?? null}
                 onApplyDeal={applyToDeal}
+              />
+            )}
+            {activeTab === "dispcand" && (
+              <DispositionCandidates
+                deals={fundDeals}
+                funds={viewFunds}
+                scopeName={scope ? scopeLabel(scope, funds) : ""}
+                onOpenSellHold={(id) => { setActiveDealId(id); setActiveTab("sellhold"); }}
+                onOpenSale={(id) => { setActiveDealId(id); setActiveTab("forsale"); }}
               />
             )}
             {activeTab === "sellhold" && (

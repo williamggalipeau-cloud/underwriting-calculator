@@ -113,6 +113,16 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const main = await p.locator("main").innerText();
   check(/Route 9 Small Bay/.test(main) && /Net operating income/.test(main), "Open → Route 9's Asset Business Plan, with its budget vs. actual");
 
+  // ── Dispositions → Disposition Candidates (1.1.5): first tab, empty on Model Fund I (exits in 2030) ──
+  await FX.openTab(p, "Disposition Candidates");
+  await p.waitForTimeout(600);
+  const dtabs = await p.getByRole("group", { name: "Dispositions" }).getByRole("button").allInnerTexts();
+  check(/^Disposition Candidates/.test(dtabs[0]), `Disposition Candidates is the first Dispositions tab (${dtabs.join(", ")})`);
+  const dc = await p.getByTestId("disposition-candidates").innerText();
+  check((await p.getByTestId("no-candidates").count()) === 1 && /No disposition candidates/.test(dc) && /Next planned exit: [^,]+, \d+\/\d+\/2030 \(business plan\)/.test(dc), `no candidates yet, with the next planned exit: ${dc.replace(/\s+/g, " ").slice(0, 220)}`);
+  await p.getByTestId("home-button").click();
+  await p.waitForTimeout(800);
+
   // ── Add sample marks and market data (1.1.5) ──
   if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();

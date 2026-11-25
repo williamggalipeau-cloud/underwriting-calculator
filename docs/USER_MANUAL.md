@@ -260,7 +260,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
 | **Acquisitions** | Pipeline · Deal Screener · Portfolio Impact · Comps · Acquisition Documents | |
-| **Dispositions** | Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Disposition Documents | |
+| **Dispositions** | Disposition Candidates (1.1.5) · Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Disposition Documents | |
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
 | **Portfolio Management** | Portfolio Summary (with Plan vs. actual) · Portfolio Return · Portfolio Debt · Distribution Analysis · Stress Testing · Benchmarking | |
@@ -2587,6 +2587,19 @@ A **Dispositions** group sits right after Acquisitions. Each asset's sales
 are kept on the asset itself, so they save and log like any other edit, and
 they follow the **Select Portfolio** (was Working on) picker.
 
+- **Disposition Candidates** (1.1.5, the first tab; `lib/dispositionCandidates.js`):
+  a screener of the owned assets whose **business plan exit** falls in the
+  next 12 months, or has passed while the asset is still owned. The exit is
+  the latest plan revision's target exit date, or the acquisition date plus
+  its hold years; assets with no business plan aren't listed, and sold
+  assets drop off. Columns: Asset, Portfolio, Acquired, Planned exit (with
+  the plan revision), Months left (red when past the plan), Plan
+  recommendation, **Sell/Hold decision** (the one saved on Sell/Hold
+  Analysis; past the plan it reads "Held past plan: Hold to year n", or "Past
+  plan exit, no Sell/Hold decision" in red), Sale (its stage, or "No sale
+  started") and **Sell/Hold →**. With none, it says so and names the next
+  planned exit. (In the 1.2 workflow, each candidate will need a fresh
+  sell/hold analysis.)
 - **Assets for Sale:** **Start sale** for an owned asset: the whole asset or
   selected units, and the reason (business plan complete, hold reached, fund
   term, opportunistic). Each sale opens to:
@@ -4487,7 +4500,7 @@ Model Fund I → Open**.
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4503,6 +4516,7 @@ Model Fund I → Open**.
 ### What's in 1.1.5
 
 - **Add sample marks and market data:** a fictional submarket per Model Fund I asset (each asset tagged, market check mostly in line) and quarterly marks; Load Model Fund I includes them.
+- **Disposition Candidates:** a new first tab in Dispositions, listing the assets whose business plan exit falls in the next 12 months (or has passed), with their Sell/Hold decision and sale status (§7.43).
 - **Risk report:** "Change vs. last quarter" becomes **KRI Trending (vs. date)** with a **KRI** column; **Issued risk reports** move to the bottom; **Environmental and climate** is removed.
 
 ### What's in 1.1.4
