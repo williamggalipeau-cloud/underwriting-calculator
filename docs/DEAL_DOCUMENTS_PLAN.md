@@ -7,6 +7,41 @@ and a pull request; nothing merges without the user. CREparser connectors are
 used to validate only, staying within the user's free allowance. Nothing
 changes the model without the user clicking to apply it.
 
+## Where we left off (end of 11/25)
+
+**Live:** version **1.1.5**, published on GitHub as v1.1.5 (merge commit `1c37db6`). Releases v1.0.0 through v1.1.5 are all published; nothing is open (no PRs, no scheduled check-ins). 1.2 and later are scoped at a future date.
+
+**Next session, in this order:**
+
+1. **Patch 1.1.6: Acquisitions flow and complete test fund**
+   - **Deal Screener** dropdown reads the Pipeline directly:
+     - Active (under contract, LOI, screening, watching) and History (closed, passed/lost).
+     - Picking an unscreened deal builds its model from the pipeline figures and links it.
+     - Passed/lost deals open read-only (decided); closed deals point to the asset they became.
+   - The deal selected in the Screener **pre-loads Portfolio Impact** as the candidate (in its target fund) and **opens Comps** on it.
+   - **Load Model Fund I** builds the complete test fund in one click:
+     - the sample pipeline deals, pre-screened;
+     - the sample documents (LPA, PPM, asset and sale documents), with the 9 leases replaced by tenant-named ones;
+     - construction test data;
+     - portfolio manager Taylor Brooks.
+   - **Portfolio Return:** Fund terms moves to the top of each fund card, under the fund name.
+   - **Manual:**
+     - a one-line pointer at the top of §7 (no connector or skill feeds the calculations);
+     - §3 updated with the Supabase reads and the requested writes (stamped "Claude (sample data, on request)"), the CREparser Deal Review validators, and the pre-approved Supabase tools.
+   - **Then, together:** check the live data, click Load Model Fund I (it replaces the business plans on the sample assets with sample plans), and Claude verifies every area in the database.
+2. **Patch 1.1.7: risk report "risks first"** (mockup sent 11/25; answers needed):
+   - Is the direction right? Leasing Risks, Debt Risks, Valuation Risks and Concentration Limit Checks, with the reference tables collapsed. Drop any Valuation row inside its threshold.
+   - Weak-credit tenant expiring: keep it or drop it?
+   - "Near limit" = within 10% of a limit: OK?
+   - Already decided: the five leasing risks; thresholds per portfolio; schedules kept collapsed; Debt Risks as proposed.
+3. **Patch 1.1.8: Finance → Firm Economics** (decided): its own tab in Finance, shown only when the firm is both GP and sponsor in a portfolio, never in the risk report.
+   - **Cards:** equity (GP capital plus sponsor co-invest), fees counted once (to date and over the fund's life), co-invest profit, promote from both sides, total, ROE, IRR, multiple, Revenue Yield.
+   - **Detail:** by portfolio (with the firm's role) and by year.
+   - **Exports:** PDF and Excel.
+   - Starts with its own mockup.
+
+**Parked:** a true four-quarter KRI Trending; 1.5 Construction Management (scope recorded below).
+
 ## Releases (user, 11/25)
 
 The code is frozen as **version 1.0** (everything through PR #101; tag
