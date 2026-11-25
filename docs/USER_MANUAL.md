@@ -2,6 +2,9 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
+Version: **1.0.0** (released 2026-11-25). The version shows next to the Baywise
+name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
+for what's in 1.0, what comes next and how releases work.
 
 This manual covers:
 
@@ -3415,6 +3418,21 @@ http://localhost:3000/underwriting-calculator).
 
 **Deploy:** merge to `main`. `.github/workflows/deploy.yml` builds and
 publishes to GitHub Pages, usually within a few minutes.
+- **Two jobs:** the build job uploads the site package, then the deploy job
+  publishes it.
+- **Automatic retry:** GitHub sometimes doesn't yet list a package that was
+  just uploaded. When that happens, the deploy waits a minute and tries once
+  more.
+- **If both tries fail:** the live site stays on the previous version. Re-run
+  the failed job from the Actions tab.
+- **Check it went live:** confirm the "Deploy to GitHub Pages" run is green
+  before saying a change is live.
+
+**Releases:** see §13 (tags `v1.0.0`, …). To revert to an earlier release,
+run the deploy workflow on that release's tag (Actions → Deploy to GitHub
+Pages → Run workflow → the tag). If GitHub's Pages settings only allow
+deploying from `main`, put `main` back to the tag's code with a revert
+commit instead; the tag itself never changes.
 
 **Refresh the forward curve:**
 - **In the app:** Deal Screener → Update from Pensford, then upload
@@ -4298,6 +4316,42 @@ browser** and opens instead; switch with **☁ Database → Your workspaces →
 Model Fund I → Open**.
 
 ## 13. Roadmap
+
+### Releases (user, 11/25)
+
+| Version | What it covers | Status |
+|---|---|---|
+| **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market data on the Valuation tab | Next |
+| **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
+| **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
+| **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
+
+**How releases work:**
+- **One live version.** The site runs one release at a time.
+- **Releases are frozen and kept.** Each release is tagged in GitHub (`v1.0.0`, …) with a GitHub Release and its notes. To revert, that release is redeployed from its tag; nothing is lost.
+- **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
+- **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
+- **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.0
+
+- **Deal underwriting:** Deal Screener, the full model with rent roll, debt, cash flow, returns and sensitivity.
+- **Acquisitions:** Pipeline, Portfolio Impact, Comps, and Acquisition Documents.
+- **Dispositions:** Sell/Hold, Assets for Sale, Offers, Track Record, and Disposition Documents.
+- **Asset Management:** Asset Summary, Business Plan, Rent Roll, Leases with Claude abstraction, Active Leasing, Valuation, Debt, Cash Flow, Asset Return, and Return Sensitivity.
+- **Property Management:** Property Taxes, Insurance, Property Condition, and Service Contracts.
+- **Portfolio Management:** Portfolio Summary, Return, Debt, Distribution Analysis, Stress Testing, and Benchmarking. Portfolios can be funds, joint ventures or separate accounts, each with its own terms.
+- **Finance:** GP Economics and Sponsor Economics, with portfolio parties, fee ownership and Revenue Yield.
+- **Research:** Market Data, with CSV and Excel upload.
+- **Library:** the firm-wide Document Library, and Reports (quarterly investor reports by portfolio or asset, and the risk report).
+- **Dashboard:** actions, upcoming events and the asset watch list.
+- **Firm-wide features:**
+  - **Saving:** record-by-record database saving, a save bar, and a prompt before leaving unsaved changes.
+  - **History:** a change log with revert.
+  - **Sample data:** sample data and mock comps.
+
+### Phases (history)
 
 *Lease, documents, performance and reporting: phases A–V.* What has been built and
 what is coming, kept up to date as each phase finishes. The full scope of

@@ -15,10 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Build and deploy are separate jobs (GitHub's recommended layout): the site
-  # package is fully uploaded before the deploy job looks for it. Deploying in
-  # the same job as the upload sometimes failed with "No artifacts named
-  # github-pages were found" (three times on 11/24).
+  # Build and deploy are separate jobs (GitHub's recommended layout).
   build:
     runs-on: ubuntu-latest
     steps:
@@ -44,5 +41,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
+      # GitHub sometimes doesn't list a just-uploaded site package yet, and the
+      # deploy fails with "No artifacts named github-pages were found" though
+      # the upload succeeded (11/24 three times, 11/25 once; a re-run minutes
+      # later always worked). So: if the first try fails, wait a minute and
+      # try once more. A second failure fails the run as before.
+      - id: first
+        continue-on-error: true
         uses: actions/deploy-pages@v5
+      - name: Wait for the site package to be listed
+        if: steps.first.outcome == 'failure'
+        run: sleep 60
+      - id: retry
+        if: steps.first.outcome == 'failure'
+        uses: actions/deploy-pages@v5
+      - id: deployment
+        name: Deployed URL
+        run: echo "page_url=${{ steps.first.outputs.page_url || steps.retry.outputs.page_url }}" >> "$GITHUB_OUTPUT"

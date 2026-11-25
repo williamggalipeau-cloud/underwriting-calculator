@@ -84,6 +84,7 @@ import {
   supabase,
 } from "@/lib/cloud";
 import ChangeLog from "@/components/ChangeLog";
+import { APP_VERSION, RELEASE_DATE, versionLabel } from "@/lib/version";
 import FundTermsEditor from "@/components/FundTermsEditor";
 import WorkflowDocs from "@/components/WorkflowDocs";
 import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
@@ -1786,7 +1787,7 @@ export default function Home() {
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-900 leading-tight">Baywise</h1>
+              <h1 className="text-sm font-bold text-gray-900 leading-tight">Baywise <span className="ml-1 rounded bg-gray-100 px-1.5 py-px align-middle text-[10px] font-semibold text-gray-500" data-testid="app-version" title={`Version ${APP_VERSION}, released ${RELEASE_DATE}`}>{versionLabel()}</span></h1>
               <p className="text-xs text-gray-400 leading-tight">Industrial Real Estate Management</p>
             </div>
           </button>
@@ -2449,6 +2450,9 @@ export default function Home() {
                   if (d?.files?.[0]) window.open(`${await dealFileLink(d.files[0].path)}${page ? `#page=${page}` : ""}`, "_blank", "noopener");
                 } : null}
               />
+            )}
+            {activeTab === "changes" && (
+              <p className="mb-2 text-xs text-gray-500" data-testid="release-line">Baywise version <b>{APP_VERSION}</b> · released {RELEASE_DATE} · <a href="https://github.com/williamggalipeau-cloud/underwriting-calculator/releases" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">release notes</a></p>
             )}
             {activeTab === "changes" && (
               <ChangeLog
