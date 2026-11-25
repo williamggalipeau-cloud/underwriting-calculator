@@ -2,7 +2,7 @@
 
 Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.5** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.6** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -205,10 +205,13 @@ automatically.
 - **Sign in first.** Signed out, the app is View only and nothing is saved.
 - **The firm opens on sign-in:** deals, fund terms, valuation marks, comps
   and the forward curve. There are no workspaces to open, create or delete.
-- **When it saves:** about **one second after each change**. Only what
-  changed is saved: the deal, fund or setting you edited, each as its own
-  record. It also saves when you click **Save changes** and when you switch away
-  from or close the tab.
+- **When it saves (1.1.6):** automatically **2 minutes after your last
+  change** (it was about one second before 1.1.6). You can save any time
+  before that with **Save changes** on the save bar. It also saves when you
+  move to another tab, Home or another portfolio (after asking), and when you
+  switch away from or close the browser tab; the browser warns before closing
+  with unsaved edits. Only what changed is saved: the deal, fund or setting
+  you edited, each as its own record.
 - **Live updates:** when someone else saves, their change appears on your
   screen within a moment, without reloading.
 - **Save bar (user, 11/24):** as soon as you change anything, a bar appears
@@ -331,7 +334,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Deal Screener** (named Quick Underwrite until 11/22/2026) | The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
+| **Deal Screener** (named Quick Underwrite until 11/22/2026) | **Pipeline Deal** dropdown (1.1.6, §7.61): every deal on the Pipeline, grouped **Active** and **History**; picking one not screened yet builds its model from the Pipeline figures; **Portfolio Impact →** and **Comps →** open on the deal; passed deals are read-only and closed deals point to their asset. The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 
 **Asset Management**
 
@@ -355,7 +358,7 @@ in the header, next to User manual.
 |---|---|
 | **Portfolio Summary** | One page of key facts about a fund: key dates, capital raised / called / deployed / available, every key term, legal entities with an ownership chart, org chart and formation document uploads, links to the tabs that hold the rest; fact sheet (PDF) and Excel (§7.38). |
 | **Fund Plan** | The fund's frozen plan (and re-forecasts) against actuals to date and today's forecast: capital called, deployment, distributions, DPI, NAV, projected returns vs. targets, GP promote, a cumulative chart, attribution by asset and cause; Excel and PDF report (§7.33). |
-| **Portfolio Return** | Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. Then **Underwritten vs. actual + projected**: each asset with a frozen baseline ranked by IRR gap (§7.32). |
+| **Portfolio Return** | **Fund terms** (final close, investment period, term, extensions) at the top of each fund card, under its name (1.1.6). Funds: cost of capital against the fund's hurdle rate (default: its pref; §7.22), fund expenses and fund cash (§7.20), projected cash-on-cash yield (§7.21), fund terms (upload or edit), the asset roster and timeline, gross / net fund / net LP IRR and multiple, quarterly income distributions, the dated waterfall, the subscription line, and capital called / dry powder. At the top: **Fund NAV and interim returns** (fund NAV, gross and net LP interim IRR / TVPI / DPI for the As of quarter, and the fund's quarter-by-quarter totals; moved from Valuation on 11/23), with a link to the Valuation tab for the marks and the valuation PDF. Then **Underwritten vs. actual + projected**: each asset with a frozen baseline ranked by IRR gap (§7.32). |
 | **Distribution Analysis** | Each quarter's distributable cash: asset cash (Yardi upload or entered; projected where none is entered, labelled), less reserves, committed TI / capex and 3 months of asset expenses; fund cash less 6 months of fund expenses; less any sub line repayment. Choose the distribution (% or amount), LP / GP split per the waterfall, yield on LP contributed capital and NAV, last 4 quarters; save a proposal and record it as paid; Excel and PDF (§7.34). |
 | **Stress Testing** | Sliders for vacancy, rent growth, interest rate, exit cap, opex and construction overruns. Shows base vs. stressed results for the deal and the effect on the portfolio IRR. |
 
@@ -493,7 +496,8 @@ Claude Code) built and maintains it, using the tools below.
 | **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. |
 | **CREparser Lease Abstraction** | Opened at the start for lease abstraction. Not used in the app's calculations. |
 | **FactIQ** | Searching for SOFR data series while choosing a live rate source. The app uses the NY Fed API instead (§5). |
-| **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). |
+| **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). Since 11/25 (user's choice; all data is test data): **reading** the live firm data to check features against it, and **writing** sample data only when the user asks, each write stamped "Claude (sample data, on request)", version-checked and logged in the audit log. New tables, types and policies stay in `supabase/*.sql` for the user to run. |
+| **CREparser Deal Review** | Validating the abstracts of the fictional sample documents (offering memos, rent rolls, T-12s, LOIs, loan agreements, appraisals, estoppels and others) before they were shipped as sample data. Validation only. |
 
 ### Skills loaded while building
 
@@ -522,6 +526,10 @@ These are optional and not wired into the app:
   security and performance advisors. Add it at claude.ai → Settings →
   Connectors, then start a new Claude session. It acts as your Supabase
   account, so prefer read-only access and ask for changes explicitly.
+  The repository's `.claude/settings.json` pre-approves its read tools
+  (list projects, get project, list tables, run SQL) so Claude can check the
+  live data without a prompt each time; writes still happen only when you
+  ask.
 - **Claude with your documents** — Claude can read an LPA, PPM or credit
   facility term sheet and fill in the Fund Terms template (Portfolio Return →
   New fund → Download template), which you then upload.
@@ -687,6 +695,10 @@ Return tab snapshots each deal (`snapshotDeal`) into dated quarterly flows
 ---
 
 ## 7. Calculation logic and assumptions
+
+> No connector or skill feeds these calculations: every figure is computed
+> by the app's own code in your browser from your data (§3 lists what Claude
+> used to build and check the app).
 
 Conventions used throughout:
 
@@ -3263,8 +3275,8 @@ Accounts) chooses what is reported on, then **Report on** the whole
 portfolio or one asset.
 
 **Deal Screener** (11/24): its picker is **Pipeline Deal** and lists only
-pipeline deals (Deal Screener deals and deals not yet acquired), never owned
-assets.
+pipeline deals, never owned assets. Since 1.1.6 it reads the Pipeline
+directly (§7.61).
 
 **Sample data → Add sample pipeline deals** (owners): three fictional deals
 (under contract, LOI and screening) in Acquisitions → Pipeline, their
@@ -3477,6 +3489,17 @@ dates and rent comps (§7.60), and from 1.1.5 the sample marks and market data, 
 Watch List, Active Leasing, Vacant Units, Valuation and Market Data have data
 in one click.
 
+**From 1.1.6, Load Model Fund I builds the complete test fund:**
+- **Construction test data** (TI and capital jobs with invoices) on the rebuilt assets.
+- **The sample pipeline deals, pre-screened:** each gets its Deal Screener
+  model, so it opens straight into the Screener (a deal already screened
+  keeps its model).
+- **Sample documents** (LPA, PPM, asset, sale and lease documents, with their
+  abstracts), when signed in to the firm. **Lease records on the sample
+  assets with no tenant name** are removed first and replaced by the
+  tenant-named sample leases; every other lease is kept.
+- **Portfolio manager Taylor Brooks** on Model Fund I, unless it already has one.
+
 ### 7.59 Sample business plans (`lib/samplePlans.js`, version 1.1.2)
 
 **Sample data → Add sample business plans** (owners) gives each Model Fund I
@@ -3536,6 +3559,37 @@ the start of a vacant unit's Days vacant.
 Also in 1.1.2: an occupancy, rent or WALT goal counts as missed only when it's
 short at the precision shown, so the Watch List no longer lists "Rent
 $42.49/SF vs $42.49/SF".
+
+### 7.61 Acquisitions flow: the Screener's Pipeline Deal dropdown (`lib/screenerPicker.js`, version 1.1.6)
+
+The **Deal Screener**'s **Pipeline Deal** dropdown reads **Acquisitions →
+Pipeline** directly, so every pipeline deal is listed, screened or not
+(designed with the user, 11/25):
+- **Active:** under contract (PSA), LOI, screening and watching, in that
+  order, then by name. Each says its stage and whether it is screened.
+- **History:** closed and passed / lost, newest first, by the date the stage
+  was set on the Pipeline (or, for a closed deal, its expected close).
+- **Not on the Pipeline:** any other deal not in a portfolio, so none goes
+  missing. Owned assets are never listed.
+- **Select Portfolio:** with a portfolio chosen, rows targeting another
+  portfolio are left out.
+
+**Picking a deal:**
+- **Not screened yet** (an editor): its model is built at once from the
+  Pipeline figures (asking price, NOI, size, expected close), linked to the
+  row and logged; a Watching row moves to Screening. A note shows what it was
+  built from. Viewers see the figures; nothing is built.
+- **Screened:** the Screener as before, with **Next for this deal:
+  Portfolio Impact in [target fund] →** (the deal is the candidate, in the
+  Pipeline row's target fund) and **Comps →** (Comps on the same deal). The
+  deal on the Screener also pre-loads Portfolio Impact when you open it from
+  the tabs.
+- **Passed / lost:** decided, so **read-only**: the reason and the screening
+  as it stood, greyed. To change it, move the deal back to an active stage on
+  the Pipeline.
+- **Closed:** points to the asset it became (**Open asset →**, which opens
+  its Asset Business Plan like every owned asset), or, if not converted yet,
+  to the Pipeline to convert it.
 
 ## 8. Worked example: the default deal
 
@@ -4252,7 +4306,7 @@ and nothing is saved; nothing is ever saved in the browser.
 
 **What the database adds:**
 - **Sharing:** one firm, with owner, editor and viewer access.
-- **Record-by-record saving:** each change is saved within about a second,
+- **Record-by-record saving:** each change is saved within 2 minutes (or at once with Save changes),
   and screens update live.
 - **Verified change log:** entries record the signed-in user and the
   server's time, and can't be edited or deleted.
@@ -4557,7 +4611,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions are removed in patch 1.1.7. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4572,6 +4626,14 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.6
+
+- **Acquisitions flow (§7.61):** the Deal Screener's **Pipeline Deal** dropdown reads the Pipeline (Active and History). Picking a deal not yet screened builds its model from the Pipeline figures; **Portfolio Impact →** (in the deal's target fund) and **Comps →** open on it; passed deals are read-only; closed deals point to their asset.
+- **Load Model Fund I builds the complete test fund (§7.58):** construction data, pre-screened sample pipeline deals, sample documents with tenant-named leases (replacing unnamed ones on the sample assets), and portfolio manager Taylor Brooks.
+- **Portfolio Return:** Fund terms at the top of each fund card.
+- **Autosave every 2 minutes** instead of about a second; **Save changes** still saves at once, leaving asks first, and closing the tab saves.
+- **Manual:** §3 lists the Supabase reads and requested writes and the CREparser Deal Review validators; §7 notes that no connector or skill feeds the calculations.
 
 ### What's in 1.1.5
 
@@ -4657,7 +4719,7 @@ each phase and the decisions behind it are in
 | N. Portfolio Summary | New Portfolio Summary tab: key dates (launch, final close, investment period end), key terms, and capital raised, deployed and available (plus end of term with extensions, % called and sub line use; PDF and Excel export; links to the tabs that already show performance, the portfolio and dates); all key terms; legal entities (fund, GP, manager, asset companies) with an ownership chart and annual-report dates; uploads for org charts and formation documents; one-page fact sheet | ✅ Built 11/23: Portfolio Summary tab (§7.38) |
 | O. Asset and fund setup | New / Edit asset and New / Edit fund buttons; the inputs panel opens only from them | ✅ Built 11/23: New / Edit asset slide-over, New / Edit fund (§7.39) |
 | P. Dispositions | Dispositions group: Assets for Sale (whole or partial sales, BOVs, broker, stages, closing and distribution), Offers (every offer received, net proceeds side by side), Track Record (realized results vs. underwriting and marks), Documents; uploads in each tab; Excel and PDF exports | ✅ Built 11/23: Assets for Sale, Offers, Track Record, Sale Documents, Start sale from Sell/Hold, LP / GP split, Excel and PDF, Home lane (§7.43); reading documents in with Claude later |
-| Q. Workspace storage | One firm, no workspaces to choose; every change saved within about a second, record by record; live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
+| Q. Workspace storage | One firm, no workspaces to choose; every change saved record by record (within 2 minutes since 1.1.6; Save changes saves at once); live updates; nothing overwritten when two people edit | ✅ Built 11/22 night (PR #80) |
 | R. Leasing | Leasing tab (Asset Management): Leasing Pipeline (leasing prospects) and Rent Comps, with uploads | ✅ Built 11/23: Leasing Pipeline (prospects and renewals, net effective rent, vs. plan), Rent Comps (manual and upload, filters, set market rent), whole-fund view, documents, Excel and PDF, Home items (§7.44) |
 | S. Portfolio Debt | Portfolio Debt tab (Portfolio Management): every loan, maturities, rate exposure, covenant certificates | ✅ Built 11/23: loans, maturity ladder, extension tests, refinance planner, rate exposure and caps, lenders, covenant compliance certificates (Excel and PDF), tab Excel and PDF, Home alerts (§7.45) |
 | T. Property Management | Property Taxes, Insurance, Property Condition and Service Contracts tabs, linked to Yardi Construction Manager; TI spend by unit, with mock TI actuals on the sample assets | ✅ Built 11/23: Property Taxes, Insurance, Property Condition, Service Contracts (one asset and whole fund, summaries, key dates, uploads, Excel and PDF, findings to the capital plan), Yardi construction upload and TI spend by unit with overrun flags, construction test data, Home items (§7.46) |

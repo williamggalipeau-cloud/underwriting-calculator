@@ -192,7 +192,7 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
                     <td className={`${td} text-right`}>{x.psf ? `$${x.psf.toFixed(0)}` : "—"}</td>
                     <td className={`${td} text-right`}>{x.cap ? `${x.cap.toFixed(2)}%` : "—"}</td>
                     <td className={td}>
-                      <select aria-label={`Stage ${d.name}`} disabled={!canEdit} value={d.stage} onChange={(e) => update(d.id, { stage: e.target.value, probabilityPct: STAGE_PROBABILITY[e.target.value] })} className={`rounded px-1 py-0.5 text-[11px] font-medium ${STAGE_CLS[d.stage]}`}>
+                      <select aria-label={`Stage ${d.name}`} disabled={!canEdit} value={d.stage} onChange={(e) => update(d.id, { stage: e.target.value, probabilityPct: STAGE_PROBABILITY[e.target.value], stageDate: today })} className={`rounded px-1 py-0.5 text-[11px] font-medium ${STAGE_CLS[d.stage]}`}>
                         {STAGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
                       </select>
                       {d.stage === "passed" && <input aria-label={`Pass reason ${d.name}`} disabled={!canEdit} defaultValue={d.passReason} placeholder="Reason" onBlur={(e) => e.target.value !== d.passReason && update(d.id, { passReason: e.target.value })} className={`${inp} mt-1`} />}

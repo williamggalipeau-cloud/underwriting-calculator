@@ -67,6 +67,10 @@ warehouse is 3.0.
 
 **Next session, in this order:**
 
+**Built 11/25 (evening), PR open for 1.1.6:** everything listed under 1.1.6 below, as mocked up (scratchpad mockup acq116.png). Decided while building: screening happens on pick, no confirmation (user); passed deals are changed by moving them back to an active stage on the Pipeline (user); a closed deal's **Open asset →** opens its Asset Business Plan (the app's convention for owned assets; the mockup said Asset Summary, which lists every asset); pipeline rows now keep `stageDate` (the date the stage was set) to date and sort History; Load Model Fund I removes only sample assets' lease records with a blank tenant before uploading the named sample leases; automated browser tests keep a 1-second autosave (navigator.webdriver). Manual §7.61.
+
+**Open (user, 11/25): hosting on Vercel instead of GitHub Pages?** Code stays on GitHub. Vercel would add a preview link per pull request, protection of the whole site behind a login (fits "only the firm's employees"), server functions and one-click rollback; it needs a paid team plan for a firm and a small migration patch (site address and base path, Supabase sign-in redirect URLs, the deploy workflow, browser tests). Recommended: its own small patch after 1.1.6, or with access control in 2.0. Awaiting the user's choice.
+
 1. **Patch 1.1.6: Acquisitions flow and complete test fund**
    - **Deal Screener** dropdown reads the Pipeline directly:
      - Active (under contract, LOI, screening, watching) and History (closed, passed/lost).

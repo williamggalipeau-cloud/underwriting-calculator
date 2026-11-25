@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { fundOptionLabel } from "@/lib/fundTypes";
 import { writeXlsx } from "@/lib/xlsx";
-import { IMPACT_ROWS, fundImpact, impactXlsx, isPipeline } from "@/lib/fundImpact";
+import { IMPACT_ROWS, fundImpact, impactXlsx } from "@/lib/fundImpact";
 
 const fmt = (v, u) => (v == null || !isFinite(v) ? "—" : u === "%" ? `${v.toFixed(1)}%` : u === "x" ? `${v.toFixed(2)}x` : `$${(v / 1e6).toFixed(2)}M`);
 const fmtD = (v, u) => {
@@ -18,20 +18,22 @@ const fmtD = (v, u) => {
 const tone = (v, good = 1) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-400" : v * good > 0 ? "text-emerald-700" : "text-red-600");
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "—");
 
-// The pipeline deals to pick from, and the notice for an owned asset.
-export function ScreenerPicker({ activeDeal, deals, todayISO, onSelect, owned, pipelineRow = null, onSyncRow = null }) {
+// The notice for an owned asset, and the offer to update the Pipeline row
+// when the screener's figures differ from it. (The deals to pick from are in
+// the Pipeline Deal dropdown since 1.1.6: components/PipelineDealPicker.jsx.)
+export function ScreenerPicker({ activeDeal, owned, pipelineRow = null, onSyncRow = null }) {
   const q = activeDeal.quick ?? {};
   const diffs = pipelineRow ? [
     ["askingPrice", "price", q.purchasePrice],
     ["noi", "NOI", q.noiYear1],
     ["expectedClose", "close date", q.acquisitionDate],
   ].filter(([k, , v]) => v != null && v !== "" && String(pipelineRow[k] ?? "") !== String(v)) : [];
-  const pipe = deals.filter((d) => isPipeline(d, todayISO));
+  if (!owned && !(diffs.length > 0 && onSyncRow)) return null;
   return (
     <div className="space-y-2" data-testid="screener-picker">
       {owned && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="screener-owned">
-          <span className="font-semibold">{activeDeal.inputs.propertyName}</span> is an owned asset of {activeDeal.inputs.fundName} (acquired {usDate(activeDeal.inputs.acquisitionDate)}). Deal Screener is for pipeline deals; owned assets are on the Asset Management tabs.
+          <span className="font-semibold">{activeDeal.inputs.propertyName}</span> is an owned asset of {activeDeal.inputs.fundName} (acquired {usDate(activeDeal.inputs.acquisitionDate)}). Deal Screener is for pipeline deals; owned assets are on the Asset Management tabs. Choose a Pipeline Deal above.
         </p>
       )}
       {!owned && diffs.length > 0 && onSyncRow && (
@@ -40,13 +42,79 @@ export function ScreenerPicker({ activeDeal, deals, todayISO, onSelect, owned, p
           <button type="button" onClick={() => onSyncRow(Object.fromEntries(diffs.map(([k, , v]) => [k, v])))} className="rounded border border-sky-300 bg-white px-2 py-0.5 font-medium">Update pipeline row</button>
         </p>
       )}
-      <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="text-gray-500">Pipeline Deals:</span>
-        {pipe.length === 0 ? <span className="text-gray-400">none yet. Add them on the Pipeline tab and press Screen.</span> : pipe.map((d) => (
-          <button key={d.id} type="button" onClick={() => onSelect(d.id)} className={`rounded-full border px-2.5 py-0.5 ${d.id === activeDeal.id ? "border-blue-600 bg-blue-600 text-white" : "border-gray-300 bg-white text-gray-700 hover:border-blue-300"}`} data-testid="screener-deal">
-            {d.inputs.propertyName || "Unnamed deal"}
-          </button>
-        ))}
+    </div>
+  );
+}
+
+const money = (v) => (v > 0 ? `$${Math.round(v).toLocaleString("en-US")}` : "—");
+const histDate = (row) => row.stageDate || (row.stage === "closed" ? row.expectedClose : "") || "";
+
+// The Pipeline row's figures (what a model is built from).
+function RowFigures({ row, dim = false }) {
+  const f = [["Asking price", money(row.askingPrice)], ["NOI", money(row.noi)], ["Size", row.sf > 0 ? `${Math.round(row.sf).toLocaleString("en-US")} SF` : "—"], ["Expected close", usDate(row.expectedClose)]];
+  return (
+    <div className={`mt-1.5 grid grid-cols-2 gap-2 sm:grid-cols-4 ${dim ? "opacity-60" : ""}`} data-testid="row-figures">
+      {f.map(([k, v]) => <div key={k} className="rounded-md bg-white/70 px-2 py-1 text-[11px] text-gray-500">{k}<b className="block text-sm text-gray-900">{v}</b></div>)}
+    </div>
+  );
+}
+
+const linkBtn = "rounded-md border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-50";
+
+// Deal Screener (user, 11/25, 1.1.6): what the picked Pipeline row shows
+// above the screener (lib/screenerPicker.js screenerState).
+export function ScreenerRowCard({ row, state, justScreened = false, canEdit = false, onImpact = null, onComps = null, onOpenAsset = null, onOpenPipeline = null }) {
+  const kind = state?.kind;
+  if (kind === "closed") {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900" data-testid="screener-closed">
+        <span className="font-semibold">{row.name}</span> · Closed{histDate(row) ? ` ${usDate(histDate(row))}` : ""}{" "}
+        {state.asset ? (
+          <>→ now an asset of {state.asset.inputs.fundName}. {onOpenAsset && <button type="button" onClick={onOpenAsset} className={`${linkBtn} ml-1`}>Open asset →</button>}
+            <span className="mt-1 block text-[11px]">Opens on its Asset Business Plan, like every owned asset; its screening is kept with the asset.</span></>
+        ) : (
+          <>, not converted to an asset yet. {onOpenPipeline && <button type="button" onClick={onOpenPipeline} className={`${linkBtn} ml-1`}>Convert it on the Pipeline →</button>}</>
+        )}
+      </div>
+    );
+  }
+  if (kind === "passed") {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700" data-testid="screener-passed">
+        <span className="font-semibold">{row.name}</span> · Passed / lost{histDate(row) ? ` ${usDate(histDate(row))}` : ""}
+        <span className="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-bold text-gray-600">READ-ONLY</span>
+        {row.passReason && <span className="mt-1 block">Reason: &ldquo;{row.passReason}&rdquo;</span>}
+        <span className="mt-1 block text-[11px]">
+          {state.model ? "The screening as it stood is shown below, greyed. " : "It was never screened; the Pipeline figures are below. "}
+          To change it, move the deal back to an active stage on the Pipeline.
+          {onOpenPipeline && <button type="button" onClick={onOpenPipeline} className={`${linkBtn} ml-2`}>Open Pipeline →</button>}
+        </span>
+        {!state.model && <RowFigures row={row} dim />}
+      </div>
+    );
+  }
+  if (kind === "new") {
+    return (
+      <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900" data-testid="screener-new">
+        <span className="font-semibold">{row.name}</span> · not screened yet. {canEdit ? "Pick it again to build its model from these Pipeline figures." : "An editor's pick builds its model from these Pipeline figures."}
+        <RowFigures row={row} />
+      </div>
+    );
+  }
+  // Screened: the next steps for this deal.
+  return (
+    <div className="space-y-2">
+      {justScreened && (
+        <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900" data-testid="screener-just-screened">
+          <span className="font-semibold">{row.name}</span> was screened from its Pipeline row just now (logged). Built from:
+          <RowFigures row={row} />
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900" data-testid="screener-next">
+        <span>Next for this deal:</span>
+        {onImpact && <button type="button" onClick={onImpact} className="rounded-md bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700">Portfolio Impact{row.targetFund ? ` in ${row.targetFund}` : ""} →</button>}
+        {onComps && <button type="button" onClick={onComps} className={linkBtn}>Comps →</button>}
+        <span className="text-[11px] text-emerald-800">{row.targetFund ? "Target fund from the Pipeline row. " : "No target fund on the Pipeline row yet. "}Both tabs open on this deal.</span>
       </div>
     </div>
   );

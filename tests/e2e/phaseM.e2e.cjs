@@ -46,9 +46,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await FX.openTab(p, /^Deal Screener/);
   await p.waitForTimeout(800);
   check((await main.getByTestId("screener-owned").count()) === 1 && (await main.getByTestId("screener-impact").count()) === 0, "Deal Screener: an owned asset gets a notice, not the screener");
-  // The picker lists pipeline deals only, never owned assets (user, 11/24)
-  const pickOpts = await p.locator("#asset-picker option").allInnerTexts();
-  check(/Pipeline Deal/i.test(await p.locator('label[for="asset-picker"]').innerText()) && !pickOpts.some((o) => /Airport Flex Park|Route 9 Small Bay/.test(o)) && pickOpts[0] === "Choose a Pipeline Deal…", `Deal Screener picker: pipeline deals only (${pickOpts.slice(0, 3).join(", ")})`);
+  // The picker reads the Pipeline (1.1.6), never owned assets (user, 11/24)
+  const pickOpts = await p.locator("#pipeline-deal-picker option").allInnerTexts();
+  check(/Pipeline Deal/i.test(await p.locator('label[for="pipeline-deal-picker"]').innerText()) && !pickOpts.some((o) => /Airport Flex Park|Route 9 Small Bay/.test(o)) && pickOpts[0] === "No Pipeline deals yet", `Deal Screener picker: pipeline deals only (${pickOpts.slice(0, 3).join(", ")})`);
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(1200);
   const pl = main.getByTestId("pipeline");
@@ -91,7 +91,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const imp = main.getByTestId("screener-impact");
   check((await imp.count()) === 1 && /Scenario — not actual/.test(await imp.innerText()) && (await main.getByTestId("screener-owned").count()) === 0, "pipeline deal: Model in fund panel, labelled a scenario");
   check((await imp.getByLabel("Model in fund").inputValue()) === "Model Fund I" && /Net LP IRR/.test(await imp.getByTestId("impact-returns").innerText()) && /Dry powder before → after/.test(await imp.getByTestId("impact-capital").innerText()), "fund with vs. without: returns, dry powder, concentration");
-  check((await main.getByTestId("screener-deal").filter({ hasText: "Glendale Commerce Center" }).count()) === 1, "pipeline deals listed in the screener");
+  check((await p.locator("#pipeline-deal-picker option:checked").innerText()).startsWith("Glendale Commerce Center · Screening · screened") && (await main.getByTestId("screener-next").count()) === 1, "the screened deal is picked in the Pipeline Deal dropdown, with its next steps");
   await imp.getByLabel("Compare against").selectOption("owned");
   await p.waitForTimeout(800);
   check(/owned assets only/.test(await imp.innerText()), "compare against owned assets only");

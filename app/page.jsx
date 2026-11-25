@@ -8,6 +8,8 @@ import DebtSizingPanel from "@/components/DebtSizing";
 import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
+import PipelineDealPicker from "@/components/PipelineDealPicker";
+import { screenerOptions, screenerState, selectedRow } from "@/lib/screenerPicker";
 import HomeView, { SetupMaintenance } from "@/components/Home";
 import AcquisitionDocs from "@/components/AcquisitionDocs";
 import { samplePipelineDeals } from "@/lib/samplePipeline";
@@ -55,7 +57,7 @@ import Pipeline from "@/components/Pipeline";
 import FundImpact from "@/components/FundImpact";
 import FundSummary from "@/components/FundSummary";
 import { entityDates } from "@/lib/fundSummary";
-import ScreenerFundImpact, { ScreenerPicker } from "@/components/ScreenerFundImpact";
+import ScreenerFundImpact, { ScreenerPicker, ScreenerRowCard } from "@/components/ScreenerFundImpact";
 import { revertRoot, revertCheck, applyRevert, restoreAsOf, recentlyDeleted } from "@/lib/revert";
 import { ALL_FUNDS, workingOnOptions, validWorkingOn, scopeDeals, scopeFunds, scopeOpenDeals, scopeLabel } from "@/lib/workingOn";
 import { isPipeline } from "@/lib/fundImpact";
@@ -98,8 +100,12 @@ import { FIGURE_DEFS, firmSummary, fmtAum } from "@/lib/enterprise";
 import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
 
 // The firm's data is saved record by record (phase Q) this many seconds after
-// the last change.
-const RECORD_SAVE_SECONDS = 1;
+// the last change: every 2 minutes (user, 11/25, 1.1.6; it was about 1 second).
+// Save changes saves at once, leaving a tab or page asks first, hiding or
+// closing the browser tab saves, and the browser warns before closing with
+// unsaved edits. Automated browser tests (navigator.webdriver) keep a
+// 1-second delay so they don't wait 2 minutes for each save.
+const RECORD_SAVE_SECONDS = typeof navigator !== "undefined" && navigator.webdriver ? 1 : 120;
 // The asset on screen is per person and per browser, not firm data.
 const ACTIVE_DEAL_KEY = "baywise:activeDealId";
 
@@ -810,8 +816,9 @@ export default function Home() {
     };
   }, [activeTab, dbLink?.id, dbLink?.version, session]);
 
-  // Save to the database DB_SAVE_SECONDS after the last change (scheduled in
-  // the effect below), on Save changes, and when the tab is hidden or closed.
+  // Save to the database RECORD_SAVE_SECONDS (firm records) or DB_SAVE_SECONDS
+  // after the last change (scheduled in the effect below), on Save changes,
+  // and when the tab is hidden or closed.
   // Leaving with unsaved changes asks first, because nothing is kept in the
   // browser.
   const saveRef = useRef(null);
@@ -1307,12 +1314,13 @@ export default function Home() {
   function handleScreenPipeline(pl) {
     if (!requireEdit()) return;
     const have = pl.dealId && deals.find((d) => d.id === pl.dealId);
-    if (have) { setActiveDealId(have.id); setActiveTab("quick"); return; }
+    if (have) { setActiveDealId(have.id); preloadImpact(have.id, pl.targetFund); setActiveTab("quick"); return; }
     const d = pipelineToDeal(pl);
     noteAudit(`Screened pipeline deal ${pl.name}`);
     setDeals((prev) => [...prev, d]);
-    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: d.id, stage: x.stage === "watching" ? "screening" : x.stage } : x)) }));
+    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: d.id, stage: x.stage === "watching" ? "screening" : x.stage, ...(x.stage === "watching" ? { stageDate: new Date().toISOString().slice(0, 10) } : {}) } : x)) }));
     setActiveDealId(d.id);
+    preloadImpact(d.id, pl.targetFund);
     setActiveTab("quick");
   }
   // Documents tab: an offering memo starts a pipeline row (phase M).
@@ -1334,6 +1342,50 @@ export default function Home() {
     setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.dealId === dealId ? { ...x, targetFund: fund } : x)) }));
   }
   const [impactPreselect, setImpactPreselect] = useState([]);
+  // Portfolio Impact's fund when it opens from the Screener (the deal's target fund).
+  const [impactFund, setImpactFund] = useState("");
+  // Deal Screener (user, 11/25, 1.1.6): the Pipeline row picked when it has
+  // no model to show (cleared when the deal on screen changes), and the row
+  // just screened by picking it (for the "screened just now" note).
+  const [pickedRowId, setPickedRowId] = useState(null);
+  const [justScreened, setJustScreened] = useState(null);
+  useEffect(() => { setPickedRowId(null); }, [activeDealId]);
+  // The deal on the Screener pre-loads Portfolio Impact as the candidate, in
+  // its target fund (user, 11/25, 1.1.6).
+  function preloadImpact(dealId, fund = "") {
+    setImpactPreselect([dealId]);
+    setImpactFund(fund || "");
+  }
+  // Picking in the Screener's Pipeline Deal dropdown (lib/screenerPicker.js).
+  function handlePickScreener(value) {
+    if (value.startsWith("deal:")) { setJustScreened(null); setActiveDealId(value.slice(5)); return; }
+    const row = (pipeline.deals ?? []).find((r) => `row:${r.id}` === value);
+    if (!row) return;
+    setJustScreened(null);
+    const st = screenerState(row, deals);
+    if (st.model) {
+      setActiveDealId(st.model.id);
+      setPickedRowId(null);
+      if (st.kind === "screened") preloadImpact(st.model.id, row.targetFund);
+      return;
+    }
+    if (st.kind === "new" && !locked) {
+      // Screening on pick (user, 11/25): the model is built from the Pipeline
+      // figures and linked to the row, as the Pipeline's Screen does.
+      const d = pipelineToDeal(row);
+      noteAudit(`Screened pipeline deal ${row.name} from the Deal Screener`);
+      setDeals((prev) => [...prev, d]);
+      setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === row.id ? { ...x, dealId: d.id, stage: x.stage === "watching" ? "screening" : x.stage, ...(x.stage === "watching" ? { stageDate: new Date().toISOString().slice(0, 10) } : {}) } : x)) }));
+      setActiveDealId(d.id);
+      setJustScreened(row.id);
+      preloadImpact(d.id, row.targetFund);
+      return;
+    }
+    setPickedRowId(row.id);
+  }
+  // The Pipeline row on the Screener and what it shows (lib/screenerPicker.js).
+  const screenRow = selectedRow(pipeline.deals ?? [], deals, { activeDealId: activeDeal?.id ?? null, pickedRowId });
+  const screenSt = screenerState(screenRow, deals);
   function handleSendToFundImpact(pl) {
     if (!requireEdit()) return;
     let id = pl.dealId && deals.find((d) => d.id === pl.dealId)?.id;
@@ -1344,7 +1396,7 @@ export default function Home() {
       setDeals((prev) => [...prev, d]);
       setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: d.id } : x)) }));
     }
-    setImpactPreselect([id]);
+    preloadImpact(id, pl.targetFund);
     setActiveTab("impact");
   }
 
@@ -1359,7 +1411,7 @@ export default function Home() {
     const next = { ...d, inputs: { ...d.inputs, fundName: fund, acquisitionDate: close }, ...(d.quick ? { quick: { ...d.quick, acquisitionDate: close } } : {}) };
     noteAudit(`Converted pipeline deal ${pl.name} to an asset of ${fund}`);
     setDeals((prev) => (existing ? prev.map((x) => (x.id === d.id ? next : x)) : [...prev, next]));
-    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: next.id, converted: true, stage: "closed" } : x)) }));
+    setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, dealId: next.id, converted: true, stage: "closed", stageDate: close } : x)) }));
   }
 
   function handleAddDeal() {
@@ -1561,7 +1613,7 @@ export default function Home() {
   // active deal in the sample fund, and opens the Portfolio Return tab.
   function handleLoadSamplePortfolio() {
     if (!requireEdit()) return;
-    noteAudit("Loaded Model Fund I (sample assets rebuilt, with sample business plans and prospects)");
+    noteAudit("Loaded Model Fund I (sample assets rebuilt, with sample business plans, prospects, marks and market data, construction data and pre-screened pipeline deals)");
     // 1.1.4 (user, 11/25): the rebuilt assets come with the sample business
     // plans and actuals and the sample leasing pipeline, so the Watch List,
     // Active Leasing and Vacant Units have data in one click.
@@ -1576,25 +1628,44 @@ export default function Home() {
     built = built.map((d) => (mkt.tags[d.id] ? { ...d, inputs: { ...d.inputs, submarketId: mkt.tags[d.id] } } : d));
     setComps((c) => ({ ...c, market: mkt.market }));
     setValuations((prev) => ({ ...prev, ...Object.fromEntries(Object.keys(mkt.valuations).filter((id) => id.startsWith("sample-deal-")).map((id) => [id, mkt.valuations[id]])) }));
+    // 1.1.6 (user, 11/25): the complete test fund: construction test data
+    // (TI and capital jobs with invoices) on the rebuilt assets too.
+    const cons = importConstruction(built, { jobs: parseJobs(parseCSV(SAMPLE_CONSTRUCTION_JOBS_CSV)), invoices: parseInvoices(parseCSV(SAMPLE_CONSTRUCTION_INVOICES_CSV)), asOf: SAMPLE_CONSTRUCTION_AS_OF, source: "sample" });
+    built = built.map((d) => (cons.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: cons.updates[d.id] } } : d));
+    // The sample pipeline deals come pre-screened: each gets its model, so
+    // it opens straight into the Deal Screener (rows already screened keep
+    // theirs).
+    const plRows = (() => {
+      const have = new Map((pipeline?.deals ?? []).map((d) => [d.id, d]));
+      return samplePipelineDeals(todayISO, { by: session?.user?.email ?? "", targetFund: SAMPLE_FUND_NAME }).map((r) => have.get(r.id) ?? r);
+    })();
+    const screened = plRows.filter((r) => !(r.dealId && deals.some((d) => d.id === r.dealId))).map((r) => [r.id, pipelineToDeal(r)]);
+    const screenedBy = new Map(screened);
     setDeals((prev) => [
       ...prev.filter((d) => !d.id.startsWith("sample-deal-")),
       ...built,
+      ...screened.map(([, d]) => d),
     ]);
     // Make sure the fund has terms (a workspace saved before the rename
     // keeps the terms it had under the old name) and $100M of commitments
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
     });
     // The fictional pipeline deals load with the sample fund too (1.1, user
     // 11/25); ones already there are kept as they are.
     setPipeline((p) => {
-      const have = new Set((p?.deals ?? []).map((d) => d.id));
-      const add = samplePipelineDeals(new Date().toISOString().slice(0, 10), { by: session?.user?.email ?? "", targetFund: SAMPLE_FUND_NAME }).filter((r) => !have.has(r.id));
-      return add.length ? { ...p, deals: [...(p?.deals ?? []), ...add] } : p;
+      const cur = p?.deals ?? [];
+      const have = new Set(cur.map((d) => d.id));
+      const link = (r) => (screenedBy.has(r.id) ? { ...r, dealId: screenedBy.get(r.id).id } : r);
+      const add = plRows.filter((r) => !have.has(r.id)).map(link);
+      return { ...p, deals: [...cur.map(link), ...add] };
     });
     setActiveTab("fund");
+    // The sample documents and tenant-named leases (database only; skipped
+    // signed out). Runs after the deals above are set.
+    handleAddSampleDocs({ deals: built }).catch(() => {});
   }
 
   // Drawn photos and floor plans for the sample assets (phase L), added to
@@ -1620,20 +1691,24 @@ export default function Home() {
   // Sample documents (user, 11/25): upload the fictional Model Fund I
   // documents (fund, asset, disposition and leases) with their abstracts.
   const [sampleDocMsg, setSampleDocMsg] = useState("");
-  async function handleAddSampleDocs() {
+  // fromLoad (Load Model Fund I, 1.1.6): the rebuilt deals, and the blank-
+  // tenant leases on the sample assets are replaced by the named ones.
+  async function handleAddSampleDocs(fromLoad = null) {
     if (!requireEdit()) return;
-    if (!(session && dbLink?.id)) { window.alert("Sign in to the firm first: documents are stored in the database."); return; }
-    const { addSampleDocuments } = await import("@/lib/sampleDocs");
+    if (!(session && dbLink?.id)) { if (!fromLoad) window.alert("Sign in to the firm first: documents are stored in the database."); return; }
+    const { addSampleDocuments, removeBlankSampleLeases } = await import("@/lib/sampleDocs");
     setSampleDocMsg("Adding sample documents…");
     try {
+      const removed = fromLoad ? await removeBlankSampleLeases(dbLink.id) : 0;
+      if (removed) noteAudit(`Removed ${removed} sample lease record${removed === 1 ? "" : "s"} with no tenant name (replaced by the named sample leases)`);
       const r = await addSampleDocuments({
-        workspaceId: dbLink.id, email: session?.user?.email ?? null, deals,
+        workspaceId: dbLink.id, email: session?.user?.email ?? null, deals: fromLoad?.deals ?? deals,
         onSale: (dealId, sale) => updateDealInputs(dealId, (inp) => ({ ...inp, dispositions: [...(inp.dispositions ?? []), sale] })),
         onProgress: (t) => setSampleDocMsg(`Adding sample documents… ${t}`),
       });
       noteAudit(`Added ${r.done.length} sample document${r.done.length === 1 ? "" : "s"} (fictional)`);
       setSampleDocMsg("");
-      window.alert(`Added ${r.done.length} sample document${r.done.length === 1 ? "" : "s"} with their abstracts.${r.skipped.length ? ` ${r.skipped.length} skipped (already uploaded, or the asset isn't in the firm).` : ""}${r.failed.length ? `\n\n${r.failed.length} couldn't be added:\n${r.failed.slice(0, 5).map((f) => `• ${f.title ?? f.tenant}: ${f.error}`).join("\n")}` : ""}\n\nSee Library → Documents.`);
+      window.alert(`${fromLoad ? `Model Fund I loaded. ${removed ? `Replaced ${removed} unnamed sample lease${removed === 1 ? "" : "s"}. ` : ""}` : ""}Added ${r.done.length} sample document${r.done.length === 1 ? "" : "s"} with their abstracts.${r.skipped.length ? ` ${r.skipped.length} skipped (already uploaded, or the asset isn't in the firm).` : ""}${r.failed.length ? `\n\n${r.failed.length} couldn't be added:\n${r.failed.slice(0, 5).map((f) => `• ${f.title ?? f.tenant}: ${f.error}`).join("\n")}` : ""}\n\nSee Library → Documents.`);
     } catch (e) {
       setSampleDocMsg("");
       window.alert(`Couldn't add the sample documents: ${e.message || e}`);
@@ -1984,7 +2059,7 @@ export default function Home() {
                             For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
                           </p>
                           {[
-                            { label: "Load Model Fund I", sub: "Rebuild the nine fictional sample assets (edits to them are lost), with sample business plans, actuals, prospects, marks and market data, and add the sample pipeline deals", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone, with sample business plans, actuals and prospects; any edits to them are lost." },
+                            { label: "Load Model Fund I", sub: "The complete test fund: rebuild the nine fictional sample assets (edits to them are lost) with sample business plans, actuals, prospects, marks and market data, construction data and documents (tenant-named leases replace unnamed ones); the sample pipeline deals, pre-screened; portfolio manager Taylor Brooks", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone, with sample business plans, actuals, prospects, marks, construction data and documents; any edits to them are lost. Lease records on the sample assets with no tenant name are replaced by the tenant-named sample leases. The sample pipeline deals are added and screened." },
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
                             { label: "Add sample documents", sub: "Fictional Model Fund I documents (LPA, PPM, asset, sale and lease documents) with their abstracts, into the Document Library (skips any already there)", run: handleAddSampleDocs, ask: "Upload the fictional Model Fund I sample documents to the firm's document store, with their abstracts? Documents already there are skipped. Disposition documents go on a sale (a new fictional sample sale where an asset has none)." },
@@ -2236,13 +2311,19 @@ export default function Home() {
                 scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
             )}
-            {DEAL_TABS.has(activeTab) && (
+            {activeTab === "quick" && (
+              <PipelineDealPicker
+                groups={screenerOptions(pipeline.deals ?? [], deals, { scope, isPipelineDeal: (d) => isPipeline(d, new Date().toISOString().slice(0, 10)) && viewDeals.some((v) => v.id === d.id) })}
+                value={screenRow ? `row:${screenRow.id}` : isPipeline(activeDeal, new Date().toISOString().slice(0, 10)) ? `deal:${activeDeal.id}` : ""}
+                onPick={handlePickScreener}
+                onEdit={!screenRow || (screenSt?.model && screenSt.kind !== "passed" && screenSt.kind !== "closed") ? () => setPanelOpen(true) : null}
+                label={`${(pipeline.deals ?? []).filter((r) => PIPELINE_ACTIVE.includes(r.stage) && (!scope || !r.targetFund || r.targetFund === scope)).length} active on the Pipeline${scope ? ` for ${scope}` : ""}`}
+              />
+            )}
+            {DEAL_TABS.has(activeTab) && activeTab !== "quick" && (
               <AssetPicker
-                // Deal Screener: pipeline deals only, never owned assets (user, 11/24).
-                deals={activeTab === "quick" ? viewDeals.filter((d) => isPipeline(d, new Date().toISOString().slice(0, 10))) : viewDeals}
-                pickLabel={activeTab === "quick" ? "Pipeline Deal" : "Asset"}
-                placeholder={activeTab === "quick" ? "Choose a Pipeline Deal…" : ""}
-                snapshots={activeTab === "quick" ? [] : savedDeals.filter((s) => !deals.some((d) => d.id === s.id))}
+                deals={viewDeals}
+                snapshots={savedDeals.filter((s) => !deals.some((d) => d.id === s.id))}
                 activeId={activeDealId}
                 onPick={setActiveDealId}
                 onOpenSnapshot={handleOpenSnapshot}
@@ -2310,24 +2391,43 @@ export default function Home() {
               </div>
             )}
             {activeTab === "quick" && (() => {
-              // Deal Screener: pipeline deals only (phase M, 11/23).
+              // Deal Screener: pipeline deals only (phase M, 11/23); the
+              // Pipeline Deal dropdown and what each row shows (1.1.6).
               const today = new Date().toISOString().slice(0, 10);
-              const owned = !isPipeline(activeDeal, today);
-              const pl = (pipeline.deals ?? []).find((x) => x.dealId === activeDeal.id);
+              const row = screenRow;
+              const st = screenSt;
+              const card = row && (
+                <ScreenerRowCard
+                  row={row}
+                  state={st}
+                  justScreened={justScreened === row.id}
+                  canEdit={!locked}
+                  onImpact={st?.model ? () => { preloadImpact(st.model.id, row.targetFund); setActiveTab("impact"); } : null}
+                  onComps={st?.model ? () => { setActiveDealId(st.model.id); setActiveTab("research"); } : null}
+                  onOpenAsset={st?.asset ? () => { setActiveDealId(st.asset.id); setActiveTab("plan"); } : null}
+                  onOpenPipeline={() => setActiveTab("pipeline")}
+                />
+              );
+              // Closed, or picked with no screening: the row's card only.
+              if (row && (st.kind === "closed" || !st.model)) return <div className="space-y-4">{card}</div>;
+              const owned = !row && !isPipeline(activeDeal, today);
+              const passed = st?.kind === "passed";
               return (
                 <div className="space-y-4">
-                  <ScreenerPicker activeDeal={activeDeal} deals={deals} todayISO={today} owned={owned} onSelect={(id) => setActiveDealId(id)} pipelineRow={pl ?? null} onSyncRow={locked ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${pl.name} from Deal Screener`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === pl.id ? { ...x, ...patch } : x)) })); }} />
+                  {card}
+                  <ScreenerPicker activeDeal={activeDeal} owned={owned} pipelineRow={row ?? null} onSyncRow={locked || passed || !row ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${row.name} from Deal Screener`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === row.id ? { ...x, ...patch } : x)) })); }} />
                   {!owned && (
-                    <>
-                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={viewFunds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={pl?.targetFund || ""} />
+                    // Passed / lost: decided, so read-only (user, 11/25).
+                    <fieldset disabled={passed} className={`min-w-0 space-y-4 ${passed ? "opacity-60" : ""}`} data-testid={passed ? "screener-readonly" : undefined}>
+                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={viewFunds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={row?.targetFund || ""} />
                       <QuickUnderwrite
                         inputs={activeDeal.quick ?? QUICK_DEFAULTS}
-                        onChange={setQuick}
+                        onChange={passed ? () => {} : setQuick}
                         linked={!!activeDeal.linked}
-                        onLinkChange={setLinked}
+                        onLinkChange={passed ? () => {} : setLinked}
                         onCurveImport={handleCurveImport}
                       />
-                    </>
+                    </fieldset>
                   )}
                 </div>
               );
@@ -2391,13 +2491,14 @@ export default function Home() {
             )}
             {activeTab === "impact" && (
               <FundImpact
-                key={impactPreselect.join(",")}
+                key={`${impactPreselect.join(",")}|${impactFund}`}
                 deals={deals}
                 funds={viewFunds}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
                 canEdit={!locked}
                 email={session?.user?.email ?? null}
                 preselect={impactPreselect}
+                initialFund={impactFund}
                 onFundTermsChange={handleFundTermsChange}
                 onAddToFund={handleAddToFund}
               />
