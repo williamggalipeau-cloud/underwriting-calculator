@@ -42,7 +42,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(groups.indexOf("Dispositions") === groups.indexOf("Acquisitions") + 1, "a Dispositions group right after Acquisitions");
   await FX.openArea(p, "Offers");
   const dg = p.getByRole("group", { name: "Dispositions" });
-  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Disposition Documents", "its tabs: Sell/Hold Analysis, Assets for Sale, Offers, Track Record, Disposition Documents");
+  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Disposition Candidates,Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Disposition Documents", "Dispositions tabs: Disposition Candidates first (1.1.5), then Sell/Hold Analysis, Assets for Sale, Offers, Track Record, Disposition Documents");
 
   // ── Start a sale ──
   await FX.openTab(p, "Assets for Sale");

@@ -57,7 +57,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   const dg = p.getByRole("group", { name: "Dispositions" });
   await FX.openArea(p, "Offers");
-  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Disposition Documents", "Dispositions tabs: Sell/Hold Analysis first, incl. Disposition Documents");
+  check((await dg.getByRole("button").allInnerTexts()).map((t) => t.replace(/\s*\d+$/, "")).join() === "Disposition Candidates,Sell/Hold Analysis,Assets for Sale,Offers,Track Record,Disposition Documents", "Dispositions tabs: Disposition Candidates first (1.1.5), then Sell/Hold Analysis, Assets for Sale, Offers, Track Record, Disposition Documents");
 
   // ── Start sale from Sell/Hold (Route 9, the open asset) ──
   await FX.openTab(p, "Sell/Hold Analysis");

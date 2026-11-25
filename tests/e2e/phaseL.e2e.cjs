@@ -217,15 +217,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await rk.getByTestId("ti-action-list").locator("li").count()) === 1 && /cut 50%/.test(await rk.getByTestId("ti-action-list").innerText()) && (await rk.getByLabel("Show with scenario actions").isChecked()), "TI action added to the scenario and shown");
   const need1 = await rk.getByTestId("ti-row").filter({ hasText: "Route 9 Small Bay" }).getByTestId("ti-cell").filter({ hasText: /\d/ }).first().innerText();
   check(need1 !== need0, `cut 50% lowers that quarter's need (${need0} → ${need1})`);
-  const envHl = rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" });
-  check(/RECs without a no-further-action letter/.test(await envHl.innerText()), "environmental: Harbor Light's open REC");
-  await envHl.getByLabel("No-further-action letter Harbor Light Industrial").check();
-  await p.waitForTimeout(1200);
-  check(!/RECs without/.test(await rk.getByTestId("env-row").filter({ hasText: "Harbor Light Industrial" }).innerText()), "ticking the NFA letter closes the REC item");
+  check((await rk.getByTestId("env-row").count()) === 0 && !/RECs without/.test(await rk.innerText()), "no environmental section or flags in the risk report (removed in 1.1.5)");
   const [rpdf] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), rk.getByRole("button", { name: "PDF", exact: true }).first().click()]);
   const rPath = S + "/l_risk.pdf"; await rpdf.saveAs(rPath);
   const rTxt = execFileSync("pdftotext", ["-layout", rPath, "-"]).toString();
-  check(/Risk report/.test(rTxt) && /INTERNAL - not for distribution/.test(rTxt) && /Cascade Commercial Bank/.test(rTxt) && /Environmental/.test(rTxt), "risk PDF: internal, lenders, environmental");
+  check(/Risk report/.test(rTxt) && /INTERNAL - not for distribution/.test(rTxt) && /Cascade Commercial Bank/.test(rTxt) && !/Environmental/.test(rTxt) && /KRI/.test(rTxt), "risk PDF: internal, lenders, KRI Trending; no environmental section (1.1.5)");
   await rk.getByRole("button", { name: "Issue risk report" }).click();
   await p.waitForTimeout(1000);
   check(/v1 · issued/.test(await rk.getByTestId("risk-issued").innerText()), "risk report issued as v1");
@@ -240,7 +236,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.tiScenario?.actions?.[0]?.kind === "cut", "saved: the TI scenario on the fund");
   check(sfr?.riskIssued?.length === 1 && sfr.riskIssued[0].report?.lenders?.rows?.length >= 3, "saved: the issued risk report");
   const hlSaved = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.inputs.propertyName === "Harbor Light Industrial")?.inputs;
-  check(hlSaved?.envRisk?.nfa === true, "saved: Harbor Light's NFA letter on the deal");
+  check(hlSaved?.envRisk && typeof hlSaved.envRisk === "object", "saved: Harbor Light's environmental entries are kept on the deal (not shown in the report since 1.1.5)");
 
   console.log("errors", errs);
   if (errs.length) fails++;
