@@ -32,17 +32,18 @@ const all = deals.flatMap((d) => d.inputs.leasing?.prospects ?? []);
 ok(new Set(all.map((p) => p.stage)).size >= 5 && all.some((p) => p.stage === "lost" && p.lostReason), `stages from inquiry to lease out, and one lost with a reason (${[...new Set(all.map((p) => p.stage))].join(", ")})`);
 ok(all.filter((p) => p.stage !== "lost").every((p) => p.nextStep && p.nextDate > T && p.nextDate <= "2026-12-23"), "active prospects have a next step in the coming four weeks");
 ok(all.some((p) => p.nextDate && p.nextDate <= "2026-12-02"), "some next steps fall within 7 days (Actions Needed)");
-const comps = deals.flatMap((d) => (d.inputs.leasing?.comps ?? []).filter((c) => c.id.startsWith(L.SAMPLE_UNIT_COMP_PREFIX)));
-ok(comps.length === sample.reduce((s, d) => s + vacantOf(d).length, 0) * 3, `three rent comps per sample vacant unit (${comps.length})`);
-ok(comps.every((c) => /\(fictional\)/.test(c.address) && c.signDate < T && c.rentPSF > 0 && c.leaseType === "NNN"), "comps: fictional addresses, signed in the past, NNN");
-
+const comps = deals.filter((d) => updates[d.id]).map((d) => d.inputs.leasing.comps);
+ok(comps.every((cs) => cs.length === 6 && cs.every((c) => /\(fictional\)/.test(c.address) && c.signDate < T && c.rentPSF > 0)), "each sample asset without comps gets its standard set of six fictional rent comps");
+ok(L.addSampleLeasing(deals, { todayISO: T }).counts.comps === 0, "an asset that has comps gets no more (rent comps belong to the asset)");
 // Vacant Units after
 const after = H.vacantUnits(deals, { todayISO: T });
 const withP = after.filter((v) => v.prospects > 0), none = after.filter((v) => !v.prospects);
 ok(withP.length >= 8 && none.length >= 3, `most vacant units have prospects, some none (${withP.length} with, ${none.length} without)`);
 const best = withP.find((v) => v.prospects > 1);
 ok(best && ["tour", "proposal", "loi", "leaseout"].includes(best.best.stage) && best.next?.text && best.next.days >= 0, `best prospect is the furthest along, with the soonest next step: ${best?.asset} ${best?.unit} ${best?.best?.stage}`);
-ok(after.filter((v) => v.dealId.startsWith("sample-deal-")).every((v) => v.comps >= 3 && Math.abs(v.compAvgPSF / v.askingRentPSF - 1) < 0.07), "each sample vacant unit: rent comps near its size, averaging within 7% of the asking rent");
+const sa = after.filter((v) => v.dealId.startsWith("sample-deal-"));
+ok(sa.every((v) => v.comps === 6 && Math.abs(v.compAvgPSF / v.askingRentPSF - 1) < 0.1), "each sample vacant unit: the asset's six rent comps, averaging within 10% of the asking rent");
+ok(sa.every((v) => sa.filter((x) => x.dealId === v.dealId).every((x) => x.compAvgPSF === v.compAvgPSF)), "every vacant unit on an asset uses the same comps (whatever unit is leased)");
 ok(after.every((v) => v.planTargetPSF == null), "no plan target without a business plan");
 ok(after.filter((v) => v.dealId.startsWith("sample-deal-")).every((v) => L.SAMPLE_LEASING_MANAGERS.includes(v.leasingManager)), "every sample vacant unit has a leasing manager");
 const hl = after.filter((v) => v.asset === "Harbor Light Industrial");
@@ -64,7 +65,7 @@ const mine = deals.map((d) => (d.id === "sample-deal-2" ? { ...d, inputs: { ...d
 const again = L.addSampleLeasing(mine, { todayISO: T });
 const r9 = again.updates["sample-deal-2"].leasing;
 ok(r9.prospects.filter((p) => p.id === "lp-mine").length === 1 && r9.prospects.length === updates["sample-deal-2"].leasing.prospects.length + 1, "a rerun replaces the sample prospects and keeps the user's");
-ok(r9.comps.filter((c) => c.id === "rc-mine").length === 1 && r9.comps.length === updates["sample-deal-2"].leasing.comps.length + 1, "and keeps the user's comps");
+ok(r9.comps.filter((c) => c.id === "rc-mine").length === 1 && r9.comps.length === updates["sample-deal-2"].leasing.comps.length + 1, "and keeps the comps (the user's and the asset's)");
 ok(JSON.stringify(again.updates["sample-deal-3"].leasing) === JSON.stringify(updates["sample-deal-3"].leasing) && again.updates["sample-deal-3"].leasingManager === updates["sample-deal-3"].leasingManager, "same pipeline, comps and manager on a rerun the same day");
 ok(L.addSampleLeasing(deals.filter((d) => !d.id.startsWith("sample-deal-")), { todayISO: T }).counts.assets === 0, "no sample assets: nothing added");
 process.exit(fail ? 1 : 0);

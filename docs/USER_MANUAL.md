@@ -2577,8 +2577,9 @@ loaded; the only thing it saves is which actions were marked done.
    row shows the SF-weighted average), **Leasing manager** (the
    unit's, else the asset's; "Unassigned" when neither is set), SF, Asking
    rent (the asset's market rent), Plan target (the business plan's lease-up
-   rent), **Rent comps** (the average of the asset's rent comps within 25% of
-   the unit's size, and how many), Best prospect (the furthest-along active
+   rent), **Rent comps** (the average of the asset's rent comps in Active
+   Leasing, and how many; comps belong to the asset and apply to whichever
+   unit is being leased), Best prospect (the furthest-along active
    prospect on the unit, and how many), Next step (the soonest, with its
    date) and **Active Leasing →**. The total counts the units with and
    without active prospects. Ten units show; **Show all** for the rest.
@@ -3430,7 +3431,7 @@ and the quarterly report have something to show:
 The IRR column stays "—" for these assets: the IRR test needs a year of
 ownership. Vacant units' lease-up targets are the asset's market rent.
 
-### 7.60 Sample prospects, unit rent comps and leasing managers (`lib/sampleLeasing.js`, version 1.1.2)
+### 7.60 Sample prospects, leasing managers and rent comps (`lib/sampleLeasing.js`, version 1.1.2)
 
 **Sample data → Add sample prospects** (owners) gives every Model Fund I
 asset a fictional leasing pipeline (Asset Management → Active Leasing):
@@ -3441,14 +3442,15 @@ asset a fictional leasing pipeline (Asset Management → Active Leasing):
   have none, so Vacant Units shows what still needs a tenant.
 - **A renewal** on each asset's next lease to expire, so every asset has a
   pipeline.
-- **Rent comps for the vacant units:** three fictional leases sized within
-  about 15% of each vacant unit, around its asking rent.
+- **Rent comps on the asset:** the asset's standard set of six fictional
+  leases (as **Add sample comps**), added only where the asset has none.
+  Comps belong to the asset and apply to whichever unit is being leased.
 - **A leasing manager** on each asset (fictional names; an asset's own is
   kept), and one Harbor Light unit with its own.
 - **A Vacant since date** (30 to 300 days ago) on each vacant unit that has
   none.
-- **Safe to click again:** earlier sample prospects and unit comps are
-  replaced; prospects and comps you entered are kept.
+- **Safe to click again:** earlier sample prospects are replaced;
+  prospects and comps you entered are kept.
 
 **Leasing manager** (1.1.2): set for the asset under Edit asset → Property
 (next to Asset Manager), and for a unit in the rent roll's **Lease details**
@@ -4475,7 +4477,7 @@ Model Fund I → Open**.
 
 - **Vacant Units on the Dashboard:** every vacant unit, by asset, with its days vacant, leasing manager, asking rent, plan target, rent comps, best prospect and next step (§2, Dashboard).
 - **Leasing manager and Vacant since:** new fields (leasing manager on the asset, with a unit override; vacant since on the unit).
-- **Add sample prospects (§7.60):** a fictional leasing pipeline, unit rent comps and leasing managers for every Model Fund I asset.
+- **Add sample prospects (§7.60):** a fictional leasing pipeline and leasing managers for every Model Fund I asset, with rent comps on assets that have none.
 - **Add sample business plans (§7.59):** a new Sample data item. Each Model Fund I asset gets a fictional business plan and monthly actuals; Route 9 shows on the Asset Watch List as At Risk and Harbor Light as Off Plan.
 - **Watch List fix:** a goal counts as missed only when it's short at the precision shown.
 

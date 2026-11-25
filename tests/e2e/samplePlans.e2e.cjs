@@ -66,7 +66,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(200);
   await sm.getByRole("menuitem", { name: /Add sample prospects/ }).click();
   await p.waitForTimeout(1500);
-  check(alerts.some((a) => /^Added \d+ sample prospects and \d+ rent comps for the vacant units, on 9 sample assets\.$/.test(a)), `prospects added: ${alerts.slice(-1)[0]}`);
+  check(alerts.some((a) => /^Added \d+ sample prospects on 9 sample assets(, and \d+ rent comps on assets that had none)?\.$/.test(a)), `prospects added: ${alerts.slice(-1)[0]}`);
   const sum = await vu.getByTestId("vacant-summary").innerText();
   const [, withP, without] = sum.match(/(\d+) with active prospects · (\d+) with none/) ?? [];
   check(Number(withP) >= 8 && Number(without) >= 3, `most units now have prospects: ${sum}`);

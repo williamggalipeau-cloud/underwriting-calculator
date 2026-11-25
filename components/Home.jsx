@@ -241,7 +241,7 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
             </select>
           )}
         </div>
-        <p className="mb-2 text-[11px] text-gray-500">What&apos;s leasable now, from each asset&apos;s rent roll, with the leasing activity on each unit. Asking rent is the asset&apos;s market rent; plan target is the business plan&apos;s lease-up rent; rent comps are the asset&apos;s comps within 25% of the unit&apos;s size.</p>
+        <p className="mb-2 text-[11px] text-gray-500">What&apos;s leasable now, from each asset&apos;s rent roll, with the leasing activity on each unit. Asking rent is the asset&apos;s market rent; plan target is the business plan&apos;s lease-up rent; rent comps are the average of the asset&apos;s rent comps (Active Leasing).</p>
         {vacRows.length === 0 ? (
           <p className="text-xs text-gray-500">No vacant units on the rent rolls.</p>
         ) : (
