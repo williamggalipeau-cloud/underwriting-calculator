@@ -25,6 +25,7 @@ changes the model without the user clicking to apply it.
      - construction test data;
      - portfolio manager Taylor Brooks.
    - **Portfolio Return:** Fund terms moves to the top of each fund card, under the fund name.
+   - **Autosave every 2 minutes** (user, 11/25), instead of about 1 second after each edit. Leaving a tab or page still asks to save first, the save bar's Save changes saves at once, the browser warns before closing with unsaved edits, and tests keep a short delay.
    - **Manual:**
      - a one-line pointer at the top of §7 (no connector or skill feeds the calculations);
      - §3 updated with the Supabase reads and the requested writes (stamped "Claude (sample data, on request)"), the CREparser Deal Review validators, and the pre-approved Supabase tools.
