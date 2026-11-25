@@ -48,10 +48,15 @@ Likewise, Baywise is **not a CRM or an investor portal**. Contacts,
 relationships and fundraising stay in the firm's CRM (Salesforce, DealCloud,
 Juniper Square and the like), and LPs get their documents from the investor
 portal. Baywise works with those systems the same way it works with the
-books of record: it reads what it needs from them, and the reports it
-produces (quarterly reports, LP statements for self-administered funds) are
-handed to the portal for delivery rather than published to LPs from
-Baywise.
+books of record: it reads what it needs from them.
+
+Baywise is **used inside the firm**. It doesn't produce official client
+documents: quarterly statements, capital account statements, capital call
+and distribution notices and annual financial reports come from the fund
+administrator and the firm's investor relations process. What Baywise does
+produce for investors is **custom reports for bespoke and ad hoc
+performance inquiries**, prepared by the firm's team and marked unofficial
+(the administrator's figures govern).
 
 - **No app server.** It is a static website. All math runs in your
   browser. Files you upload (rent rolls, fund terms, forward curves, sales
@@ -4524,7 +4529,7 @@ Model Fund I → Open**.
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
-| **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others). Baywise isn't a book of record: LP capital account statements are produced only for self-administered funds; a fund with a third-party administrator uses the administrator's (imported and tied out in 2.0) | Planned |
+| **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
 | **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
 | **1.6** | Treasury Management (fund and asset bank accounts): cash position, unrestricted vs. restricted; bank concentration (flag above 25% at one bank); cash above FDIC limits (per entity, per bank); the interest rate cash earns and its cash drag against the fund's target and actual IRR; accounts a loan requires at the lender; **Lender Cash Sweep** (accounts swept after a covenant failure, and how much); a quarterly forecast for a rolling year against minimum cash of one quarter of planned expenses. Imports from manual entry, CSV, BAI2, CAMT.053 / MT940 and Yardi, built so treasury systems such as Kyriba can connect later. New **Treasury**, **Bank Accounts** and **Cash Forecast** tabs at the front of **Finance**; Distribution Analysis reads its balances from Treasury; the Dashboard alerts on Lender Cash Sweeps | Planned (added 11/25) |
