@@ -31,6 +31,42 @@ underwrites a single asset, stress-tests it, and rolls a set of assets up
 into a closed-end fund with a dated LP/GP waterfall, a subscription line and
 a dry-powder calculation. It also has a sales comps tool.
 
+**What Baywise is, and isn't (user, 11/25).** Baywise is a workspace that
+brings everything a CRE investment manager needs into one workbench:
+acquisitions, asset and portfolio management, dispositions, treasury,
+reporting and the firm's economics. It is **not a book of record**. It
+sits on top of the systems that are: the property accounting system (Yardi,
+MRI) for property ledgers, tenant billing, payables and CAM; the fund
+administrator for fund accounting, NAV and LP capital accounts; other
+general ledger systems; and banks or treasury systems for cash. Baywise
+**reads from those systems** (imports now, live connections later),
+analyzes, plans and reports, and records the decisions and plans that live
+nowhere else. It doesn't process transactions or keep a second set of
+books.
+
+Likewise, Baywise is **not a CRM or an investor portal**. Contacts,
+relationships and fundraising stay in the firm's CRM (Salesforce, DealCloud,
+Juniper Square and the like), and LPs get their documents from the investor
+portal. Baywise works with those systems the same way it works with the
+books of record: it reads what it needs from them.
+
+The database (Supabase) is Baywise's **middle layer**, not a book of
+record: it pulls the firm's many sources (general ledger, property
+accounting, fund administrator, CRM, banks, spreadsheets) into one clean,
+consolidated set. Imported data carries its source and date and can be
+refreshed; Baywise's own work (underwriting, business plans, decisions,
+marks, notes) is kept separately and is never overwritten by a refresh.
+A later release (3.0) is planned to let Baywise sit on a firm's own data
+warehouse where it has one.
+
+Baywise is **used inside the firm**: only the firm's employees have access (account setup and access control are planned for 2.0). It doesn't produce official client
+documents: quarterly statements, capital account statements, capital call
+and distribution notices and annual financial reports come from the fund
+administrator and the firm's investor relations process. What Baywise does
+produce for investors is **custom reports for bespoke and ad hoc
+performance inquiries**, prepared by the firm's team and marked unofficial
+(the administrator's figures govern).
+
 - **No app server.** It is a static website. All math runs in your
   browser. Files you upload (rent rolls, fund terms, forward curves, sales
   comps) are read in the browser and never sent anywhere. Signing in and
@@ -4495,6 +4531,27 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
+### Design principles (user, 11/25)
+
+Every future release is checked against these:
+
+1. **A workbench, not a book of record.** Baywise sits on top of the
+   systems of record (property accounting, the fund administrator, general
+   ledgers, banks and treasury systems), reads from them, and analyzes,
+   plans, decides and reports. It doesn't process transactions or keep a
+   second set of books.
+2. **Not a CRM or an investor portal.** It reads what it needs from them.
+3. **For use inside the firm.** Only the firm's employees have access. No
+   official client documents; custom, unofficial reports for investor
+   inquiries.
+4. **The database is the middle layer.** It consolidates the firm's many
+   sources into one clean set. Imported data carries its source and date
+   and can be refreshed; Baywise's own work is kept apart and never
+   overwritten.
+5. **Sources plug in through adapters.** One standard format per kind of
+   data, one adapter per source (file, API, later a firm's own data
+   warehouse), so new sources never change the screens.
+
 ### Releases (user, 11/25)
 
 | Version | What it covers | Status |
@@ -4502,9 +4559,12 @@ Model Fund I → Open**.
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
-| **1.3** | Expanded reporting (LP-facing reports to choose: LP capital account statements, an ILPA-format report, an annual report, ESG / GRESB, and others) | Planned |
+| **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions are removed in patch 1.1.7. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
 | **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
+| **1.6** | Treasury Management (fund and asset bank accounts): cash position, unrestricted vs. restricted; bank concentration (flag above 25% at one bank); cash above FDIC limits (per entity, per bank); the interest rate cash earns and its cash drag against the fund's target and actual IRR; accounts a loan requires at the lender; **Lender Cash Sweep** (accounts swept after a covenant failure, and how much); a quarterly forecast for a rolling year against minimum cash of one quarter of planned expenses. Imports from manual entry, CSV, BAI2, CAMT.053 / MT940 and Yardi, built so treasury systems such as Kyriba can connect later. New **Treasury**, **Bank Accounts** and **Cash Forecast** tabs at the front of **Finance**; Distribution Analysis reads its balances from Treasury; the Dashboard alerts on Lender Cash Sweeps | Planned (added 11/25) |
+| **2.0** | Fund administrator integration: import the administrator's quarterly NAV package, capital accounts and capital activity, and tie them out against Baywise (NAV, called capital, distributions, fees, accrued promote), flagging differences; each fund marked self-administered or administered by a third party. Files first, administrator APIs later, using the same adapter design as 1.6 Treasury. ESG / GRESB parked here too; user account setup and access control | Planned (added 11/25) |
+| **3.0** | Baywise on the firm's own data warehouse (where a firm has one): reads from it instead of keeping its own copies; firms without one keep using the Baywise database | Idea (added 11/25) |
 
 **How releases work:**
 - **One live version.** The site runs one release at a time.
