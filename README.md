@@ -2,7 +2,7 @@
 
 *Industrial Real Estate Management* — an internal app for underwriting, asset management and fund reporting. (The repository keeps its original name, `underwriting-calculator`.)
 
-Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
+Live site: https://baywise.baysidecre.com (hosted on Vercel)
 
 **User manual:** [docs/USER_MANUAL.md](docs/USER_MANUAL.md) — tabs, data sources, file structure and every calculation.
 
