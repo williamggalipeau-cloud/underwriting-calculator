@@ -36,13 +36,13 @@ export default function DispositionCandidates({ deals = [], funds = {}, scopeNam
                   <td className="px-2 py-1.5 font-medium">{r.asset}</td>
                   <td className="px-2 py-1.5">{r.fund}</td>
                   <td className="px-2 py-1.5 tabular-nums">{usDate(r.acquired)}</td>
-                  <td className="whitespace-nowrap px-2 py-1.5 tabular-nums">{usDate(r.exit)}<span className="ml-1 text-[10px] text-gray-400">plan rev {r.planRev}</span></td>
+                  <td className="whitespace-nowrap px-2 py-1.5 tabular-nums">{usDate(r.exit)}<span className="ml-1 text-[10px] text-gray-500">plan rev {r.planRev}</span></td>
                   <td className={`px-2 py-1.5 text-right tabular-nums ${r.past ? "font-medium text-red-700" : ""}`} data-testid="cell-months-left">{r.past ? `${Math.abs(r.monthsLeft)} past plan` : r.monthsLeft}</td>
-                  <td className="px-2 py-1.5">{r.recommendation || <span className="text-gray-400">—</span>}</td>
+                  <td className="px-2 py-1.5">{r.recommendation || <span className="text-gray-500">—</span>}</td>
                   <td className="px-2 py-1.5" data-testid="cell-decision">
                     {r.heldLonger ? <span className="font-medium text-blue-800">Held past plan: {r.decision.text}</span>
                       : r.past ? <span className="font-medium text-red-700">Past plan exit, no Sell/Hold decision</span>
-                      : r.decision ? r.decision.text : <span className="text-gray-400">—</span>}
+                      : r.decision ? r.decision.text : <span className="text-gray-500">—</span>}
                   </td>
                   <td className="px-2 py-1.5">{r.sale ? (onOpenSale ? <button type="button" onClick={() => onOpenSale(r.dealId)} className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800 hover:bg-blue-100">{r.sale.label}</button> : <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">{r.sale.label}</span>) : <span className="text-amber-700">No sale started</span>}</td>
                   <td className="whitespace-nowrap px-2 py-1.5 text-right">{onOpenSellHold && <button type="button" aria-label={`Sell/Hold analysis for ${r.asset}`} onClick={() => onOpenSellHold(r.dealId)} className="rounded border border-blue-200 px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">Sell/Hold →</button>}</td>
@@ -52,7 +52,7 @@ export default function DispositionCandidates({ deals = [], funds = {}, scopeNam
           </table>
         </div>
       )}
-      <p className="text-[11px] text-gray-400">Planned exit: the latest business plan revision&apos;s target exit date, or the acquisition date plus its hold years. Assets with no business plan aren&apos;t listed. The Sell/Hold decision is the one saved on the Sell/Hold Analysis tab.</p>
+      <p className="text-[11px] text-gray-500">Planned exit: the latest business plan revision&apos;s target exit date, or the acquisition date plus its hold years. Assets with no business plan aren&apos;t listed. The Sell/Hold decision is the one saved on the Sell/Hold Analysis tab.</p>
     </div>
   );
 }

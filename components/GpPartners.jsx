@@ -7,6 +7,7 @@
 // abstract saved on its PDF, like other deal documents) or entered by hand,
 // and checked before saving; saving fills the portfolio's Parties and
 // economics. lib/gpPartners.js holds the rules. Not a CRM: no contacts.
+import InfoNote from "@/components/InfoNote";
 import { useEffect, useMemo, useState } from "react";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -114,7 +115,7 @@ export default function GpPartners({ deals = [], funds = {}, curve, gp: gpRaw, c
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-lg font-bold text-gray-900">GP Partners <span className="text-sm font-normal text-gray-500">· {title}</span></h2>
-          <p className="max-w-4xl text-xs text-gray-500">Every outside GP capital partner, with its agreements and the portfolios and deals it&apos;s in. Each agreement&apos;s terms (share of the GP capital commitment, share of the GP&apos;s promote, fund-wide or one deal, effective date) are read by Claude or entered, and checked before saving; they fill each portfolio&apos;s <b>Parties and economics</b>, so GP, Sponsor and Firm Economics follow the agreements. This firm is the sponsor. Not a CRM: just the legal entity. Internal.</p>
+          <InfoNote short="Every outside GP capital partner, its agreements and its capital." testId="gpp-info" className="max-w-4xl">Each agreement&apos;s terms (share of the GP capital commitment, share of the GP&apos;s promote, fund-wide or one deal, effective date) are read by Claude or entered, and checked before saving; they fill each portfolio&apos;s Parties and economics, so GP, Sponsor and Firm Economics follow the agreements. This firm is the sponsor. Not a CRM: just the legal entity. Internal. Committed = each portfolio&apos;s GP commitment × the partner&apos;s capital share (a one-deal agreement: that deal&apos;s GP equity × its share). Invested to date = its share of the GP equity in assets acquired by today. This firm&apos;s row is what&apos;s left, plus the sponsor side of the promote.</InfoNote>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={async () => downloadBlob(await writeXlsx(gpPartnersXlsx(S, { title }), { sheetName: "GP Partners", title: `Baywise · ${title} GP Partners (internal)` }), `gp-partners-${todayISO}.xlsx`)} className={btn}>Excel</button>
@@ -145,7 +146,7 @@ export default function GpPartners({ deals = [], funds = {}, curve, gp: gpRaw, c
             <tbody>{S.rows.map((r) => (
               <tr key={r.key} onClick={() => !r.firm && setSel(r.key)} className={`border-t border-gray-100 ${!r.firm ? "cursor-pointer hover:bg-gray-50" : ""} ${row?.key === r.key ? "bg-blue-50/60" : ""}`} data-testid="gpp-row">
                 <td className="px-2.5 py-1.5">{r.firm ? <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">This firm (sponsor)</span> : <><b>{r.name}</b> <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800">Outside GP</span></>}</td>
-                <td className="px-2.5 py-1.5">{r.portfolios.length ? r.portfolios.map((p) => `${p.fund}${p.scope && p.scope !== "fund-wide" ? `: ${p.scope}` : r.firm ? "" : " (fund-wide)"}`).join(" · ") : <span className="text-gray-400">No agreement yet</span>}</td>
+                <td className="px-2.5 py-1.5">{r.portfolios.length ? r.portfolios.map((p) => `${p.fund}${p.scope && p.scope !== "fund-wide" ? `: ${p.scope}` : r.firm ? "" : " (fund-wide)"}`).join(" · ") : <span className="text-gray-500">No agreement yet</span>}</td>
                 <td className="px-2.5 py-1.5 text-right">{fmtM(r.committed)}</td>
                 <td className="px-2.5 py-1.5 text-right">{pct(r.share)}</td>
                 <td className="px-2.5 py-1.5 text-right">{fmtM(r.invested)}</td>
@@ -192,7 +193,7 @@ export default function GpPartners({ deals = [], funds = {}, curve, gp: gpRaw, c
             {pAgreements.length ? (
               <ul className="space-y-1" data-testid="gpp-agreements">{pAgreements.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 px-2 py-1">
-                  <span>{a.portfolio}{a.dealId ? ` · ${deals.find((d) => d.id === a.dealId)?.inputs?.propertyName ?? "one deal"} only` : " · fund-wide"} · {a.capitalPct}% of GP capital · {a.gpSideSharePct}% of the GP&apos;s promote · from {usDate(a.effective)}<span className="text-gray-400"> · {a.source === "claude" ? "read by Claude, " : ""}checked {a.checkedBy ? `by ${a.checkedBy} ` : ""}{usDate(String(a.checkedAt ?? "").slice(0, 10))}</span></span>
+                  <span>{a.portfolio}{a.dealId ? ` · ${deals.find((d) => d.id === a.dealId)?.inputs?.propertyName ?? "one deal"} only` : " · fund-wide"} · {a.capitalPct}% of GP capital · {a.gpSideSharePct}% of the GP&apos;s promote · from {usDate(a.effective)}<span className="text-gray-500"> · {a.source === "claude" ? "read by Claude, " : ""}checked {a.checkedBy ? `by ${a.checkedBy} ` : ""}{usDate(String(a.checkedAt ?? "").slice(0, 10))}</span></span>
                   <span className="flex gap-1">{a.docId && <button type="button" onClick={() => openDoc(a.docId)} className={btn}>PDF</button>}{canEdit && <button type="button" onClick={() => { if (window.confirm("Remove this agreement? The portfolio's parties are rebuilt without it.")) onRemoveAgreement?.(a.id); }} className={btn}>Remove</button>}</span>
                 </li>
               ))}</ul>

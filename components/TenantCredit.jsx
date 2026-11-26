@@ -54,11 +54,11 @@ function CreditDoc({ doc, lease, annualRent, onChanged, onError }) {
         <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-600">{KIND_LABEL[doc.kind]}</span>
         <span className="font-medium">{doc.subject === "guarantor" ? `Guarantor${doc.subject_name ? `: ${doc.subject_name}` : ""}` : "Tenant"}</span>
         <span className="text-gray-500">{doc.source || "source not given"}{doc.audited ? " · audited" : doc.audited === false ? " · unaudited" : ""} · {doc.kind === "credit_report" ? "report" : "period"} {docDate(doc) || "—"}</span>
-        <span className="text-[10px] text-gray-400">{doc.uploaded_by_email ? `by ${doc.uploaded_by_email}` : ""} · figures {doc.figures_source === "claude" ? "read by Claude" : "entered"}</span>
+        <span className="text-[10px] text-gray-500">{doc.uploaded_by_email ? `by ${doc.uploaded_by_email}` : ""} · figures {doc.figures_source === "claude" ? "read by Claude" : "entered"}</span>
         <div className="ml-auto flex gap-2">
           {doc.file?.path && <button type="button" disabled={busy} onClick={() => run(async () => window.open(await fileLink(doc.file.path), "_blank", "noopener"))} className="text-blue-700 hover:underline">{doc.file.name}</button>}
           <button type="button" onClick={() => setEdit(!edit)} className="text-gray-500 hover:text-gray-800">{edit ? "Close" : "Figures"}</button>
-          <button type="button" disabled={busy} onClick={() => window.confirm("Delete this credit document and its file?") && run(() => deleteCreditDoc(doc))} className="text-gray-400 hover:text-red-600" aria-label="Delete credit document">✕</button>
+          <button type="button" disabled={busy} onClick={() => window.confirm("Delete this credit document and its file?") && run(() => deleteCreditDoc(doc))} className="text-gray-500 hover:text-red-600" aria-label="Delete credit document">✕</button>
         </div>
       </div>
       {shown.length > 0 && (

@@ -91,7 +91,7 @@ function WaterfallSection({ wf }) {
           <div key={label} className="flex items-center justify-between px-4 py-3" data-testid="wf-row">
             <div>
               <p className="text-sm font-medium text-gray-700">{label}</p>
-              {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+              {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
             </div>
             <span className="text-sm font-semibold text-gray-900 tabular-nums">{value}</span>
           </div>
@@ -106,7 +106,7 @@ function WaterfallSection({ wf }) {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 {["Year", "Total CF", "LP", "GP", "GP %"].map((h) => (
-                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide">
+                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500">
                     {h}
                   </th>
                 ))}
@@ -156,7 +156,7 @@ function FeeRevenue({ cfs, wf, name }) {
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs tabular-nums">
           <thead className="bg-gray-50 text-gray-500">
-            <tr>{["Year", "Property management", "Construction management", "Total"].map((h, i) => <th key={h} className={`px-3 py-2 font-semibold uppercase tracking-wide ${i ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
+            <tr>{["Year", "Property management", "Construction management", "Total"].map((h, i) => <th key={h} className={`px-3 py-2 font-semibold ${i ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {fr.rows.map((x) => (
@@ -258,7 +258,7 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
           <div key={label} className="flex items-center justify-between px-4 py-3">
             <div>
               <p className="text-sm font-medium text-gray-700">{label}</p>
-              {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+              {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
             </div>
             <span className="text-sm font-semibold text-gray-900 tabular-nums">{value}</span>
           </div>
@@ -275,7 +275,7 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 {["Year", "Gross Rev.", "Vacancy", "Credit Loss", "EGR", "Op. Exp.", "NOI", "TI + LC", "Adj. NOI", "Debt Svc.", "Ext. Fee", "Caps / AM Fee", "Pre-Tax CF"].map((h) => (
-                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -308,7 +308,7 @@ export default function ReturnsAnalysis({ returns, cashFlows, waterfall, inputs,
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-500 mt-2">
           {cfs[0]?.noiOverride
             ? "Direct NOI mode: NOI is entered directly, so revenue and expense build-up columns are not used. Caps / AM Fee = replacement rate caps plus asset-management fees charged below NOI."
             : "TI + LC = normalized tenant improvements & leasing commissions. Op. Exp. reflects landlord-paid costs per lease type. Caps / AM Fee = replacement rate caps."}

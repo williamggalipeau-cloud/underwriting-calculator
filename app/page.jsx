@@ -44,6 +44,7 @@ import Research from "@/components/Research";
 import GpEconomics from "@/components/GpEconomics";
 import FirmEconomics from "@/components/FirmEconomics";
 import GpPartners from "@/components/GpPartners";
+import PageIndex from "@/components/PageIndex";
 import Benchmarking from "@/components/Benchmarking";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
@@ -535,6 +536,8 @@ export default function Home() {
   const [comps, setCompsRaw] = useState(DEFAULT_COMPS_STATE);
   const [pipeline, setPipelineRaw] = useState(EMPTY_PIPELINE);
   const [gpPartners, setGpPartnersRaw] = useState(EMPTY_GP_PARTNERS); // 1.1.10: Finance → GP Partners
+  const prIndexRef = useRef(null);
+  const [navOpen, setNavOpen] = useState(false); // 1.1.11: the phone Menu // 1.1.11: Portfolio Return's "On this page" index
   // "Working on" fund picker (11/23): a filter; "" = All funds. Remembered on
   // the person's sign-in (or this browser when signed out).
   const [workingOn, setWorkingOnRaw] = useState(ALL_FUNDS);
@@ -1886,6 +1889,7 @@ export default function Home() {
 
   // Firm-wide header strip (consolidated; owned assets only).
   const firm = firmSummary(fundDeals, valuations, viewFunds, { todayISO: new Date().toISOString().slice(0, 10) });
+  const FIGURE_TABS = { aum: "fundsummary", sf: "assets", assets: "assets", tenants: "credit", occupancy: "units" };
   const firmItems = [
     { key: "aum", label: "AUM", value: fmtAum(firm.aum) },
     { key: "sf", label: "Square feet", value: Math.round(firm.sf).toLocaleString("en-US") },
@@ -1908,18 +1912,18 @@ export default function Home() {
           {live.sofr && (
             <span>
               SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.sofr.rate.toFixed(2)}%</span>{" "}
-              <span className="text-gray-400">({fmtISODate(live.sofr.date)})</span>
+              <span className="text-gray-500">({fmtISODate(live.sofr.date)})</span>
             </span>
           )}
           {live.avg30 && (
             <span>
               30D avg SOFR <span className="font-semibold text-gray-900 tabular-nums">{live.avg30.rate.toFixed(5)}%</span>{" "}
-              <span className="text-gray-400">({fmtISODate(live.avg30.date)})</span>
+              <span className="text-gray-500">({fmtISODate(live.avg30.date)})</span>
             </span>
           )}
         </>
       ) : liveStatus === "loading" ? (
-        <span className="text-gray-400">Loading…</span>
+        <span className="text-gray-500">Loading…</span>
       ) : (
         <span className="text-red-600">Couldn&apos;t reach the NY Fed API; using the curve as published.</span>
       )}
@@ -1927,7 +1931,7 @@ export default function Home() {
       <span>
         Forward curve: {baseCurve.source} as of <span className="font-medium text-gray-800">{fmtISODate(baseCurve.asOf)}</span>
         {curveShiftBp != null && (
-          <span className="text-gray-400">
+          <span className="text-gray-500">
             {" "}· live 30D avg {curveShiftBp >= 0 ? "+" : "−"}{Math.abs(curveShiftBp).toFixed(1)} bp vs. curve start
           </span>
         )}
@@ -2032,7 +2036,7 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-4">
-          <button type="button" onClick={goHome} aria-label="Baywise: go to the Dashboard" className="flex items-center gap-3 mr-1 text-left">
+          <button type="button" onClick={goHome} aria-label="Baywise: go to Home" className="flex items-center gap-3 mr-1 text-left">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -2040,7 +2044,7 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-sm font-bold text-gray-900 leading-tight">Baywise <span className="ml-1 rounded bg-gray-100 px-1.5 py-px align-middle text-[10px] font-semibold text-gray-500" data-testid="app-version" title={`Version ${APP_VERSION}, released ${RELEASE_DATE}`}>{versionLabel()}</span></h1>
-              <p className="text-xs text-gray-400 leading-tight">Industrial Real Estate Management</p>
+              <p className="text-xs text-gray-500 leading-tight">Industrial Real Estate Management</p>
             </div>
           </button>
 
@@ -2084,10 +2088,11 @@ export default function Home() {
             </label>
             {scope && <span className="text-[11px] font-semibold text-blue-800" data-testid="firm-scope">{scopeLabel(scope, funds)}:</span>}
             {firmItems.map(({ key, label, value }) => (
-              <div key={key} title={FIGURE_DEFS[key]} data-testid="firm-figure" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 cursor-help">
-                <span className="text-xs text-gray-500">{label}</span>
+              // 1.1.11 (UI review): each figure opens where it comes from.
+              <button type="button" key={key} onClick={() => goTab(FIGURE_TABS[key])} title={`${FIGURE_DEFS[key]} · Click to open ${TABS.find((t) => t.id === FIGURE_TABS[key])?.label ?? "it"}.`} data-testid="firm-figure" className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-blue-300 hover:bg-blue-50">
+                <span className="text-xs text-gray-600">{label}</span>
                 <span className="text-xs font-bold tabular-nums text-gray-900">{value}</span>
-              </div>
+              </button>
             ))}
             {/* Save status moved to the Save bar (user, 11/24). */}
             {session && !dbLink?.id && dbLink?.error ? (
@@ -2097,9 +2102,9 @@ export default function Home() {
 
               </span>
             ) : null}
-            {!session && <span className="text-[11px] text-gray-400">Not saved. Sign in to save to the database</span>}
+            {!session && <span className="text-[11px] text-gray-500">Not saved. Sign in to save to the database</span>}
             {sampleDocMsg && <span className="text-[11px] text-blue-700" role="status" data-testid="sample-docs-msg">{sampleDocMsg}</span>}
-            {session && !dbLink && <span className="text-[11px] text-gray-400">Opening the firm&apos;s data…</span>}
+            {session && !dbLink && <span className="text-[11px] text-gray-500">Opening the firm&apos;s data…</span>}
             {/* Signed out, sign in from the View only banner; this button is only the database panel. */}
             {session && !dbLink?.id && (
               <button
@@ -2114,66 +2119,15 @@ export default function Home() {
             )}
             {/* ⋯ More (11/24): backup, restore and sample data, off the main view. */}
             <div className="relative" data-testid="more-menu">
-              <button type="button" aria-label="More" aria-expanded={moreOpen} aria-haspopup="menu" onClick={() => setMoreOpen((o) => !o)} title="Backup, restore and sample data" className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">⋯</button>
+              <button type="button" aria-label="More" aria-expanded={moreOpen} aria-haspopup="menu" onClick={() => setMoreOpen((o) => !o)} title="Database, backup and restore" className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">⋯</button>
               {moreOpen && (
                 <div className="absolute right-0 z-30 mt-1 max-h-[calc(100vh-7rem)] w-80 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 shadow-lg" data-testid="more-menu-panel">{/* 1.1.10: scrolls when the Sample data list is taller than the window */}
                   {session && dbLink?.id && <button type="button" onClick={() => { setMoreOpen(false); setCloudOpen(true); }} title="The firm's database: people with access, sign out" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Database and people…</button>}
                   <button type="button" onClick={() => { setMoreOpen(false); handleExportWorkspace(); }} title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Download backup</button>
                   {(!session || dbLink?.role === "owner") && (
-                    <button type="button" onClick={() => { setMoreOpen(false); importRef.current?.click(); }} title="Owners only: replace all of the firm's data with a backup file (a backup of the current data downloads first)" className="block w-full rounded px-2 py-1.5 text-left text-xs text-red-600 hover:bg-red-50">Restore from backup</button>
+                    <button type="button" onClick={() => { setMoreOpen(false); importRef.current?.click(); }} title="Owners only: replace all of the firm's data with a backup file (a backup of the current data downloads first)" className="mt-1 block w-full rounded border-t border-gray-100 px-2 pt-2 pb-1.5 text-left text-xs font-medium text-red-600 hover:bg-red-50">⚠ Restore from backup (replaces all data)</button>
                   )}
-                  {(!session || dbLink?.role === "owner") && (
-                    <div className="mt-1 border-t border-gray-100 pt-1" data-testid="sample-data-menu">
-                      <button
-                        type="button"
-                        aria-expanded={sampleOpen}
-                        aria-haspopup="menu"
-                        onClick={() => setSampleOpen((o) => !o)}
-                        title="Owners only: load or remove the fictional sample fund and test deals"
-                        className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-amber-50"
-                      >
-                        Sample data ▾
-                      </button>
-                      {sampleOpen && (
-                        <div role="menu" className="mt-1 rounded-lg border border-amber-200 bg-white p-2">
-                          <p className="mb-2 rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-900">
-                            For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
-                          </p>
-                          {[
-                            { label: "Load Model Fund I", sub: "The complete test fund: rebuild the nine fictional sample assets (edits to them are lost) with sample business plans, actuals, prospects, marks and market data, construction data and documents (tenant-named leases replace unnamed ones); the sample pipeline deals, pre-screened; portfolio manager Taylor Brooks; sample tenant credit and aged rent", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone, with sample business plans, actuals, prospects, marks, construction data and documents; any edits to them are lost. Lease records on the sample assets with no tenant name are replaced by the tenant-named sample leases. The sample pipeline deals are added and screened." },
-                            { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
-                            { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
-                            { label: "Add sample documents", sub: "Fictional Model Fund I documents (LPA, PPM, asset, sale and lease documents) with their abstracts, into the Document Library (skips any already there)", run: handleAddSampleDocs, ask: "Upload the fictional Model Fund I sample documents to the firm's document store, with their abstracts? Documents already there are skipped. Disposition documents go on a sale (a new fictional sample sale where an asset has none)." },
-                            { label: "Add sample business plans", sub: "A fictional business plan and monthly actuals for each Model Fund I asset; Route 9 runs At Risk and Harbor Light Off Plan (replaces earlier sample plans; plans you made are kept)", run: handleAddSamplePlans, ask: "Add fictional business plans and monthly actuals to the Model Fund I sample assets? Earlier sample plans are replaced; plans you made yourself are kept, and nothing else changes." },
-                            { label: "Add sample prospects", sub: "A fictional leasing pipeline for each Model Fund I asset (prospects on the vacant units and a renewal), leasing managers, and rent comps where an asset has none (replaces earlier sample prospects; yours are kept)", run: handleAddSampleLeasing, ask: "Add a fictional leasing pipeline to the Model Fund I sample assets, with rent comps where an asset has none? Earlier sample prospects are replaced; prospects and comps you entered are kept." },
-                            { label: "Add sample marks and market data", sub: "A fictional submarket for each Model Fund I asset (Market Data, with the asset tagged) and quarterly marks after each asset's first six months (Valuation); replaces earlier sample entries, keeps yours", run: handleAddSampleMarket, ask: "Add fictional market data (a submarket per Model Fund I asset) and sample marks? Earlier sample entries are replaced; your own submarkets, marks and asset tags are kept." },
-                            { label: "Add sample GP partners", sub: "Two fictional outside GP partners of Model Fund I and their agreements (one fund-wide, one for Granite Ave only), read by Claude and waiting to be checked in Finance → GP Partners", run: handleAddSampleGpPartners, ask: "Add two fictional outside GP partners and upload their agreements to Model Fund I's documents? Nothing changes in the fund until you check and save each agreement's terms in Finance → GP Partners." },
-                            { label: "Add sample tenant credit and aged rent", sub: "Fictional credit records, a credit-change flag and prospect screenings for the Model Fund I tenants, and a sample aged receivables report (replaces earlier sample entries; yours are kept)", run: handleAddSampleCredit, ask: "Add fictional tenant credit records, a credit-change flag, prospect screenings and a sample aged receivables report to Model Fund I? Earlier sample entries are replaced; records, flags and uploads you made are kept." },
-                            { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
-                            { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
-                            { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
-                            { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
-                            { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
-                          ].map((a) => (
-                            <button
-                              key={a.label}
-                              type="button"
-                              role="menuitem"
-                              onClick={() => {
-                                setSampleOpen(false);
-                                setMoreOpen(false);
-                                if (window.confirm(a.ask)) a.run();
-                              }}
-                              className="block w-full rounded px-2 py-1.5 text-left hover:bg-gray-50"
-                            >
-                              <span className={`block text-xs font-medium ${a.label.startsWith("Clear") ? "text-red-600" : "text-gray-800"}`}>{a.label}</span>
-                              <span className="block text-[11px] text-gray-500">{a.sub}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+
                 </div>
               )}
             </div>
@@ -2213,7 +2167,7 @@ export default function Home() {
         {importMsg && (
           <p className={`basis-full text-right text-[11px] ${importMsg.ok ? "text-emerald-700" : "text-red-600"}`}>
             {importMsg.text}
-            <button type="button" onClick={() => setImportMsg(null)} className="ml-2 text-gray-400 hover:text-gray-700" aria-label="Dismiss">✕</button>
+            <button type="button" onClick={() => setImportMsg(null)} className="ml-2 text-gray-500 hover:text-gray-700" aria-label="Dismiss">✕</button>
           </p>
         )}
         </div>
@@ -2241,7 +2195,7 @@ export default function Home() {
           <aside className="relative z-10 flex h-full w-[26rem] max-w-full flex-col bg-white shadow-2xl" data-testid="asset-panel">
             <div className="flex items-center justify-between gap-2 border-b border-gray-200 px-5 py-3">
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-wide text-gray-400">Asset inputs</div>
+                <div className="text-[10px] uppercase tracking-wide text-gray-500">Asset inputs</div>
                 <div className="truncate text-sm font-semibold text-gray-900">{inputs.propertyName || "Unnamed deal"}</div>
               </div>
               <button type="button" autoFocus onClick={() => setPanelOpen(false)} className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Done</button>
@@ -2300,13 +2254,17 @@ export default function Home() {
           <nav className="rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm" aria-label="Functions">
             {/* Function areas (user, 11/24): one button per area; choosing one shows its tabs. */}
             <div className="flex flex-wrap items-center gap-1" data-testid="function-areas">
-              <span className="px-2 text-lg font-bold text-gray-900" data-testid="functions-title">Functions</span>
+              <span className="px-2 text-lg font-bold text-gray-900 max-sm:hidden" data-testid="functions-title">Functions</span>
+              {/* 1.1.11 (UI review): on a phone the areas fold into one Menu button. */}
+              <button type="button" onClick={() => setNavOpen((o) => !o)} aria-expanded={navOpen} className="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white sm:hidden" data-testid="phone-menu">☰ Menu{shownArea ? ` · ${shownArea}` : ""}</button>
               {TAB_GROUPS.filter((g) => g.tabs.length).map((g) => {
                 const on = shownArea === g.label;
                 const here = g.tabs.some((t) => t.id === activeTab);
                 const n = g.tabs.reduce((s, t) => s + (tabCounts[t.id] || 0), 0);
                 return (
-                  <button key={g.label} type="button" data-testid="function-area" aria-expanded={on} onClick={() => setOpenArea(on ? "" : g.label)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all ${on ? "bg-gray-900 text-white" : here ? "bg-blue-50 text-blue-800 ring-1 ring-blue-200" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`} title={`${g.label}: ${g.tabs.map((t) => t.label).join(", ")}`}>
+                  <button key={g.label} type="button" data-testid="function-area" aria-expanded={on} onClick={() => { setOpenArea(on ? "" : g.label); setNavOpen(false); }} className={`${navOpen ? "" : "max-sm:hidden"} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all ${on ? "bg-gray-900 text-white" : here ? "text-blue-800 hover:bg-gray-50" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`} title={`${g.label}: ${g.tabs.map((t) => t.label).join(", ")}${here ? " (you are here)" : ""}`} data-here={here ? "true" : undefined}>
+                    {/* 1.1.11 (UI review): only the open area is highlighted; the area you're in keeps a small dot when another is open. */}
+                    {here && !on && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-blue-600" data-testid="area-here-dot" />}
                     {g.label}
                     {n > 0 && <span className={`rounded-full px-1.5 text-[11px] font-bold ${on ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>{n}</span>}
                     <span aria-hidden="true" className="text-[10px] opacity-60">{on ? "▴" : "▾"}</span>
@@ -2314,12 +2272,69 @@ export default function Home() {
                 );
               })}
               {/* Setup & Maintenance (user, 1.1.1): the last area; its row holds the setup actions. */}
-              <button type="button" data-testid="setup-area" aria-expanded={shownArea === SETUP_AREA} onClick={() => setOpenArea(shownArea === SETUP_AREA ? "" : SETUP_AREA)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all ${shownArea === SETUP_AREA ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`} title="Setup & Maintenance: new and edit asset or fund, uploads, marks, capital activity, reports">
+              <button type="button" data-testid="setup-area" aria-expanded={shownArea === SETUP_AREA} onClick={() => { setOpenArea(shownArea === SETUP_AREA ? "" : SETUP_AREA); setNavOpen(false); }} className={`${navOpen ? "" : "max-sm:hidden"} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all ${shownArea === SETUP_AREA ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`} title="Setup & Maintenance: new and edit asset or fund, uploads, marks, capital activity, reports">
                 Setup &amp; Maintenance
                 <span aria-hidden="true" className="text-[10px] opacity-60">{shownArea === SETUP_AREA ? "▴" : "▾"}</span>
               </button>
             </div>
-            {shownArea === SETUP_AREA && <SetupMaintenance actions={setupActions} />}
+            {shownArea === SETUP_AREA && (
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <SetupMaintenance actions={setupActions} />
+                {/* 1.1.11 (UI review): Sample data moved here from the ⋯ menu, apart from everyday actions. */}
+                  {(!session || dbLink?.role === "owner") && (
+                    <div className="relative" data-testid="sample-data-menu">
+                      <button
+                        type="button"
+                        aria-expanded={sampleOpen}
+                        aria-haspopup="menu"
+                        onClick={() => setSampleOpen((o) => !o)}
+                        title="Owners only: load or remove the fictional sample fund and test deals"
+                        className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100"
+                      >
+                        Sample data (test) ▾
+                      </button>
+                      {sampleOpen && (
+                        <div role="menu" className="absolute right-0 z-30 mt-1 max-h-[calc(100vh-12rem)] w-96 overflow-y-auto rounded-lg border border-amber-200 bg-white p-2 shadow-lg">
+                          <p className="mb-2 rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-900">
+                            For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
+                          </p>
+                          {[
+                            { label: "Load Model Fund I", sub: "The complete test fund: rebuild the nine fictional sample assets (edits to them are lost) with sample business plans, actuals, prospects, marks and market data, construction data and documents (tenant-named leases replace unnamed ones); the sample pipeline deals, pre-screened; portfolio manager Taylor Brooks; sample tenant credit and aged rent", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone, with sample business plans, actuals, prospects, marks, construction data and documents; any edits to them are lost. Lease records on the sample assets with no tenant name are replaced by the tenant-named sample leases. The sample pipeline deals are added and screened." },
+                            { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
+                            { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
+                            { label: "Add sample documents", sub: "Fictional Model Fund I documents (LPA, PPM, asset, sale and lease documents) with their abstracts, into the Document Library (skips any already there)", run: handleAddSampleDocs, ask: "Upload the fictional Model Fund I sample documents to the firm's document store, with their abstracts? Documents already there are skipped. Disposition documents go on a sale (a new fictional sample sale where an asset has none)." },
+                            { label: "Add sample business plans", sub: "A fictional business plan and monthly actuals for each Model Fund I asset; Route 9 runs At Risk and Harbor Light Off Plan (replaces earlier sample plans; plans you made are kept)", run: handleAddSamplePlans, ask: "Add fictional business plans and monthly actuals to the Model Fund I sample assets? Earlier sample plans are replaced; plans you made yourself are kept, and nothing else changes." },
+                            { label: "Add sample prospects", sub: "A fictional leasing pipeline for each Model Fund I asset (prospects on the vacant units and a renewal), leasing managers, and rent comps where an asset has none (replaces earlier sample prospects; yours are kept)", run: handleAddSampleLeasing, ask: "Add a fictional leasing pipeline to the Model Fund I sample assets, with rent comps where an asset has none? Earlier sample prospects are replaced; prospects and comps you entered are kept." },
+                            { label: "Add sample marks and market data", sub: "A fictional submarket for each Model Fund I asset (Market Data, with the asset tagged) and quarterly marks after each asset's first six months (Valuation); replaces earlier sample entries, keeps yours", run: handleAddSampleMarket, ask: "Add fictional market data (a submarket per Model Fund I asset) and sample marks? Earlier sample entries are replaced; your own submarkets, marks and asset tags are kept." },
+                            { label: "Add sample GP partners", sub: "Two fictional outside GP partners of Model Fund I and their agreements (one fund-wide, one for Granite Ave only), read by Claude and waiting to be checked in Finance → GP Partners", run: handleAddSampleGpPartners, ask: "Add two fictional outside GP partners and upload their agreements to Model Fund I's documents? Nothing changes in the fund until you check and save each agreement's terms in Finance → GP Partners." },
+                            { label: "Add sample tenant credit and aged rent", sub: "Fictional credit records, a credit-change flag and prospect screenings for the Model Fund I tenants, and a sample aged receivables report (replaces earlier sample entries; yours are kept)", run: handleAddSampleCredit, ask: "Add fictional tenant credit records, a credit-change flag, prospect screenings and a sample aged receivables report to Model Fund I? Earlier sample entries are replaced; records, flags and uploads you made are kept." },
+                            { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
+                            { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
+                            { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
+                            { label: "Load test scenario", sub: "Add three fictional test deals to Model Fund I", run: handleLoadTest, ask: "Load the test scenario? This adds three fictional test deals to the firm's data for everyone." },
+                            { label: "Clear test data", sub: "Remove all sample and test deals", run: handleClearTest, ask: "Clear test data? This removes every sample and test deal from the firm's data for everyone. Your own deals are not touched." },
+                          ].map((a) => (
+                            <button
+                              key={a.label}
+                              type="button"
+                              role="menuitem"
+                              onClick={() => {
+                                setSampleOpen(false);
+                                setMoreOpen(false);
+                                if (window.confirm(a.ask)) a.run();
+                              }}
+                              className="block w-full rounded px-2 py-1.5 text-left hover:bg-gray-50"
+                            >
+                              <span className={`block text-xs font-medium ${a.label.startsWith("Clear") ? "text-red-600" : "text-gray-800"}`}>{a.label}</span>
+                              <span className="block text-[11px] text-gray-500">{a.sub}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+              </div>
+            )}
             {TAB_GROUPS.filter((g) => g.tabs.length && g.label === shownArea).map((g) => (
               <div key={g.label} className="mt-1.5 border-t border-gray-100 pt-1.5" role="group" aria-label={g.label} data-testid="tab-group">
                 <span className="sr-only">{g.label}</span>
@@ -2510,7 +2525,7 @@ export default function Home() {
               return (
                 <div className="space-y-4">
                   {card}
-                  <ScreenerPicker activeDeal={activeDeal} owned={owned} pipelineRow={row ?? null} onSyncRow={locked || passed || !row ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${row.name} from Deal Screener`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === row.id ? { ...x, ...patch } : x)) })); }} />
+                  <ScreenerPicker activeDeal={activeDeal} owned={owned} pipelineRow={row ?? null} activeRows={(pipeline.deals ?? []).filter((r) => PIPELINE_ACTIVE.includes(r.stage))} onPickRow={(id) => handlePickScreener(`row:${id}`)} onSyncRow={locked || passed || !row ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${row.name} from Deal Screener`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === row.id ? { ...x, ...patch } : x)) })); }} />
                   {!owned && (
                     // Passed / lost: decided, so read-only (user, 11/25).
                     <fieldset disabled={passed} className={`min-w-0 space-y-4 ${passed ? "opacity-60" : ""}`} data-testid={passed ? "screener-readonly" : undefined}>
@@ -2664,9 +2679,11 @@ export default function Home() {
               <GpEconomics key="sponsor" role="sponsor" deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
             )}
             {activeTab === "fund" && (
-              <>
+              <div ref={prIndexRef} className="scroll-mt-4">
+              {/* 1.1.11 (UI review): an "On this page" index for this long tab. */}
+              <PageIndex rootRef={prIndexRef} testId="pr-index" />
               {Object.entries(viewFunds).filter(([, f]) => Object.keys(f?.delinquency?.months ?? {}).length).map(([name, f]) => (
-                <div key={name} className="mb-4">
+                <div key={name} className="mb-4 scroll-mt-16" data-index="Rent delinquency">
                   <DelinquencySummary
                     delinq={f.delinquency}
                     deals={fundDeals.filter((d) => resolveFund(d.inputs.fundName) === name).map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))}
@@ -2675,6 +2692,7 @@ export default function Home() {
                   />
                 </div>
               ))}
+              <div data-index="NAV and interim returns" className="scroll-mt-16" />
               <FundNav
                 deals={fundDeals}
                 funds={viewFunds}
@@ -2690,7 +2708,7 @@ export default function Home() {
                   onOpen={() => setActiveTab("assets")}
                 />
               ))}
-              <div className="mb-4">
+              <div className="mb-4 scroll-mt-16" data-index="NOI vs budget">
                 <BudgetVsActualSummary deals={fundDeals.map((d) => ({ id: d.id, inputs: (deals.find((x) => x.id === d.id) ?? d).inputs }))} onOpen={() => setActiveTab("plan")} />
               </div>
               <FundAnalysis
@@ -2711,7 +2729,7 @@ export default function Home() {
                 onDeleteFund={handleDeleteFund}
                 curve={effectiveCurve(baseCurve, anchorToLive, live)}
               />
-              </>
+              </div>
             )}
             {activeTab === "assets" && (
               <AssetSummary

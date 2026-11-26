@@ -236,7 +236,7 @@ function LocationMap({ inputs, geo, canEdit, onSave }) {
     >
       <p className="mb-2 text-xs text-gray-600">
         {[inputs.address, inputs.city, inputs.state, inputs.zip].filter(Boolean).join(", ") || "No address in the Property inputs yet."}
-        {handPoint && <span className="text-gray-400"> · map at {geo.lat}, {geo.lon} (entered by hand)</span>}
+        {handPoint && <span className="text-gray-500"> · map at {geo.lat}, {geo.lon} (entered by hand)</span>}
       </p>
       {manual && (
         <div className="mb-2 flex flex-wrap items-end gap-2 text-xs">
@@ -254,7 +254,7 @@ function LocationMap({ inputs, geo, canEdit, onSave }) {
       {q ? (
         <>
           <iframe title={`Map of ${inputs.propertyName || "the asset"}`} src={googleEmbedUrl(q, { view })} className="h-72 w-full rounded-lg border border-gray-200" loading="lazy" referrerPolicy="no-referrer-when-downgrade" data-testid="map-frame" />
-          <p className="mt-1 text-[10px] text-gray-400">Map from Google Maps{GOOGLE_EMBED_KEY ? "" : " (keyless embed)"}, found from the {handPoint ? "coordinates entered" : "address"}. If the pin is off (for example a new street Google doesn&apos;t know), enter the coordinates.</p>
+          <p className="mt-1 text-[10px] text-gray-500">Map from Google Maps{GOOGLE_EMBED_KEY ? "" : " (keyless embed)"}, found from the {handPoint ? "coordinates entered" : "address"}. If the pin is off (for example a new street Google doesn&apos;t know), enter the coordinates.</p>
         </>
       ) : (
         <p className="text-xs text-gray-500">Add the address in the Property inputs (or enter coordinates) to show the map.</p>
@@ -320,7 +320,7 @@ function FloorPlan({ name, units, media, planUrl, canEdit, canUpload, busy, onUp
             {Object.entries(STATUS_COLORS).map(([k, c]) => (
               <span key={k} className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm border" style={{ background: c.fill, borderColor: c.stroke }} />{c.label}</span>
             ))}
-            {!hasPlan && <span className="text-gray-400">Schematic: units in rent roll order, width by SF. Upload a plan to draw them where they are.</span>}
+            {!hasPlan && <span className="text-gray-500">Schematic: units in rent roll order, width by SF. Upload a plan to draw them where they are.</span>}
           </div>
           {hasPlan && canEdit && (
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
@@ -377,7 +377,7 @@ function FloorPlan({ name, units, media, planUrl, canEdit, canUpload, busy, onUp
                 </>
               )}
               {picked.length > 0 && <button type="button" onClick={() => setPicked([])} className={`${btn} border-gray-300`}>Clear</button>}
-              <span className="w-full text-[10px] text-gray-400">Only vacant units can be demised or combined. New units are vacant at the unit&apos;s market rent; the rent roll, cash flow and Unit Roll update, and each change is in the change log.</span>
+              <span className="w-full text-[10px] text-gray-500">Only vacant units can be demised or combined. New units are vacant at the unit&apos;s market rent; the rent roll, cash flow and Unit Roll update, and each change is in the change log.</span>
             </div>
           )}
         </>

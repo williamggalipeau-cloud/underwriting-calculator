@@ -45,7 +45,7 @@ function MetricRow({ label, value, sub, status, statusLabel, highlight }) {
     <div className={`flex items-center justify-between py-3 border-b border-gray-100 last:border-0 ${highlight ? "bg-blue-50 -mx-4 px-4 rounded" : ""}`}>
       <div>
         <p className="text-sm font-medium text-gray-700">{label}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+        {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
       </div>
       <div className="flex items-center gap-2">
         {status && statusLabel && <StatusBadge status={status} label={statusLabel} />}
@@ -95,7 +95,7 @@ const statusStyles = {
   pass:   { cell: "text-emerald-700 font-medium", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   warn:   { cell: "text-yellow-700 font-medium",  badge: "bg-yellow-50 text-yellow-700 border-yellow-200" },
   breach: { cell: "text-red-700 font-bold",        badge: "bg-red-50 text-red-700 border-red-200" },
-  "—":    { cell: "text-gray-300",                 badge: "bg-gray-50 text-gray-400 border-gray-200" },
+  "—":    { cell: "text-gray-300",                 badge: "bg-gray-50 text-gray-500 border-gray-200" },
 };
 
 function CovenantCompliance({ cashFlows, inputs }) {
@@ -111,7 +111,7 @@ function CovenantCompliance({ cashFlows, inputs }) {
   if (covenants.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-gray-200 p-5 text-center">
-        <p className="text-sm font-medium text-gray-400">No covenants configured</p>
+        <p className="text-sm font-medium text-gray-500">No covenants configured</p>
         <p className="text-xs text-gray-300 mt-1">Enable covenants in Deal Inputs → Financing → Loan Covenants.</p>
       </div>
     );
@@ -168,14 +168,14 @@ function CovenantCompliance({ cashFlows, inputs }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Year</th>
+              <th className="px-3 py-2 text-left font-semibold text-gray-500">Year</th>
               {covenants.map(({ key, label, threshold, isMax, fmtV }) => (
-                <th key={key} className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                <th key={key} className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">
                   {label}
                   <span className="ml-1 text-gray-300 font-normal normal-case">({isMax ? "≤" : "≥"}{fmtV(threshold)})</span>
                 </th>
               ))}
-              <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+              <th className="px-3 py-2 text-center font-semibold text-gray-500">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -204,7 +204,7 @@ function CovenantCompliance({ cashFlows, inputs }) {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-400">LTV estimated as loan balance ÷ (NOI ÷ exit cap rate). Occupancy = (scheduled − vacancy) ÷ scheduled.</p>
+      <p className="text-xs text-gray-500">LTV estimated as loan balance ÷ (NOI ÷ exit cap rate). Occupancy = (scheduled − vacancy) ÷ scheduled.</p>
     </div>
   );
 }
@@ -239,7 +239,7 @@ function TIReserveSection({ debt, cashFlows }) {
           <div key={label} className={`rounded-xl border p-3 ${warn ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"}`}>
             <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${warn ? "text-red-500" : "text-gray-500"}`}>{label}</p>
             <p className={`text-lg font-bold tabular-nums ${warn ? "text-red-700" : "text-gray-900"}`}>{value}</p>
-            {sub && <p className={`text-xs mt-0.5 ${warn ? "text-red-500" : "text-gray-400"}`}>{sub}</p>}
+            {sub && <p className={`text-xs mt-0.5 ${warn ? "text-red-500" : "text-gray-500"}`}>{sub}</p>}
           </div>
         ))}
       </div>
@@ -249,7 +249,7 @@ function TIReserveSection({ debt, cashFlows }) {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               {["Year", "TI Needed", "DSCR", "Draw Approved", "Shortfall", "Reserve Remaining", "Status"].map((h) => (
-                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
@@ -263,7 +263,7 @@ function TIReserveSection({ debt, cashFlows }) {
               const hasShortfall = shortfall > 0;
               const hasActivity  = needed > 0;
               let statusLabel, statusColor;
-              if (!hasActivity)       { statusLabel = "No TI";    statusColor = "text-gray-400"; }
+              if (!hasActivity)       { statusLabel = "No TI";    statusColor = "text-gray-500"; }
               else if (hasShortfall)  { statusLabel = "Shortfall"; statusColor = "text-red-600 font-semibold"; }
               else                    { statusLabel = "Approved";  statusColor = "text-emerald-600 font-semibold"; }
               return (
@@ -417,9 +417,9 @@ export default function DebtSizingPanel({ debt, cashFlows, inputs, cap, onCapCha
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Constraint</th>
-                  <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide">Max Loan</th>
-                  <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide w-24">Status</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500">Constraint</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-500">Max Loan</th>
+                  <th className="px-3 py-2 text-center font-semibold text-gray-500 w-24">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

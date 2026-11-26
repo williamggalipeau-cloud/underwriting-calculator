@@ -23,7 +23,7 @@ export default function PipelineDealPicker({ groups, value = "", onPick, onEdit 
         {other.length > 0 && <optgroup label="Not on the Pipeline">{other.map(opt)}</optgroup>}
       </select>
       {onEdit && <button type="button" onClick={onEdit} title="Open this deal's inputs (price, loan, rent roll and the rest)" className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50">Edit inputs</button>}
-      {label && <span className="text-xs text-gray-400">{label}</span>}
+      {label && <span className="text-xs text-gray-500">{label}</span>}
     </div>
   );
 }

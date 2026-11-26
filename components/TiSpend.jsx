@@ -17,7 +17,7 @@ async function gridOf(file) {
 
 export function TiByUnitTable({ inputs, compact = false }) {
   const t = tiByUnit(inputs);
-  if (!t.rows.length) return compact ? null : <p className="text-xs text-gray-400">No TI planned or recorded by unit yet.</p>;
+  if (!t.rows.length) return compact ? null : <p className="text-xs text-gray-500">No TI planned or recorded by unit yet.</p>;
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200" data-testid="ti-by-unit">
       <table className="w-full text-xs tabular-nums">
@@ -71,7 +71,7 @@ export default function TiSpend({ deal, deals = [], canEdit = false, onUpdate })
       <TiByUnitTable inputs={deal.inputs} />
       {cap.length > 0 && (
         <table className="w-full text-xs tabular-nums" data-testid="capital-jobs"><thead className="text-gray-500"><tr>{["Job", "Name", "Budget", "Committed", "Invoiced", "Paid", "Retainage", "Status", "Linked to"].map((h) => <th key={h} className="px-1.5 py-1 text-left font-medium">{h}</th>)}</tr></thead>
-          <tbody>{cap.map((j) => <tr key={j.code} className="border-t border-gray-100"><td className="px-1.5 py-1">{j.code}</td><td className="px-1.5 py-1">{j.name}</td><td className="px-1.5 py-1">{money(j.revisedBudget)}</td><td className="px-1.5 py-1">{money(j.committed)}</td><td className="px-1.5 py-1">{money(j.invoiced)}</td><td className="px-1.5 py-1">{money(j.paid)}</td><td className="px-1.5 py-1">{money(j.retainage)}</td><td className="px-1.5 py-1">{j.status}</td><td className="px-1.5 py-1 text-gray-600">{j.finding ? `Finding: ${j.finding.system}` : j.contract ? `Contract: ${j.contract.vendor}` : <span className="text-gray-400">enter the job code on a finding or contract</span>}</td></tr>)}</tbody></table>
+          <tbody>{cap.map((j) => <tr key={j.code} className="border-t border-gray-100"><td className="px-1.5 py-1">{j.code}</td><td className="px-1.5 py-1">{j.name}</td><td className="px-1.5 py-1">{money(j.revisedBudget)}</td><td className="px-1.5 py-1">{money(j.committed)}</td><td className="px-1.5 py-1">{money(j.invoiced)}</td><td className="px-1.5 py-1">{money(j.paid)}</td><td className="px-1.5 py-1">{money(j.retainage)}</td><td className="px-1.5 py-1">{j.status}</td><td className="px-1.5 py-1 text-gray-600">{j.finding ? `Finding: ${j.finding.system}` : j.contract ? `Contract: ${j.contract.vendor}` : <span className="text-gray-500">enter the job code on a finding or contract</span>}</td></tr>)}</tbody></table>
       )}
     </section>
   );

@@ -206,7 +206,7 @@ export default function DistributionAnalysis({ deals, funds = {}, marks = {}, cu
           </tbody>
         </table>
         {calc.assets.some((a) => a.status !== "held") && (
-          <p className="border-t border-gray-100 px-3 py-1.5 text-[11px] text-gray-400">Not included: {calc.assets.filter((a) => a.status !== "held").map((a) => `${a.name} (${a.status})`).join(", ")}.</p>
+          <p className="border-t border-gray-100 px-3 py-1.5 text-[11px] text-gray-500">Not included: {calc.assets.filter((a) => a.status !== "held").map((a) => `${a.name} (${a.status})`).join(", ")}.</p>
         )}
       </div>
 
@@ -214,7 +214,7 @@ export default function DistributionAnalysis({ deals, funds = {}, marks = {}, cu
         <div className="space-y-2 rounded-xl border border-gray-200 p-3 text-xs" data-testid="dist-fund">
           <h3 className="text-sm font-semibold text-gray-800">Fund cash and sub line</h3>
           <div className="flex items-center justify-between gap-2">
-            <span>Fund cash <span className="text-gray-400">({calc.fund.cashSource === "entered" ? "entered" : "projected, none entered"})</span></span>
+            <span>Fund cash <span className="text-gray-500">({calc.fund.cashSource === "entered" ? "entered" : "projected, none entered"})</span></span>
             <MoneyInput label="Fund cash" value={store.fundCash?.[qk]} placeholder={Math.round(calc.fund.cash).toString()} disabled={!canEdit} onChange={(v) => saveStore({ fundCash: { ...(store.fundCash ?? {}), [qk]: v } })} />
           </div>
           <div className="flex justify-between"><span>Less fund minimum ({FUND_MONTHS} months of fee and sub line costs)</span><span className="tabular-nums">{fmtM(-calc.fund.min)}</span></div>
@@ -289,7 +289,7 @@ export default function DistributionAnalysis({ deals, funds = {}, marks = {}, cu
               <tr className="border-t border-gray-100 bg-blue-50/50"><td className={td}>{quarterLabel(qEnd)} proposed</td><td className={`${td} text-right`}>{fmtM(pick.amount)}</td><td className={`${td} text-right`}>{fmtP(y.onContributed)}</td></tr>
             </tbody>
           </table>
-          <p className="px-3 py-1.5 text-[11px] text-gray-400">Recorded distributions from capital activity (type Distribution paid).</p>
+          <p className="px-3 py-1.5 text-[11px] text-gray-500">Recorded distributions from capital activity (type Distribution paid).</p>
         </div>
         <div className="rounded-xl border border-gray-200 p-3 text-xs" data-testid="dist-proposals">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -297,7 +297,7 @@ export default function DistributionAnalysis({ deals, funds = {}, marks = {}, cu
             {canEdit && <label className="flex items-center gap-1.5 text-gray-600">Paid on <input aria-label="Paid date" type="date" value={paidDate} onChange={(e) => e.target.value && setPaidDate(e.target.value)} className="rounded border border-gray-300 px-1.5 py-0.5" /></label>}
           </div>
           {proposals.length === 0 ? (
-            <p className="text-gray-400">None saved for this quarter.</p>
+            <p className="text-gray-500">None saved for this quarter.</p>
           ) : (
             <ul className="space-y-1.5">
               {proposals.map((p) => (
@@ -310,13 +310,13 @@ export default function DistributionAnalysis({ deals, funds = {}, marks = {}, cu
                   ) : canEdit ? (
                     <button type="button" onClick={() => recordPaid(p)} className="rounded border border-emerald-300 bg-white px-2 py-0.5 font-medium text-emerald-700 hover:bg-emerald-50">Record as paid</button>
                   ) : (
-                    <span className="text-gray-400">Proposed</span>
+                    <span className="text-gray-500">Proposed</span>
                   )}
                 </li>
               ))}
             </ul>
           )}
-          <p className="mt-2 text-[11px] text-gray-400">No approval step yet (that comes with automated workflow, phase V). Recording a payment adds a &quot;Distribution paid&quot; entry to the fund&apos;s capital activity; it feeds this history and doesn&apos;t change the fund model.</p>
+          <p className="mt-2 text-[11px] text-gray-500">No approval step yet (that comes with automated workflow, phase V). Recording a payment adds a &quot;Distribution paid&quot; entry to the fund&apos;s capital activity; it feeds this history and doesn&apos;t change the fund model.</p>
         </div>
       </div>
     </section>

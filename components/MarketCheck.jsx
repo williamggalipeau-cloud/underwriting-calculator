@@ -18,7 +18,7 @@ export default function MarketCheck({ check, title = "Market check", valueLabel 
     <div className="space-y-1.5 rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid={testId}>
       <p className="font-semibold text-gray-900">{title} <span className="font-normal text-gray-500">· vs. {check.submarket.name}{check.quarter ? `, ${check.quarter.replace("-", " ")}` : ""}{check.source ? ` (${check.source}${check.sourceDate ? `, ${check.sourceDate}` : ""})` : ""}</span></p>
       <table className="w-full tabular-nums">
-        <thead className="text-[10px] uppercase tracking-wide text-gray-500"><tr><th className="py-1 text-left">Assumption</th><th className="text-right">{valueLabel}</th><th className="text-right">Market</th><th className="text-right">Difference</th><th className="text-right">Flag at</th><th className="pl-2 text-left">Status</th></tr></thead>
+        <thead className="text-[10px] text-gray-500"><tr><th className="py-1 text-left">Assumption</th><th className="text-right">{valueLabel}</th><th className="text-right">Market</th><th className="text-right">Difference</th><th className="text-right">Flag at</th><th className="pl-2 text-left">Status</th></tr></thead>
         <tbody>{check.rows.map((r) => (
           <tr key={r.kind} className="border-t border-gray-100" data-testid="market-check-row">
             <td className="py-1">{r.label}</td>
@@ -30,7 +30,7 @@ export default function MarketCheck({ check, title = "Market check", valueLabel 
           </tr>
         ))}</tbody>
       </table>
-      <p className="text-[10px] text-gray-400">Amber past the portfolio&apos;s flag level, red past {check.redMultiple ?? 1.5}× it. The levels are on the portfolio&apos;s terms (Edit fund / JV / SMA → Market check flag levels).</p>
+      <p className="text-[10px] text-gray-500">Amber past the portfolio&apos;s flag level, red past {check.redMultiple ?? 1.5}× it. The levels are on the portfolio&apos;s terms (Edit fund / JV / SMA → Market check flag levels).</p>
     </div>
   );
 }

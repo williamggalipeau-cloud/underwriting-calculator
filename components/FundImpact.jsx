@@ -15,7 +15,7 @@ const fmtD = (v, u) => {
   const a = Math.abs(v);
   return u === "%" ? `${s}${a.toFixed(2)} pts` : u === "x" ? `${s}${a.toFixed(2)}x` : `${s}$${(a / 1e6).toFixed(2)}M`;
 };
-const tone = (v) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-400" : v > 0 ? "text-emerald-700" : "text-red-600");
+const tone = (v) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-500" : v > 0 ? "text-emerald-700" : "text-red-600");
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "—");
 const btn = "rounded-lg border px-3 py-1.5 text-xs font-medium";
 
@@ -74,12 +74,12 @@ export default function FundImpact({ deals, funds, curve, canEdit, email, presel
 
       <div className="rounded-xl border border-gray-200 p-3" data-testid="impact-candidates">
         <h3 className="mb-2 text-sm font-semibold text-gray-800">Candidates <span className="font-normal text-gray-500">(pipeline deals with no fund or bought after today)</span></h3>
-        {pipeline.length === 0 ? <p className="text-xs text-gray-400">No pipeline deals. Screen one on the Pipeline tab first.</p> : (
+        {pipeline.length === 0 ? <p className="text-xs text-gray-500">No pipeline deals. Screen one on the Pipeline tab first.</p> : (
           <div className="flex flex-wrap gap-2 text-xs">
             {pipeline.map((d) => (
               <label key={d.id} className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 ${sel.has(d.id) ? "border-indigo-400 bg-indigo-50" : "border-gray-200"}`}>
                 <input type="checkbox" aria-label={`Candidate ${d.inputs.propertyName}`} checked={sel.has(d.id)} onChange={() => { toggle(d.id); setView(null); }} />
-                {d.inputs.propertyName || "Unnamed"} <span className="text-gray-400">${((d.inputs.purchasePrice ?? 0) / 1e6).toFixed(1)}M · close {usDate(d.inputs.acquisitionDate)}</span>
+                {d.inputs.propertyName || "Unnamed"} <span className="text-gray-500">${((d.inputs.purchasePrice ?? 0) / 1e6).toFixed(1)}M · close {usDate(d.inputs.acquisitionDate)}</span>
               </label>
             ))}
           </div>
@@ -104,7 +104,7 @@ export default function FundImpact({ deals, funds, curve, canEdit, email, presel
           <div className="space-y-3">
             <div className="rounded-xl border border-gray-200 p-3 text-xs" data-testid="impact-tab-limits">
               <h4 className="mb-1 font-semibold text-gray-800">Fund limits</h4>
-              {res.limits.length === 0 ? <p className="text-gray-400">No limits set (Reports → Fund limits).</p> : (
+              {res.limits.length === 0 ? <p className="text-gray-500">No limits set (Reports → Fund limits).</p> : (
                 <ul className="space-y-0.5">{res.limits.map((l) => <li key={`${l.source}-${l.key}`} className={l.newBreach ? "font-semibold text-red-700" : l.status === "breached" ? "text-red-600" : l.status === "near" ? "text-amber-700" : "text-gray-700"}>{l.label}: {l.before?.actual != null ? l.before.actual.toFixed(1) : "—"} → {l.actual != null ? l.actual.toFixed(1) : "—"} (limit {String(l.limit)}){l.newBreach ? " · new breach" : ""}</li>)}</ul>
               )}
             </div>
@@ -153,7 +153,7 @@ export default function FundImpact({ deals, funds, curve, canEdit, email, presel
             <button type="button" onClick={() => save(null)} className={`${btn} border-indigo-600 bg-indigo-600 text-white`}>Save as new scenario</button>
           </div>
         )}
-        {scenarios.length === 0 ? <p className="text-gray-400">None saved. A saved version is frozen: later changes save a new version.</p> : (
+        {scenarios.length === 0 ? <p className="text-gray-500">None saved. A saved version is frozen: later changes save a new version.</p> : (
           <ul className="space-y-1.5">
             {scenarios.map((s) => (
               <li key={s.id} className="rounded border border-gray-100 px-2 py-1.5" data-testid="impact-scenario">

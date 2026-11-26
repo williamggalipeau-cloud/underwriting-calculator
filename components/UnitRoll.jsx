@@ -100,7 +100,7 @@ export function generateUnits(inputs) {
 function NumCell({ value, onChange, step = 1, min = 0, label, prefix, suffix }) {
   return (
     <div className="flex items-center border border-transparent rounded focus-within:border-blue-400 focus-within:bg-blue-50 overflow-hidden">
-      {prefix && <span className="text-gray-400 text-xs pl-1">{prefix}</span>}
+      {prefix && <span className="text-gray-500 text-xs pl-1">{prefix}</span>}
       <input
         type="number"
         aria-label={label}
@@ -110,7 +110,7 @@ function NumCell({ value, onChange, step = 1, min = 0, label, prefix, suffix }) 
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         className="w-full px-1 py-1 text-xs text-gray-900 bg-transparent outline-none text-right tabular-nums"
       />
-      {suffix && <span className="text-gray-400 text-xs pr-1">{suffix}</span>}
+      {suffix && <span className="text-gray-500 text-xs pr-1">{suffix}</span>}
     </div>
   );
 }
@@ -123,7 +123,7 @@ function TextCell({ value, onChange, placeholder, label }) {
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-1 py-1 text-xs text-gray-900 bg-transparent outline-none border border-transparent rounded focus:border-blue-400 focus:bg-blue-50"
+      className="w-full px-1 py-1 text-xs text-gray-900 bg-transparent outline-none border border-transparent rounded focus:border-blue-400 focus:bg-blue-50 placeholder:text-transparent focus:placeholder:text-gray-400"
     />
   );
 }
@@ -198,12 +198,12 @@ function LeaseSummary({ la }) {
             ))}
           </tbody>
         </table>
-        <p className="px-3 py-1.5 text-[11px] text-gray-400">Leases already past their end date (holdover) are shown in the current year.</p>
+        <p className="px-3 py-1.5 text-[11px] text-gray-500">Leases already past their end date (holdover) are shown in the current year.</p>
       </div>
       <div className="rounded-xl border border-gray-200 bg-white">
         <h3 className="border-b border-gray-100 px-3 py-2 text-xs font-semibold text-gray-700">Critical dates, next 12 months</h3>
         {la.criticalDates.length === 0 ? (
-          <p className="px-3 py-3 text-xs text-gray-400">None. Add lease end dates, renewal options and termination rights in each unit&apos;s Lease details.</p>
+          <p className="px-3 py-3 text-xs text-gray-500">None. Add lease end dates, renewal options and termination rights in each unit&apos;s Lease details.</p>
         ) : (
           <table className="w-full text-xs">
             <tbody>
@@ -212,7 +212,7 @@ function LeaseSummary({ la }) {
                   <td className="px-3 py-1.5 whitespace-nowrap tabular-nums text-gray-800">{fmtDate(d.date)}</td>
                   <td className="px-3 py-1.5 whitespace-nowrap text-gray-500">{d.days < 0 ? `${-d.days} days ago` : `in ${d.days} days`}</td>
                   <td className="px-3 py-1.5 font-medium text-gray-900">{d.kind}</td>
-                  <td className="px-3 py-1.5 text-gray-700">Unit {d.unit}{d.tenant ? ` · ${d.tenant}` : ""}<span className="block text-gray-400">{d.detail}</span></td>
+                  <td className="px-3 py-1.5 text-gray-700">Unit {d.unit}{d.tenant ? ` · ${d.tenant}` : ""}<span className="block text-gray-500">{d.detail}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -269,7 +269,7 @@ function LeaseDetails({ unit, inputs, onField }) {
         const shown = f.key === "leaseEnd" && !v && derivedEnd ? derivedEnd : v;
         return (
           <label key={f.key} className={`flex flex-col gap-0.5 ${f.key === "leaseNotes" || f.key === "otherRights" ? "sm:col-span-2" : ""}`}>
-            <span className="text-[11px] font-medium text-gray-500">{f.label}{f.help ? <span className="font-normal text-gray-400"> · {f.help}</span> : null}</span>
+            <span className="text-[11px] font-medium text-gray-500">{f.label}{f.help ? <span className="font-normal text-gray-500"> · {f.help}</span> : null}</span>
             <input
               type={f.type === "date" ? "date" : f.type === "text" ? "text" : "number"}
               value={shown}
@@ -279,7 +279,7 @@ function LeaseDetails({ unit, inputs, onField }) {
                 const raw = e.target.value;
                 onField(f.key, f.type === "number" || f.type === "money" ? (raw === "" ? "" : Math.max(0, Number(raw))) : raw);
               }}
-              className={`${input} ${f.key === "leaseEnd" && !v ? "text-gray-400" : ""}`}
+              className={`${input} ${f.key === "leaseEnd" && !v ? "text-gray-500" : ""}`}
             />
           </label>
         );
@@ -290,11 +290,13 @@ function LeaseDetails({ unit, inputs, onField }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+// 1.1.11 (UI review): the per-unit expense columns are shown on request.
+const EXPENSE_KEYS = ["reTax", "ins", "utils", "maint", "janit"];
 const COL_HEADERS = [
-  { key: "name",      label: "Unit",      width: "w-16", tip: "" },
-  { key: "sf",        label: "SF",        width: "w-20", tip: "" },
-  { key: "tenant",    label: "Tenant",    width: "w-28", tip: "" },
-  { key: "bizDesc",   label: "Business",  width: "w-36", tip: "Business description or tenant use type" },
+  { key: "name",      label: "Unit",      width: "min-w-[4.5rem]", tip: "", sticky: "left-6" },
+  { key: "tenant",    label: "Tenant",    width: "min-w-[14rem]", tip: "", sticky: "left-[6rem]" },
+  { key: "sf",        label: "SF",        width: "min-w-[5rem]", tip: "" },
+  { key: "bizDesc",   label: "Business",  width: "min-w-[11rem]", tip: "Business description or tenant use type" },
   { key: "credit",    label: "Credit",    width: "w-20", tip: "Tenant credit rating (e.g. A, BB+, Investment Grade)" },
   { key: "sic",       label: "SIC",       width: "w-24", tip: "SIC industry code (4 digits). Suggested from the business description; pick from the list or type a code" },
   { key: "naics",     label: "NAICS",     width: "w-20", tip: "NAICS industry code (optional)" },
@@ -412,6 +414,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
 
   const la = leaseAnalytics({ ...inputs, units }, todayISO());
   const [openId, setOpenId] = useState(null);
+  const [showExp, setShowExp] = useState(false); // 1.1.11: expense columns on request
   const setLeaseField = (u, key, value) => {
     const next = { ...u, [key]: value };
     if (key === "leaseEnd") {
@@ -467,9 +470,6 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
             </>
           ) : (
             <>
-              <button type="button" onClick={generate} className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                Regenerate
-              </button>
               <button
                 type="button"
                 onClick={() => { setCsvError(null); fileInput.current?.click(); }}
@@ -480,12 +480,17 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
               <button type="button" onClick={downloadRentRoll} className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 Download Excel
               </button>
-              <button type="button" onClick={() => onChange([])} className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
-                Clear all
-              </button>
-              <button type="button" onClick={addUnit} className="px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
+              <button type="button" onClick={addUnit} className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
                 + Add unit
               </button>
+              {/* 1.1.11: less-used actions in a ⋯ menu; Clear all keeps its warning colour. */}
+              <details className="relative" data-testid="rr-more">
+                <summary aria-label="More rent roll actions" className="cursor-pointer list-none rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">⋯</summary>
+                <div className="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+                  <button type="button" onClick={generate} className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Regenerate from settings</button>
+                  <button type="button" onClick={() => { if (window.confirm("Remove every unit from this rent roll?")) onChange([]); }} className="block w-full rounded px-2 py-1.5 text-left text-xs text-red-600 hover:bg-red-50">Clear all units</button>
+                </div>
+              </details>
             </>
           )}
         </div>
@@ -502,8 +507,6 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
 
       {/* Summary stats */}
       <SummaryStats units={units} inputs={inputs} la={la} />
-      <LeaseSummary la={la} />
-      <IndustryMix la={la} />
       <datalist id="sic-codes">
         {SIC_CODES.map(([code, title]) => <option key={code} value={code}>{`${code} — ${title}`}</option>)}
       </datalist>
@@ -512,7 +515,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
       {units.length === 0 && (
         <div className="border-2 border-dashed border-gray-200 rounded-xl p-12 text-center">
           <p className="text-sm font-medium text-gray-500">No unit lease roll defined</p>
-          <p className="text-xs text-gray-400 mt-1 mb-4">
+          <p className="text-xs text-gray-500 mt-1 mb-4">
             Generate a roster from your deal settings, or import a rent roll (CSV or Excel; download the template for the columns).
             <br />When units are present, the model uses actual lease schedules instead of portfolio-level vacancy.
           </p>
@@ -532,13 +535,13 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
       {/* Lease roll table */}
       {units.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-gray-200">
-          <table className="text-xs w-full border-collapse" aria-labelledby={headerId}>
+          <table className="text-xs w-max min-w-full border-collapse" aria-labelledby={headerId}>
             <caption id={headerId} className="sr-only">Unit lease roll</caption>
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="w-6 px-2 py-2" title="Lease details" />
-                {COL_HEADERS.map((h) => (
-                  <th key={h.key} title={h.tip} className={`${h.width} px-2 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap`}>
+                <th className="sticky left-0 z-10 w-6 bg-gray-50 px-2 py-2" title="Lease details" />
+                {COL_HEADERS.filter((h) => showExp || !EXPENSE_KEYS.includes(h.key)).map((h) => (
+                  <th key={h.key} title={h.tip} className={`${h.width} ${h.sticky ? `sticky ${h.sticky} z-10 bg-gray-50` : ""} px-2 py-2 text-left font-semibold text-gray-600 whitespace-nowrap`}>
                     {h.label}
                   </th>
                 ))}
@@ -556,19 +559,19 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                 return (
                   <Fragment key={u.id}>
                   <tr className={`hover:bg-gray-50 transition-colors ${!isOccupied ? "bg-red-50/30" : ""} ${isOpen ? "bg-blue-50/40" : ""}`}>
-                    <td className="px-2 py-1.5">
+                    <td className="sticky left-0 z-10 bg-white px-2 py-1.5">
                       <button
                         type="button"
                         aria-expanded={isOpen}
                         aria-label={`Lease details for unit ${u.name}`}
                         title="Lease details"
                         onClick={() => setOpenId(isOpen ? null : u.id)}
-                        className="rounded px-1 text-gray-400 hover:bg-blue-100 hover:text-blue-700"
+                        className="rounded px-1 text-gray-500 hover:bg-blue-100 hover:text-blue-700"
                       >
                         {isOpen ? "▾" : "▸"}
                       </button>
                     </td>
-                    <td className="px-2 py-1.5">
+                    <td className="sticky left-6 z-10 bg-white px-2 py-1.5">
                       <TextCell label="Unit name" value={u.name} onChange={(v) => update(u.id, "name", v)} />
                       {(() => {
                         const l = leases.find((x) => (x.unit_ids ?? []).includes(u.id));
@@ -600,11 +603,11 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                         );
                       })()}
                     </td>
-                    <td className="px-2 py-1.5">
-                      <NumCell label="Square feet" value={u.squareFeet} step={100} onChange={(v) => update(u.id, "squareFeet", v)} />
+                    <td className="sticky left-[6rem] z-10 border-r border-gray-100 bg-white px-2 py-1.5">
+                      <TextCell label="Tenant name" value={u.tenantName} placeholder={isOccupied ? "Tenant" : "Vacant"} onChange={(v) => update(u.id, "tenantName", v)} />
                     </td>
                     <td className="px-2 py-1.5">
-                      <TextCell label="Tenant name" value={u.tenantName} placeholder={isOccupied ? "Tenant" : "Vacant"} onChange={(v) => update(u.id, "tenantName", v)} />
+                      <NumCell label="Square feet" value={u.squareFeet} step={100} onChange={(v) => update(u.id, "squareFeet", v)} />
                     </td>
                     <td className="px-2 py-1.5">
                       <TextCell label="Business description" value={u.businessDescription ?? ""} placeholder="e.g. Light mfg." onChange={(v) => update(u.id, "businessDescription", v)} />
@@ -622,9 +625,9 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                         placeholder={suggestSic(u.businessDescription) || "e.g. 3444"}
                         title={sicLabel(u.sicCode) || "SIC code"}
                         onChange={(e) => update(u.id, "sicCode", e.target.value.replace(/\s+—.*$/, "").trim())}
-                        className="w-full bg-transparent text-sm text-gray-900 border-b border-transparent hover:border-gray-300 focus:border-blue-400 focus:outline-none px-0.5"
+                        className="w-full bg-transparent text-sm text-gray-900 border-b border-transparent hover:border-gray-300 focus:border-blue-400 focus:outline-none px-0.5 placeholder:text-transparent focus:placeholder:text-gray-400"
                       />
-                      {u.sicCode && sicTitle(u.sicCode) ? <span className="block max-w-[9rem] truncate text-[10px] leading-tight text-gray-400">{sicTitle(u.sicCode)}</span> : null}
+                      {u.sicCode && sicTitle(u.sicCode) ? <span className="block max-w-[9rem] truncate text-[10px] leading-tight text-gray-500">{sicTitle(u.sicCode)}</span> : null}
                     </td>
                     <td className="px-2 py-1.5">
                       <TextCell label="NAICS code" value={u.naicsCode ?? ""} placeholder="e.g. 332322" onChange={(v) => update(u.id, "naicsCode", v)} />
@@ -670,7 +673,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                     <td className={`px-2 py-1.5 text-right tabular-nums whitespace-nowrap ${!isOccupied ? "text-gray-300" : ""}`}>
                       {isOccupied ? (() => {
                         const spread = u.currentRentPSF - inputs.rentPerSF;
-                        const color = spread > 0.25 ? "text-emerald-600" : spread < -0.25 ? "text-red-500" : "text-gray-400";
+                        const color = spread > 0.25 ? "text-emerald-600" : spread < -0.25 ? "text-red-500" : "text-gray-500";
                         return (
                           <span className={`text-xs font-medium ${color}`}>
                             {spread >= 0 ? "+" : ""}{spread.toFixed(2)}
@@ -685,7 +688,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                       { field: "utilitiesPSF",     propField: "utilitiesPSF",     landlordPaid: unitLease === "Gross", label: "Utilities $/SF" },
                       { field: "maintenancePSF",   propField: "maintenancePSF",   landlordPaid: unitLease === "Gross", label: "Maintenance $/SF" },
                       { field: "janitorialPSF",    propField: "janitorialPSF",    landlordPaid: unitLease === "Gross", label: "Janitorial $/SF" },
-                    ].map(({ field, propField, landlordPaid, label }) => (
+                    ].filter(() => showExp).map(({ field, propField, landlordPaid, label }) => (
                       <td key={field} className={`px-2 py-1.5 ${!landlordPaid ? "opacity-30" : ""}`}>
                         <NumCell
                           label={label}
@@ -705,7 +708,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                         aria-label="Lease end date"
                         value={isOccupied ? u.leaseEnd || leaseEndOf(u, inputs) || "" : ""}
                         onChange={(e) => setLeaseField(u, "leaseEnd", e.target.value)}
-                        className={`w-full px-1 py-1 text-xs bg-transparent outline-none border border-transparent rounded focus:border-blue-400 focus:bg-blue-50 ${u.leaseEnd ? "text-gray-900" : "text-gray-400"}`}
+                        className={`w-full px-1 py-1 text-xs bg-transparent outline-none border border-transparent rounded focus:border-blue-400 focus:bg-blue-50 ${u.leaseEnd ? "text-gray-900" : "text-gray-500"}`}
                       />
                     </td>
                     <td className="px-2 py-1.5">
@@ -744,7 +747,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                     <td className="px-2 py-1.5">
                       <NumCell label="TI concession — renewal ($/SF)" value={u.tiConcessionPSFRenewal ?? inputs.tiConcessionPSFRenewal ?? 0} step={0.25} prefix="$" onChange={(v) => update(u.id, "tiConcessionPSFRenewal", v)} />
                     </td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-gray-400 whitespace-nowrap">
+                    <td className="px-2 py-1.5 text-right tabular-nums text-gray-500 whitespace-nowrap">
                       {isOccupied ? `$${Math.round(annualRevenue / 1000)}k` : "—"}
                     </td>
                     <td className="px-2 py-1.5 text-center">
@@ -760,7 +763,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                   </tr>
                   {isOpen && (
                     <tr className="bg-blue-50/30">
-                      <td colSpan={COL_HEADERS.length + 3}>
+                      <td colSpan={COL_HEADERS.length + 3 - (showExp ? 0 : EXPENSE_KEYS.length)}>
                         <LeaseDetails unit={u} inputs={inputs} onField={(k, v) => setLeaseField(u, k, v)} />
                       </td>
                     </tr>
@@ -786,6 +789,24 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
             </tfoot>
           </table>
         </div>
+      )}
+      {units.length > 0 && (
+        <button type="button" onClick={() => setShowExp((x) => !x)} className="text-xs font-medium text-blue-700 hover:underline" data-testid="toggle-expense-cols">{showExp ? "Hide expense columns" : "Show expense columns (RE tax, insurance, utilities, maintenance, janitorial)"}</button>
+      )}
+
+      {/* 1.1.11 (UI review): the supporting sections sit below the unit table,
+          collapsed, each with its one-line headline. */}
+      {la.leases > 0 && (
+        <details className="rounded-xl border border-gray-200 bg-white" data-testid="rr-leases-section">
+          <summary className="cursor-pointer px-3 py-2 text-sm"><b>Lease expirations and critical dates</b><span className="text-gray-600"> · {(() => { const top = [...(la.expirations ?? [])].sort((a, b) => b.pctRent - a.pctRent)[0]; const next = la.criticalDates?.[0]; return [top ? `most in ${top.year}: ${top.leases} lease${top.leases === 1 ? "" : "s"}, ${top.pctRent.toFixed(1)}% of rent` : null, next ? `next: ${fmtDate(next.date)} ${next.kind.toLowerCase()} (unit ${next.unit})` : null].filter(Boolean).join(" · "); })()}</span></summary>
+          <div className="p-3 pt-0"><LeaseSummary la={la} /></div>
+        </details>
+      )}
+      {la.leases > 0 && la.industryMix?.length > 0 && (
+        <details className="rounded-xl border border-gray-200 bg-white" data-testid="rr-industry-section">
+          <summary className="cursor-pointer px-3 py-2 text-sm"><b>Tenant industries (SIC)</b><span className="text-gray-600"> · {la.industryMix.length} industr{la.industryMix.length === 1 ? "y" : "ies"}, largest {la.industryMix[0].pctSF.toFixed(0)}% of leased SF{la.industryMix[0].title ? ` (${la.industryMix[0].title})` : ""}</span></summary>
+          <div className="p-3 pt-0"><IndustryMix la={la} /></div>
+        </details>
       )}
     </div>
   );

@@ -24,7 +24,7 @@ function Num({ label, value, onChange, step = 1, prefix, suffix, readOnly }) {
     <label className="flex flex-col gap-1">
       <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
       <div className="flex items-center rounded-lg border border-gray-300 bg-white focus-within:ring-2 focus-within:ring-blue-500">
-        {prefix && <span className="pl-2 text-xs text-gray-400">{prefix}</span>}
+        {prefix && <span className="pl-2 text-xs text-gray-500">{prefix}</span>}
         <input
           type="number"
           step={step}
@@ -38,7 +38,7 @@ function Num({ label, value, onChange, step = 1, prefix, suffix, readOnly }) {
           onBlur={() => setDraft(null)}
           className="w-full rounded-lg px-2 py-1.5 text-sm tabular-nums outline-none disabled:bg-gray-50"
         />
-        {suffix && <span className="pr-2 text-xs text-gray-400 whitespace-nowrap">{suffix}</span>}
+        {suffix && <span className="pr-2 text-xs text-gray-500 whitespace-nowrap">{suffix}</span>}
       </div>
     </label>
   );
@@ -133,7 +133,7 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
     <div className="rounded-xl border border-gray-200 bg-white" data-testid="rate-cap">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
         <h3 className="text-sm font-semibold text-gray-700">Rate cap</h3>
-        <span className="text-[11px] text-gray-400">
+        <span className="text-[11px] text-gray-500">
           {hasCap ? `${usd(sched.notional ?? loanAmount)} notional (loan) · ${cap.capTermYears}-yr caps held every year of the hold` : "No cap (strike 0)"}
         </span>
       </div>
@@ -183,7 +183,7 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
                   ) : r.bought && hasCap ? (
                     <TextCell value={providers[r.year]} onCommit={(v) => setProvider(r.year, v)} placeholder="e.g. bank name" readOnly={readOnly} />
                   ) : r.year > 1 && hasCap ? (
-                    <span className="text-gray-400">{providers[[...rows].reverse().find((x) => x.bought && x.year < r.year)?.year] ?? ""}</span>
+                    <span className="text-gray-500">{providers[[...rows].reverse().find((x) => x.bought && x.year < r.year)?.year] ?? ""}</span>
                   ) : null}
                 </td>
               </tr>
@@ -195,7 +195,7 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
             </tr>
           </tbody>
         </table>
-        <p className="mt-1.5 text-[11px] text-gray-400 leading-relaxed">
+        <p className="mt-1.5 text-[11px] text-gray-500 leading-relaxed">
           Each year&apos;s interest is capped at the all-in strike in force (SOFR strike + spread). The initial cap is paid at closing; renewals
           are paid when bought.{" "}
           {market

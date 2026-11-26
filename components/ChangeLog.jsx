@@ -255,7 +255,7 @@ export default function ChangeLog({ log: browserLog = [], user, onUserChange, si
         </div>
       )}
 
-      <p className="text-[11px] leading-relaxed text-gray-400">
+      <p className="text-[11px] leading-relaxed text-gray-500">
         Repeated edits to the same field by the same person within a minute are combined into one entry; an edit undone within that
         minute is dropped. Loading, importing or resetting a workspace and loading the sample fund are recorded as one entry. The working
         log is stored in the workspace data, so it is a working record rather than a tamper-proof audit trail; the database log is the

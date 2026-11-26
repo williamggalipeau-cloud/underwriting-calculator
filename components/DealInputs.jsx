@@ -45,7 +45,7 @@ function SectionHeader({ title, subtitle }) {
   return (
     <div className="mb-3">
       <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-      {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
     </div>
   );
 }
@@ -77,8 +77,8 @@ function ClosingCostsSection({ cc, purchasePrice, onChange }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Item</th>
-              <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide w-32">Amount</th>
+              <th className="px-3 py-2 text-left font-semibold text-gray-500">Item</th>
+              <th className="px-3 py-2 text-right font-semibold text-gray-500 w-32">Amount</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -87,7 +87,7 @@ function ClosingCostsSection({ cc, purchasePrice, onChange }) {
                 <td className="px-3 py-2 text-gray-700 font-medium whitespace-nowrap">{row.label}</td>
                 <td className="px-2 py-1.5">
                   <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
-                    <span className="px-2 py-1.5 bg-gray-50 border-r border-gray-200 text-gray-400 text-xs">$</span>
+                    <span className="px-2 py-1.5 bg-gray-50 border-r border-gray-200 text-gray-500 text-xs">$</span>
                     <input
                       type="number"
                       aria-label={row.label}
@@ -154,9 +154,9 @@ function ConstructionCostsSection({ cc, avgUnitSF, onChange }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-3 py-1.5 text-left font-semibold text-gray-500 uppercase tracking-wide">Item</th>
-              <th className="px-3 py-1.5 text-center font-semibold text-gray-500 uppercase tracking-wide w-24">$/SF</th>
-              <th className="px-3 py-1.5 text-right font-semibold text-gray-500 uppercase tracking-wide w-20">$/Unit</th>
+              <th className="px-3 py-1.5 text-left font-semibold text-gray-500">Item</th>
+              <th className="px-3 py-1.5 text-center font-semibold text-gray-500 w-24">$/SF</th>
+              <th className="px-3 py-1.5 text-right font-semibold text-gray-500 w-20">$/Unit</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -167,7 +167,7 @@ function ConstructionCostsSection({ cc, avgUnitSF, onChange }) {
                   <td className="px-3 py-1 text-gray-700 font-medium">{row.label}</td>
                   <td className="px-2 py-1">
                     <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
-                      <span className="px-2 py-1 bg-gray-50 border-r border-gray-200 text-gray-400 text-xs">$</span>
+                      <span className="px-2 py-1 bg-gray-50 border-r border-gray-200 text-gray-500 text-xs">$</span>
                       <input
                         type="number"
                         aria-label={row.label}
@@ -213,10 +213,10 @@ function ConstructionCostsSection({ cc, avgUnitSF, onChange }) {
                         onChange={(e) => onChange(row.field, parseFloat(e.target.value) || 0)}
                         className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-14"
                       />
-                      <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                      <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">%</span>
                     </div>
                   </td>
-                  <td className="px-3 py-1.5 text-right tabular-nums text-gray-400 text-xs">applied on total</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums text-gray-500 text-xs">applied on total</td>
                 </tr>
               );
             })}
@@ -253,7 +253,7 @@ function ExitCostsSection({ sc, onChange }) {
     <div>
       <p className="text-xs font-semibold text-gray-700 mb-2">
         Disposition Costs
-        <span className="ml-2 text-gray-400 font-normal">
+        <span className="ml-2 text-gray-500 font-normal">
           {totalPct.toFixed(2)}% of exit value + {fmtK(totalFixed)} fixed
         </span>
       </p>
@@ -261,8 +261,8 @@ function ExitCostsSection({ sc, onChange }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-3 py-1.5 text-left font-semibold text-gray-500 uppercase tracking-wide">Item</th>
-              <th className="px-3 py-1.5 text-center font-semibold text-gray-500 uppercase tracking-wide w-32">Input</th>
+              <th className="px-3 py-1.5 text-left font-semibold text-gray-500">Item</th>
+              <th className="px-3 py-1.5 text-center font-semibold text-gray-500 w-32">Input</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -274,7 +274,7 @@ function ExitCostsSection({ sc, onChange }) {
                   <td className="px-2 py-1.5">
                     <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
                       {row.basis === "fixed" && (
-                        <span className="px-2 py-1 bg-gray-50 border-r border-gray-200 text-gray-400 text-xs">$</span>
+                        <span className="px-2 py-1 bg-gray-50 border-r border-gray-200 text-gray-500 text-xs">$</span>
                       )}
                       <input
                         type="number"
@@ -286,7 +286,7 @@ function ExitCostsSection({ sc, onChange }) {
                         className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-20"
                       />
                       {row.basis === "pct" && (
-                        <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">% of sale</span>
+                        <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">% of sale</span>
                       )}
                     </div>
                   </td>
@@ -401,9 +401,9 @@ function WaterfallSection({ inputs, onChange }) {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">IRR Up To</th>
-                    <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide w-20">LP %</th>
-                    <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wide w-20">GP %</th>
+                    <th className="px-3 py-2 text-left font-semibold text-gray-500">IRR Up To</th>
+                    <th className="px-3 py-2 text-center font-semibold text-gray-500 w-20">LP %</th>
+                    <th className="px-3 py-2 text-center font-semibold text-gray-500 w-20">GP %</th>
                     <th className="w-8" />
                   </tr>
                 </thead>
@@ -414,7 +414,7 @@ function WaterfallSection({ inputs, onChange }) {
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-2 py-1.5">
                           {isLast ? (
-                            <span className="px-2 py-1 text-xs text-gray-400 italic">Above all thresholds</span>
+                            <span className="px-2 py-1 text-xs text-gray-500 italic">Above all thresholds</span>
                           ) : (
                             <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
                               <input
@@ -426,7 +426,7 @@ function WaterfallSection({ inputs, onChange }) {
                                 onChange={(e) => setTier(idx, "irrThreshold", parseFloat(e.target.value) || 0)}
                                 className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-14"
                               />
-                              <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                              <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">%</span>
                             </div>
                           )}
                         </td>
@@ -446,7 +446,7 @@ function WaterfallSection({ inputs, onChange }) {
                               }}
                               className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-12"
                             />
-                            <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                            <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-2 py-1.5">
@@ -465,7 +465,7 @@ function WaterfallSection({ inputs, onChange }) {
                               }}
                               className="flex-1 px-2 py-1 text-xs text-gray-900 bg-white outline-none min-w-0 w-12"
                             />
-                            <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-400 text-xs">%</span>
+                            <span className="px-2 py-1 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-2 py-1.5 text-center">
@@ -809,7 +809,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
               }`}
             />
             {linked ? (
-              <p className="text-[11px] text-gray-400">Set in Deal Screener.</p>
+              <p className="text-[11px] text-gray-500">Set in Deal Screener.</p>
             ) : !inputs.acquisitionDate && inputs.fundName?.trim() ? (
               <p className="text-[11px] text-amber-700">Needed for fund returns. Until it&apos;s set, the fund assumes the asset was bought at its final close.</p>
             ) : null}
@@ -823,7 +823,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <Field label="Units" value={inputs.unitCount ?? 0} field="unitCount" step={1} onChange={set} />
-              <p className="self-end pb-2 text-xs text-gray-400">
+              <p className="self-end pb-2 text-xs text-gray-500">
                 {avgUnitSize > 0 ? `≈ ${avgUnitSize.toLocaleString()} SF per unit. ` : ""}Add a rent roll on the Rent Roll tab for leases.
               </p>
             </div>
@@ -949,7 +949,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
             <Field label="TI Concession — New" value={inputs.tiConcessionPSFNew ?? 0} field="tiConcessionPSFNew" prefix="$" suffix="/SF" step={0.5} onChange={set} />
             <Field label="TI Concession — Renewal" value={inputs.tiConcessionPSFRenewal ?? 0} field="tiConcessionPSFRenewal" prefix="$" suffix="/SF" step={0.5} onChange={set} />
           </div>
-          <p className="text-xs text-gray-400 mt-1.5">Free rent and TI concessions reduce income at each lease rollover event. TI concession is an income-side deduction (separate from capital TI in rollover costs).</p>
+          <p className="text-xs text-gray-500 mt-1.5">Free rent and TI concessions reduce income at each lease rollover event. TI concession is an income-side deduction (separate from capital TI in rollover costs).</p>
         </div>
         {/* Custom income line items */}
         <div className="mt-3 pt-3 border-t border-gray-100">
@@ -1019,7 +1019,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
         {/* Asset management fee allocations */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-600 mb-1">Asset Mgmt. Allocations</p>
-          <p className="text-xs text-gray-400 mb-2">Fees charged by the asset manager to the property (oversight, accounting, reporting, etc.).</p>
+          <p className="text-xs text-gray-500 mb-2">Fees charged by the asset manager to the property (oversight, accounting, reporting, etc.).</p>
           <AMFeeItems
             items={inputs.amFeeItems ?? []}
             onChange={(items) => onChange({ ...inputs, amFeeItems: items })}
@@ -1057,7 +1057,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
         {/* Custom rollover cost items */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-600 mb-1">Additional Rollover Costs</p>
-          <p className="text-xs text-gray-400 mb-2">Charged per SF at each lease rollover (e.g. signage, permits, move-in allowance).</p>
+          <p className="text-xs text-gray-500 mb-2">Charged per SF at each lease rollover (e.g. signage, permits, move-in allowance).</p>
           <CustomPSFItems
             items={inputs.customRolloverItems ?? []}
             suffix="/SF"
@@ -1083,7 +1083,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
         {/* Loan sizing constraints */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-600 mb-1">Loan Sizing Constraints</p>
-          <p className="text-xs text-gray-400 mb-2">Loan amount = lesser of LTV and any enabled constraints below.</p>
+          <p className="text-xs text-gray-500 mb-2">Loan amount = lesser of LTV and any enabled constraints below.</p>
           {[
             { label: "Min DSCR",       enabledField: "minDSCREnabled",      valueField: "minDSCR",            suffix: "x",   step: 0.05, defaultVal: 1.25 },
             { label: "Max LTC",        enabledField: "maxLTCEnabled",       valueField: "maxLTCPct",          suffix: "%",   step: 1,    defaultVal: 75 },
@@ -1105,7 +1105,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
                 >
                   <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ${enabled ? "translate-x-4" : "translate-x-0"}`} />
                 </button>
-                <span className={`text-xs font-medium w-24 shrink-0 ${enabled ? "text-gray-700" : "text-gray-400"}`}>{label}</span>
+                <span className={`text-xs font-medium w-24 shrink-0 ${enabled ? "text-gray-700" : "text-gray-500"}`}>{label}</span>
                 <div className={`flex items-center border rounded-lg overflow-hidden flex-1 ${enabled ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"}`}>
                   <input
                     type="number"
@@ -1129,7 +1129,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-xs font-semibold text-gray-600">TI Reserve (Holdback)</p>
-              <p className="text-xs text-gray-400 mt-0.5">Lender-funded reserve for tenant improvements, drawn down as needed.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Lender-funded reserve for tenant improvements, drawn down as needed.</p>
             </div>
             <button
               type="button"
@@ -1165,7 +1165,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
         {/* Loan covenants */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-600 mb-1">Loan Covenants</p>
-          <p className="text-xs text-gray-400 mb-2">Year-by-year compliance is shown in the Capital tab.</p>
+          <p className="text-xs text-gray-500 mb-2">Year-by-year compliance is shown in the Capital tab.</p>
           {[
             { label: "Min DSCR",       enabledField: "dscrEnabled",      valueField: "dscrMin",        suffix: "x",   step: 0.05, defaultVal: 1.25 },
             { label: "Min Debt Yield", enabledField: "debtYieldEnabled", valueField: "debtYieldMin",   suffix: "%",   step: 0.25, defaultVal: 8.0 },
@@ -1188,7 +1188,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
                 >
                   <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ${enabled ? "translate-x-4" : "translate-x-0"}`} />
                 </button>
-                <span className={`text-xs font-medium w-24 shrink-0 ${enabled ? "text-gray-700" : "text-gray-400"}`}>{label}</span>
+                <span className={`text-xs font-medium w-24 shrink-0 ${enabled ? "text-gray-700" : "text-gray-500"}`}>{label}</span>
                 <div className={`flex items-center border rounded-lg overflow-hidden flex-1 ${enabled ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"}`}>
                   <input
                     type="number"
@@ -1336,7 +1336,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
                       <div className="flex items-center gap-2">
                         {hasCurve && (
                           <button type="button" onClick={clearCurve}
-                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                            className="text-xs text-gray-500 hover:text-gray-600 transition-colors">
                             Use flat rate
                           </button>
                         )}
@@ -1360,7 +1360,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
                           <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
                               {["Yr", "SOFR", "+ Sprd", "All-in"].map((h) => (
-                                <th key={h} className="px-2 py-1.5 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                                <th key={h} className="px-2 py-1.5 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                               ))}
                             </tr>
                           </thead>
@@ -1384,7 +1384,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
                                       onChange={(e) => updateCurveYear(i, Number(e.target.value))}
                                       className="w-16 text-right text-xs font-mono border border-gray-200 rounded-md px-1.5 py-0.5 focus:ring-1 focus:ring-blue-500 focus:border-transparent outline-none"
                                     />
-                                    <span className="ml-0.5 text-gray-400">%</span>
+                                    <span className="ml-0.5 text-gray-500">%</span>
                                   </td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">+{spread.toFixed(2)}%</td>
                                   <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${note === "capped" ? "text-orange-600" : note === "swap" ? "text-purple-600" : "text-gray-800"}`}>
@@ -1398,12 +1398,12 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
                         </table>
                       </div>
                     ) : (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-500">
                         Flat {((inputs.indexRatePct ?? 0) + spread).toFixed(2)}% all years.
                         <span className="font-medium ml-1">Fetch from market</span> pulls CME SOFR futures per year.
                       </p>
                     )}
-                    <p className="text-xs text-gray-400">Source: CME 3-Month SOFR Futures (SR3) via Yahoo Finance</p>
+                    <p className="text-xs text-gray-500">Source: CME 3-Month SOFR Futures (SR3) via Yahoo Finance</p>
                   </div>
                 </div>
               );

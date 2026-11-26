@@ -257,7 +257,7 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
                         <td className="px-2.5 py-1.5">{label}</td>
                         <td className="px-2.5 py-1.5 text-right">{fmt(b)}</td>
                         <td className="px-2.5 py-1.5 text-right font-semibold">{fmt(s)}</td>
-                        <td className={`px-2.5 py-1.5 text-right ${!isFinite(d) || Math.abs(d) < 1e-6 ? "text-gray-400" : d > 0 ? "text-emerald-700" : "text-red-600"}`}>
+                        <td className={`px-2.5 py-1.5 text-right ${!isFinite(d) || Math.abs(d) < 1e-6 ? "text-gray-500" : d > 0 ? "text-emerald-700" : "text-red-600"}`}>
                           {!isFinite(d) ? "—" : f === "pct" ? `${d >= 0 ? "+" : ""}${d.toFixed(1)} pts` : f === "x" ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}x` : `${d >= 0 ? "+" : ""}${m(d)}`}
                         </td>
                       </tr>
@@ -271,15 +271,15 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs">
             <h4 className="mb-1 font-semibold text-gray-700">Saved scenarios</h4>
             {(sh.scenarios ?? []).length === 0 ? (
-              <p className="text-gray-400">None yet.</p>
+              <p className="text-gray-500">None yet.</p>
             ) : (
               <ul className="mb-2 space-y-1">
                 {sh.scenarios.map((sc, i) => (
                   <li key={i} className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{sc.name}</span>
-                    <span className="text-gray-400">{fmtDate(sc.decisionDate)} · {Object.values(sc.decisions ?? {}).filter((d) => d.decision !== "base").length} changed</span>
+                    <span className="text-gray-500">{fmtDate(sc.decisionDate)} · {Object.values(sc.decisions ?? {}).filter((d) => d.decision !== "base").length} changed</span>
                     {canEdit && <button type="button" onClick={() => save({ decisions: sc.decisions, decisionDate: sc.decisionDate })} className="text-blue-700 hover:underline">Load</button>}
-                    {canEdit && <button type="button" onClick={() => save({ scenarios: sh.scenarios.filter((_, j) => j !== i) })} className="text-gray-400 hover:text-red-600">Delete</button>}
+                    {canEdit && <button type="button" onClick={() => save({ scenarios: sh.scenarios.filter((_, j) => j !== i) })} className="text-gray-500 hover:text-red-600">Delete</button>}
                   </li>
                 ))}
               </ul>
@@ -293,7 +293,7 @@ export default function SellHold({ deal, fundDeals, fundName, terms, canEdit, on
           </div>
         </div>
       )}
-      <p className="text-[11px] leading-relaxed text-gray-400">
+      <p className="text-[11px] leading-relaxed text-gray-500">
         Value = year-ahead NOI ÷ cap rate (the asset&apos;s exit cap unless changed), for selling now and selling later. Net proceeds = value − sale costs
         (the asset&apos;s sale cost %) − loan balance. Forward IRR = return on holding, with today&apos;s net proceeds as the amount re-invested; NPV discounts
         those flows at the fund&apos;s hurdle to the decision date (positive = holding beats selling). Breakeven exit cap = the exit cap at which holding just
@@ -328,7 +328,7 @@ function AssetView({ a, inputs, hurdle, canEdit, capRate, onCap, refiT, setRefi,
           <div key={l} className="rounded-lg border border-gray-200 bg-white px-3 py-2">
             <p className="text-[11px] text-gray-500">{l}</p>
             <p className="text-sm font-bold tabular-nums">{v}</p>
-            {s && <p className="text-[10px] text-gray-400">{s}</p>}
+            {s && <p className="text-[10px] text-gray-500">{s}</p>}
           </div>
         ))}
       </div>
@@ -337,7 +337,7 @@ function AssetView({ a, inputs, hurdle, canEdit, capRate, onCap, refiT, setRefi,
         <label className="flex flex-col gap-0.5"><span className="text-gray-500">Cap rate (exit cap)</span>
           <input type="number" step={0.05} value={capRate ?? a.exitCap} disabled={!canEdit} onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v > 0) onCap(v); }} className={num} />
         </label>
-        <span className="text-gray-400">Refinance:</span>
+        <span className="text-gray-500">Refinance:</span>
         {[["ltvPct", "LTV %", 1], ["minDscr", "Min DSCR", 0.05], ["spreadPct", "Spread %", 0.05], ["feePct", "Financing cost %", 0.25], ["termYears", "Term (yrs)", 1]].map(([k, l, st]) => (
           <label key={k} className="flex flex-col gap-0.5"><span className="text-gray-500">{l}</span>
             <input type="number" step={st} value={refiT[k]} disabled={!canEdit} onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v >= 0) setRefi(k, v); }} className={num} />
@@ -372,7 +372,7 @@ function AssetView({ a, inputs, hurdle, canEdit, capRate, onCap, refiT, setRefi,
                   <td className="px-2.5 py-1.5 text-right">{o.cashOut ? m(o.cashOut) : "—"}</td>
                   <td className="px-2.5 py-1.5 text-right">{o.key === "sell" ? "—" : pct(o.forwardIrr)}</td>
                   <td className="px-2.5 py-1.5 text-right" title="Cash from the decision date on ÷ equity left in (net proceeds now less any cash-out)">{o.key === "sell" ? "—" : x(o.forwardMultiple)}</td>
-                  <td className={`px-2.5 py-1.5 text-right ${!isFinite(spread) || o.key === "sell" ? "text-gray-400" : spread >= 0 ? "text-emerald-700" : "text-red-600"}`}>{o.key === "sell" || !isFinite(spread) ? "—" : `${spread >= 0 ? "+" : ""}${spread.toFixed(1)} pts`}</td>
+                  <td className={`px-2.5 py-1.5 text-right ${!isFinite(spread) || o.key === "sell" ? "text-gray-500" : spread >= 0 ? "text-emerald-700" : "text-red-600"}`}>{o.key === "sell" || !isFinite(spread) ? "—" : `${spread >= 0 ? "+" : ""}${spread.toFixed(1)} pts`}</td>
                   <td className={`px-2.5 py-1.5 text-right font-semibold ${o.npv > 0 ? "text-emerald-700" : o.npv < 0 ? "text-red-600" : "text-gray-500"}`}>{o.key === "sell" ? "—" : m(o.npv)}</td>
                   <td className="px-2.5 py-1.5 text-right">{pct(o.totalIrr)}</td>
                   <td className="px-2.5 py-1.5 text-right">{x(o.totalMultiple)}</td>

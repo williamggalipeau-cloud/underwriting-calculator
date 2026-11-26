@@ -49,7 +49,7 @@ export function DocViewer({ doc, onOpen }) {
       <div className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
         {(a.fields ?? []).map((f) => (
           <div key={f.key} className="grid gap-x-3 px-2.5 py-1.5 sm:grid-cols-[13rem_1fr]">
-            <div className="text-gray-500">{labelOf(f.key)}{f.clause && <span className="ml-1 text-[10px] text-gray-400">§ {f.clause}</span>}</div>
+            <div className="text-gray-500">{labelOf(f.key)}{f.clause && <span className="ml-1 text-[10px] text-gray-500">§ {f.clause}</span>}</div>
             <div>
               <span className="text-gray-900">{f.value}</span>
               <span className={`ml-1.5 rounded px-1 py-px text-[10px] ${FIELD_STYLE[f.status] ?? ""}`}>{f.status}</span>
@@ -63,7 +63,7 @@ export function DocViewer({ doc, onOpen }) {
       </div>
       {block && rows.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white">
-          <p className="px-2.5 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{block.label} ({rows.length})</p>
+          <p className="px-2.5 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">{block.label} ({rows.length})</p>
           <table className="w-full tabular-nums">
             <thead className="text-gray-500"><tr>{block.cols.map(([k, l]) => <th key={k} className="px-2 py-1 text-left font-medium">{l}</th>)}</tr></thead>
             <tbody>{rows.map((r, i) => <tr key={i} className="border-t border-gray-100">{block.cols.map(([k]) => <td key={k} className="px-2 py-1">{typeof r[k] === "boolean" ? (r[k] ? "Yes" : "No") : r[k] ?? "—"}</td>)}</tr>)}</tbody>
@@ -138,7 +138,7 @@ function AppraisalApply({ doc, inputs, marks, onApplyMark, onDone, onError, emai
       {a.existing && <p className="text-gray-600">Replaces the {a.existing.source ?? "entered"} mark of {show("money", a.existing.value)}.</p>}
       <table className="w-full rounded-lg bg-white">
         <thead className="text-gray-500"><tr><th className="px-2 py-1 text-left font-medium">Mark</th><th className="px-2 py-1 text-left font-medium">Now</th><th className="px-2 py-1 text-left font-medium">Appraisal</th></tr></thead>
-        <tbody>{a.rows.map((r) => <tr key={r.key} className={`border-t border-gray-100 ${r.differs ? "" : "text-gray-400"}`}><td className="px-2 py-1">{r.label}</td><td className="px-2 py-1">{show(r.kind, r.appValue)}</td><td className="px-2 py-1">{show(r.kind, r.docValue)}</td></tr>)}</tbody>
+        <tbody>{a.rows.map((r) => <tr key={r.key} className={`border-t border-gray-100 ${r.differs ? "" : "text-gray-500"}`}><td className="px-2 py-1">{r.label}</td><td className="px-2 py-1">{show(r.kind, r.appValue)}</td><td className="px-2 py-1">{show(r.kind, r.docValue)}</td></tr>)}</tbody>
       </table>
       {a.vsUw.length > 0 && (
         <table className="w-full rounded-lg bg-white" data-testid="appraisal-vs-uw">
@@ -249,7 +249,7 @@ function ApplyPanelInner({ doc, inputs, terms, units, leaseAbs, onApplyDeal, onA
               <thead className="bg-gray-50 text-gray-500"><tr><th className="w-8" /><th className="px-2 py-1.5 text-left font-medium">Field</th><th className="px-2 py-1.5 text-left font-medium">{fund ? "Fund terms now" : "Model now"}</th><th className="px-2 py-1.5 text-left font-medium">Document</th></tr></thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.key} className={`border-t border-gray-100 align-top ${r.differs ? "" : "text-gray-400"}`} data-testid={`doc-row-${r.key}`}>
+                  <tr key={r.key} className={`border-t border-gray-100 align-top ${r.differs ? "" : "text-gray-500"}`} data-testid={`doc-row-${r.key}`}>
                     <td className="px-2 py-1.5 text-center"><input type="checkbox" checked={ticked.has(r.key)} disabled={!r.differs} onChange={() => toggle(r.key)} aria-label={`Apply ${r.label}`} /></td>
                     <td className="px-2 py-1.5 font-medium">{r.label}{doc.applied_fields?.[r.key] && <span className="ml-1 text-[10px] font-normal text-emerald-700">applied {fmtWhen(doc.applied_fields[r.key].at)}</span>}</td>
                     <td className="px-2 py-1.5">{show(r.kind, r.appValue)}</td>
@@ -303,7 +303,7 @@ function Conditions({ deal, inputs, onApplyDeal, email }) {
       {conds.map((c) => (
         <label key={c.id} className="flex items-start gap-2 py-0.5">
           <input type="checkbox" checked={!!c.done} onChange={() => tick(c)} aria-label={c.text} />
-          <span className={c.done ? "text-gray-400 line-through" : ""}>{c.text}{c.deadline ? <span className="ml-1 text-gray-500">(by {c.deadline})</span> : null}{c.done && c.doneBy ? <span className="ml-1 text-[10px] text-gray-400">{c.doneBy}, {fmtWhen(c.doneAt)}</span> : null}</span>
+          <span className={c.done ? "text-gray-500 line-through" : ""}>{c.text}{c.deadline ? <span className="ml-1 text-gray-500">(by {c.deadline})</span> : null}{c.done && c.doneBy ? <span className="ml-1 text-[10px] text-gray-500">{c.doneBy}, {fmtWhen(c.doneAt)}</span> : null}</span>
         </label>
       ))}
     </div>
@@ -326,7 +326,7 @@ export function IcVarianceTable({ ic, inputs }) {
               <td className="px-2.5 py-1">{r.label}</td>
               <td className="px-2.5 py-1 text-right">{show(r.kind, r.approved)}</td>
               <td className="px-2.5 py-1 text-right">{show(r.kind, r.current)}</td>
-              <td className={`px-2.5 py-1 text-right ${isFinite(r.diff) && r.diff !== 0 ? "font-medium" : "text-gray-400"}`}>{isFinite(r.diff) ? `${r.diff >= 0 ? "+" : "−"}${show(r.kind, Math.abs(r.diff))}` : "—"}</td>
+              <td className={`px-2.5 py-1 text-right ${isFinite(r.diff) && r.diff !== 0 ? "font-medium" : "text-gray-500"}`}>{isFinite(r.diff) ? `${r.diff >= 0 ? "+" : "−"}${show(r.kind, Math.abs(r.diff))}` : "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -372,9 +372,9 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks
       <ol className="mt-2 divide-y divide-gray-100 rounded-lg border border-gray-100">
         {(doc.files ?? []).map((f, i) => (
           <li key={f.path} className="flex items-center gap-2 px-2 py-1.5">
-            <span className="w-5 text-right text-gray-400">{i + 1}.</span>
+            <span className="w-5 text-right text-gray-500">{i + 1}.</span>
             <button type="button" onClick={() => open(f.path)} className="min-w-0 flex-1 truncate text-left font-medium text-blue-700 hover:underline">{f.name}</button>
-            <span className="text-gray-400">{f.size ? fmtBytes(f.size) : ""}</span>
+            <span className="text-gray-500">{f.size ? fmtBytes(f.size) : ""}</span>
           </li>
         ))}
       </ol>
@@ -385,7 +385,7 @@ function DocCard({ doc, assetName, inputs, terms, units, leaseAbs, leases, marks
         {doc.abstract && <button type="button" onClick={() => setPanel(panel === "view" ? null : "view")} className={`${btn} border-emerald-200 bg-emerald-50 text-emerald-800`}>{panel === "view" ? "Hide abstract" : "View abstract"}</button>}
         {canEdit && doc.abstract && doc.doc_type !== "other" && <button type="button" onClick={() => setPanel(panel === "apply" ? null : "apply")} className={`${btn} border-emerald-300 bg-white text-emerald-800`}>{panel === "apply" ? "Close" : doc.doc_type === "insurance_cert" ? "Check coverage" : ["estoppel", "cam", "billing"].includes(doc.doc_type) ? "Check" : "Apply"}</button>}
         {canEdit && <button type="button" onClick={() => setPanel(panel === "review" ? null : "review")} className={`${btn} border-blue-200 bg-blue-50 text-blue-700`}>{doc.abstract ? "Re-review with Claude" : "Review with Claude"}</button>}
-        {canEdit && <button type="button" disabled={busy} onClick={async () => { if (!window.confirm(`Delete this ${t.label.toLowerCase()} and its files?`)) return; setBusy(true); try { await deleteDealDoc(doc); await onChanged(); } catch (e) { onError(e.message || String(e)); } finally { setBusy(false); } }} className={`${btn} ml-auto border-transparent text-gray-400 hover:text-red-600`}>Delete</button>}
+        {canEdit && <button type="button" disabled={busy} onClick={async () => { if (!window.confirm(`Delete this ${t.label.toLowerCase()} and its files?`)) return; setBusy(true); try { await deleteDealDoc(doc); await onChanged(); } catch (e) { onError(e.message || String(e)); } finally { setBusy(false); } }} className={`${btn} ml-auto border-transparent text-gray-500 hover:text-red-600`}>Delete</button>}
       </div>
     </div>
   );
@@ -404,9 +404,9 @@ function LeaseFiles({ lease, onOpenTab, onError }) {
     <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid="lease-card">
       <ol className="divide-y divide-gray-100 rounded-lg border border-gray-100">
         {(lease.files ?? []).map((f, i) => (
-          <li key={f.path ?? i} className="flex items-center gap-2 px-2 py-1.5"><span className="w-5 text-right text-gray-400">{i + 1}.</span>
+          <li key={f.path ?? i} className="flex items-center gap-2 px-2 py-1.5"><span className="w-5 text-right text-gray-500">{i + 1}.</span>
             <button type="button" onClick={() => open(f.path)} className="min-w-0 flex-1 truncate text-left font-medium text-blue-700 hover:underline">{f.name}</button>
-            <span className="text-gray-400">{f.size ? fmtBytes(f.size) : ""}</span></li>
+            <span className="text-gray-500">{f.size ? fmtBytes(f.size) : ""}</span></li>
         ))}
       </ol>
       <button type="button" onClick={() => onOpenTab("leases", lease.deal_id)} className={`${btn} mt-2 border-blue-200 bg-blue-50 text-blue-700`}>Abstract and apply on Leases →</button>
@@ -624,7 +624,7 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
               {canEdit && <Conditions deal={icDeal.id} inputs={inputsOf(icDeal.id)} onApplyDeal={onApplyDeal} email={email} />}
             </div>
           )}
-          {docs === null ? <p className="text-xs text-gray-400">Loading documents…</p> : shown.length === 0 ? (
+          {docs === null ? <p className="text-xs text-gray-500">Loading documents…</p> : shown.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">{rows.length ? "No documents match these filters." : "No documents yet. Sample documents for Airport Flex Park and Model Fund I are in the repository under docs/sample-deal-docs."}</div>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
@@ -638,10 +638,10 @@ export default function Documents({ workspace, signedIn, email, userId, canEdit,
                     {g.rows.map((r) => (
                       <Fragment key={r.key}>
                         <tr className="border-b border-gray-100 align-top" data-testid="doc-row">
-                          <td className="px-2 py-1.5"><div className="font-semibold">{r.name}</div><div className="text-[10px] text-gray-400">{r.files.map((f) => f.name).join(", ")}</div></td>
+                          <td className="px-2 py-1.5"><div className="font-semibold">{r.name}</div><div className="text-[10px] text-gray-500">{r.files.map((f) => f.name).join(", ")}</div></td>
                           <td className="px-2 py-1.5">{r.typeLabel}</td>
                           <td className="px-2 py-1.5"><span className={`mr-1 rounded-full border px-1.5 py-px text-[10px] font-semibold ${LEVEL_BADGE[r.level][1]}`}>{LEVEL_BADGE[r.level][0]}</span>{r.level === "asset" ? r.assetName : r.portfolio || "No portfolio"}</td>
-                          <td className="whitespace-nowrap px-2 py-1.5">{fmtWhen(r.uploadedAt)}{r.by && <div className="text-[10px] text-gray-400">{r.by}</div>}</td>
+                          <td className="whitespace-nowrap px-2 py-1.5">{fmtWhen(r.uploadedAt)}{r.by && <div className="text-[10px] text-gray-500">{r.by}</div>}</td>
                           <td className="px-2 py-1.5"><span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]?.[1] ?? STATUS.uploaded[1]}`}>{r.kind === "lease" ? LEASE_STATUS[r.status] ?? "Uploaded" : LIB_STATUS[r.status] ?? "Uploaded"}</span></td>
                           <td className="px-2 py-1.5"><button type="button" onClick={() => toggle(r.key)} className="font-medium text-blue-700 hover:underline" aria-label={`Open ${r.name}`} data-testid="doc-open">{openKeys.has(r.key) ? "Close" : "Open"}</button></td>
                           <td className="px-2 py-1.5">{r.workflow && <button type="button" onClick={() => onOpenTab(r.tab, r.dealId)} className="text-left text-blue-700 hover:underline" data-testid="doc-workflow">{r.workflow}</button>}</td>

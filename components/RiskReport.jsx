@@ -141,14 +141,14 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         </div>
         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
           <p className="text-[11px] text-gray-500">KRI Trending</p>
-          {!prevR ? <p className="text-gray-400">No prior quarter to compare with.</p> : (() => {
+          {!prevR ? <p className="text-gray-500">No prior quarter to compare with.</p> : (() => {
             const up = change.filter((c) => c.change != null && c.change > 1e-9 && !/HHI/.test(c.label)).sort((a, b) => b.change - a.change);
             return <><p className="text-sm font-semibold">{up.length} KRI{up.length === 1 ? "" : "s"} up vs. last quarter</p><p className="text-gray-600">{up.slice(0, 3).map((c) => `${c.label} +${c.change.toFixed(1)} pts`).join(", ") || "None rose"}</p></>;
           })()}
         </div>
         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs" data-testid="risk-summary-aged">
           <p className="text-[11px] text-gray-500">Rent 60+ days past due</p>
-          {!r.aged ? <p className="text-gray-400">No aged receivables uploaded.</p> : <><p className={`text-sm font-semibold ${r.aged.late60.amount > 0 ? "text-red-700" : ""}`}>{fmtM(r.aged.late60.amount)} ({r.aged.late60.tenants} tenant{r.aged.late60.tenants === 1 ? "" : "s"})</p><p className="text-gray-600">As of {usDate(r.aged.asOf)} · all past due {fmtM(r.aged.fund.pastDue)}</p></>}
+          {!r.aged ? <p className="text-gray-500">No aged receivables uploaded.</p> : <><p className={`text-sm font-semibold ${r.aged.late60.amount > 0 ? "text-red-700" : ""}`}>{fmtM(r.aged.late60.amount)} ({r.aged.late60.tenants} tenant{r.aged.late60.tenants === 1 ? "" : "s"})</p><p className="text-gray-600">As of {usDate(r.aged.asOf)} · all past due {fmtM(r.aged.fund.pastDue)}</p></>}
         </div>
         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
           <p className="text-[11px] text-gray-500">Issued reports ({usDate(asOf)})</p>
@@ -157,18 +157,18 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         </div>
       </div>
       <Sec title="Watch list" testId="risk-watch">
-        {r.watch.length === 0 ? <p className="text-xs text-gray-400">No asset flags.</p> : (
+        {r.watch.length === 0 ? <p className="text-xs text-gray-500">No asset flags.</p> : (
           <T head={["Asset", "Score", "Reasons"]} right={[1]} rows={r.watch.map((w) => [w.name, w.score, <ul key="r" className="list-disc pl-4">{w.reasons.map((x, i) => <li key={i}>{x}</li>)}</ul>])} />
         )}
         {r.fundFlags.length > 0 && <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-red-800" data-testid="risk-fund-flags">{r.fundFlags.map((f, i) => <li key={i}>{f.section}: {f.text}</li>)}</ul>}
       </Sec>
 
       <Sec title={`KRI Trending${prev ? ` (vs. ${usDate(prev.asOf)})` : ""}`} testId="risk-change">
-        {!prevR ? <p className="text-xs text-gray-400">No prior quarter to compare with.</p> : (
+        {!prevR ? <p className="text-xs text-gray-500">No prior quarter to compare with.</p> : (
           <T head={["KRI", "Now", "Last quarter", "Change"]} right={[1, 2, 3]} rows={change.map((c) => {
             const hh = /HHI/.test(c.label);
             const f = (v) => (v == null ? "—" : hh ? Math.round(v).toLocaleString("en-US") : pct(v));
-            return [`${c.label}${c.name ? ` · ${c.name}` : ""}`, f(c.now), `${f(c.prev)}${c.prevName && c.prevName !== c.name ? ` · ${c.prevName}` : ""}`, c.change == null ? "—" : <span className={Math.abs(c.change) < 1e-9 ? "text-gray-400" : c.change > 0 ? "text-red-700" : "text-emerald-700"}>{`${c.change > 0 ? "+" : ""}${hh ? Math.round(c.change) : `${c.change.toFixed(1)} pts`}`}</span>];
+            return [`${c.label}${c.name ? ` · ${c.name}` : ""}`, f(c.now), `${f(c.prev)}${c.prevName && c.prevName !== c.name ? ` · ${c.prevName}` : ""}`, c.change == null ? "—" : <span className={Math.abs(c.change) < 1e-9 ? "text-gray-500" : c.change > 0 ? "text-red-700" : "text-emerald-700"}>{`${c.change > 0 ? "+" : ""}${hh ? Math.round(c.change) : `${c.change.toFixed(1)} pts`}`}</span>];
           })} />
         )}
       </Sec>
@@ -185,7 +185,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         )}
       </Sec>
       <Sec title="Aged Rent" testId="risk-aged" right={r.aged ? <span className="text-[11px] text-gray-500">Yardi aged receivables as of {usDate(r.aged.asOf)}{r.aged.prevAsOf ? `; change vs. ${usDate(r.aged.prevAsOf)}` : ""}</span> : null}>
-        {!r.aged ? <p className="text-xs text-gray-400">No aged receivables uploaded for {fundName}: upload the Yardi aged receivables report on Asset Management → Rent Roll.</p> : r.aged.tenants.length === 0 ? <p className="text-xs text-emerald-700">No rent past due.</p> : (
+        {!r.aged ? <p className="text-xs text-gray-500">No aged receivables uploaded for {fundName}: upload the Yardi aged receivables report on Asset Management → Rent Roll.</p> : r.aged.tenants.length === 0 ? <p className="text-xs text-emerald-700">No rent past due.</p> : (
           <T head={["Tenant", "Asset", ...BUCKETS.slice(1).map(([, l]) => l), "Past due", "Deposit", "Net exposure", "Change"]} right={[2, 3, 4, 5, 6, 7, 8, 9, 10]}
             rows={[...r.aged.tenants.map((t) => [t.tenant, t.asset, ...["d30", "d60", "d90", "d180", "over180"].map((k) => <span key={k} className={["d90", "d180", "over180"].includes(k) && t.buckets[k] > 0 ? "font-semibold text-red-700" : ""}>{t.buckets[k] ? fmtM(t.buckets[k]) : "—"}</span>), fmtM(t.pastDue), fmtM(t.deposit), <span key="n" className={t.net > 0 ? "text-red-700" : "text-emerald-700"}>{fmtM(t.net)}</span>, t.change == null ? "—" : `${t.change > 0 ? "+" : ""}${fmtM(t.change)}`]),
               [<b key="f">{fundName}</b>, "", ...["d30", "d60", "d90", "d180", "over180"].map((k) => <b key={k}>{r.aged.fund.buckets[k] ? fmtM(r.aged.fund.buckets[k]) : "—"}</b>), <b key="p">{fmtM(r.aged.fund.pastDue)}</b>, <b key="d">{fmtM(r.aged.fund.deposit)}</b>, <b key="n">{fmtM(r.aged.fund.net)}</b>, r.aged.fund.change == null ? "—" : `${r.aged.fund.change > 0 ? "+" : ""}${fmtM(r.aged.fund.change)}`]]} />
@@ -200,7 +200,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
         </Sec>
       </Ref>
         <Sec title="Lease risk flags" testId="risk-lease-flags">
-          {!r.leaseFlags ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading leases…") : "Sign in to see the lease risk flags."}</p> : r.leaseFlags.rows.length === 0 ? <p className="text-xs text-gray-400">No abstracted leases with risk flags.</p> : (
+          {!r.leaseFlags ? <p className="text-xs text-gray-500">{workspaceId ? (docsErr || "Loading leases…") : "Sign in to see the lease risk flags."}</p> : r.leaseFlags.rows.length === 0 ? <p className="text-xs text-gray-500">No abstracted leases with risk flags.</p> : (
             <>
               <T head={["Type", "Flags", "High"]} right={[1, 2]} rows={r.leaseFlags.byType.map((x) => [x.type, x.n, x.high])} />
               <T head={["Asset", "Tenant", "Flag", "Severity"]} rows={r.leaseFlags.rows.filter((x) => x.severity === "high").slice(0, 15).map((x) => [x.asset, x.tenant, x.title, x.severity])} />
@@ -228,7 +228,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
               <tbody>
                 {r.ti.assets.map((a) => (
                   <tr key={a.id} data-testid="ti-row">
-                    <td className={`${td} whitespace-nowrap`}>{a.name}<span className="ml-1 text-[10px] text-gray-400">{a.facility ? `${fmtM(a.facility.total)} facility, ${a.facility.minDscr.toFixed(2)}x` : "no facility"}</span></td>
+                    <td className={`${td} whitespace-nowrap`}>{a.name}<span className="ml-1 text-[10px] text-gray-500">{a.facility ? `${fmtM(a.facility.total)} facility, ${a.facility.minDscr.toFixed(2)}x` : "no facility"}</span></td>
                     {a.cells.map((c) => (
                       <td key={c.quarter} className="p-0.5">
                         <div data-testid="ti-cell" data-color={c.color} role={canEdit ? "button" : undefined} tabIndex={canEdit ? 0 : undefined} onClick={() => canEdit && (c.need > 0 || c.postponedOut) && setSel({ dealId: a.id, name: a.name, quarter: c.quarter, label: c.label, need: c.need })} style={{ background: TI_COLORS[c.color].fill, outline: sel?.dealId === a.id && sel?.quarter === c.quarter ? "2px solid #111" : undefined }} className={`h-7 rounded text-center text-[10px] leading-7 text-white ${canEdit && c.need > 0 ? "cursor-pointer" : ""}`}
@@ -239,7 +239,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
                     ))}
                   </tr>
                 ))}
-                <tr className="border-t border-gray-200 font-semibold" data-testid="ti-call-row"><td className={td}>Capital call needed</td>{r.ti.fundCall.map((x, i) => <td key={i} className={`${td} text-center ${x > 1 ? "text-red-700" : "text-gray-400"}`}>{x > 1 ? fmtM(x) : "—"}</td>)}</tr>
+                <tr className="border-t border-gray-200 font-semibold" data-testid="ti-call-row"><td className={td}>Capital call needed</td>{r.ti.fundCall.map((x, i) => <td key={i} className={`${td} text-center ${x > 1 ? "text-red-700" : "text-gray-500"}`}>{x > 1 ? fmtM(x) : "—"}</td>)}</tr>
               </tbody>
             </table>
           </div>
@@ -269,7 +269,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
                   {actions.map((x, i) => (
                     <li key={i} className="rounded bg-white px-1.5 py-0.5 ring-1 ring-blue-200">
                       {x.asset} {x.quarter.slice(0, 4)} Q{Math.floor((Number(x.quarter.slice(5, 7)) - 1) / 3) + 1}: {x.kind === "postpone" ? `postpone to ${x.to.slice(0, 4)} Q${Math.floor((Number(x.to.slice(5, 7)) - 1) / 3) + 1}` : x.kind === "cut" ? `cut ${x.pct}%` : `plan a ${fmtM(x.amount)} call`}
-                      <button type="button" aria-label="Remove action" onClick={() => saveActions(actions.filter((_, k) => k !== i))} className="ml-1 text-gray-400 hover:text-red-600">×</button>
+                      <button type="button" aria-label="Remove action" onClick={() => saveActions(actions.filter((_, k) => k !== i))} className="ml-1 text-gray-500 hover:text-red-600">×</button>
                     </li>
                   ))}
                 </ul>
@@ -372,13 +372,13 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           <T head={["Asset", "IRR underwritten", "IRR now", "Gap"]} right={[1, 2, 3]} rows={r.execution.uw.map((x) => [x.name, pct(x.uwIrr), pct(x.irr), isFinite(x.gap) ? `${x.gap >= 0 ? "+" : ""}${x.gap.toFixed(1)} pts` : "—"])} />
           {r.execution.budget.map((b) => <p key={b.id} className="mt-1 text-[11px] text-gray-600">{b.name}: over budget on {b.lines.join(", ")}</p>)}
           {r.execution.planGap && <p className="mt-1 text-[11px] text-gray-600">Fund plan: projected net LP IRR {pct(r.execution.planGap.current)} vs. plan {pct(r.execution.planGap.plan)}.</p>}
-          {!r.execution.uw.length && !r.execution.budget.length && <p className="text-xs text-gray-400">No baselines or budget actuals yet.</p>}
+          {!r.execution.uw.length && !r.execution.budget.length && <p className="text-xs text-gray-500">No baselines or budget actuals yet.</p>}
         </Sec>
         <Sec title="Insurance certificates" testId="risk-insurance">
-          {!r.insurance ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading documents…") : "Sign in to check the insurance certificates on file."}</p> : (
+          {!r.insurance ? <p className="text-xs text-gray-500">{workspaceId ? (docsErr || "Loading documents…") : "Sign in to check the insurance certificates on file."}</p> : (
             <T head={["Asset", "Certificates", "Gaps"]} right={[1]} rows={r.insurance.map((x) => [x.name, x.certificates, x.gaps.length ? <ul key="g" className="list-disc pl-4">{x.gaps.map((g, i) => <li key={i} className={g.severity === "high" ? "text-red-700" : g.severity === "medium" ? "text-amber-800" : ""}>{g.text}</li>)}</ul> : "—"])} />
           )}
-          <p className="mt-1 text-[11px] text-gray-400">Expired or expiring (60 days) policies, missing tenant certificates, and tenant coverage below the lease&apos;s requirements (Documents tab). Coverage against loan requirements comes once loan agreements carry them.</p>
+          <p className="mt-1 text-[11px] text-gray-500">Expired or expiring (60 days) policies, missing tenant certificates, and tenant coverage below the lease&apos;s requirements (Documents tab). Coverage against loan requirements comes once loan agreements carry them.</p>
         </Sec>
       </div>
       {/* Environmental and climate removed from the risk report (user, 11/25, 1.1.5: not critical); the entries stay on each asset. */}
@@ -386,7 +386,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
 
       {/* Issued risk reports (user, 11/25, 1.1.5): at the bottom of the report. */}
       <Sec title={`Issued risk reports · ${usDate(asOf)}`} testId="risk-issued">
-        {issued.length === 0 ? <p className="text-xs text-gray-400">None issued for this date.</p> : (
+        {issued.length === 0 ? <p className="text-xs text-gray-500">None issued for this date.</p> : (
           <ul className="space-y-1 text-xs">{issued.map((x) => (
             <li key={x.id} className="flex items-center justify-between rounded border border-gray-100 px-2 py-1"><span>v{x.v} · issued {usDate(x.at.slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · {x.report.watch.length} assets on the watch list</span><button type="button" onClick={() => pdf(x.report, x)} className="rounded border border-gray-300 px-2 py-0.5">PDF</button></li>
           ))}</ul>

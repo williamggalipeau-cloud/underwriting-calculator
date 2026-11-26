@@ -75,7 +75,7 @@ function QuarterlySchedule({ wf, terms, lineBalanceAt }) {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               {["Quarter", "Capital calls", "Income dist.", "Sale proceeds", "LP pref", "Return of capital", "Held for next sale", "GP catch-up", "LP split", "GP promote", "LP total", "GP total", "LP yield (ann.)", "LP cumul.", ...(lineBalanceAt ? ["Sub line bal."] : [])].map((h) => (
-                <th key={h} className="px-2.5 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                <th key={h} className="px-2.5 py-2 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
@@ -105,7 +105,7 @@ function QuarterlySchedule({ wf, terms, lineBalanceAt }) {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500">
         Operating cash is earned evenly through each hold year and paid at calendar quarter ends.{" "}
         {(terms.distributionPolicy ?? "reserve") === "payout"
           ? `${fmt(terms.incomePayoutPct ?? 100, 0)}% is distributed and the rest reserved.`
@@ -147,8 +147,8 @@ function FundWaterfall({ wf, yearTotals, terms, lineBalanceAt }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700">LP / GP Waterfall</h3>
-        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+        <h3 className="scroll-mt-16 text-sm font-semibold text-gray-700" data-index="Waterfall">LP / GP Waterfall</h3>
+        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
           Active tier: {wf.activeTier.irrThreshold != null ? `≤${wf.activeTier.irrThreshold}% IRR` : "Top tier"} · {wf.activeTier.lpSplit}/{wf.activeTier.gpSplit} split
         </span>
       </div>
@@ -188,7 +188,7 @@ function FundWaterfall({ wf, yearTotals, terms, lineBalanceAt }) {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               {["Year", "Fund CF", "LP", "GP", "LP Cumul.", "GP Cumul."].map((h) => (
-                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap">
                   {h}
                 </th>
               ))}
@@ -220,7 +220,7 @@ function FundWaterfall({ wf, yearTotals, terms, lineBalanceAt }) {
           </tfoot>
         </table>
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500">
         Capital calls (negative) are split by commitment on their dates; the LP pref compounds annually from each call.
         Sale proceeds run pref → return of capital → GP catch-up → promote, in date order.
       </p>
@@ -243,13 +243,13 @@ function FundTimeline({ deals, fund }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-4 mb-2 text-xs text-gray-600">
-        <h4 className="text-xs font-semibold text-gray-700 mr-2">Fund timeline</h4>
+        <h4 className="scroll-mt-16 text-xs font-semibold text-gray-700 mr-2" data-index="Fund timeline">Fund timeline</h4>
         <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm bg-blue-100 border border-blue-200" />Investment period</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm bg-amber-50 border border-amber-200" />Extensions</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded-sm bg-[#2a78d6]" />Hold</span>
       </div>
       <div className="rounded-xl border border-gray-200 bg-white px-3 py-3">
-        <div className="relative ml-40 h-5 text-[10px] text-gray-400">
+        <div className="relative ml-40 h-5 text-[10px] text-gray-500">
           {years.map((y) => (
             <span key={y} className="absolute -translate-x-1/2" style={{ left: `${x(`${y}-01-01`)}%` }}>{y}</span>
           ))}
@@ -291,7 +291,7 @@ function FundTimeline({ deals, fund }) {
             );
           })}
         </div>
-        <p className="text-[11px] text-gray-400 mt-2 ml-40">
+        <p className="text-[11px] text-gray-500 mt-2 ml-40">
           Final close {fmtDate(fund.finalClose)} · investment period to {fmtDate(fd.investmentPeriodEnd)} · term to {fmtDate(fd.fundEnd)} ·
           fully extended {fmtDate(fd.extendedEnd)}
         </p>
@@ -317,15 +317,15 @@ function PerformanceAttribution({ deals, fundIRR, totalEquity, totalDistribution
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700">Performance Attribution</h3>
-        <span className="text-xs text-gray-400">Equity-weighted contribution to fund IRR</span>
+        <h3 className="scroll-mt-16 text-sm font-semibold text-gray-700" data-index="Attribution">Performance Attribution</h3>
+        <span className="text-xs text-gray-500">Equity-weighted contribution to fund IRR</span>
       </div>
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               {["Asset", "Equity", "Equity Weight", "Asset IRR", "vs. Fund IRR", "EM", "Distributions", "Dist. Share", "IRR Contribution"].map((h) => (
-                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap">
                   {h}
                 </th>
               ))}
@@ -334,7 +334,7 @@ function PerformanceAttribution({ deals, fundIRR, totalEquity, totalDistribution
           <tbody className="divide-y divide-gray-100">
             {rows.map(({ deal, equity, equityWt, assetIRR, assetDist, distWt, irrSpread, wtdContrib }) => {
               const barW = maxWt > 0 ? (equityWt / maxWt) * 100 : 0;
-              const spreadColor = !isFinite(irrSpread) ? "text-gray-400"
+              const spreadColor = !isFinite(irrSpread) ? "text-gray-500"
                 : irrSpread > 0.5  ? "text-emerald-600 font-semibold"
                 : irrSpread < -0.5 ? "text-red-600 font-semibold"
                 : "text-gray-500";
@@ -394,7 +394,7 @@ function PerformanceAttribution({ deals, fundIRR, totalEquity, totalDistribution
           </tfoot>
         </table>
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500">
         IRR Contribution = equity weight × asset IRR. Sum of contributions equals the equity-weighted average IRR (≠ fund IRR, which also reflects cash flow timing across assets).
       </p>
     </div>
@@ -419,7 +419,7 @@ function DealRow({ deal, onRemove, fund }) {
             </span>
           )}
         </p>
-        {inputs.fundName && <p className="text-xs text-gray-400">{inputs.fundName}</p>}
+        {inputs.fundName && <p className="text-xs text-gray-500">{inputs.fundName}</p>}
       </td>
       <td className="px-3 py-2.5 text-right text-xs text-gray-600 tabular-nums">
         {fmt(inputs.squareFootage)} SF
@@ -452,7 +452,7 @@ function DealRow({ deal, onRemove, fund }) {
         <button
           type="button"
           onClick={() => onRemove(deal.id)}
-          className="text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1 rounded hover:bg-red-50"
+          className="text-xs text-gray-500 hover:text-red-500 transition-colors px-2 py-1 rounded hover:bg-red-50"
         >
           Remove
         </button>
@@ -466,7 +466,7 @@ function HurdleCard({ rate, pref, overridden, asOf, rows, onRate }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h4 className="font-semibold text-gray-700">Cost of capital</h4>
+        <h4 className="scroll-mt-16 font-semibold text-gray-700" data-index="Cost of capital">Cost of capital</h4>
         <span className="flex items-center gap-1.5 text-gray-600">
           Hurdle rate
           <input
@@ -485,7 +485,7 @@ function HurdleCard({ rate, pref, overridden, asOf, rows, onRate }) {
           {overridden ? (
             <button type="button" onClick={() => onRate(null)} className="text-[11px] text-blue-700 hover:underline">Use pref ({fmt(pref, 2)}%)</button>
           ) : (
-            <span className="text-[11px] text-gray-400">= preferred return (default)</span>
+            <span className="text-[11px] text-gray-500">= preferred return (default)</span>
           )}
         </span>
       </div>
@@ -503,7 +503,7 @@ function HurdleCard({ rate, pref, overridden, asOf, rows, onRate }) {
             const good = h.npv >= 0;
             return (
               <tr key={label} className="border-b border-gray-100 text-gray-800">
-                <td className="px-2 py-1.5"><span className="font-semibold">{label}</span> <span className="text-gray-400">{sub}</span></td>
+                <td className="px-2 py-1.5"><span className="font-semibold">{label}</span> <span className="text-gray-500">{sub}</span></td>
                 <td className="px-2 py-1.5 text-right">{fmtPct(h.irr)}</td>
                 <td className={`px-2 py-1.5 text-right font-semibold ${!isFinite(h.spread) ? "" : h.spread >= 0 ? "text-emerald-700" : "text-red-600"}`}>
                   {isFinite(h.spread) ? `${h.spread >= 0 ? "+" : ""}${fmt(h.spread, 1)} pts` : "—"}
@@ -517,7 +517,7 @@ function HurdleCard({ rate, pref, overridden, asOf, rows, onRate }) {
           })}
         </tbody>
       </table>
-      <p className="mt-1 text-[10px] text-gray-400">
+      <p className="mt-1 text-[10px] text-gray-500">
         The hurdle rate is the fund&apos;s cost of capital: the annual return investors require. It defaults to the fund&apos;s preferred return; type a rate to override it. NPV discounts each dated cash flow to the final
         close ({fmtDate(asOf)}) at that rate; positive NPV means the fund creates value above it. Spread = IRR − hurdle. Profitability index =
         present value of money returned ÷ present value of money invested.
@@ -538,7 +538,7 @@ function FundExpensesCard({ fx, terms, ipEnd, todayISO, callsNeeded = [] }) {
     <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h4 className="font-semibold text-gray-700">Fund expenses &amp; fund cash</h4>
-        <span className="text-[11px] text-gray-400">
+        <span className="text-[11px] text-gray-500">
           {fmt(terms.mgmtFeePct ?? 0, 2)}% management fee, quarterly in advance, on {terms.mgmtFeeBasis === "invested" ? "LP invested capital" : `LP commitments to ${fmtDate(ipEnd)}, then LP invested capital`} · sub line costs monthly ·
           minimum cash {fmt(terms.cashReserveQuarters ?? 2, 0)} quarters of projected expenses
         </span>
@@ -555,7 +555,7 @@ function FundExpensesCard({ fx, terms, ipEnd, todayISO, callsNeeded = [] }) {
           <div key={label}>
             <p className="text-gray-500">{label}</p>
             <p className="text-sm font-bold tabular-nums text-gray-900">{value}</p>
-            <p className="text-[10px] text-gray-400">{sub}</p>
+            <p className="text-[10px] text-gray-500">{sub}</p>
           </div>
         ))}
       </div>
@@ -590,7 +590,7 @@ function FundExpensesCard({ fx, terms, ipEnd, todayISO, callsNeeded = [] }) {
               ))}
             </tbody>
           </table>
-          <p className="mt-1 text-[10px] text-gray-400">
+          <p className="mt-1 text-[10px] text-gray-500">
             Quarters after today (grey) are projections. Expenses are paid from fund cash, then drawn on the line up to its capacity;
             income repays the draws, then rebuilds the minimum cash, then is distributed. Capital is needed only when cash and the line are
             both exhausted (one call at quarter end; the fee part from LPs only).
@@ -768,12 +768,12 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
       {/* Fund header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">{fundName} <FundTypeBadge type={terms?.type} /></h3>
-          <p className="text-xs text-gray-400 mt-0.5">{deals.length} asset{deals.length !== 1 ? "s" : ""} · {fmt(totalSF)} SF · {fmtM(totalPurchasePrice)} total purchase price</p>
+          <h3 className="scroll-mt-16 flex items-center gap-2 text-sm font-semibold text-gray-900" data-index="Fund terms and returns">{fundName} <FundTypeBadge type={terms?.type} /></h3>
+          <p className="text-xs text-gray-500 mt-0.5">{deals.length} asset{deals.length !== 1 ? "s" : ""} · {fmt(totalSF)} SF · {fmtM(totalPurchasePrice)} total purchase price</p>
           <button
             type="button"
             onClick={() => onRemoveFund(deals.map((d) => d.id))}
-            className="mt-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
+            className="mt-1.5 text-xs text-gray-500 hover:text-red-500 transition-colors"
           >
             Remove fund
           </button>
@@ -802,13 +802,13 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
                 {m.actuals && <span className="ml-1 rounded bg-blue-50 px-1 text-[9px] font-semibold text-blue-700">actual calls</span>}
               </p>
               <p className="text-base font-bold tabular-nums leading-tight">
-                <span className={isFinite(m.irr) && m.irr >= m.irrGood ? "text-emerald-700" : isFinite(m.irr) ? "text-red-600" : "text-gray-400"}>
+                <span className={isFinite(m.irr) && m.irr >= m.irrGood ? "text-emerald-700" : isFinite(m.irr) ? "text-red-600" : "text-gray-500"}>
                   {fmtPct(m.irr)}
                 </span>
                 <span className="text-gray-300 font-normal"> · </span>
                 <span className="text-gray-900">{fmtX(m.mult)}</span>
               </p>
-              <p className="text-[10px] text-gray-400">IRR · multiple</p>
+              <p className="text-[10px] text-gray-500">IRR · multiple</p>
             </div>
           ))}
           <div
@@ -821,13 +821,13 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
               <span className="text-gray-300 font-normal"> · </span>
               {fmtPct(cashYield.netAverage)}
             </p>
-            <p className="text-[10px] text-gray-400">Gross · net, life avg.</p>
+            <p className="text-[10px] text-gray-500">Gross · net, life avg.</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-500">Total Equity</p>
             <p className="text-lg font-bold tabular-nums text-gray-900">{fmtM(totalEquity)}</p>
             {terms.targetEquity > 0 && (
-              <p className="text-[11px] text-gray-400 tabular-nums">
+              <p className="text-[11px] text-gray-500 tabular-nums">
                 {fmt((totalEquity / terms.targetEquity) * 100, 0)}% of {fmtM(terms.targetEquity)} commitments
               </p>
             )}
@@ -859,7 +859,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
           <input type="number" min={0} step={1} value={fund.extensionYears} onChange={setFundField("extensionYears")} className="w-12 border border-gray-200 rounded-md px-2 py-1 text-gray-900 tabular-nums" />
           yr
         </label>
-        <span className="text-gray-400">
+        <span className="text-gray-500">
           Term ends {fmtDate(fd.fundEnd)} · fully extended {fmtDate(fd.extendedEnd)}
         </span>
       </div>
@@ -906,7 +906,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
           <span className="px-2 py-1.5 bg-gray-50 border-l border-gray-200 text-gray-500 text-xs">% of fund equity</span>
         </div>
         <span className="text-sm font-semibold text-gray-900 tabular-nums">{fmtM(gpCommitAmount)}</span>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-500">
           GP · {fmtM(totalEquity - gpCommitAmount)} LP ({fmt(100 - gpCommitPct, 1)}%)
         </span>
         <label htmlFor={`pref-${fundName}`} className="text-xs font-semibold text-gray-700 ml-auto">
@@ -949,9 +949,9 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <h4 className="text-xs font-semibold text-gray-700">
-              Subscription line{usingActuals && <span className="ml-1.5 font-normal text-gray-400">· projected from tomorrow (actual activity through {fmtDate(flows.actualThrough)})</span>}
+              Subscription line{usingActuals && <span className="ml-1.5 font-normal text-gray-500">· projected from tomorrow (actual activity through {fmtDate(flows.actualThrough)})</span>}
             </h4>
-            <span className="text-[11px] text-gray-400">
+            <span className="text-[11px] text-gray-500">
               {fmtM(line.size)} facility ({fmt(terms.subLineSizePct, 0)}% of {line.sizedOn === "commitments" ? "commitments" : "planned calls — enter commitments to size on fund size"})
               {" "}· 30D avg SOFR + {fmt(terms.subLineSpreadPct, 2)}% · {fmt(terms.subLineUnusedFeePct, 2)}% unused · repaid within {fmt(terms.subLineMaxDays, 0)} days
             </span>
@@ -968,11 +968,11 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
               <div key={label}>
                 <p className="text-gray-500">{label}</p>
                 <p className="text-sm font-bold tabular-nums text-gray-900">{value}</p>
-                <p className="text-[10px] text-gray-400">{sub}</p>
+                <p className="text-[10px] text-gray-500">{sub}</p>
               </div>
             ))}
           </div>
-          <p className="mt-2 text-[10px] text-gray-400">
+          <p className="mt-2 text-[10px] text-gray-500">
             {usingActuals &&
               "Interest and fees on the line to date are in your actual calls; these figures cover tomorrow onward: draws still outstanding are repaid after the max days with interest, and future needs draw on the line. "}
             Purchases and shortfalls draw on the line first; each draw is repaid by an LP capital call after the max days outstanding
@@ -984,8 +984,8 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
       {/* Capital called & dry powder */}
       <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h4 className="text-xs font-semibold text-gray-700">Capital &amp; dry powder</h4>
-          <span className="text-[11px] text-gray-400">
+          <h4 className="scroll-mt-16 text-xs font-semibold text-gray-700" data-index="Capital and dry powder">Capital &amp; dry powder</h4>
+          <span className="text-[11px] text-gray-500">
             As of {fmtDate(todayISO)} · investment period {capital.ipOpen ? `open until ${fmtDate(fd.investmentPeriodEnd)}` : `ended ${fmtDate(fd.investmentPeriodEnd)}`}
           </span>
         </div>
@@ -1017,7 +1017,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
             <div key={label}>
               <p className="text-gray-500">{label}</p>
               <p className={`text-sm font-bold tabular-nums ${bad ? "text-red-600" : "text-gray-900"}`}>{value}</p>
-              <p className="text-[10px] text-gray-400">{sub}</p>
+              <p className="text-[10px] text-gray-500">{sub}</p>
             </div>
           ))}
         </div>
@@ -1068,7 +1068,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               {["Property", "SF", "Purchase Price", "Equity", "IRR", "EM", "CoC Y1", "Acquired", "Exit", "Hold", ""].map((h) => (
-                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap last:w-16">
+                <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap last:w-16">
                   {h}
                 </th>
               ))}
@@ -1106,7 +1106,7 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
       {/* Fund-level waterfall */}
       <div className="border-t border-gray-200 pt-5">
         <FundWaterfall wf={fundWf} yearTotals={yearTotals} terms={terms} lineBalanceAt={line || usingActuals ? flows.lineAt : undefined} />
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-500 mt-2">
           Fund terms: {fmt(gpCommitPct, 1)}% GP commitment, {fmt(prefPct, 1)}% pref, {fmt(terms.catchUpGpPct, 0)}% GP catch-up,
           tiers {terms.tiers.map((t) => `${t.irrThreshold == null ? "above" : `≤${t.irrThreshold}%`} ${t.lpSplit}/${t.gpSplit}`).join(" · ")}
           {terms.mgmtFeePct > 0 ? ` · ${fmt(terms.mgmtFeePct, 2)}% management fee (${fmtM(flows.expenses?.totals.fees ?? 0)} total, paid as a fund expense)` : " · no fund-level management fee"}.
@@ -1117,18 +1117,18 @@ function FundGroup({ fundName, deals, otherAssets = [], terms, curve = DEFAULT_C
 
       {/* Combined cash flow table */}
       <div>
-        <h4 className="text-xs font-semibold text-gray-600 mb-2">Combined Cash Flows by Calendar Year</h4>
+        <h4 className="scroll-mt-16 text-xs font-semibold text-gray-600 mb-2" data-index="Cash flows by year">Combined Cash Flows by Calendar Year</h4>
         <div className="overflow-x-auto rounded-xl border border-gray-200">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Year</th>
+                <th className="px-3 py-2 text-left font-semibold text-gray-500">Year</th>
                 {deals.map((d) => (
-                  <th key={d.id} className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                  <th key={d.id} className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">
                     {d.inputs.propertyName || "Unnamed"}
                   </th>
                 ))}
-                <th className="px-3 py-2 text-right font-semibold text-gray-700 uppercase tracking-wide">Total</th>
+                <th className="px-3 py-2 text-right font-semibold text-gray-700">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1165,8 +1165,8 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-base font-semibold text-gray-900">Portfolio Return</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <h2 className="scroll-mt-16 text-base font-semibold text-gray-900" data-index="Portfolio Return">Portfolio Return</h2>
+          <p className="text-xs text-gray-500 mt-0.5">
             Open deals with a Fund name are included live. Add to Fund saves a fixed snapshot.
           </p>
         </div>
@@ -1238,12 +1238,12 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
       ) : fundNames.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 p-10 text-center">
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12A2.25 2.25 0 0020.25 14.25V3M3.75 3h16.5M3.75 3l-.75 3h18l-.75-3" />
             </svg>
           </div>
           <p className="text-sm font-medium text-gray-500">No deals saved yet</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Set a Fund name in Deal Inputs, then click <span className="font-medium">Add to Fund</span> to snapshot this deal.
           </p>
         </div>
@@ -1278,7 +1278,7 @@ export default function FundAnalysis({ savedDeals, currentDeal, onSave, onRemove
                     <button type="button" onClick={() => onEditFund?.(name)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">
                       Edit terms
                     </button>
-                    <button type="button" onClick={() => onDeleteFund?.(name)} className="text-xs text-gray-400 hover:text-red-500">
+                    <button type="button" onClick={() => onDeleteFund?.(name)} className="text-xs text-gray-500 hover:text-red-500">
                       Delete fund
                     </button>
                   </div>

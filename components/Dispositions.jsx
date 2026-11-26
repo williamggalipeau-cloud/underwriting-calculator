@@ -71,7 +71,7 @@ function DispDocCard({ d, docCtx }) {
           {error ? <p className="text-red-700">{error}</p> : <p className="font-semibold">Apply to {target}</p>}
           {rows.length > 0 && (
             <table className="w-full">
-              <thead className="text-[10px] uppercase tracking-wide text-gray-500"><tr><th className="w-6" /><th className="text-left">Field</th><th className="text-left">Now</th><th className="text-left">Document says</th><th className="text-left">Quote</th></tr></thead>
+              <thead className="text-[10px] text-gray-500"><tr><th className="w-6" /><th className="text-left">Field</th><th className="text-left">Now</th><th className="text-left">Document says</th><th className="text-left">Quote</th></tr></thead>
               <tbody>{rows.map((x) => (
                 <tr key={x.key} className={`border-t border-gray-100 align-top ${x.differs ? "bg-amber-50/60" : ""}`} data-testid="disp-apply-row">
                   <td>{!x.info && <input type="checkbox" aria-label={`Apply ${x.label}`} checked={!!checked[x.key]} onChange={(e) => setTicks({ ...checked, [x.key]: e.target.checked })} />}</td>
@@ -98,11 +98,11 @@ function DocBox({ docs = [], types, docCtx, label = "Documents", compact = false
   const [msg, setMsg] = useState(null);
   const [shown, setShown] = useState(null);
   const open = async (d) => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); };
-  if (!docCtx) return compact ? null : <p className="text-[11px] text-gray-400">{label}: sign in to the firm to upload (BOVs, listing agreement, OM, PSA, closing statement…).</p>;
+  if (!docCtx) return compact ? null : <p className="text-[11px] text-gray-500">{label}: sign in to the firm to upload (BOVs, listing agreement, OM, PSA, closing statement…).</p>;
   return (
     <div className={compact ? "" : "rounded border border-gray-200 bg-white p-2"} data-testid="disp-docs">
       {!compact && <p className="mb-1 font-semibold">{label}</p>}
-      {docs.length > 0 && <ul className="mb-1 space-y-0.5">{docs.map((d) => <li key={d.id}><button type="button" onClick={() => open(d)} className="text-left text-blue-700 hover:underline">{d.typeLabel}: {d.name}</button>{d.by ? <span className="text-gray-400"> · {d.by}</span> : null}
+      {docs.length > 0 && <ul className="mb-1 space-y-0.5">{docs.map((d) => <li key={d.id}><button type="button" onClick={() => open(d)} className="text-left text-blue-700 hover:underline">{d.typeLabel}: {d.name}</button>{d.by ? <span className="text-gray-500"> · {d.by}</span> : null}
         {canReview(d.type) && docCtx.inputsOf && <button type="button" onClick={() => setShown(shown === d.id ? null : d.id)} className="ml-1.5 text-[11px] text-blue-700 hover:underline" data-testid="disp-doc-claude">{shown === d.id ? "Close" : d.doc.abstract ? "Review / apply" : "Review with Claude"}</button>}
         {shown === d.id && <DispDocCard d={d} docCtx={docCtx} />}</li>)}</ul>}
       {docCtx.canEdit && (
@@ -312,7 +312,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
               <thead className="bg-gray-50 text-gray-500"><tr>{["Asset", "Bought", "Purchase", "Sold", "Sale price", "Net proceeds", "Hold", "IRR", "UW IRR", "Multiple", "UW multiple", "Profit", "vs. last mark", ...(docCtx ? ["Documents"] : [])].map((h) => <th key={h} className="px-2 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>{rows.map((r) => (
                 <tr key={r.saleId} className="border-t border-gray-100">
-                  <td className="px-2 py-1">{r.asset}{r.partial && <span className="ml-1 rounded bg-amber-50 px-1 text-[10px] text-amber-800">part · {Math.round(r.sf).toLocaleString("en-US")} SF</span>}<div className="text-[10px] text-gray-400">{r.fund}</div></td>
+                  <td className="px-2 py-1">{r.asset}{r.partial && <span className="ml-1 rounded bg-amber-50 px-1 text-[10px] text-amber-800">part · {Math.round(r.sf).toLocaleString("en-US")} SF</span>}<div className="text-[10px] text-gray-500">{r.fund}</div></td>
                   <td className="px-2 py-1">{usDate(r.purchaseDate)}</td><td className="px-2 py-1">{money(r.purchasePrice)}</td><td className="px-2 py-1">{usDate(r.saleDate)}</td><td className="px-2 py-1">{money(r.salePrice)}</td><td className="px-2 py-1">{money(r.netProceeds)}</td>
                   <td className="px-2 py-1">{r.holdYears != null ? `${r.holdYears.toFixed(1)} yr` : "—"}</td><td className="px-2 py-1 font-semibold">{pct(r.irr)}</td><td className="px-2 py-1 text-gray-500">{pct(r.uw?.irr)}</td>
                   <td className="px-2 py-1">{r.multiple != null && Number.isFinite(r.multiple) ? `${r.multiple.toFixed(2)}x` : "—"}</td><td className="px-2 py-1 text-gray-500">{r.uw?.multiple != null && Number.isFinite(r.uw.multiple) ? `${r.uw.multiple.toFixed(2)}x` : "—"}</td>
@@ -323,7 +323,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
             </table></div>
             <table className="text-xs tabular-nums" data-testid="track-totals"><thead className="text-gray-500"><tr>{["", "Sales", "Purchase", "Sale", "Net proceeds", "Profit"].map((h) => <th key={h} className="px-2 py-1 text-left font-medium">{h}</th>)}</tr></thead>
               <tbody>{trackTotals(rows).map((t) => <tr key={t.key} className={t.key === "Firm" ? "font-semibold" : ""}><td className="px-2 py-1">{t.key}</td><td className="px-2 py-1">{t.sales}</td><td className="px-2 py-1">{money(t.purchase)}</td><td className="px-2 py-1">{money(t.sale)}</td><td className="px-2 py-1">{money(t.net)}</td><td className="px-2 py-1">{money(t.profit)}</td></tr>)}</tbody></table>
-            <p className="text-[11px] text-gray-400">IRR, multiple and profit for a whole sale run through the asset&apos;s model with the realized sale; for a partial sale they cover the part sold (its share of equity in, its net proceeds out). UW = the frozen acquisition underwriting when there is one, else the model without the sale.</p>
+            <p className="text-[11px] text-gray-500">IRR, multiple and profit for a whole sale run through the asset&apos;s model with the realized sale; for a partial sale they cover the part sold (its share of equity in, its net proceeds out). UW = the frozen acquisition underwriting when there is one, else the model without the sale.</p>
           </>
         )}
       </div>
@@ -351,7 +351,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
                   <td className="px-1"><input aria-label="Offer broker" value={o.broker} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { broker: e.target.value })} className={`${inp} w-24`} /></td>
                   <td className="px-1"><input aria-label="Offer date" type="date" value={o.date} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { date: e.target.value })} className={inp} /></td>
                   <td className="px-1"><select aria-label="Round" value={o.round} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { round: e.target.value })} className={inp}>{ROUNDS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></td>
-                  <td className="px-1"><input aria-label="Offer price" type="number" value={o.price ?? ""} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { price: num(e.target.value) })} className={`${inp} w-28`} /><div className="text-[10px] text-gray-400">{o.psf ? `$${o.psf.toFixed(0)}/SF` : ""}{o.capPct ? ` · ${o.capPct.toFixed(2)}% cap` : ""}</div></td>
+                  <td className="px-1"><input aria-label="Offer price" type="number" value={o.price ?? ""} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { price: num(e.target.value) })} className={`${inp} w-28`} /><div className="text-[10px] text-gray-500">{o.psf ? `$${o.psf.toFixed(0)}/SF` : ""}{o.capPct ? ` · ${o.capPct.toFixed(2)}% cap` : ""}</div></td>
                   <td className="px-1"><input aria-label="Offer deposit" type="number" value={o.deposit ?? ""} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { deposit: num(e.target.value) })} className={`${inp} w-24`} /></td>
                   <td className="px-1"><input aria-label="DD days" type="number" value={o.ddDays ?? ""} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { ddDays: num(e.target.value) })} className={`${inp} w-14`} /></td>
                   <td className="px-1"><input aria-label="Closing days" type="number" value={o.closingDays ?? ""} disabled={!canEdit} onChange={(e) => setOffer(x, o.id, { closingDays: num(e.target.value) })} className={`${inp} w-14`} /></td>

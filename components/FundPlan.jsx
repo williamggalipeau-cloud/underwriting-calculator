@@ -36,7 +36,7 @@ const fmtD = (v, unit) => {
   const a = Math.abs(v);
   return unit === "$" ? `${s}${fmtM(a)}` : unit === "%" ? `${s}${a.toFixed(1)} pts` : unit === "x" ? `${s}${a.toFixed(2)}x` : `${s}${Math.round(a)}`;
 };
-const tone = (v) => (v == null || !isFinite(v) || Math.abs(v) < 1e-9 ? "text-gray-400" : v > 0 ? "text-emerald-700" : "text-red-600");
+const tone = (v) => (v == null || !isFinite(v) || Math.abs(v) < 1e-9 ? "text-gray-500" : v > 0 ? "text-emerald-700" : "text-red-600");
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "—");
 const today = () => new Date().toISOString().slice(0, 10);
 const btn = "rounded-lg border px-3 py-1.5 text-xs font-medium";
@@ -341,7 +341,7 @@ export default function FundPlan({ deals, funds = {}, marks = {}, curve, canEdit
               </div>
             )}
           </div>
-          <p className="text-[11px] leading-snug text-gray-400">
+          <p className="text-[11px] leading-snug text-gray-500">
             LP figures. Actual capital called and distributed come from capital activity when it has been entered (otherwise the model to date), as on the Valuation tab; NAV is the latest quarter&apos;s LP NAV. The plan has no NAV of its own, so NAV and interim TVPI show actuals only.
             The cause split is an estimate: pricing is the change in purchase price on plan assets; operations, financing and exits is the rest of their change; fees, fund expenses and the sub line is the change in net profit the assets&apos; gross profit doesn&apos;t explain. GP promote = GP distributions above its pro-rata share.
           </p>

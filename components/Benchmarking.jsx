@@ -148,8 +148,8 @@ export default function Benchmarking({ deals = [], funds = {}, marks = {}, curve
               <thead className="bg-gray-50 text-gray-500"><tr><th className="px-2.5 py-2 text-left font-medium">Period</th><th className="px-2.5 py-2 text-right font-medium">Fund total</th><th className="px-2.5 py-2 text-right font-medium">Income / appreciation</th>{INDEXES.map(([k, l]) => <th key={k} className="px-2.5 py-2 text-right font-medium">{l.replace("NCREIF ", "")}</th>)}</tr></thead>
               <tbody>{r.periods.map((x) => (
                 <tr key={x.period} className="border-t border-gray-100" data-testid="bm-period">
-                  <td className="px-2.5 py-1.5">{x.label}{x.quarters ? <span className="text-gray-400"> · {x.quarters} q</span> : null}</td>
-                  <td className="px-2.5 py-1.5 text-right font-semibold">{x.fund ? pct(x.fund.total) : <span className="font-normal text-gray-400">not enough history</span>}</td>
+                  <td className="px-2.5 py-1.5">{x.label}{x.quarters ? <span className="text-gray-500"> · {x.quarters} q</span> : null}</td>
+                  <td className="px-2.5 py-1.5 text-right font-semibold">{x.fund ? pct(x.fund.total) : <span className="font-normal text-gray-500">not enough history</span>}</td>
                   <td className="px-2.5 py-1.5 text-right text-gray-600">{x.fund ? `${pct(x.fund.income)} / ${pct(x.fund.appreciation)}` : ""}</td>
                   {INDEXES.map(([k]) => <td key={k} className="px-2.5 py-1.5 text-right">{x.index[k] ? <>{pct(x.index[k].total)} <span className={x.fund && x.fund.total >= x.index[k].total ? "text-emerald-700" : "text-red-700"}>({pts(x.fund ? x.fund.total - x.index[k].total : null)})</span></> : <span className="text-gray-300">—</span>}</td>)}
                 </tr>
@@ -172,9 +172,9 @@ export default function Benchmarking({ deals = [], funds = {}, marks = {}, curve
             return (
               <div key={src} className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid={`bm-vintage-${src}`}>
                 <p className="mb-1 font-semibold">{l}{v?.irr?.row?.strategy ? <span className="font-normal text-gray-500"> · {v.irr.row.strategy}</span> : null}</p>
-                {!v ? <p className="text-gray-400">Not uploaded.</p> : (
+                {!v ? <p className="text-gray-500">Not uploaded.</p> : (
                   <table className="w-full tabular-nums"><thead className="text-gray-500"><tr><th className="text-left font-medium">Net</th><th className="text-right font-medium">Fund</th><th className="text-right font-medium">Top</th><th className="text-right font-medium">Median</th><th className="text-right font-medium">Bottom</th><th className="text-right font-medium">Quartile</th></tr></thead>
-                    <tbody>{["irr", "tvpi", "dpi"].map((m) => <tr key={m} className="border-t border-gray-100"><td className="py-1">{m.toUpperCase()}</td><td className="text-right font-semibold">{metricFmt(m, v[m].value)}</td><td className="text-right">{metricFmt(m, v[m].row?.uq)}</td><td className="text-right">{metricFmt(m, v[m].row?.median)}</td><td className="text-right">{metricFmt(m, v[m].row?.lq)}</td><td className="text-right">{v[m].quartile ? <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${Q_CLS[v[m].quartile]}`}>{QUARTILE_LABEL[v[m].quartile]}</span> : <span className="text-gray-400">{v[m].row ? "—" : `no ${r.vintage} row`}</span>}</td></tr>)}</tbody>
+                    <tbody>{["irr", "tvpi", "dpi"].map((m) => <tr key={m} className="border-t border-gray-100"><td className="py-1">{m.toUpperCase()}</td><td className="text-right font-semibold">{metricFmt(m, v[m].value)}</td><td className="text-right">{metricFmt(m, v[m].row?.uq)}</td><td className="text-right">{metricFmt(m, v[m].row?.median)}</td><td className="text-right">{metricFmt(m, v[m].row?.lq)}</td><td className="text-right">{v[m].quartile ? <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${Q_CLS[v[m].quartile]}`}>{QUARTILE_LABEL[v[m].quartile]}</span> : <span className="text-gray-500">{v[m].row ? "—" : `no ${r.vintage} row`}</span>}</td></tr>)}</tbody>
                   </table>
                 )}
               </div>
@@ -191,7 +191,7 @@ export default function Benchmarking({ deals = [], funds = {}, marks = {}, curve
             <tbody>{r.pme.map((x) => (
               <tr key={x.key} className="border-t border-gray-100" data-testid="bm-pme-row">
                 <td className="px-2.5 py-1.5">{x.label}{x.peers != null && x.peers < 4 ? <span className="text-amber-700"> · {x.peers} of 4 peers some months</span> : null}</td>
-                {PERIODS.map(([k]) => { const v = x.by?.[k]; return <td key={k} className="px-2.5 py-1.5 text-right">{!x.loaded ? <span className="text-gray-300">not uploaded</span> : !v ? <span className="text-gray-300">—</span> : v.missing ? <span className="text-gray-400">not covered</span> : <><span className={`font-semibold ${v.ks >= 1 ? "text-emerald-700" : "text-red-700"}`}>{v.ks.toFixed(2)}</span> <span className="text-gray-500">· {pct(v.fundIrr)} vs {pct(v.indexIrr)}</span></>}</td>; })}
+                {PERIODS.map(([k]) => { const v = x.by?.[k]; return <td key={k} className="px-2.5 py-1.5 text-right">{!x.loaded ? <span className="text-gray-300">not uploaded</span> : !v ? <span className="text-gray-300">—</span> : v.missing ? <span className="text-gray-500">not covered</span> : <><span className={`font-semibold ${v.ks >= 1 ? "text-emerald-700" : "text-red-700"}`}>{v.ks.toFixed(2)}</span> <span className="text-gray-500">· {pct(v.fundIrr)} vs {pct(v.indexIrr)}</span></>}</td>; })}
               </tr>
             ))}</tbody>
           </table>
@@ -207,7 +207,7 @@ export default function Benchmarking({ deals = [], funds = {}, marks = {}, curve
             <tbody>{r.assets.map((a) => (
               <tr key={a.id} className="border-t border-gray-100">
                 <td className="px-2.5 py-1.5">{a.name}</td><td className="px-2.5 py-1.5">{qLabel(a.since)}</td><td className="px-2.5 py-1.5 text-right">{a.quarters}</td>
-                <td className="px-2.5 py-1.5 text-right font-semibold">{a.si ? pct(a.si.total) : <span className="font-normal text-gray-400">first quarter not complete</span>}</td>
+                <td className="px-2.5 py-1.5 text-right font-semibold">{a.si ? pct(a.si.total) : <span className="font-normal text-gray-500">first quarter not complete</span>}</td>
                 <td className="px-2.5 py-1.5 text-right text-gray-600">{a.si ? `${pct(a.si.income)} / ${pct(a.si.appreciation)}` : ""}</td>
                 <td className="px-2.5 py-1.5 text-right">{a.bench ? `${pct(a.bench.total)} ${label(a.benchKey).replace("NCREIF ", "")}` : "—"}</td>
                 <td className={`px-2.5 py-1.5 text-right ${a.spread == null ? "" : a.spread >= 0 ? "text-emerald-700" : "text-red-700"}`}>{pts(a.spread)}</td>

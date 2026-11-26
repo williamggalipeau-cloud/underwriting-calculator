@@ -48,7 +48,7 @@ export function BudgetVsActualSummary({ deals, onOpen }) {
     <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs" data-testid="budget-summary">
       <div className="flex items-center justify-between"><div><h3 className="text-sm font-semibold">NOI vs budget · year to date {end}</h3><p className="text-[11px] text-gray-500">Fund variance compares the {f.total.comparedAssets} asset{f.total.comparedAssets === 1 ? "" : "s"} with both a budget and actuals.</p></div>{onOpen && <button type="button" onClick={onOpen} className={`${btn} border-gray-200 text-blue-700`}>Asset business plan</button>}</div>
       <Table head={["Asset", "Plan (rev. 1)", "Current budget", "Actual", "Variance", "%"]} rows={[...f.rows.map((r) => (
-        <tr key={r.dealId} className={`border-t border-gray-100 ${FLAG[r.flag] ?? ""}`}><td className="px-2 py-1">{r.asset}{r.noPlan ? <span className="ml-1 text-[10px] text-gray-400">(no plan yet)</span> : ""}</td><td className="px-2 py-1">{money(r.plan)}</td><td className="px-2 py-1">{money(r.current)}</td><td className="px-2 py-1">{money(r.actual)}</td><td className="px-2 py-1">{money(r.variance)}</td><td className="px-2 py-1">{pct(r.variancePct)}</td></tr>
+        <tr key={r.dealId} className={`border-t border-gray-100 ${FLAG[r.flag] ?? ""}`}><td className="px-2 py-1">{r.asset}{r.noPlan ? <span className="ml-1 text-[10px] text-gray-500">(no plan yet)</span> : ""}</td><td className="px-2 py-1">{money(r.plan)}</td><td className="px-2 py-1">{money(r.current)}</td><td className="px-2 py-1">{money(r.actual)}</td><td className="px-2 py-1">{money(r.variance)}</td><td className="px-2 py-1">{pct(r.variancePct)}</td></tr>
       )), <tr key="t" className="border-t border-gray-300 font-semibold"><td className="px-2 py-1">Fund</td><td className="px-2 py-1">{money(f.total.plan)}</td><td className="px-2 py-1">{money(f.total.current)}</td><td className="px-2 py-1">{money(f.total.actual)}</td><td className="px-2 py-1">{money(f.total.variance)}</td><td className="px-2 py-1">{pct(f.total.variancePct)}</td></tr>]} />
     </div>
   );
@@ -226,7 +226,7 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundType = "", 
         <Table testid="plan-capital" head={["Project", "Scope", "Budget", "Spent", "Start", "End", "Expected return", ""]} rows={(p.capital ?? []).length ? p.capital.map((c, i) => (
           <tr key={c.id} className="border-t border-gray-100">
             {[["project", "text", "w-40"], ["scope", "text", "w-40"], ["budget", "number", "w-24"], ["spent", "number", "w-24"], ["start", "date", "w-32"], ["end", "date", "w-32"], ["expectedReturn", "text", "w-28"]].map(([f, ty, w]) => <td key={f} className="px-2 py-1">{field(["capital", i, f], ty, w)}</td>)}
-            <td className="px-2 py-1">{editing && <button type="button" className="text-gray-400 hover:text-red-600" onClick={() => delRow("capital", i)} aria-label="Remove project">✕</button>}</td>
+            <td className="px-2 py-1">{editing && <button type="button" className="text-gray-500 hover:text-red-600" onClick={() => delRow("capital", i)} aria-label="Remove project">✕</button>}</td>
           </tr>
         )) : [<tr key="n"><td colSpan={8} className="px-2 py-1 text-gray-500">No capital projects</td></tr>]} />
         {(p.capital ?? []).length > 0 && <p className="text-[11px] text-gray-500">Spent {money(p.capital.reduce((s, c) => s + (Number(c.spent) || 0), 0))} of {money(p.capital.reduce((s, c) => s + (Number(c.budget) || 0), 0))} budgeted.</p>}
@@ -251,7 +251,7 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundType = "", 
             <tr key={m.id} className="border-t border-gray-100" data-testid="milestone-row">
               <td className="px-2 py-1">{field(["milestones", i, "label"], "text", "w-72")}</td><td className="px-2 py-1">{field(["milestones", i, "due"], "date", "w-32")}</td><td className="px-2 py-1">{field(["milestones", i, "owner"], "text", "w-28")}</td>
               <td className={`px-2 py-1 ${stCls[st]}`}>{editing ? <select value={m.status} onChange={(e) => set(["milestones", i, "status"], e.target.value)} className={inp} aria-label="Milestone status">{STATUS.map((s) => <option key={s}>{s}</option>)}</select> : st === "late" ? "⚠ late" : st}</td>
-              <td className="px-2 py-1">{editing && <button type="button" className="text-gray-400 hover:text-red-600" onClick={() => delRow("milestones", i)} aria-label="Remove milestone">✕</button>}</td>
+              <td className="px-2 py-1">{editing && <button type="button" className="text-gray-500 hover:text-red-600" onClick={() => delRow("milestones", i)} aria-label="Remove milestone">✕</button>}</td>
             </tr>
           );
         })} />
@@ -259,7 +259,7 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundType = "", 
       </Section>
 
       <Section title="Risks and mitigants" right={editing && <button type="button" className={`${btn} border-gray-300`} onClick={() => addRow("risks", { risk: "", mitigant: "" })}>Add risk</button>}>
-        <Table head={["Risk", "Mitigant", ""]} rows={(p.risks ?? []).length ? p.risks.map((r, i) => <tr key={i} className="border-t border-gray-100"><td className="px-2 py-1">{field(["risks", i, "risk"], "text", "w-72")}</td><td className="px-2 py-1">{field(["risks", i, "mitigant"], "text", "w-72")}</td><td>{editing && <button type="button" className="text-gray-400 hover:text-red-600" onClick={() => delRow("risks", i)} aria-label="Remove risk">✕</button>}</td></tr>) : [<tr key="n"><td colSpan={3} className="px-2 py-1 text-gray-500">None recorded</td></tr>]} />
+        <Table head={["Risk", "Mitigant", ""]} rows={(p.risks ?? []).length ? p.risks.map((r, i) => <tr key={i} className="border-t border-gray-100"><td className="px-2 py-1">{field(["risks", i, "risk"], "text", "w-72")}</td><td className="px-2 py-1">{field(["risks", i, "mitigant"], "text", "w-72")}</td><td>{editing && <button type="button" className="text-gray-500 hover:text-red-600" onClick={() => delRow("risks", i)} aria-label="Remove risk">✕</button>}</td></tr>) : [<tr key="n"><td colSpan={3} className="px-2 py-1 text-gray-500">None recorded</td></tr>]} />
       </Section>
 
       {editing && (

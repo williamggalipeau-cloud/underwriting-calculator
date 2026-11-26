@@ -128,13 +128,13 @@ function AbstractViewer({ lease, onOpen }) {
         <div className="mt-2 space-y-3">
           {groups.map((g) => (
             <div key={g.id}>
-              <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{g.label}</h4>
+              <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">{g.label}</h4>
               <div className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
                 {g.fields.map((f) => (
                   <div key={f.key} className="grid gap-x-3 px-2.5 py-1.5 sm:grid-cols-[11rem_1fr]">
                     <div className="text-gray-500">
                       {fieldLabel(f)}
-                      {f.clause && <span className="ml-1 text-[10px] text-gray-400">§ {f.clause}</span>}
+                      {f.clause && <span className="ml-1 text-[10px] text-gray-500">§ {f.clause}</span>}
                     </div>
                     <div>
                       <span className="text-gray-900">{f.value}</span>
@@ -155,7 +155,7 @@ function AbstractViewer({ lease, onOpen }) {
               </div>
             </div>
           ))}
-          {missing.length > 0 && <p className="text-[11px] text-gray-400">Not in this abstract ({missing.length} template fields): {missing.join(", ")}.</p>}
+          {missing.length > 0 && <p className="text-[11px] text-gray-500">Not in this abstract ({missing.length} template fields): {missing.join(", ")}.</p>}
         </div>
       )}
 
@@ -175,16 +175,16 @@ function AbstractViewer({ lease, onOpen }) {
                     <td className="px-2.5 py-1.5 text-right">{money(r.annual_rent ?? (r.monthly_rent != null ? r.monthly_rent * 12 : null))}</td>
                     <td className="px-2.5 py-1.5">
                       <span className={`rounded px-1 py-px text-[10px] ${FIELD_STATUS_STYLE[r.status] ?? ""}`} title={r.calculation || ""}>{STATUS_TEXT[r.status] ?? r.status}</span>
-                      {r.clause && <span className="ml-1 text-[10px] text-gray-400">§ {r.clause}</span>}
+                      {r.clause && <span className="ml-1 text-[10px] text-gray-500">§ {r.clause}</span>}
                       {r.governed_by && <span className="ml-1 text-[10px] text-violet-700">{documentTitle(abs, r.governed_by)}</span>}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <p className="px-2.5 py-1.5 text-[11px] text-gray-400">Annual = monthly × 12 where the lease gives no annual figure. Hover “Calculated” for the arithmetic.</p>
+            <p className="px-2.5 py-1.5 text-[11px] text-gray-500">Annual = monthly × 12 where the lease gives no annual figure. Hover “Calculated” for the arithmetic.</p>
           </div>
-        ) : <p className="mt-2 text-gray-400">No rent schedule in this abstract.</p>
+        ) : <p className="mt-2 text-gray-500">No rent schedule in this abstract.</p>
       )}
 
       {section === "dates" && (
@@ -196,7 +196,7 @@ function AbstractViewer({ lease, onOpen }) {
                 {dates.map((d, i) => {
                   const days = daysFrom(d.date);
                   return (
-                    <tr key={i} className={`border-t border-gray-100 align-top ${days < 0 ? "text-gray-400" : days <= 90 ? "bg-amber-50/70" : ""}`}>
+                    <tr key={i} className={`border-t border-gray-100 align-top ${days < 0 ? "text-gray-500" : days <= 90 ? "bg-amber-50/70" : ""}`}>
                       <td className="whitespace-nowrap px-2.5 py-1.5 tabular-nums">{fmtISO(d.date)}</td>
                       <td className="whitespace-nowrap px-2.5 py-1.5 text-[11px]">{days < 0 ? "past" : days === 0 ? "today" : `in ${days} days`}</td>
                       <td className="px-2.5 py-1.5 font-medium">{d.label}{d.status === "calculated" && <span className="ml-1 text-[10px] font-normal text-blue-700" title={d.calculation || ""}>calculated</span>}</td>
@@ -209,7 +209,7 @@ function AbstractViewer({ lease, onOpen }) {
               </tbody>
             </table>
           </div>
-        ) : <p className="mt-2 text-gray-400">No critical dates in this abstract.</p>
+        ) : <p className="mt-2 text-gray-500">No critical dates in this abstract.</p>
       )}
 
       {section === "risks" && (
@@ -223,7 +223,7 @@ function AbstractViewer({ lease, onOpen }) {
               </div>
             ))}
           </div>
-        ) : <p className="mt-2 text-gray-400">No risk flags in this abstract.</p>
+        ) : <p className="mt-2 text-gray-500">No risk flags in this abstract.</p>
       )}
     </div>
   );
@@ -333,15 +333,15 @@ function FilePicker({ files, onChange, disabled }) {
         <ol className="space-y-1">
           {files.map((f, i) => (
             <li key={`${f.file.name}-${i}`} className="flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2 py-1 text-xs">
-              <span className="w-5 text-right text-gray-400">{i + 1}.</span>
+              <span className="w-5 text-right text-gray-500">{i + 1}.</span>
               <span className="min-w-0 flex-1 truncate text-gray-900">{f.file.name}</span>
-              <span className="text-gray-400">{fmtBytes(f.file.size)}</span>
+              <span className="text-gray-500">{fmtBytes(f.file.size)}</span>
               <select value={f.kind} onChange={(e) => onChange(files.map((x, j) => (j === i ? { ...x, kind: e.target.value } : x)))} className="rounded border border-gray-200 bg-white px-1 py-0.5" aria-label={`Type of ${f.file.name}`}>
                 {FILE_KINDS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
               </select>
-              <button type="button" disabled={i === 0} onClick={() => move(i, -1)} className="text-gray-400 hover:text-gray-700 disabled:opacity-30" aria-label="Move up">↑</button>
-              <button type="button" disabled={i === files.length - 1} onClick={() => move(i, 1)} className="text-gray-400 hover:text-gray-700 disabled:opacity-30" aria-label="Move down">↓</button>
-              <button type="button" onClick={() => onChange(files.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-600" aria-label={`Remove ${f.file.name}`}>✕</button>
+              <button type="button" disabled={i === 0} onClick={() => move(i, -1)} className="text-gray-500 hover:text-gray-700 disabled:opacity-30" aria-label="Move up">↑</button>
+              <button type="button" disabled={i === files.length - 1} onClick={() => move(i, 1)} className="text-gray-500 hover:text-gray-700 disabled:opacity-30" aria-label="Move down">↓</button>
+              <button type="button" onClick={() => onChange(files.filter((_, j) => j !== i))} className="text-gray-500 hover:text-red-600" aria-label={`Remove ${f.file.name}`}>✕</button>
             </li>
           ))}
         </ol>
@@ -451,7 +451,7 @@ function ApplyPanel({ lease, units, inputs, email, onApply, onDone, onError }) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.key} className={`border-t border-gray-100 align-top ${r.differs ? "" : "text-gray-400"}`} data-testid={`apply-row-${r.key}`}>
+              <tr key={r.key} className={`border-t border-gray-100 align-top ${r.differs ? "" : "text-gray-500"}`} data-testid={`apply-row-${r.key}`}>
                 <td className="px-2 py-1.5 text-center">
                   {target === "new" ? <span className="text-emerald-600">✓</span> : (
                     <input type="checkbox" checked={ticked.has(r.key)} disabled={!r.differs} onChange={() => toggle(r.key)} aria-label={`Apply ${r.label}`} />
@@ -478,8 +478,8 @@ function ApplyPanel({ lease, units, inputs, email, onApply, onDone, onError }) {
           ["Mark to market", pct1(before.mtm), pct1(after.mtm)],
         ].map(([l, a, b]) => (
           <div key={l}>
-            <p className="text-[10px] uppercase tracking-wide text-gray-400">{l}</p>
-            <p className="tabular-nums">{a} <span className="text-gray-400">→</span> <span className={a !== b ? "font-semibold text-emerald-700" : ""}>{b}</span></p>
+            <p className="text-[10px] uppercase tracking-wide text-gray-500">{l}</p>
+            <p className="tabular-nums">{a} <span className="text-gray-500">→</span> <span className={a !== b ? "font-semibold text-emerald-700" : ""}>{b}</span></p>
           </div>
         ))}
       </div>
@@ -582,7 +582,7 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
         <div className="mt-2 rounded-lg bg-gray-50 p-2">
           <p className="mb-1 font-medium text-gray-600">Rent roll units this lease covers</p>
           {units.length === 0 ? (
-            <p className="text-gray-400">This asset has no rent roll yet. Apply to rent roll adds the unit from the abstract.</p>
+            <p className="text-gray-500">This asset has no rent roll yet. Apply to rent roll adds the unit from the abstract.</p>
           ) : (
             <div className="flex max-h-32 flex-wrap gap-x-3 gap-y-1 overflow-y-auto">
               {units.map((u) => (
@@ -603,20 +603,20 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
       <ol className="mt-2 divide-y divide-gray-100 rounded-lg border border-gray-100">
         {files.map((f, i) => (
           <li key={f.path} className="flex flex-wrap items-center gap-2 px-2 py-1.5">
-            <span className="w-5 text-right text-gray-400">{i + 1}.</span>
+            <span className="w-5 text-right text-gray-500">{i + 1}.</span>
             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-600">{FILE_KINDS.find(([k]) => k === f.kind)?.[1].split(" ")[0] ?? f.kind}</span>
             <button type="button" disabled={busy} onClick={() => open(f.path)} className="min-w-0 flex-1 truncate text-left font-medium text-blue-700 hover:underline">{f.name}</button>
-            <span className="text-gray-400">{f.size ? fmtBytes(f.size) : ""}</span>
+            <span className="text-gray-500">{f.size ? fmtBytes(f.size) : ""}</span>
             {canEdit && (
               <>
-                <button type="button" disabled={busy || i === 0} onClick={() => move(i, -1)} className="text-gray-400 hover:text-gray-700 disabled:opacity-30" aria-label="Move up">↑</button>
-                <button type="button" disabled={busy || i === files.length - 1} onClick={() => move(i, 1)} className="text-gray-400 hover:text-gray-700 disabled:opacity-30" aria-label="Move down">↓</button>
-                <button type="button" disabled={busy} onClick={() => window.confirm(`Delete ${f.name} from this lease? The file is removed from storage.`) && run(() => removeLeaseFile(lease, f.path))} className="text-gray-400 hover:text-red-600" aria-label={`Delete ${f.name}`}>✕</button>
+                <button type="button" disabled={busy || i === 0} onClick={() => move(i, -1)} className="text-gray-500 hover:text-gray-700 disabled:opacity-30" aria-label="Move up">↑</button>
+                <button type="button" disabled={busy || i === files.length - 1} onClick={() => move(i, 1)} className="text-gray-500 hover:text-gray-700 disabled:opacity-30" aria-label="Move down">↓</button>
+                <button type="button" disabled={busy} onClick={() => window.confirm(`Delete ${f.name} from this lease? The file is removed from storage.`) && run(() => removeLeaseFile(lease, f.path))} className="text-gray-500 hover:text-red-600" aria-label={`Delete ${f.name}`}>✕</button>
               </>
             )}
           </li>
         ))}
-        {files.length === 0 && <li className="px-2 py-1.5 text-gray-400">No documents.</li>}
+        {files.length === 0 && <li className="px-2 py-1.5 text-gray-500">No documents.</li>}
       </ol>
 
       {canEdit && adding.length > 0 && (
@@ -664,7 +664,7 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
           <button type="button" disabled={busy} onClick={() => window.confirm("Remove this lease's abstract? The documents stay.") && run(async () => { await saveAbstract(lease.id, null); setPanel(null); })} className={`${btn} border-gray-200 bg-white text-gray-500 hover:text-red-600`}>Remove abstract</button>
         )}
         {canEdit && (
-          <button type="button" disabled={busy} onClick={() => window.confirm(`Delete the lease for ${lease.tenant || "this tenant"} and all ${files.length} of its documents? This can't be undone.`) && run(() => deleteLease(lease))} className={`${btn} ml-auto border-transparent text-gray-400 hover:text-red-600`}>Delete lease</button>
+          <button type="button" disabled={busy} onClick={() => window.confirm(`Delete the lease for ${lease.tenant || "this tenant"} and all ${files.length} of its documents? This can't be undone.`) && run(() => deleteLease(lease))} className={`${btn} ml-auto border-transparent text-gray-500 hover:text-red-600`}>Delete lease</button>
         )}
       </div>
     </div>
@@ -805,7 +805,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
             {[["leases", `Leases (${shown.length})`], ["dates", "Critical dates"], ["risks", "Risk flags"]].map(([k, l]) => (
               <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`-mb-px border-b-2 px-3 py-1.5 font-medium ${view === k ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500 hover:text-gray-800"}`}>{l}</button>
             ))}
-            {reporting && <span className="ml-2 text-gray-400">Making the report…</span>}
+            {reporting && <span className="ml-2 text-gray-500">Making the report…</span>}
           </div>
           {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} docs={docsFor} milestones={milestonesFor} onReport={report} />}
           {view === "risks" && <RiskFlagsView leases={shown} assetName={dealName} title={scopeTitle} onReport={report} />}
@@ -832,7 +832,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
                       {units.map((u) => <option key={u.id} value={u.id}>{u.name}{u.tenantName ? ` · ${u.tenantName}` : " · vacant"}</option>)}
                     </select>
                   ) : (
-                    <span className="w-64 py-1.5 text-gray-400">No rent roll yet: the lease can create the unit later.</span>
+                    <span className="w-64 py-1.5 text-gray-500">No rent roll yet: the lease can create the unit later.</span>
                   )}
                 </label>
               </div>
@@ -845,7 +845,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
           {!canEdit && <p className="text-xs text-gray-500">You can open these documents. Owners and editors can add and change them.</p>}
 
           {view !== "leases" ? null : leases === null ? (
-            <p className="text-xs text-gray-400">Loading leases…</p>
+            <p className="text-xs text-gray-500">Loading leases…</p>
           ) : shown.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">
               {scope === "asset" ? `No leases for ${deal?.inputs?.propertyName || "this asset"} yet.` : "No leases in this fund yet."}

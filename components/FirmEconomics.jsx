@@ -4,6 +4,7 @@
 // the portfolios where it is both GP and sponsor, counted once (fees, both
 // sides of the promote, profit on its own capital). lib/firmEconomics.js holds
 // the rules. Shown only when the firm is both GP and sponsor somewhere.
+import InfoNote from "@/components/InfoNote";
 import { useMemo, useState } from "react";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import { DEFAULT_FUND_TERMS, downloadBlob } from "@/lib/fundTerms";
@@ -65,7 +66,7 @@ export default function FirmEconomics({ deals = [], funds = {}, curve, scopeName
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Firm Economics <span className="text-sm font-normal text-gray-500">· {title}</span></h2>
-          <p className="max-w-4xl text-xs text-gray-500">Everything the firm earns as the <b>sponsor and a GP</b> (the firm is always the sponsor), counted once: fees, both sides of the promote and the profit on its own capital. An outside GP partner&apos;s share is never counted: the firm&apos;s equity and co-invest profit follow its share of the GP capital commitment, its promote follows the agreements (the GP side vs. the sponsor, and its promote % with the partner). Projected over each portfolio&apos;s life, with to-date figures from actual dates.</p>
+          <InfoNote short="Everything the firm earns as the sponsor and a GP, counted once." testId="fe-info" className="max-w-4xl">Fees, both sides of the promote and the profit on its own capital. An outside GP partner&apos;s share is never counted: the firm&apos;s equity and co-invest profit follow its share of the GP capital commitment; its promote follows the agreements (the GP side vs. the sponsor, and its promote % with the partner). Projected over each portfolio&apos;s life, with to-date figures from actual dates. ROE, IRR and multiple are on capital only: fees need almost no capital, so with fees the IRR can&apos;t be measured and ROE loses its meaning. Fees are measured by Revenue Yield.</InfoNote>
         </div>
         <div className="flex gap-2"><button type="button" onClick={exportXlsx} className={btn}>Excel</button><button type="button" onClick={exportPdf} className={btn}>PDF</button></div>
       </div>
@@ -91,7 +92,7 @@ export default function FirmEconomics({ deals = [], funds = {}, curve, scopeName
 
       {view === "portfolio" && (<>
         <T testId="fe-by-portfolio" right={[3, 4, 5, 6, 7, 8, 9, 10]} head={["Portfolio", "Type", "Outside GP partner", "Firm equity", "Fees", "Promote", "Co-invest profit", "Total", "ROE*", "IRR*", "Multiple*"]}
-          rows={fe.rows.map((r) => [<span key="n" className="font-medium">{r.fund} <span className="font-normal text-gray-400">· {r.assetsCount} assets</span></span>, <FundTypeBadge key="b" type={r.type} />, r.outsideGp.length ? `${r.outsideGp.join(", ")} (firm ${pct(r.capShare, 0)} of GP capital)` : "None", fmtM(r.equity), fmtM(r.fees), fmtM(r.promote), fmtM(r.coinvest), fmtM(r.total), pct(r.roe, 0), pct(r.irr, 1), mult(r.multiple)])}
+          rows={fe.rows.map((r) => [<span key="n" className="font-medium">{r.fund} <span className="font-normal text-gray-500">· {r.assetsCount} assets</span></span>, <FundTypeBadge key="b" type={r.type} />, r.outsideGp.length ? `${r.outsideGp.join(", ")} (firm ${pct(r.capShare, 0)} of GP capital)` : "None", fmtM(r.equity), fmtM(r.fees), fmtM(r.promote), fmtM(r.coinvest), fmtM(r.total), pct(r.roe, 0), pct(r.irr, 1), mult(r.multiple)])}
           foot={[`Total (${fe.rows.length} portfolio${fe.rows.length === 1 ? "" : "s"})`, "", "", fmtM(t.equity), fmtM(t.fees), fmtM(t.promote), fmtM(t.coinvest), fmtM(t.total), pct(t.roe, 0), pct(t.irr, 1), mult(t.multiple)]} />
         <p className="text-[11px] text-gray-500">*capital only. Revenue Yield basis: {fe.rows.map((r) => `${r.fund} ${ryBasisLabel(r.revenueYield, r.type)}`).join("; ")}.</p>
       </>)}

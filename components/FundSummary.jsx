@@ -44,7 +44,7 @@ function LegalDocs({ workspaceId, fundName, canEdit, email }) {
   const ref = useRef(null);
   const load = () => listDealDocs(workspaceId).then((all) => setDocs(all.filter((d) => d.fund_name === fundName && !d.deal_id && d.doc_type === "other" && DOC_CATEGORIES.some((c) => (d.title ?? "").startsWith(`${c}: `))))).catch((e) => setMsg(e.message));
   useEffect(() => { if (workspaceId) load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [workspaceId, fundName]);
-  if (!workspaceId) return <p className="text-xs text-gray-400">Sign in to upload and open org charts and formation documents.</p>;
+  if (!workspaceId) return <p className="text-xs text-gray-500">Sign in to upload and open org charts and formation documents.</p>;
   return (
     <div className="space-y-2 text-xs" data-testid="legal-docs">
       {canEdit && (
@@ -55,13 +55,13 @@ function LegalDocs({ workspaceId, fundName, canEdit, email }) {
         </div>
       )}
       {msg && <p className="text-gray-600">{msg}</p>}
-      {docs == null ? <p className="text-gray-400">Loading…</p> : docs.length === 0 ? <p className="text-gray-400">No legal documents yet.</p> : (
+      {docs == null ? <p className="text-gray-500">Loading…</p> : docs.length === 0 ? <p className="text-gray-500">No legal documents yet.</p> : (
         <ul className="space-y-1">{docs.map((d) => (
           <li key={d.id} className="flex items-center justify-between rounded border border-gray-100 px-2 py-1" data-testid="legal-doc">
             <span>{d.title}</span>
             <span className="flex gap-2">
               <button type="button" onClick={async () => d.files?.[0] && window.open(await dealFileLink(d.files[0].path), "_blank", "noopener")} className="text-blue-700 hover:underline">Open</button>
-              {canEdit && <button type="button" onClick={async () => { if (!window.confirm(`Delete ${d.title}?`)) return; await deleteDealDoc(d); load(); }} className="text-gray-400 hover:text-red-600">Delete</button>}
+              {canEdit && <button type="button" onClick={async () => { if (!window.confirm(`Delete ${d.title}?`)) return; await deleteDealDoc(d); load(); }} className="text-gray-500 hover:text-red-600">Delete</button>}
             </span>
           </li>
         ))}</ul>
@@ -102,16 +102,16 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
           <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
             <dt className="text-gray-500">Launch</dt><dd>{canEdit ? <input aria-label="Launch date" type="date" value={terms.launchDate ?? ""} onChange={(e) => setT({ launchDate: e.target.value })} className="rounded border border-gray-300 px-1 py-0.5" /> : usDate(dates.launch)}</dd>
             <dt className="text-gray-500">Final close</dt><dd>{usDate(dates.finalClose)}</dd>
-            <dt className="text-gray-500">Investment period ends</dt><dd>{usDate(dates.investmentPeriodEnd)} <span className="text-gray-400">({dates.ipMonthsLeft} months left)</span></dd>
-            <dt className="text-gray-500">End of term</dt><dd>{usDate(dates.fundEnd)} <span className="text-gray-400">({dates.termMonthsLeft} months left)</span></dd>
+            <dt className="text-gray-500">Investment period ends</dt><dd>{usDate(dates.investmentPeriodEnd)} <span className="text-gray-500">({dates.ipMonthsLeft} months left)</span></dd>
+            <dt className="text-gray-500">End of term</dt><dd>{usDate(dates.fundEnd)} <span className="text-gray-500">({dates.termMonthsLeft} months left)</span></dd>
             <dt className="text-gray-500">Outside date (all extensions)</dt><dd>{usDate(dates.outsideDate)}</dd>
           </dl>
         </Box>
         <Box title="Capital" testId="fs-capital">
           <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs tabular-nums">
             <dt className="text-gray-500">Raised (commitments)</dt><dd>{fmtM(cap.commitments)}</dd>
-            <dt className="text-gray-500">Called</dt><dd>{fmtM(cap.called)} {cap.pctCalled != null && <span className="text-gray-500">({cap.pctCalled.toFixed(1)}% of commitments)</span>} <span className="text-[10px] text-gray-400">{cap.calledSource}</span></dd>
-            <dt className="text-gray-500">Deployed in assets</dt><dd>{fmtM(cap.deployed)} <span className="text-gray-400">({cap.assets} assets)</span></dd>
+            <dt className="text-gray-500">Called</dt><dd>{fmtM(cap.called)} {cap.pctCalled != null && <span className="text-gray-500">({cap.pctCalled.toFixed(1)}% of commitments)</span>} <span className="text-[10px] text-gray-500">{cap.calledSource}</span></dd>
+            <dt className="text-gray-500">Deployed in assets</dt><dd>{fmtM(cap.deployed)} <span className="text-gray-500">({cap.assets} assets)</span></dd>
             <dt className="text-gray-500">Available (dry powder)</dt><dd>{fmtM(cap.dryPowder)}</dd>
             <dt className="text-gray-500">After fund reserves</dt><dd>{fmtM(cap.dryPowderAfterReserves)}</dd>
             <dt className="text-gray-500">Sub line drawn / capacity</dt><dd>{cap.lineDrawn != null ? fmtM(cap.lineDrawn) : "—"} / {fmtM(cap.lineSize)}</dd>
@@ -134,7 +134,7 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
           <button type="button" onClick={() => { const add = suggestAssetEntities(entities, fundDeals, fundEnt?.id ?? null); if (add.length) setT({ entities: [...entities, ...add] }); }} className={`${btn} border-gray-300 bg-white text-gray-700`}>Add a company for each asset</button>
         </span>
       )}>
-        {entities.length === 0 ? <p className="text-xs text-gray-400">No entities yet. Add the fund, GP and manager, then a property company for each asset.</p> : (
+        {entities.length === 0 ? <p className="text-xs text-gray-500">No entities yet. Add the fund, GP and manager, then a property company for each asset.</p> : (
           <div className="space-y-3">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
@@ -150,12 +150,12 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
                       <td className="px-1 py-0.5"><input aria-label={`Agent ${e.name}`} disabled={!canEdit} defaultValue={e.agent} onBlur={(x) => x.target.value !== e.agent && setEnt(e.id, { agent: x.target.value })} className={cell} /></td>
                       <td className="px-1 py-0.5"><input aria-label={`Annual report ${e.name}`} type="date" disabled={!canEdit} value={e.annualReportDue ?? ""} onChange={(x) => setEnt(e.id, { annualReportDue: x.target.value })} className={cell} /></td>
                       <td className="min-w-[170px] px-1 py-0.5"><select aria-label={`Owned by ${e.name}`} disabled={!canEdit} value={e.parentId ?? ""} onChange={(x) => setEnt(e.id, { parentId: x.target.value || null })} className={cell}><option value="">{e.role === "asset" && fundEnt ? `(the fund)` : "—"}</option>{entities.filter((o) => o.id !== e.id).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></td>
-                      <td className="px-1 py-0.5">{canEdit && <button type="button" aria-label={`Remove ${e.name}`} onClick={() => window.confirm(`Remove ${e.name}?`) && setT({ entities: entities.filter((o) => o.id !== e.id).map((o) => (o.parentId === e.id ? { ...o, parentId: null } : o)) })} className="text-gray-400 hover:text-red-600">×</button>}</td>
+                      <td className="px-1 py-0.5">{canEdit && <button type="button" aria-label={`Remove ${e.name}`} onClick={() => window.confirm(`Remove ${e.name}?`) && setT({ entities: entities.filter((o) => o.id !== e.id).map((o) => (o.parentId === e.id ? { ...o, parentId: null } : o)) })} className="text-gray-500 hover:text-red-600">×</button>}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <p className="mt-1 text-[11px] text-gray-400">Only the last 4 digits of an EIN are kept. Annual-report due dates appear on Leases → Critical dates.</p>
+              <p className="mt-1 text-[11px] text-gray-500">Only the last 4 digits of an EIN are kept. Annual-report due dates appear on Leases → Critical dates.</p>
             </div>
             <div data-testid="org-chart"><div className="mb-1 text-xs font-medium text-gray-600">Ownership chart</div>{tree.map((e) => <OrgNode key={e.id} e={e} />)}</div>
           </div>

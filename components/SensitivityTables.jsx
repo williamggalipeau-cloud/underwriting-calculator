@@ -18,7 +18,7 @@ const METRIC_LABELS = {
 };
 
 function cellColor(val, metric, base) {
-  if (!isFinite(val)) return "bg-gray-100 text-gray-400";
+  if (!isFinite(val)) return "bg-gray-100 text-gray-500";
   const delta = val - base;
 
   if (metric === "irr") {
@@ -165,9 +165,9 @@ export default function SensitivityTables({ inputs, baseIRR, baseEM }) {
           <thead>
             <tr>
               <th className="bg-gray-50 border-b border-r border-gray-200 px-3 py-2 text-left text-gray-500 font-medium whitespace-nowrap">
-                <span className="text-gray-400">{VAR_LABELS[rowVar]}</span>
+                <span className="text-gray-500">{VAR_LABELS[rowVar]}</span>
                 <span className="mx-1 text-gray-300">↕</span>
-                <span className="text-gray-400">{VAR_LABELS[colVar]}</span>
+                <span className="text-gray-500">{VAR_LABELS[colVar]}</span>
                 <span className="text-gray-300"> →</span>
               </th>
               {colValues.map((cv) => (

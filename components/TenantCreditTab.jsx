@@ -4,6 +4,7 @@
 // workspace for every tenant, one asset or all (lib/creditReview.js). The risk
 // report's Tenant Credit section is its flagged rows. Credit is reviewed at
 // renewal.
+import InfoNote from "@/components/InfoNote";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import CreditForm from "@/components/CreditForm";
 import { listLeases } from "@/lib/leaseDocs";
@@ -56,7 +57,7 @@ export default function TenantCreditTab({ deal, deals = [], funds = {}, canEdit 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-bold">Tenant Credit</h2>
-          <p className="text-xs text-gray-500">The credit review of every tenant: screenings, credit reports, our own assessments and credit-change flags. Credit is reviewed at renewal (review due = the renewal notice deadline, else the lease end).</p>
+          <InfoNote short="The credit review of every tenant." testId="credit-info" className="">Screenings, credit reports, our own assessments and credit-change flags. Credit is reviewed at renewal (review due = the renewal notice deadline, else the lease end). Weak: an open credit-change flag, a score below its threshold (portfolio setting: Risk report → Risk thresholds), our own assessment &quot;Weak&quot;, a declined screening, or rent 60+ days late. Watch: issues noted or conditions, a falling score, rising leverage or overdue statements on the lease. Missing: no credit record.</InfoNote>
         </div>
         <div className="flex rounded-lg border border-gray-200 p-0.5 text-xs">
           {[["asset", deal?.inputs?.propertyName || "This asset"], ["fund", "All assets"]].map(([k, l]) => <button key={k} type="button" onClick={() => setScope(k)} className={`rounded px-2 py-1 ${scope === k ? "bg-blue-600 text-white" : "text-gray-700"}`}>{l}</button>)}
@@ -77,9 +78,9 @@ export default function TenantCreditTab({ deal, deals = [], funds = {}, canEdit 
               return (
                 <Fragment key={`${r.dealId}:${r.unitId}`}>
                   <tr className="border-t border-gray-100 align-top" data-testid="credit-row">
-                    <td className="px-2 py-1.5 font-medium">{r.tenant}<span className="block text-[10px] font-normal text-gray-400">unit {r.unit || "—"}</span></td>
+                    <td className="px-2 py-1.5 font-medium">{r.tenant}<span className="block text-[10px] font-normal text-gray-500">unit {r.unit || "—"}</span></td>
                     <td className="px-2 py-1.5">{r.asset}</td>
-                    <td className="px-2 py-1.5">{l ? <>{l.sourceLabel}<span className="block text-[10px] text-gray-400">{usDate(l.date)}</span></> : <span className="text-amber-700">None on file</span>}</td>
+                    <td className="px-2 py-1.5">{l ? <>{l.sourceLabel}<span className="block text-[10px] text-gray-500">{usDate(l.date)}</span></> : <span className="text-amber-700">None on file</span>}</td>
                     <td className="px-2 py-1.5">{l?.scoreType && l.score != null && l.score !== "" ? <span className={Number(l.score) < r.thresholds[l.scoreType] ? "font-semibold text-red-700" : ""}>{SCORE_TYPE_SHORT[l.scoreType]} {l.score} / {r.thresholds[l.scoreType]}</span> : l?.rating ? l.rating : "—"}</td>
                     <td className="px-2 py-1.5"><span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${STATUS_CLS[r.status]}`} data-testid="credit-status">{STATUS_LABEL[r.status]}</span></td>
                     <td className="px-2 py-1.5">{r.reasons.length ? <ul className="list-disc pl-4">{r.reasons.map((x, i) => <li key={i} className={x.level === "weak" ? "text-red-800" : "text-amber-800"}>{x.text}</li>)}</ul> : "—"}</td>
@@ -103,7 +104,7 @@ export default function TenantCreditTab({ deal, deals = [], funds = {}, canEdit 
                               .sort((a, b) => (a.d < b.d ? 1 : -1))
                               .map((x, i) => (
                                 <li key={i} className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 bg-white px-2 py-1">
-                                  <span><span className="text-gray-500">{usDate(x.d)}</span> · {x.t}{x.by ? <span className="text-gray-400"> · {x.by}</span> : null}</span>
+                                  <span><span className="text-gray-500">{usDate(x.d)}</span> · {x.t}{x.by ? <span className="text-gray-500"> · {x.by}</span> : null}</span>
                                   {x.doc && <button type="button" onClick={() => openDoc(x.doc)} className={`${btn} border-blue-200 text-blue-700`} data-testid="credit-report-link">View report</button>}
                                   {canEdit && x.flag?.status === "open" && <button type="button" onClick={() => { setMode({ clear: x.flag.id }); setClearNote(""); }} className={`${btn} border-gray-300 text-gray-700`}>Clear flag</button>}
                                 </li>
@@ -149,7 +150,7 @@ export default function TenantCreditTab({ deal, deals = [], funds = {}, canEdit 
           </table>
         </div>
       )}
-      <p className="text-[11px] text-gray-400">Weak: an open credit-change flag, a score below its threshold (portfolio setting: Risk report → Risk thresholds), our own assessment &quot;Weak&quot;, a declined screening, or rent 60+ days late. Watch: issues noted or conditions, a falling score, rising leverage or overdue statements on the lease. Missing: no credit record.</p>
+
     </section>
   );
 }

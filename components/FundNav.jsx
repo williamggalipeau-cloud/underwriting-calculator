@@ -12,7 +12,9 @@ import FundTypeBadge from "@/components/FundTypeBadge";
 const fmtM = (n) => {
   if (n == null || !isFinite(n)) return "—";
   const a = Math.abs(n);
-  const s = a >= 1e6 ? `$${(a / 1e6).toFixed(2)}M` : a >= 1e3 ? `$${(a / 1e3).toFixed(0)}k` : `$${Math.round(a).toLocaleString("en-US")}`;
+  // 1.1.11 (UI review): one unit on a portfolio page: $M (so reserves of $132k
+  // read $0.13M beside a $91.23M asset value, not a different unit).
+  const s = a >= 5e3 ? `$${(a / 1e6).toFixed(2)}M` : `$${Math.round(a).toLocaleString("en-US")}`;
   return n < 0 ? `(${s})` : s;
 };
 const fmtPct = (n, d = 1) => (n == null || !isFinite(n) ? "—" : `${n.toFixed(d)}%`);
@@ -27,9 +29,9 @@ const irrText = (irr, years) => (years < MIN_IRR_YEARS ? "n/m" : fmtPct(irr));
 function Stat({ label, value, sub, tone }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wide text-gray-400">{label}</div>
+      <div className="text-[10px] uppercase tracking-wide text-gray-500">{label}</div>
       <div className={`text-sm font-semibold tabular-nums ${tone === "bad" ? "text-red-600" : "text-gray-900"}`}>{value}</div>
-      {sub && <div className="text-[10px] text-gray-400">{sub}</div>}
+      {sub && <div className="text-[10px] text-gray-500">{sub}</div>}
     </div>
   );
 }
@@ -147,7 +149,7 @@ export default function FundNav({ deals, funds = {}, marks = {}, curve, onOpenVa
           </tbody>
         </table>
       </div>
-      <p className="text-[11px] text-gray-400 leading-relaxed">
+      <p className="text-[11px] text-gray-500 leading-relaxed">
         Interim returns use actual cash flows to date plus NAV as the ending value; IRRs under one year show n/m. Net LP assumes the fund sells
         everything at NAV on the quarter end, repays the sub line, and runs the proceeds through the fund waterfall. Asset marks come from the
         Valuation tab.

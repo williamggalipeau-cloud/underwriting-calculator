@@ -206,7 +206,7 @@ function Stat({ label, value, sub }) {
     <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
       <p className="text-xs text-gray-500">{label}</p>
       <p className="text-lg font-bold tabular-nums text-gray-900">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -275,7 +275,7 @@ export default function CashFlowAnalysis({ inputs, results }) {
                     <tr key={it.label} className="border-b border-gray-100">
                       <td className="px-4 py-1.5 text-gray-600">{it.label}</td>
                       <td className="px-4 py-1.5 text-right text-gray-900">${usd(it.value)}</td>
-                      <td className="px-4 py-1.5 text-right text-gray-400 w-16">{pct((it.value / total) * 100)}</td>
+                      <td className="px-4 py-1.5 text-right text-gray-500 w-16">{pct((it.value / total) * 100)}</td>
                     </tr>
                   ))}
                   <tr className="font-semibold">
@@ -303,9 +303,9 @@ export default function CashFlowAnalysis({ inputs, results }) {
           <table className="w-full text-xs tabular-nums">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">$</th>
+                <th className="px-3 py-2 text-left font-semibold text-gray-500">$</th>
                 {cols.map((c) => (
-                  <th key={c} className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{c}</th>
+                  <th key={c} className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">{c}</th>
                 ))}
               </tr>
             </thead>
@@ -346,7 +346,7 @@ export default function CashFlowAnalysis({ inputs, results }) {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-500 mt-2">
           Negative values in red and parentheses. Sale in Year {last + 1} at {pct(inputs.exitCapRatePct, 2)} exit cap on Year {last + 1} NOI.
         </p>
       </div>
@@ -359,7 +359,7 @@ export default function CashFlowAnalysis({ inputs, results }) {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 {["Year", "Interest rate", "DSCR", "Debt yield", "Cash-on-cash"].map((h) => (
-                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500">{h}</th>
                 ))}
               </tr>
             </thead>

@@ -69,7 +69,11 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await p.getByRole("button", { name: "Download backup" }).count()) === 0, "backup is off the main view");
   await p.getByRole("button", { name: "More", exact: true }).click();
   await p.waitForTimeout(200);
-  check((await p.getByRole("button", { name: "Download backup" }).count()) === 1 && (await p.getByRole("button", { name: "Restore from backup" }).count()) === 1, "⋯ More: Download backup, and Restore from backup for an owner");
+  check((await p.getByRole("button", { name: "Download backup" }).count()) === 1 && (await p.getByRole("button", { name: /Restore from backup/ }).count()) === 1, "⋯ More: Download backup, and Restore from backup for an owner");
+  const moreItems = await p.getByTestId("more-menu-panel").getByRole("button").allInnerTexts();
+  check(/Restore from backup/.test(moreItems.at(-1)) && !moreItems.some((x) => /Sample data/.test(x)), `1.1.11: Restore is last (with a warning); Sample data isn't in ⋯ (${moreItems.join(" | ")})`);
+  await p.getByRole("button", { name: "More", exact: true }).click();
+  await FX.openSetup(p);
 
   // Sample data menu (11/23): one owner-only menu with a warning, not three loose buttons
   check((await p.getByRole("button", { name: /^(Load test scenario|Load Model Fund I|Clear test data)$/ }).count()) === 0, "sample-data buttons not loose in the header");
@@ -80,7 +84,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(items.length === 14 && /Load Model Fund I/.test(items[0]) && /Add drawn photos/.test(items[1]) && /Add risk test data/.test(items[2]) && /Add sample documents/.test(items[3]) && /Add sample business plans/.test(items[4]) && /Add sample prospects/.test(items[5]) && /Add sample marks and market data/.test(items[6]) && /Add sample GP partners/.test(items[7]) && /Add sample tenant credit and aged rent/.test(items[8]) && /Add sample comps/.test(items[9]) && /Add sample pipeline deals/.test(items[10]) && /Add construction test data/.test(items[11]) && /Load test scenario/.test(items[12]) && /Clear test data/.test(items[13]), `sample menu items: ${items.map((t) => t.split("\n")[0]).join(", ")}`);
   check(/for everyone/.test(await sm.innerText()) && /fictional/.test(await sm.innerText()), "sample menu warns it changes everyone's data");
   await sm.getByRole("button", { name: /Sample data/ }).click();
-  await p.getByRole("button", { name: "More", exact: true }).click();
+  check((await p.getByRole("navigation", { name: "Functions" }).getByTestId("sample-data-menu").count()) === 1, "1.1.11: Sample data lives in Setup & Maintenance");
 
   // Firm-wide strip
   const figs = p.getByTestId("firm-figure");

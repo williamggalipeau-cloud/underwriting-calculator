@@ -69,7 +69,7 @@ function Stat({ label, value, tone = "default" }) {
 }
 
 function irrCellClass(v) {
-  if (!isFinite(v)) return "bg-gray-100 text-gray-400";
+  if (!isFinite(v)) return "bg-gray-100 text-gray-500";
   if (v < 0) return "bg-red-500 text-white";
   if (v < 10) return "bg-orange-200 text-orange-900";
   if (v < 15) return "bg-yellow-100 text-yellow-900";
@@ -111,7 +111,7 @@ function PensfordImport({ onImport, onClose }) {
           </li>
           <li>Select the downloaded file below, or paste the copied table.</li>
         </ol>
-        <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-700" aria-label="Close">
+        <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700" aria-label="Close">
           ✕
         </button>
       </div>
@@ -129,7 +129,7 @@ function PensfordImport({ onImport, onClose }) {
             }}
           />
         </label>
-        <span className="text-gray-400">or</span>
+        <span className="text-gray-500">or</span>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -149,7 +149,7 @@ function PensfordImport({ onImport, onClose }) {
       {status?.busy && <p className="text-gray-500">Reading…</p>}
       {status?.ok && <p className="text-emerald-700">{status.ok}</p>}
       {status?.error && <p className="text-red-600">{status.error}</p>}
-      <p className="text-gray-400">The file is read in your browser and isn&apos;t uploaded anywhere. Imported curves last until the page reloads.</p>
+      <p className="text-gray-500">The file is read in your browser and isn&apos;t uploaded anywhere. Imported curves last until the page reloads.</p>
     </div>
   );
 }
@@ -404,7 +404,7 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
           </div>
         </Group>
       </div>
-      <p className="text-xs text-gray-400 -mt-3">
+      <p className="text-xs text-gray-500 -mt-3">
         Amortization 0 = interest-only. Rate caps are set on the Debt tab and held every year of the hold, so SOFR above the strike is capped.
       </p>
 

@@ -79,7 +79,7 @@ function ConstraintStrip({ debt }) {
           <div key={label} className="flex items-center justify-between px-4 py-3">
             <div>
               <p className="text-sm font-medium text-gray-700">{label}</p>
-              {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+              {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
             </div>
             <span className="text-sm font-semibold text-gray-900 tabular-nums">{value}</span>
           </div>
@@ -93,7 +93,7 @@ function TIReserveSection({ debt, cashFlows }) {
   if (!debt.tiReserveEnabled) {
     return (
       <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
-        <p className="text-sm font-medium text-gray-400">TI reserve is disabled</p>
+        <p className="text-sm font-medium text-gray-500">TI reserve is disabled</p>
         <p className="text-xs text-gray-300 mt-1">Enable in Deal Inputs → Financing → TI Reserve to model lender-funded tenant improvement draws.</p>
       </div>
     );
@@ -132,7 +132,7 @@ function TIReserveSection({ debt, cashFlows }) {
           <div key={label} className={`rounded-xl border p-3 ${warn ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"}`}>
             <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${warn ? "text-red-500" : "text-gray-500"}`}>{label}</p>
             <p className={`text-lg font-bold tabular-nums ${warn ? "text-red-700" : "text-gray-900"}`}>{value}</p>
-            {sub && <p className={`text-xs mt-0.5 ${warn ? "text-red-500" : "text-gray-400"}`}>{sub}</p>}
+            {sub && <p className={`text-xs mt-0.5 ${warn ? "text-red-500" : "text-gray-500"}`}>{sub}</p>}
           </div>
         ))}
       </div>
@@ -145,7 +145,7 @@ function TIReserveSection({ debt, cashFlows }) {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 {["Year", "TI Needed", "DSCR", "Draw Approved", "Shortfall", "Reserve Remaining", "Status"].map((h) => (
-                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold text-gray-500 whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -164,7 +164,7 @@ function TIReserveSection({ debt, cashFlows }) {
                 let statusLabel, statusColor;
                 if (!hasActivity) {
                   statusLabel = "No TI";
-                  statusColor = "text-gray-400";
+                  statusColor = "text-gray-500";
                 } else if (hasShortfall) {
                   statusLabel = "Shortfall";
                   statusColor = "text-red-600 font-semibold";
@@ -192,7 +192,7 @@ function TIReserveSection({ debt, cashFlows }) {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-500 mt-2">
           DSCR test uses Year 1 NOI ÷ debt service each year. Draws approved only when DSCR ≥ {
             /* We don't have minDrawDSCR here directly, show generic note */
             "minimum threshold"

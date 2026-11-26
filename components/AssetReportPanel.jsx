@@ -21,7 +21,7 @@ const MS = { done: "text-emerald-700", late: "text-red-700", due: "text-amber-70
 function Stat({ label, value, sub }) {
   return (
     <div className="rounded-lg border border-gray-200 px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide text-gray-400">{label}</div>
+      <div className="text-[10px] uppercase tracking-wide text-gray-500">{label}</div>
       <div className="text-sm font-semibold tabular-nums text-gray-900">{value}</div>
       {sub && <div className="text-[10px] text-gray-500">{sub}</div>}
     </div>
@@ -123,7 +123,7 @@ export default function AssetReportPanel({ r, fundName, store, canEdit, email, o
 
       <div className="rounded-xl border border-gray-200 p-3 text-xs" data-testid="report-issued">
         <h3 className="mb-2 text-sm font-semibold text-gray-800">Issued · {r.asset.name} · {r.quarterLabel}</h3>
-        {issued.length === 0 ? <p className="text-gray-400">Nothing issued for this asset and quarter yet.</p> : (
+        {issued.length === 0 ? <p className="text-gray-500">Nothing issued for this asset and quarter yet.</p> : (
           <ul className="space-y-1.5">{issued.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-100 px-2 py-1.5" data-testid="issued-report">
               <span><span className="font-semibold">v{x.v} · {x.kind === "shareable" ? "Shareable (retired)" : "Internal"}</span> <span className="text-gray-500">· issued {usDate(String(x.at).slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · value {fmtM(x.report.value.end)}</span></span>

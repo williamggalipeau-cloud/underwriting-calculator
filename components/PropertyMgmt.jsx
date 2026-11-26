@@ -106,10 +106,10 @@ export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, o
         const rows = list.flatMap((d) => rowsOf(d.inputs, s.key).map((r) => ({ d, r })));
         return (
           <section key={s.key} className="space-y-1.5" data-testid={`pm-section-${s.key}`}>
-            <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">{s.label} <span className="font-normal text-gray-400">({rows.length})</span></h3>
+            <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">{s.label} <span className="font-normal text-gray-500">({rows.length})</span></h3>
               {ed && <button type="button" onClick={() => setRows(s.key, (rs) => [...rs, blankRow(tab, s.key)])} className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium">+ Add</button>}</div>
             {workspaceId && scope === "asset" && <SectionDocs docs={pmDocs(allDocs, [deal.id]).filter((x) => x.section === s.key)} canEdit={canEdit} upload={async (file) => { await uploadPmDoc(workspaceId, { dealId: deal.id, section: s.key, file }, email); await reload(); }} />}
-            {rows.length === 0 ? <p className="rounded-lg border border-dashed border-gray-300 p-3 text-center text-xs text-gray-400">None yet.</p> : (
+            {rows.length === 0 ? <p className="rounded-lg border border-dashed border-gray-300 p-3 text-center text-xs text-gray-500">None yet.</p> : (
               <div className="overflow-x-auto rounded-xl border border-gray-200"><table className="w-full text-xs tabular-nums">
                 <thead className="bg-gray-50 text-gray-500"><tr>{scope === "fund" && <th className="px-1.5 py-1.5 text-left font-medium">Asset</th>}{s.cols.map(([k, l]) => <th key={k} className="px-1.5 py-1.5 text-left font-medium whitespace-nowrap">{l}</th>)}{s.key === "items" && <th className="px-1.5 py-1.5 text-left font-medium">Capital plan</th>}{ed && <th />}</tr></thead>
                 <tbody>{rows.map(({ d, r }) => (
@@ -117,7 +117,7 @@ export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, o
                     {scope === "fund" && <td className="px-1.5 py-1">{d.inputs.propertyName}</td>}
                     {s.cols.map((c) => <td key={c[0]} className="px-1.5 py-1">{scope === "fund" ? (c[2] === "money" ? money(r[c[0]]) : c[2] === "date" ? usDate(r[c[0]]) : c[2] === "check" ? (r[c[0]] ? "Yes" : "") : String(r[c[0]] ?? "")) : <Cell col={c} value={r[c[0]]} disabled={!ed} onChange={(v) => setRows(s.key, (rs) => rs.map((x) => (x.id === r.id ? { ...x, [c[0]]: v } : x)))} />}</td>)}
                     {s.key === "items" && <td className="px-1.5 py-1 whitespace-nowrap">{r.planProjectId ? <span className="text-emerald-700">In the plan ✓</span> : ed ? <button type="button" onClick={() => { const next = addToCapitalPlan(deal.inputs, r.id, { by: email || "", addRevision }); if (!next) { setPlanMsg("Create the asset's business plan first (Asset Business Plan tab)."); return; } onUpdate(deal.id, () => next); setPlanMsg(`Added to ${deal.inputs.propertyName}'s capital plan as a new plan revision.`); }} className="rounded border border-blue-300 bg-white px-1.5 py-0.5 text-[11px] text-blue-700 hover:bg-blue-50">Add to capital plan</button> : ""}</td>}
-                    {ed && <td className="px-1.5 py-1"><button type="button" aria-label="Remove row" onClick={() => { if (window.confirm("Remove this row?")) setRows(s.key, (rs) => rs.filter((x) => x.id !== r.id)); }} className="text-gray-400 hover:text-red-700">✕</button></td>}
+                    {ed && <td className="px-1.5 py-1"><button type="button" aria-label="Remove row" onClick={() => { if (window.confirm("Remove this row?")) setRows(s.key, (rs) => rs.filter((x) => x.id !== r.id)); }} className="text-gray-500 hover:text-red-700">✕</button></td>}
                   </tr>
                 ))}</tbody>
               </table></div>

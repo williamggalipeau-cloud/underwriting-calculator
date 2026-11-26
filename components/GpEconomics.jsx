@@ -28,7 +28,7 @@ function Card({ label, value, sub, testId, tone = "" }) {
     <div className={`rounded-xl border px-4 py-3 ${c}`} data-testid={testId}>
       <p className="text-xs text-gray-500">{label}</p>
       <p className="text-lg font-bold tabular-nums text-gray-900">{value}</p>
-      {sub && <p className="text-[11px] text-gray-400">{sub}</p>}
+      {sub && <p className="text-[11px] text-gray-500">{sub}</p>}
     </div>
   );
 }
@@ -37,7 +37,7 @@ function T({ head, rows, right = [], testId, foot, dim = [] }) {
     <div className="overflow-x-auto rounded-xl border border-gray-200" data-testid={testId}>
       <table className="w-full text-xs tabular-nums">
         <thead className="bg-gray-50 text-gray-500"><tr>{head.map((h, i) => <th key={i} className={`px-2.5 py-2 font-medium ${right.includes(i) ? "text-right" : "text-left"}`}>{h}</th>)}</tr></thead>
-        <tbody>{rows.map((r, k) => <tr key={k} className={`border-t border-gray-100 ${dim[k] ? "text-gray-400" : ""}`}>{r.map((c, i) => <td key={i} className={`px-2.5 py-1.5 ${right.includes(i) ? "text-right" : ""}`}>{c}</td>)}</tr>)}</tbody>
+        <tbody>{rows.map((r, k) => <tr key={k} className={`border-t border-gray-100 ${dim[k] ? "text-gray-500" : ""}`}>{r.map((c, i) => <td key={i} className={`px-2.5 py-1.5 ${right.includes(i) ? "text-right" : ""}`}>{c}</td>)}</tr>)}</tbody>
         {foot && <tfoot className="border-t-2 border-gray-200 font-semibold"><tr>{foot.map((c, i) => <td key={i} className={`px-2.5 py-1.5 ${right.includes(i) ? "text-right" : ""}`}>{c}</td>)}</tr></tfoot>}
       </table>
     </div>
@@ -179,7 +179,7 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
               rows={firm.assets.map((a) => [a.name, a.fund, a.sold ? "Realized" : "Held", fmtM(a.promote), `${a.gpPct}%`, fmtM((a.promote ?? 0) * a.gpPct / 100), fmtM(a.coinvest)])} />
           ) : (
             <T testId="gp-assets" right={[3, 4, 5, 6]} head={["Asset", "Portfolio", "Status", "Property mgmt", "Construction mgmt", "Acq. / disp.", "Promote share"]}
-              rows={firm.assets.map((a) => { const to = feeToOf(a.fund); const v = (k, x) => (to[k] === "sponsor" ? fmtM(x) : <span key={k} className="text-gray-400">{payee[to[k]]}</span>); return [a.name, a.fund, a.sold ? "Realized" : "Held", v("pm", a.pm), v("cm", a.cm), fmtM((to.acq === "sponsor" ? a.acqFee : 0) + (to.disp === "sponsor" ? a.dispFee : 0)), fmtM((a.promote ?? 0) * (100 - a.gpPct) / 100)]; })} />
+              rows={firm.assets.map((a) => { const to = feeToOf(a.fund); const v = (k, x) => (to[k] === "sponsor" ? fmtM(x) : <span key={k} className="text-gray-500">{payee[to[k]]}</span>); return [a.name, a.fund, a.sold ? "Realized" : "Held", v("pm", a.pm), v("cm", a.cm), fmtM((to.acq === "sponsor" ? a.acqFee : 0) + (to.disp === "sponsor" ? a.dispFee : 0)), fmtM((a.promote ?? 0) * (100 - a.gpPct) / 100)]; })} />
           )}
           <p className="text-[11px] text-gray-500">The waterfall runs on the whole portfolio, so an asset&apos;s promote is the portfolio&apos;s promote allocated by its share of gross profit, then split between GP and sponsor (the portfolio&apos;s split or the asset&apos;s own).{isGp ? "" : " The asset management fee is charged at the portfolio level, so it isn't shown per asset."}</p>
         </>

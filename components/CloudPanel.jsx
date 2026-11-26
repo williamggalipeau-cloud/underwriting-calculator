@@ -169,7 +169,7 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
               The firm&apos;s data is saved here, in the database, and nowhere else: every change within about a second, with a verified change log. Everyone sees the same data.
             </p>
           </div>
-          <button type="button" onClick={onClose} className="text-sm text-gray-400 hover:text-gray-700" aria-label="Close">✕</button>
+          <button type="button" onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700" aria-label="Close">✕</button>
         </div>
 
         {msg && <p className={`mb-3 rounded-lg px-3 py-2 text-xs ${msg.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{msg.text}</p>}
@@ -220,14 +220,14 @@ export default function CloudPanel({ session, link, recovery, onRecoveryDone, on
                     <li key={m.email} className="flex items-center justify-between rounded bg-gray-50 px-2 py-1">
                       <span>{m.email} <span className="text-gray-500">· {m.role}</span></span>
                       {isOwner && m.email !== session.user.email?.toLowerCase() && (
-                        <button type="button" onClick={() => run(() => removeMember(link.id, m.email).then(refreshMembers), "Removed.")} className="text-gray-400 hover:text-red-600">Remove</button>
+                        <button type="button" onClick={() => run(() => removeMember(link.id, m.email).then(refreshMembers), "Removed.")} className="text-gray-500 hover:text-red-600">Remove</button>
                       )}
                     </li>
                   ))}
                   {members.invites.map((m) => (
                     <li key={m.email} className="flex items-center justify-between rounded bg-amber-50 px-2 py-1">
                       <span>{m.email} <span className="text-amber-700">· invited as {m.role} (hasn&apos;t signed in yet)</span></span>
-                      {isOwner && <button type="button" onClick={() => run(() => removeMember(link.id, m.email).then(refreshMembers), "Invite cancelled.")} className="text-gray-400 hover:text-red-600">Cancel</button>}
+                      {isOwner && <button type="button" onClick={() => run(() => removeMember(link.id, m.email).then(refreshMembers), "Invite cancelled.")} className="text-gray-500 hover:text-red-600">Cancel</button>}
                     </li>
                   ))}
                 </ul>

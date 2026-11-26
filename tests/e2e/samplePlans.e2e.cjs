@@ -50,7 +50,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   check((await p.getByTestId("watch-asset").count()) === 0 && /No assets under plan/.test(await p.getByTestId("assets-watch").innerText()), "before: the Asset Watch List is empty (no business plans)");
   const sm = p.getByTestId("sample-data-menu");
-  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  if (!(await sm.isVisible())) { await FX.openSetup(p); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(200);
   await sm.getByRole("menuitem", { name: /Add sample business plans/ }).click();
@@ -78,7 +78,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(nVac > 0 && (await vu.getByTestId("no-prospects").count()) === nVac && (await vu.getByTestId("cell-asset").count()) === nVac, `all assets: every vacant unit, with the Asset column, none with prospects yet (${nVac} shown; ${await vu.getByTestId("vacant-count").innerText()})`);
   check(/\$\d+\.\d\d[\s\S]*\$\d+\.\d\d/.test(await vu.getByTestId("vacant-unit").first().innerText()), "asking rent and the plan's target rent on a unit");
   // Add sample prospects: a pipeline on each asset
-  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  if (!(await sm.isVisible())) { await FX.openSetup(p); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(200);
   await sm.getByRole("menuitem", { name: /Add sample prospects/ }).click();
@@ -124,7 +124,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(800);
 
   // ── Add sample marks and market data (1.1.5) ──
-  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  if (!(await sm.isVisible())) { await FX.openSetup(p); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(200);
   await sm.getByRole("menuitem", { name: /Add sample marks and market data/ }).click();
@@ -138,7 +138,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(800);
 
   // ── Load Model Fund I (1.1.4): rebuilt with sample plans and prospects ──
-  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  if (!(await sm.isVisible())) { await FX.openSetup(p); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(200);
   await sm.getByRole("menuitem", { name: /Load Model Fund I/ }).click();
@@ -162,7 +162,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   await FX.saveLoadUpgrade(p);
   check((await p.getByTestId("watch-asset").count()) === 0, "existing plans without actuals: the Watch List is empty");
-  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  if (!(await sm.isVisible())) { await FX.openSetup(p); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(200);
   await sm.getByRole("menuitem", { name: /Add sample business plans/ }).click();

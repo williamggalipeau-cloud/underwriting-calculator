@@ -47,7 +47,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
 
   // ── Sample data menu ──
-  await p.getByRole("button", { name: "More", exact: true }).click();
+  await FX.openSetup(p);
   await p.getByTestId("sample-data-menu").getByRole("button", { name: /Sample data/ }).click();
   await p.getByRole("menuitem", { name: /Add construction test data/ }).click();
   await p.waitForTimeout(800);
