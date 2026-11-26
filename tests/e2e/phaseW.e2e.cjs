@@ -40,7 +40,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   check(areas.indexOf("Finance") === areas.indexOf("Portfolio Management") + 1, `a Finance area after Portfolio Management: ${areas.join(", ")}`);
   await FX.openArea(p, "GP Economics");
   const tabs = await p.getByRole("group", { name: "Finance" }).getByRole("button").allInnerTexts();
-  check(tabs.length === 3 && /^GP Economics/.test(tabs[0]) && /^Sponsor Economics/.test(tabs[1]) && /^Firm Economics/.test(tabs[2]), "Finance: GP Economics, Sponsor Economics and (1.1.9, the firm is both) Firm Economics");
+  check(tabs.length === 4 && /^GP Economics/.test(tabs[0]) && /^Sponsor Economics/.test(tabs[1]) && /^Firm Economics/.test(tabs[2]) && /^GP Partners/.test(tabs[3]), "Finance: GP Economics, Sponsor Economics, Firm Economics (1.1.9) and GP Partners (1.1.10)");
   await FX.openArea(p, "Portfolio Debt");
   check(!(await p.getByRole("group", { name: "Portfolio Management" }).innerText()).includes("GP Economics"), "and not under Portfolio Management");
   const money = async (id) => Number((await p.getByTestId(id).locator("p").nth(1).innerText()).replace(/[$M,]/g, ""));
@@ -113,7 +113,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   const [sx] = await Promise.all([p.waitForEvent("download"), sp.getByRole("button", { name: "Excel" }).click()]);
   check(/^sponsor-economics-.*\.xlsx$/.test(sx.suggestedFilename()), "Sponsor Excel");
 
-  // ── Parties: an outside operator; the firm becomes the GP only ──
+  // ── Parties (1.1.10): the sponsor is always this firm; the GP earns no fees ──
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(800);
   await FX.openSetup(p);
@@ -121,14 +121,12 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await p.waitForTimeout(800);
   const parties = p.getByTestId("parties");
   if (await parties.count()) {
-    await parties.getByLabel("Sponsor / operator: who").selectOption("external");
-    await parties.getByLabel("Sponsor / operator: name").fill("Fictional Operating Partners LLC");
+    check((await parties.getByLabel("Sponsor / operator: who").count()) === 0 && (await parties.getByLabel("Sponsor co-invest").count()) === 0 && /always this firm/.test(await parties.getByTestId("party-table").innerText()), "the sponsor is always this firm: no outside-operator choice, no separate sponsor co-invest");
+    check(/Sponsor \(this firm\)/.test(await parties.getByLabel("Asset management: paid to").innerText()) && (await parties.getByLabel("Property management: paid to").locator("option").allInnerTexts()).join("|") === "Sponsor (this firm)|Third party (outsourced)", "fees: the sponsor (this firm) or, for PM / CM, a third party; never the GP");
     await parties.getByLabel("Property management: paid to").selectOption("third");
-    check(/This firm's role in this fund: GP\b/.test(await p.getByTestId("firm-role").innerText()), "setup: an outside operator makes this firm the GP only");
-    check((await parties.getByLabel("Asset management: paid to").locator("option").allInnerTexts()).join("|") === "Sponsor (default)|GP", "asset management: sponsor (default) or GP; no third party");
-    // A second GP party, entered by hand (user, 11/24)
+    // A second GP party (no partner in GP Partners yet: shares entered here)
     await parties.getByTestId("add-gp-party").click();
-    await parties.getByLabel("GP 2: name").fill("Example Capital GP");
+    check((await parties.getByLabel("GP 2: partner").locator("option").allInnerTexts()).join("|") === "Choose a GP partner…" && /added in Finance → GP Partners/.test(await parties.innerText()), "an outside GP is picked from GP Partners (none yet)");
     await parties.getByLabel("GP 1: share of GP capital").fill("70");
     await parties.getByLabel("GP 2: share of GP capital").fill("30");
     await parties.getByLabel("GP 1: share of promote").fill("30");
@@ -138,19 +136,12 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
     await p.waitForTimeout(1000);
     await FX.openTab(p, "Sponsor Economics");
     await p.waitForTimeout(2000);
-    check(/\(0 of 1\)/.test(await p.getByTestId("gp-totals-label").innerText()) && (await money("gp-fees")) === 0, "Sponsor Economics: nothing counted once the operator is outside");
-    check(!(await p.getByRole("group", { name: "Finance" }).innerText()).includes("Firm Economics"), "Firm Economics hidden once the firm isn't the sponsor anywhere");
+    check(/\(1\)/.test(await p.getByTestId("gp-totals-label").innerText()) && (await money("gp-fees")) > 0 && (await money("sp-outsourced")) > 0 && (await p.getByTestId("include-external").count()) === 0, "Sponsor Economics: still the firm's; outsourced PM shown apart; no outside-sponsor toggle");
+    check((await p.getByRole("group", { name: "Finance" }).innerText()).includes("Firm Economics"), "Firm Economics stays (the firm is always the sponsor)");
     await FX.openTab(p, "GP Economics");
     await p.waitForTimeout(2000);
     const bp = await p.getByTestId("gp-by-party").locator("tbody tr").allInnerTexts();
-    check(bp.length === 2 && /This firm/.test(bp[0]) && /Example Capital GP/.test(bp[1]), `GP Economics split by party: ${bp.map((x) => x.split("\t")[0]).join(", ")}`);
-    await FX.openTab(p, "Sponsor Economics");
-    await p.waitForTimeout(1500);
-    await p.getByTestId("include-external").check();
-    await p.waitForTimeout(300);
-    await p.getByRole("tab", { name: "By portfolio" }).click(); await p.waitForTimeout(300);
-    const ext = await p.getByTestId("gp-funds").locator("tbody tr").first().innerText();
-    check(/Fictional Operating Partners/.test(ext) && (await p.getByTestId("gp-funds").locator("tbody tr").first().getAttribute("class")).includes("text-gray-400"), "outside operator shown greyed when asked");
+    check(bp.length === 2 && /This firm/.test(bp[0]) && /External GP/.test(bp[1]) && !/Fees paid to the GP/.test(await p.getByTestId("gp-by-party").locator("thead").innerText()), `GP Economics split by party, no GP fee column: ${bp.map((x) => x.split("\t")[0]).join(", ")}`);
   } else check(false, "the fund editor's Parties and economics section");
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();

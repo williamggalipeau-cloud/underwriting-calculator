@@ -128,7 +128,7 @@ function LpaPanel({ workspaceId, email, fundName, terms, onUse, onUseLimit }) {
   );
 }
 
-export default function FundTermsEditor({ mode = "new", initial, existingNames = [], currentDealName, onSave, onClose, workspaceId, email, portfolioAssets = [] }) {
+export default function FundTermsEditor({ mode = "new", initial, existingNames = [], currentDealName, onSave, onClose, workspaceId, email, portfolioAssets = [], gpPartners = null }) {
   const [t, setT] = useState(() => normalizeTerms({ ...DEFAULT_FUND_TERMS, ...(initial ?? {}) }));
   const [addCurrent, setAddCurrent] = useState(mode === "new" && !!currentDealName);
   const [upload, setUpload] = useState(null); // { ok } | { error } | { warnings }
@@ -327,19 +327,20 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
             const setGps = (fn) => setT((p) => ({ ...p, gpParties: fn(gpPartiesOf(p)) }));
             const setGp = (i, k, v) => setGps((gs) => gs.map((g, j) => (j === i ? { ...g, [k]: v } : g)));
             const num = (v) => Math.min(100, Math.max(0, Number(v) || 0));
+            const partnerList = gpPartners?.partners ?? [];
             const setOverride = (id, v) => setT((p) => { const o = { ...(p.promoteGpPctByAsset ?? {}) }; if (v === null) delete o[id]; else o[id] = v; return { ...p, promoteGpPctByAsset: o }; });
             return (
               <section className="space-y-3" data-testid="parties">
                 <h3 className="text-sm font-semibold text-gray-900">Parties and economics</h3>
-                <p className="text-[11px] text-gray-500">Who the sponsor (operator: manages the assets, earns fees) and the GP parties (capital partners) are, who is paid each fee and how the promote is split. The sponsor and who is paid each fee can be read in from the {doc}; the GP parties, their capital shares and the promote split are entered here.</p>
+                <p className="text-[11px] text-gray-500">This firm is the sponsor (it manages the assets and earns the fees). The GP parties are the capital partners: this firm and any outside GP partners, each with its share of the GP capital commitment and of the promote, from their agreements (Finance → GP Partners). The GP earns no fees, only its share of the promote.</p>
                 <table className="w-full text-sm" data-testid="party-table">
                   <thead><tr className="text-left text-[10px] uppercase tracking-wide text-gray-500"><th className="py-1">Role</th><th>Who</th><th>Name</th><th className="text-right">Share of GP capital</th><th className="text-right">Share of promote</th><th /></tr></thead>
                   <tbody>
                     <tr className="border-t border-gray-100">
                       <td className="py-1.5 pr-2 font-medium">Sponsor / operator</td>
-                      <td className="pr-2"><select aria-label="Sponsor / operator: who" value={P.sponsor.who} onChange={(e) => set("sponsorWho")(e.target.value)} className={sel}><option value="firm">This firm</option><option value="external">External operator</option></select></td>
-                      <td className="pr-2">{P.sponsor.who === "external" ? <input aria-label="Sponsor / operator: name" value={t.sponsorName ?? ""} onChange={(e) => set("sponsorName")(e.target.value)} placeholder={`From the ${doc}`} className={`${sel} w-52`} /> : <span className="text-xs text-emerald-700">This firm</span>}</td>
-                      <td className="text-right text-xs text-gray-500"><span className="inline-flex items-center gap-1 whitespace-nowrap">co-invest <input aria-label="Sponsor co-invest" type="number" min={0} max={100} step={0.5} value={t.sponsorCommitPct ?? 0} onChange={(e) => set("sponsorCommitPct")(e.target.value === "" ? 0 : Number(e.target.value))} className={`${sel} w-16 text-right`} />% of equity</span></td>
+                      <td className="pr-2 text-xs text-emerald-700">This firm</td>
+                      <td className="pr-2 text-xs text-gray-500">always this firm (1.1.10)</td>
+                      <td className="text-right text-xs text-gray-500">its capital: this firm&apos;s GP share below</td>
                       <td className="text-right text-sm font-medium" data-testid="sponsor-promote">{P.sponsorPromotePct}%</td>
                       <td />
                     </tr>
@@ -347,9 +348,20 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                       <tr key={g.id} className="border-t border-gray-100" data-testid="gp-party">
                         <td className="py-1.5 pr-2 font-medium">GP{gps.length > 1 ? ` ${i + 1}` : ""} (capital partner)</td>
                         <td className="pr-2"><select aria-label={`GP ${i + 1}: who`} value={g.who} onChange={(e) => setGp(i, "who", e.target.value)} className={sel}><option value="firm">This firm</option><option value="external">External GP</option></select></td>
-                        <td className="pr-2">{g.who === "external" ? <input aria-label={`GP ${i + 1}: name`} value={g.name} onChange={(e) => setGp(i, "name", e.target.value)} placeholder="GP provider" className={`${sel} w-52`} /> : <span className="text-xs text-emerald-700">This firm</span>}</td>
-                        <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of GP capital`} type="number" min={0} max={100} step={5} value={g.capitalPct} onChange={(e) => setGp(i, "capitalPct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
-                        <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of promote`} type="number" min={0} max={100} step={5} value={g.promotePct} onChange={(e) => setGp(i, "promotePct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
+                        <td className="pr-2">{g.who === "external" ? (
+                          // 1.1.10: an outside GP partner is picked from Finance → GP Partners (not typed in).
+                          <select aria-label={`GP ${i + 1}: partner`} value={g.partnerId ?? (g.name ? "legacy" : "")} disabled={!!g.terms?.length} onChange={(e) => setGps((gs) => gs.map((x, j) => (j === i ? { ...x, partnerId: e.target.value || undefined, name: partnerList.find((pp) => pp.id === e.target.value)?.name ?? "" } : x)))} className={`${sel} w-56`}>
+                            <option value="">Choose a GP partner…</option>
+                            {partnerList.map((pp) => <option key={pp.id} value={pp.id}>{pp.name}</option>)}
+                            {!g.partnerId && g.name && <option value="legacy">{g.name} (typed in; not in GP Partners)</option>}
+                          </select>
+                        ) : <span className="text-xs text-emerald-700">This firm</span>}</td>
+                        {g.terms?.length ? (
+                          <td colSpan={2} className="text-right text-[11px] text-gray-500" data-testid="gp-party-from-agreement">{g.capitalPct}% · {g.promotePct}% today, from its agreement{g.terms.length > 1 ? "s" : ""} (Finance → GP Partners)</td>
+                        ) : (<>
+                          <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of GP capital`} type="number" min={0} max={100} step={5} value={g.capitalPct} onChange={(e) => setGp(i, "capitalPct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
+                          <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of promote`} type="number" min={0} max={100} step={5} value={g.promotePct} onChange={(e) => setGp(i, "promotePct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
+                        </>)}
                         <td className="text-right">{gps.length > 1 && <button type="button" onClick={() => setGps((gs) => gs.filter((_, j) => j !== i))} className="text-xs text-gray-400 hover:text-red-600">Remove</button>}</td>
                       </tr>
                     ))}
@@ -357,12 +369,13 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 </table>
                 <div className="flex flex-wrap items-center gap-3 text-[11px]">
                   <button type="button" onClick={() => setGps((gs) => [...gs, { id: `gp${Date.now().toString(36)}`, who: "external", name: "", capitalPct: 0, promotePct: 0 }])} className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium" data-testid="add-gp-party">+ Add a GP party</button>
+                  {!partnerList.length && <span className="text-gray-500">Outside GP partners are added in Finance → GP Partners (with their agreements).</span>}
                   <span className="text-gray-500">The GP commitment is {t.gpCommitPct ?? 0}% of equity; the GP parties&apos; capital shares split it{P.capitalPctTotal !== 100 ? "" : "."}</span>
                   {P.capitalPctTotal !== 100 && <span className="font-medium text-amber-700" data-testid="gp-capital-warning">Shares of GP capital add to {P.capitalPctTotal}%, not 100%.</span>}
                   {gps.reduce((a, g) => a + g.promotePct, 0) > 100 && <span className="font-medium text-amber-700">GP promote shares add to more than 100%.</span>}
                 </div>
-                <p className="text-[11px] text-gray-500">The promote split and each GP&apos;s capital share are entered here (they&apos;re often in a separate agreement between the GP provider and the sponsor, not the {doc}). The sponsor has whatever promote the GP parties don&apos;t.</p>
-                <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-900" data-testid="firm-role">This firm&apos;s role in this {unitLc}: <b>{firmRoleLabel(P.firmRole)}</b>. {P.firmRole === "both" ? "Its GP return and its fees appear on GP Economics and Sponsor Economics, and add up to its total." : P.firmRole === "gp" ? "It appears on GP Economics; the operator's fees are a counterparty's (Sponsor Economics, outside sponsors)." : P.firmRole === "sponsor" ? "It appears on Sponsor Economics; the GP's return is a counterparty's." : "Neither role is this firm's: nothing counts in its totals."}</p>
+                <p className="text-[11px] text-gray-500">A partner&apos;s capital and promote shares come from its agreement with the firm, saved in Finance → GP Partners (often a separate agreement, not the {doc}); without one they can be entered here. The sponsor (this firm) has whatever promote the GP parties don&apos;t.</p>
+                <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-900" data-testid="firm-role">This firm&apos;s role in this {unitLc}: <b>{firmRoleLabel(P.firmRole)}</b>. {P.firmRole === "both" ? "Its GP return and its fees appear on GP Economics and Sponsor Economics; Firm Economics adds them up." : "It is the sponsor, with no GP capital of its own here: its fees and the sponsor's promote appear on Sponsor Economics and Firm Economics."}</p>
                 <table className="w-full text-sm" data-testid="fee-payees">
                   <thead><tr className="text-left text-[10px] uppercase tracking-wide text-gray-500"><th className="py-1">Fee</th><th>Terms</th><th>Paid to</th><th /></tr></thead>
                   <tbody>
@@ -370,7 +383,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                       <tr key={k} className="border-t border-gray-100">
                         <td className="py-1.5 pr-2">{label}</td>
                         <td className="pr-2 text-xs text-gray-500">{termsOf(k)}</td>
-                        <td className="pr-2"><select aria-label={`${label}: paid to`} value={P.feeTo[k]} onChange={(e) => set(key)(e.target.value)} className={sel}>{FEE_PAYEES.filter(([v]) => v !== "third" || k === "pm" || k === "cm").map(([v, l]) => <option key={v} value={v}>{l}{v === "sponsor" && k === "mgmt" ? " (default)" : ""}</option>)}</select></td>
+                        <td className="pr-2">{k === "pm" || k === "cm" ? <select aria-label={`${label}: paid to`} value={P.feeTo[k]} onChange={(e) => set(key)(e.target.value)} className={sel}>{FEE_PAYEES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select> : <span className="text-xs text-gray-700" aria-label={`${label}: paid to`}>Sponsor (this firm)</span>}</td>
                         <td>{P.feeTo[k] === "third" && (k === "pm" || k === "cm") && <input aria-label={`${label}: third party`} value={t[k === "pm" ? "pmThirdParty" : "cmThirdParty"] ?? ""} onChange={(e) => set(k === "pm" ? "pmThirdParty" : "cmThirdParty")(e.target.value)} placeholder="Provider (optional)" className={`${sel} w-44`} />}</td>
                       </tr>
                     ))}

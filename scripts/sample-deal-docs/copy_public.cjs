@@ -13,7 +13,7 @@ const assetOf = (name) => { const k = Object.keys(PREFIX).find((p) => name.start
 // Asset documents that belong to a tenant's lease (insurance certificate, estoppel).
 const LEASE_TENANT = { "airport-flex-insurance-desert-aero": "Desert Aero Parts LLC", "airport-flex-estoppel-desert-aero": "Desert Aero Parts LLC" };
 fs.rmSync(OUT, { recursive: true, force: true });
-const manifest = { deals: [], dispositions: [], leases: [], credit: [] };
+const manifest = { deals: [], dispositions: [], leases: [], credit: [], gpAgreements: [] };
 const copy = (from, to) => { fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(from, to); };
 
 for (const [set, key] of [["deals", "deals"], ["dispositions", "dispositions"]]) {
@@ -48,6 +48,15 @@ for (const [kind, list] of [["tenant", reports.tenants], ["prospect", reports.pr
     manifest.credit.push({ kind, asset: r.asset ?? null, tenant: r.tenant, type: TYPE[r.source], file: `credit/${r.file}`, title: r.file });
   }
 }
+// 1.1.10: the sample GP partner agreements and the abstracts Claude would read
+// from them (Sample data → Add sample GP partners).
+const gpDir = path.join(R, "docs", "sample-deal-docs", "gp-agreements");
+for (const a of JSON.parse(fs.readFileSync(path.join(gpDir, "agreements.json"), "utf8")).agreements) {
+  const base = a.file.replace(/\.pdf$/, "");
+  copy(path.join(gpDir, a.file), path.join(OUT, "gp-agreements", a.file));
+  copy(path.join(gpDir, "abstracts", `${base}.json`), path.join(OUT, "gp-agreements", `${base}.json`));
+  manifest.gpAgreements.push({ partner: a.partner_name, portfolio: a.portfolio, deal: a.deal, file: `gp-agreements/${a.file}`, abstract: `gp-agreements/${base}.json` });
+}
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1));
 fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases, and the sample credit reports) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
-console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}, credit ${manifest.credit.length}`);
+console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}, credit ${manifest.credit.length}, GP agreements ${manifest.gpAgreements.length}`);

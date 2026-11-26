@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.9** (2026-11-26). The version shows next to the Baywise
+Version: **1.1.10** (2026-11-26). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -303,7 +303,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
 | **Portfolio Management** | Portfolio Summary (with Plan vs. actual) · Portfolio Return · Portfolio Debt · Distribution Analysis · Stress Testing · Benchmarking | |
-| **Finance** | GP Economics, Sponsor Economics (11/24; §7.55) · Firm Economics (1.1.9; §7.63; shown only when the firm is both a GP and the sponsor in a portfolio) | |
+| **Finance** | GP Economics, Sponsor Economics (11/24; §7.55) · Firm Economics (1.1.9; §7.63) · GP Partners (1.1.10; §7.64) | |
 | **Research** | Market Data | |
 | **Library** | Documents · Reports | |
 
@@ -3363,6 +3363,8 @@ rent comps** (Asset Management → Active Leasing):
 
 ### 7.55 GP Economics and Sponsor Economics; portfolio parties (`lib/gpEconomics.js`, 11/24)
 
+> **Since 1.1.10 (user, 11/26):** the firm and the sponsor are the same entity. The sponsor is always this firm: the "external operator" choice is gone, and older terms that named one read as this firm. There is no separate sponsor co-invest: the sponsor's capital is its share of the GP capital commitment, and an older sponsor co-invest % is ignored. The GP earns no fees, only its share of the promote, so each fee goes to the sponsor or, for property or construction management, a third party; an older fee "paid to the GP" reads as the sponsor's. An outside GP party is picked from Finance → GP Partners, and its shares come from its agreements (§7.64). Sponsor Economics' "outside sponsor" toggle and GP Economics' "Fees paid to the GP" columns are gone.
+
 In CRE the **GP** (capital partner) and the **sponsor / operator** are
 sometimes different companies. The GP makes money on its invested capital and
 its share of the promote; the sponsor manages the assets and earns fees (and
@@ -3696,19 +3698,19 @@ match:
 
 ### 7.63 Firm Economics (`lib/firmEconomics.js`, version 1.1.9)
 
-Finance → **Firm Economics**: everything the firm earns in the portfolios
-where it is **both a GP and the sponsor**, counted once. The tab shows only
-when that is true of at least one portfolio with assets (by default the
-firm is both everywhere; set on each portfolio's terms, Edit fund / JV / SMA
-→ Parties and economics). Built on each portfolio's GP / sponsor split
+Finance → **Firm Economics**: everything the firm earns as the **sponsor
+and a GP**, counted once. Since 1.1.10 the firm is always the sponsor, so it
+covers every portfolio with assets (with no GP capital of its own in a
+portfolio, its equity there is 0 and it keeps its fees and the sponsor's
+promote). Built on each portfolio's GP / sponsor split
 (§7.55), so where the firm is the only GP and the sponsor it equals GP
 Economics + Sponsor Economics.
 
 Decided with the user (11/26):
 - **Firm equity** = all of the GP capital when there is no outside GP
   partner; with one, only the firm's share of the GP capital (its capital %
-  on the Parties). Plus the sponsor's own co-invest when one is entered
-  (usually 0%).
+  on the Parties). The sponsor's co-invest **is** that share (1.1.10: no
+  separate amount).
 - **Promote, both sides**, by the agreements: the GP side's share of the
   promote vs. the sponsor (and any per-asset override), and within the GP
   side the firm's **promote %** with the outside GP partner, not its
@@ -3736,6 +3738,76 @@ Views: **By portfolio** (outside GP partner and the firm's capital share),
 year of each sale; cumulative), **Fees by type** (paid to, life, to date),
 **Promote split** (GP side %, the firm's share of it, each side to the
 firm, realized) and **By asset**. **Excel** and **PDF**, marked internal.
+
+### 7.64 GP Partners (`lib/gpPartners.js`, version 1.1.10)
+
+Finance → **GP Partners** (user, 11/26): one list of the outside GP capital
+partners, their agreements and the portfolios and deals they're in. Not a
+CRM: just each partner's legal name. This firm is the sponsor.
+
+**Agreements.** Each agreement records:
+- the partner;
+- the portfolio, and a deal if it covers one deal only;
+- the partner's **share of the GP capital commitment**;
+- its **share of the promote paid to the GP** (not of the total promote);
+- its **effective date**.
+
+Upload the PDF and Claude reads it, saving an abstract on the document
+(`doc_type: "gp_agreement"`, each term with its quote) like other deal
+documents. The tab then lists it under **Agreements read by Claude, to
+check**. Alternatively, enter the terms by hand with **+ Agreement**. Either
+way, someone checks the terms and clicks **Save terms**; nothing applies
+until then.
+
+**What saving does.** It rebuilds the portfolio's Parties and economics from
+every checked agreement there:
+- each partner becomes a GP party with its dated terms;
+- this firm's GP party gets whatever capital and GP-side promote the
+  partners don't;
+- the GP side's share of the promote (vs. the sponsor) doesn't change.
+
+Removing an agreement rebuilds the Parties without it.
+
+**How the terms apply** (decided 11/26), asset by asset in
+`lib/gpEconomics.js`:
+- **A deal-level agreement** gives the partner its shares on that deal
+  only. The rest of the portfolio is the firm's.
+- **An amendment** is a new agreement with a later effective date. It
+  applies from that date; earlier periods keep the old terms.
+- **Which date counts:** capital and co-invest profit use the terms in force
+  at each asset's acquisition; the promote uses the terms at each sale.
+  Before a partner's first agreement takes effect, it has no share.
+
+**Committed capital by partner.** The table has one row per partner, plus
+this firm's row, so it adds up to all GP capital:
+- **Committed:** the portfolio's GP commitment (its commitments × the GP
+  commitment %) × the partner's capital share. For a one-deal agreement,
+  that deal's GP equity × its share. With no commitments entered, the GP
+  equity in the model is used.
+- **Invested to date:** its share of the GP equity in assets acquired by
+  today. **Unfunded** = committed − invested.
+- **Share of all GP capital.**
+- **Promote:** projected, and realized for assets sold by today, at its
+  share of the GP's promote. This firm's row includes the sponsor side.
+
+The cards above the table show the totals, the firm's and partners' splits,
+unfunded capital and the partners' promote. Each partner's detail shows its
+portfolios and deals (with the GP commitment, its stated shares and what it
+has invested), its agreements (with their PDFs) and what it has earned with
+the firm. **Excel** and **PDF**, marked internal. Changes go in the change
+log.
+
+**Sample data → Add sample GP partners** adds two fictional partners of
+Model Fund I and uploads their agreements, read by Claude and waiting to be
+checked:
+- Fictional Capital Partners LP: fund-wide, 40% of the GP capital and 50%
+  of the GP's promote, from 1/15/2026;
+- Sample Family Office LLC: Granite Ave Industrial only, 50% / 40%, from
+  3/1/2026.
+
+The PDFs are printed by `scripts/sample-deal-docs/gp_agreements.cjs`. This
+isn't part of Load Model Fund I, so the test fund keeps all of its GP
+capital until you save the agreements.
 
 ## 8. Worked example: the default deal
 
@@ -3948,6 +4020,7 @@ files hold the same object.
 | `comps` | `comps` | Sales comps (§11.10) | Comps and their settings |
 | `auditLog` | `auditLog` | list of Change (§7.17) | The browser change log: `id`, `at`, `user`, `area`, `item`, `field`, `path`, `from`, `to`, `note`. The verified log is the `audit_log` table (§11.13). |
 | `valuations` | `valuations` | map: deal id → quarter end → Mark (§11.9) | Fair value marks |
+| `gpPartners` | `gpPartners` (settings record) | `{ partners: [{ id, name, addedBy, addedAt }], agreements: [{ id, partnerId, portfolio, dealId, capitalPct, gpSideSharePct, effective, docId, fileName, source, status, checkedBy, checkedAt, quotes }] }` | Finance → GP Partners (1.1.10, §7.64). Saved agreements also set the fund terms' `gpParties` (an outside partner as `{ who: "external", partnerId, name, capitalPct, promotePct, terms: [{ effective, dealId, capitalPct, gpSideSharePct }] }`) |
 
 ### 11.2 Deal
 
@@ -4772,7 +4845,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit; next, patch **1.1.10** (proposed, user 11/26): Finance → **GP Partners**, one list of outside GP capital partners with their agreements (terms read by Claude), tagged to their portfolios and deals, and total committed capital by partner |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4787,6 +4860,13 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.10
+
+- **GP Partners (§7.64):** a new Finance tab listing every outside GP capital partner, with its agreements and the portfolios and deals it's in. **Committed capital by partner**, with this firm's row so the table adds up to all GP capital: committed, invested to date, unfunded, share of all GP capital, and promote (projected and realized).
+- **Agreements:** Claude reads each agreement PDF (capital share, share of the GP's promote, fund-wide or one deal, effective date, each with its quote), or the terms are entered by hand. Once checked and saved, they fill the portfolio's Parties. A deal-level agreement applies to that deal only, and an amendment applies from its effective date.
+- **The firm is the sponsor (§7.55):** no outside sponsor, no separate sponsor co-invest, and no fees to the GP. Firm Economics covers every portfolio and works asset by asset, so a deal-level partner or an amendment lands on the right asset and date.
+- **Sample data → Add sample GP partners:** two fictional partners and their agreement PDFs, read by Claude and waiting to be checked.
 
 ### What's in 1.1.9
 

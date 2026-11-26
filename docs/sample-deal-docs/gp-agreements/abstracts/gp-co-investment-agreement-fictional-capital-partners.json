@@ -1,0 +1,19 @@
+{
+ "doc_type": "gp_agreement",
+ "title": "GP Co-Investment Agreement",
+ "partner_name": "Fictional Capital Partners LP",
+ "portfolio": "Model Fund I",
+ "deal": null,
+ "capital_pct": 40,
+ "promote_pct_of_gp_side": 50,
+ "fees": "None",
+ "effective_date": "2026-01-15",
+ "quotes": {
+  "partner_name": "This GP Co-Investment Agreement is entered into as of January 15, 2026 between Example Fund GP LLC (the \"General Partner\") and Fictional Capital Partners LP (the \"Partner\"). (p.1)",
+  "scope": "This Agreement governs the general partner commitment to Model Fund I (the \"Fund\") and every investment the Fund makes. (§1.2)",
+  "capital_pct": "The Partner shall fund forty percent (40%) of the GP Commitment, and the General Partner shall fund the balance. (§2.1)",
+  "promote_pct_of_gp_side": "The Partner shall be entitled to fifty percent (50%) of the Promote distributed to the General Partner. (§3.1)",
+  "fees": "The Partner shall not be entitled to any fee. All asset management, acquisition, disposition and other fees are payable to the Sponsor. (§4.1)",
+  "effective_date": "This Agreement is effective as of January 15, 2026. (§5.1)"
+ }
+}

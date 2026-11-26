@@ -27,17 +27,19 @@ ok(close(P.sponsor.total + P.gp.total, d.fees.total + d.promote.total + d.coinve
 ok(close(P.sponsor.revenueYield.pct, d.revenueYield.pct, 1e-6), "default: Revenue Yield unchanged");
 ok(P.gp.irr != null && close(P.gp.roe, (P.gp.total / P.gp.equity) * 100, 1e-6), "GP return on invested capital (ROE, multiple, IRR when no split)");
 
-// External operator; firm is the GP; PM outsourced; disposition fee to the GP; 40 / 60 promote with an asset override.
+// 1.1.10 (user, 11/26): the firm is always the sponsor and the GP earns no
+// fees, so older terms naming an outside operator, or paying a fee to the GP,
+// read as this firm / the sponsor. PM outsourced; 40 / 60 promote with an asset override.
 const ext = run({ sponsorWho: "external", sponsorName: "Fictional Operating Partners LLC", feeToPm: "third", pmThirdParty: "Example Property Services", feeToDisp: "gp", gpParties: [{ id: "gp1", who: "firm", capitalPct: 100, promotePct: 40 }], promoteGpPctByAsset: { "sample-deal-2": 30 } });
 const E = ext.parties;
-ok(E.parties.firmRole === "gp" && E.parties.sponsor.name === "Fictional Operating Partners LLC", "an outside operator; this firm is the GP");
-ok(close(E.third.fees, ext.fees.pm) && close(E.gp.fees, ext.fees.disp) && close(E.sponsor.fees, ext.fees.mgmt + ext.fees.cm + ext.fees.acq), "outsourced property management is nobody's revenue; disposition fee to the GP; the rest to the sponsor");
+ok(E.parties.firmRole === "both" && E.parties.sponsor.who === "firm" && !E.parties.sponsor.name, "an older outside operator reads as this firm (the firm is always the sponsor)");
+ok(close(E.third.fees, ext.fees.pm) && E.gp.fees === 0 && close(E.sponsor.fees, ext.fees.mgmt + ext.fees.cm + ext.fees.acq + ext.fees.disp), "outsourced property management is nobody's revenue; an older fee to the GP reads as the sponsor's; the GP earns none");
 ok(close(E.sponsor.fees + E.gp.fees + E.third.fees, ext.fees.total), "every fee is accounted for once");
 const a0 = ext.assets.find((a) => a.id === "sample-deal-2");
 const expectGp = ext.assets.reduce((s, a) => s + a.promote * (a.id === "sample-deal-2" ? 0.3 : 0.4), 0);
 ok(close(E.gp.promote, expectGp) && close(E.gp.promote + E.sponsor.promote, ext.promote.total) && a0.promote > 0, "promote split 40 / 60, with one asset at 30 / 70");
-ok(E.gp.irr === null && close(E.gp.total, E.gp.coinvest + E.gp.promote + E.gp.fees), "GP return = co-invest profit + promote share + fees paid to the GP (no IRR once split)");
-ok(close(E.sponsor.revenueYield.fees, E.sponsor.fees) && E.sponsor.revenueYield.pct < d.revenueYield.pct, "Revenue Yield counts only the sponsor's fees");
+ok(E.gp.irr === null && close(E.gp.total, E.gp.coinvest + E.gp.promote), "GP return = co-invest profit + promote share (no IRR once split)");
+ok(close(E.sponsor.revenueYield.fees, E.sponsor.fees) && E.sponsor.revenueYield.pct < d.revenueYield.pct, "Revenue Yield counts only the sponsor's fees (not outsourced ones)");
 ok(E.years.every((y) => close(y.sponsor.fees + y.gp.fees + y.third, (ext.years.find((z) => z.year === y.year)?.fees ?? 0), 1)), "by year: sponsor + GP + third-party fees = the year's fees");
 
 // Two GP parties (user, 11/24): this firm 70% of the GP capital and 30% of the promote; an outside GP 30% / 20%; the sponsor 50%.
@@ -52,17 +54,17 @@ ok(fTwo.count === 1 && close(fTwo.totals.total, TW.gp.total) && close(fTwo.total
 const legacy = W.partiesOf({ gpWho: "external", gpName: "Old GP", promoteGpPct: 60 });
 ok(legacy.gpParties.length === 1 && legacy.gpParties[0].name === "Old GP" && legacy.promoteGpPct === 60 && legacy.firmRole === "sponsor", "older single-GP terms still read");
 
-// Sponsor co-invest alongside the LPs.
+// 1.1.10: no separate sponsor co-invest: the sponsor's capital is its share of the GP commitment.
 const co = run({ sponsorCommitPct: 2 }).parties;
-ok(co.sponsor.equity > 0 && co.sponsor.coinvest > 0 && close(co.sponsor.total, co.sponsor.fees + co.sponsor.promote + co.sponsor.coinvest), "sponsor co-invest earns at the LPs' net multiple");
+ok(co.sponsor.equity === 0 && co.sponsor.coinvest === 0 && close(co.sponsor.total, co.sponsor.fees + co.sponsor.promote), "an older sponsor co-invest % is ignored");
 
 // Firm view: only the portfolios where this firm has the role count.
 const firmGp = W.firmPartyEconomics([d, ext], "gp");
 const firmSp = W.firmPartyEconomics([d, ext], "sponsor");
 const firmSpAll = W.firmPartyEconomics([d, ext], "sponsor", { includeExternal: true });
 ok(firmGp.count === 2 && close(firmGp.totals.promote, P.gp.promote + E.gp.promote), "GP view: both portfolios (the firm is the GP in each)");
-ok(firmSp.count === 1 && close(firmSp.totals.fees, P.sponsor.fees) && firmSp.rows.length === 1, "Sponsor view: only the portfolio where the firm is the sponsor");
-ok(firmSpAll.rows.length === 2 && firmSpAll.rows.some((r) => !r.ours) && close(firmSpAll.totals.fees, firmSp.totals.fees), "outside sponsors can be listed, never in the totals");
+ok(firmSp.count === 2 && close(firmSp.totals.fees, P.sponsor.fees + E.sponsor.fees) && firmSp.rows.length === 2, "Sponsor view: every portfolio (the firm is always the sponsor)");
+ok(firmSpAll.rows.length === 2 && firmSpAll.rows.every((r) => r.ours), "no outside sponsors to list");
 ok(firmSp.totals.revenueYield && firmGp.totals.roe > 0 && firmGp.years.length > 0 && firmSp.years.length > 0, "Revenue Yield on Sponsor; ROE on GP; years for both");
 
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
