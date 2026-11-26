@@ -98,22 +98,23 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-gray-900" data-testid="gp-totals-label">Consolidated <span className="font-normal text-gray-500">· portfolios where this firm is {isGp ? "a GP" : "the sponsor"} ({firm.count}{firm.count !== perFund.length ? ` of ${perFund.length}` : ""})</span></h3>
-        <label className="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" checked={external} onChange={(e) => setExternal(e.target.checked)} data-testid="include-external" /> Show portfolios with an outside {isGp ? "GP" : "sponsor"} (greyed, not in totals)</label>
+        {/* 1.1.10: the firm is always the sponsor, so only GP Economics can have an outside party. */}
+        {isGp && <label className="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" checked={external} onChange={(e) => setExternal(e.target.checked)} data-testid="include-external" /> Show portfolios with an outside GP (greyed, not in totals)</label>}
       </div>
       {isGp ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" data-testid="gp-totals">
           <Card testId="gp-equity" label="GP equity invested" value={fmtM(t.equity)} sub={`co-invest across ${firm.count} portfolio${firm.count === 1 ? "" : "s"}`} />
           <Card testId="gp-coinvest" tone="gain" label="Co-invest profit · capital gain" value={fmtM(t.coinvest)} sub="on sale" />
           <Card testId="gp-promote" tone="gain" label="Promote share · capital gain" value={fmtM(t.promote)} sub={`of ${fmtM(t.promoteTotal)} total promote`} />
-          <Card testId="gp-total" label="Total GP economics" value={fmtM(t.total)} sub={`${t.fees ? `co-invest + promote share + ${fmtM(t.fees)} fees paid to the GP` : "co-invest profit + promote share"}${firm.byParty.length > 1 ? ` · this firm ${fmtM(t.firmShare)}` : ""}`} />
+          <Card testId="gp-total" label="Total GP economics" value={fmtM(t.total)} sub={`co-invest profit + promote share${firm.byParty.length > 1 ? ` · this firm ${fmtM(t.firmShare)}` : ""}`} />
           <Card testId="gp-roic" tone="accent" label="Return on invested capital" value={pct(t.roe, 0)} sub={`${mult(t.multiple)} multiple`} />
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" data-testid="gp-totals">
           <Card testId="gp-fees" label="Fee income (life of portfolios)" value={fmtM(t.fees)} sub={t.thirdFees ? `${fmtM(t.thirdFees)} outsourced, not counted` : "asset, property and construction management, acq. / disp."} />
           <Card testId="sp-promote" tone="gain" label="Promote share · capital gain" value={fmtM(t.promote)} sub={`of ${fmtM(t.promoteTotal)} total promote`} />
-          <Card testId="sp-coinvest" label="Sponsor co-invest profit" value={fmtM(t.coinvest)} sub={t.equity ? `on ${fmtM(t.equity)} invested` : "no sponsor co-invest"} />
-          <Card testId="sp-total" label="Total sponsor economics" value={fmtM(t.total)} sub="fee income + promote share + co-invest" />
+          <Card testId="sp-outsourced" label="Outsourced fees" value={fmtM(t.thirdFees)} sub="paid to third parties: an asset expense, nobody's revenue" />
+          <Card testId="sp-total" label="Total sponsor economics" value={fmtM(t.total)} sub="fee income + promote share (the sponsor's capital is its GP share: GP Economics)" />
           <Card testId="gp-revenue-yield" tone="accent" label="Revenue Yield" value={pct(t.revenueYield?.pct, 2)}
             sub={<>{pct(t.revenueYield?.perYearPct, 2)} a year{t.revenueYield?.lifeYears ? ` over ${t.revenueYield.lifeYears.toFixed(1)} years` : ""} · {fmtM(t.fees)} fees ÷ {fmtC(t.revenueYield)} committed<br /><b>To date:</b> {pct(t.revenueYield?.toDatePct, 2)} ({fmtM(t.revenueYield?.feesToDate)} earned)</>} />
         </div>
@@ -121,10 +122,10 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
       {isGp && firm.byParty.length > 0 && (
         <div className="space-y-1">
           <p className="text-xs font-semibold text-gray-700">Total GP economics, split by GP party{firm.byParty.length === 1 ? " (one GP)" : ""}</p>
-          <T testId="gp-by-party" right={[1, 2, 3, 4, 5, 6, 7]} head={["GP party", "Portfolios", "GP equity (capital share)", "Co-invest profit", "Promote share", "Fees paid to the GP", "Total", "Return on invested capital"]}
-            rows={firm.byParty.map((g) => [g.who === "firm" ? <b key="n">This firm</b> : g.label, g.portfolios, fmtM(g.equity), fmtM(g.coinvest), fmtM(g.promote), fmtM(g.fees), fmtM(g.total), pct(g.roe, 0)])}
-            foot={["Total GP economics", firm.count, fmtM(t.equity), fmtM(t.coinvest), fmtM(t.promote), fmtM(t.fees), fmtM(t.total), pct(t.roe, 0)]} />
-          <p className="text-[11px] text-gray-500">Each GP party&apos;s co-invest (and any fee paid to the GP) follows its share of the GP capital; its promote follows its share of the promote, as set on each portfolio&apos;s terms. This firm&apos;s share: {fmtM(t.firmShare)}.</p>
+          <T testId="gp-by-party" right={[1, 2, 3, 4, 5, 6]} head={["GP party", "Portfolios", "GP equity (capital share)", "Co-invest profit", "Promote share", "Total", "Return on invested capital"]}
+            rows={firm.byParty.map((g) => [g.who === "firm" ? <b key="n">This firm</b> : g.label, g.portfolios, fmtM(g.equity), fmtM(g.coinvest), fmtM(g.promote), fmtM(g.total), pct(g.roe, 0)])}
+            foot={["Total GP economics", firm.count, fmtM(t.equity), fmtM(t.coinvest), fmtM(t.promote), fmtM(t.total), pct(t.roe, 0)]} />
+          <p className="text-[11px] text-gray-500">Each GP party&apos;s co-invest follows its share of the GP capital; its promote follows its share of the promote (the GP earns no fees), as set on each portfolio&apos;s terms. This firm&apos;s share: {fmtM(t.firmShare)}.</p>
         </div>
       )}
       {both && <p className="text-[11px] text-gray-500" data-testid="firm-both-total">Where this firm is both GP and sponsor, the two tabs add up to its total: {fmtM(t.total + other.totals.total)} ({isGp ? `GP ${fmtM(t.total)} + sponsor ${fmtM(other.totals.total)}` : `sponsor ${fmtM(t.total)} + GP ${fmtM(other.totals.total)}`}).</p>}
@@ -133,9 +134,9 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
 
       {view === "consolidated" && (
         isGp ? (
-          <T testId="gp-by-type" right={[1, 2, 3, 4, 5, 6]} head={["Portfolio type", "Portfolios", "GP equity", "Co-invest profit", "Promote share", "Fees paid to the GP", "Total GP economics"]}
-            rows={firm.byType.map((b) => [<FundTypeBadge key="b" type={b.type} />, b.portfolios, fmtM(b.equity), fmtM(b.coinvest), fmtM(b.promote), fmtM(b.fees), fmtM(b.total)])}
-            foot={["All portfolios", firm.count, fmtM(t.equity), fmtM(t.coinvest), fmtM(t.promote), fmtM(t.fees), fmtM(t.total)]} />
+          <T testId="gp-by-type" right={[1, 2, 3, 4, 5]} head={["Portfolio type", "Portfolios", "GP equity", "Co-invest profit", "Promote share", "Total GP economics"]}
+            rows={firm.byType.map((b) => [<FundTypeBadge key="b" type={b.type} />, b.portfolios, fmtM(b.equity), fmtM(b.coinvest), fmtM(b.promote), fmtM(b.total)])}
+            foot={["All portfolios", firm.count, fmtM(t.equity), fmtM(t.coinvest), fmtM(t.promote), fmtM(t.total)]} />
         ) : (
           <div className="space-y-2">
             <T testId="gp-by-type" right={[1, 2, 3, 4, 5, 6, 7, 8]} head={["Portfolio type", "Portfolios", "Fee income", "Promote share", "Total sponsor economics", "Committed capital", "Revenue Yield", "Per year", "To date"]}
@@ -148,9 +149,9 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
       {view === "firm" && (
         <>
           {isGp ? (
-            <T testId="gp-years" right={[1, 2, 3, 4]} head={["Year", "Fees paid to the GP", "Promote share (on sale)", "Co-invest profit (on sale)", "Total GP economics"]}
-              rows={firm.years.map((y) => [y.year, y.fees ? fmtM(y.fees) : "—", y.promote ? fmtM(y.promote) : "—", y.coinvest ? fmtM(y.coinvest) : "—", fmtM(y.total)])}
-              foot={["Life of portfolios", fmtM(t.fees), fmtM(t.promote), fmtM(t.coinvest), fmtM(t.total)]} />
+            <T testId="gp-years" right={[1, 2, 3]} head={["Year", "Promote share (on sale)", "Co-invest profit (on sale)", "Total GP economics"]}
+              rows={firm.years.map((y) => [y.year, y.promote ? fmtM(y.promote) : "—", y.coinvest ? fmtM(y.coinvest) : "—", fmtM(y.total)])}
+              foot={["Life of portfolios", fmtM(t.promote), fmtM(t.coinvest), fmtM(t.total)]} />
           ) : (
             <T testId="gp-years" right={[1, 2, 3, 4, 5, 6, 7]} head={["Year", "Asset management", "Property management", "Construction management", "Acq. / disp. fees", "Fee income", "Promote share (on sale)", "Total"]}
               rows={firm.years.map((y) => [y.year, fmtM(y.mgmt), fmtM(y.pm), fmtM(y.cm), fmtM(y.acq + y.disp), fmtM(y.fees), y.promote ? fmtM(y.promote) : "—", fmtM(y.total)])}
@@ -162,13 +163,13 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
       {view === "fund" && (
         <>
           {isGp ? (
-            <T testId="gp-funds" dim={firm.rows.map((r) => !r.ours)} right={[3, 4, 5, 6, 7, 8, 9, 10]} head={["Portfolio", "This firm is", "GP", "GP equity", "Co-invest profit", "Promote (total)", "GP side", "GP promote", "Fees paid to the GP", "Total GP economics", "ROE · IRR / multiple"]}
-              rows={firm.rows.map((r) => [<span key="n" className="flex items-center gap-1.5">{r.fund}<FundTypeBadge type={r.type} /></span>, firmRoleLabel(r.firmRole), <Who key="w" party={r.party} role="gp" />, fmtM(r.x.equity), fmtM(r.x.coinvest), fmtM(r.x.promoteTotal), `${r.f.parties.parties.promoteGpPct}%${Object.keys(r.f.parties.parties.promoteGpPctByAsset).length ? "*" : ""}`, fmtM(r.x.promote), fmtM(r.x.fees), fmtM(r.x.total), `${pct(r.x.roe, 0)} · ${pct(r.x.irr)} / ${mult(r.x.multiple)}`])} />
+            <T testId="gp-funds" dim={firm.rows.map((r) => !r.ours)} right={[3, 4, 5, 6, 7, 8, 9]} head={["Portfolio", "This firm is", "GP", "GP equity", "Co-invest profit", "Promote (total)", "GP side", "GP promote", "Total GP economics", "ROE · IRR / multiple"]}
+              rows={firm.rows.map((r) => [<span key="n" className="flex items-center gap-1.5">{r.fund}<FundTypeBadge type={r.type} /></span>, firmRoleLabel(r.firmRole), <Who key="w" party={r.party} role="gp" />, fmtM(r.x.equity), fmtM(r.x.coinvest), fmtM(r.x.promoteTotal), `${r.f.parties.parties.promoteGpPct}%${Object.keys(r.f.parties.parties.promoteGpPctByAsset).length ? "*" : ""}`, fmtM(r.x.promote), fmtM(r.x.total), `${pct(r.x.roe, 0)} · ${pct(r.x.irr)} / ${mult(r.x.multiple)}`])} />
           ) : (
             <T testId="gp-funds" dim={firm.rows.map((r) => !r.ours)} right={[2, 3, 4, 5, 6, 7, 8, 9, 11, 12]} head={["Portfolio", "Sponsor", "Asset mgmt", "Property mgmt", "Constr. mgmt", "Acq. / disp.", "Fee income", "Outsourced (not revenue)", "Promote share", "Committed", "Basis", "Revenue Yield", "Per year · to date"]}
               rows={firm.rows.map((r) => { const b = r.x.feesByType; return [<span key="n" className="flex items-center gap-1.5">{r.fund}<FundTypeBadge type={r.type} /></span>, <Who key="w" party={r.party} role="sponsor" />, fmtM(b.mgmt), fmtM(b.pm), fmtM(b.cm), fmtM(b.acq + b.disp), fmtM(r.x.fees), r.third.fees ? fmtM(r.third.fees) : "—", fmtM(r.x.promote), fmtC(r.x.revenueYield), <span key="b" className="whitespace-nowrap text-[11px]" data-testid="gp-ry-basis">{ryBasisLabel(r.x.revenueYield, r.type).replace(" · total equity, no commitments entered", "")}</span>, pct(r.x.revenueYield?.pct, 2), `${pct(r.x.revenueYield?.perYearPct, 2)} · ${pct(r.x.revenueYield?.toDatePct, 2)}`]; })} />
           )}
-          <p className="text-[11px] text-gray-500">{isGp ? "IRR shows only when the GP has all of the promote and no fees (otherwise the waterfall's GP IRR would overstate or understate it). *Some assets have their own promote split." : "A fee paid to the GP or to a third party isn't the sponsor's revenue."} {external ? "Greyed rows have an outside party in this role and aren't in the totals." : ""}</p>
+          <p className="text-[11px] text-gray-500">{isGp ? "IRR shows only when the GP has all of the promote (otherwise the waterfall's GP IRR would overstate or understate it). *Some assets have their own promote split." : "A fee outsourced to a third party isn't the sponsor's revenue."} {external ? "Greyed rows have an outside party in this role and aren't in the totals." : ""}</p>
         </>
       )}
       {view === "asset" && (

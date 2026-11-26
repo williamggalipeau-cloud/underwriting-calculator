@@ -1,0 +1,19 @@
+{
+ "doc_type": "gp_agreement",
+ "title": "GP Participation Agreement",
+ "partner_name": "Sample Family Office LLC",
+ "portfolio": "Model Fund I",
+ "deal": "Granite Ave Industrial",
+ "capital_pct": 50,
+ "promote_pct_of_gp_side": 40,
+ "fees": "None",
+ "effective_date": "2026-03-01",
+ "quotes": {
+  "partner_name": "This GP Participation Agreement is entered into as of March 1, 2026 between Example Fund GP LLC (the \"General Partner\") and Sample Family Office LLC (the \"Partner\"). (p.1)",
+  "scope": "This Agreement governs solely the Fund's investment in the property known as Granite Ave Industrial (the \"Property\"), and no other investment of the Fund. (§1.2)",
+  "capital_pct": "The Partner shall fund fifty percent (50%) of the GP Commitment allocable to the Property, and the General Partner shall fund the balance. (§2.1)",
+  "promote_pct_of_gp_side": "The Partner shall be entitled to forty percent (40%) of the Promote distributed to the General Partner in respect of the Property. (§3.1)",
+  "fees": "The Partner shall not be entitled to any fee. All asset management, acquisition, disposition and other fees are payable to the Sponsor. (§4.1)",
+  "effective_date": "This Agreement is effective as of March 1, 2026. (§5.1)"
+ }
+}

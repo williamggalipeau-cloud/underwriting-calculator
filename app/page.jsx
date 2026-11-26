@@ -43,6 +43,7 @@ import { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Research from "@/components/Research";
 import GpEconomics from "@/components/GpEconomics";
 import FirmEconomics from "@/components/FirmEconomics";
+import GpPartners from "@/components/GpPartners";
 import Benchmarking from "@/components/Benchmarking";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
@@ -56,6 +57,7 @@ import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
 import { withSampleMedia } from "@/lib/sampleMedia";
 import { ACTIVE_STAGES as PIPELINE_ACTIVE, EMPTY_PIPELINE, makePipelineDeal, toQuickInputs } from "@/lib/pipeline";
+import { EMPTY_GP_PARTNERS, addPartner, applyAgreements, gpPartnersOf, removeAgreement, saveAgreement } from "@/lib/gpPartners";
 import Pipeline from "@/components/Pipeline";
 import FundImpact from "@/components/FundImpact";
 import FundSummary from "@/components/FundSummary";
@@ -70,7 +72,6 @@ import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob, parseCSV } from "@/lib/fundTerms";
-import { partiesOf } from "@/lib/gpEconomics";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
 import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
 import { applyExecutedCap } from "@/lib/dealDocApply";
@@ -501,7 +502,8 @@ const TAB_GROUPS = [
   { label: "Finance", tabs: [
     { id: "gpecon",      label: "GP Economics" },
     { id: "sponsorecon", label: "Sponsor Economics" },
-    { id: "firmecon",    label: "Firm Economics" }, // 1.1.9 (user, 11/26): only when the firm is both GP and sponsor somewhere
+    { id: "firmecon",    label: "Firm Economics" }, // 1.1.9 (user, 11/26)
+    { id: "gppartners",  label: "GP Partners" }, // 1.1.10 (user, 11/26)
   ] },
   { label: "Research", tabs: [
     { id: "market",      label: "Market Data" },
@@ -532,6 +534,7 @@ export default function Home() {
   const [fundEditor, setFundEditor] = useState(null); // null | { mode: "new" } | { mode: "edit", name }
   const [comps, setCompsRaw] = useState(DEFAULT_COMPS_STATE);
   const [pipeline, setPipelineRaw] = useState(EMPTY_PIPELINE);
+  const [gpPartners, setGpPartnersRaw] = useState(EMPTY_GP_PARTNERS); // 1.1.10: Finance → GP Partners
   // "Working on" fund picker (11/23): a filter; "" = All funds. Remembered on
   // the person's sign-in (or this browser when signed out).
   const [workingOn, setWorkingOnRaw] = useState(ALL_FUNDS);
@@ -650,6 +653,7 @@ export default function Home() {
   const setFunds = guarded(setFundsRaw);
   const setComps = guarded(setCompsRaw);
   const setPipeline = guarded(setPipelineRaw);
+  const setGpPartners = guarded(setGpPartnersRaw);
   const setValuations = guarded(setValuationsRaw);
   const setBaseCurve = guarded(setBaseCurveRaw);
   const setAnchorToLive = guarded(setAnchorToLiveRaw);
@@ -857,7 +861,7 @@ export default function Home() {
     if (!hydrated.current) return;
     const t = setTimeout(() => {
       // Change log: compare with the last snapshot and record what changed.
-      const snap = auditSnapshot({ deals, savedDeals, funds, comps, valuations, baseCurve, pipeline });
+      const snap = auditSnapshot({ deals, savedDeals, funds, comps, valuations, baseCurve, pipeline, gpPartners });
       let log = auditLogRef.current;
       if (auditBaseline.current && !auditNote.current) {
         let changes = diffWorkspace(auditBaseline.current, snap);
@@ -880,7 +884,7 @@ export default function Home() {
       let schedule = false;
       if (dbLinkRef.current?.mode === "records") {
         // Phase Q: unsaved = any record that differs from its saved version.
-        const pending = recordItems(recBase.current, savableRecords({ deals, savedDeals, funds, baseCurve, anchorToLive, comps, pipeline, valuations, v: 1, app: "industrial-uw" })).length > 0;
+        const pending = recordItems(recBase.current, savableRecords({ deals, savedDeals, funds, baseCurve, anchorToLive, comps, pipeline, gpPartners, valuations, v: 1, app: "industrial-uw" })).length > 0;
         if (pending) {
           if (!dbLinkRef.current.dirty) {
             dbLinkRef.current = { ...dbLinkRef.current, dirty: true };
@@ -901,7 +905,7 @@ export default function Home() {
         auditLogRef.current = log;
         setAuditLog(log);
       }
-      latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations, auditLog: log };
+      latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, gpPartners, valuations, auditLog: log };
       if (schedule) {
         clearTimeout(dbTimer.current);
         dbTimer.current = setTimeout(() => saveRef.current?.(), (dbLinkRef.current?.mode === "records" ? RECORD_SAVE_SECONDS : DB_SAVE_SECONDS) * 1000);
@@ -910,13 +914,13 @@ export default function Home() {
     return () => clearTimeout(t);
     // auditLog/auditUser are read through refs/closure; changes to them alone don't need a save.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations]);
+  }, [deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, gpPartners, valuations]);
 
   // ── Export / import the workspace as a JSON file (a backup copy you keep,
   // or to load one into the open database workspace).
   function handleExportWorkspace() {
     const at = new Date().toISOString();
-    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations, auditLog };
+    const data = { v: 1, app: "industrial-uw", exportedAt: at, savedAt: dbLink?.savedAt ?? at, deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, gpPartners, valuations, auditLog };
     downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `baywise-data-${at.slice(0, 10)}.json`);
     setImportMsg({ ok: true, text: `Backup downloaded: ${plural(deals.length, "deal")}, ${plural(Object.keys(funds).length, "fund")} and ${plural(comps.comps?.length ?? 0, "comp")}.` });
   }
@@ -959,6 +963,7 @@ export default function Home() {
     setActiveDealId(w.deals.some((d) => d.id === saved.activeDealId) ? saved.activeDealId : w.deals[0].id);
     setCompsRaw({ ...DEFAULT_COMPS_STATE, ...(saved.comps ?? {}) });
     setPipelineRaw({ ...EMPTY_PIPELINE, ...(saved.pipeline ?? {}) });
+    setGpPartnersRaw(gpPartnersOf(saved.gpPartners));
     setValuationsRaw(saved.valuations && typeof saved.valuations === "object" ? saved.valuations : {});
     // The loaded workspace brings its own change log; the load itself is logged.
     const loaded = Array.isArray(saved.auditLog) ? saved.auditLog : [];
@@ -1027,6 +1032,7 @@ export default function Home() {
     else if (row.kind === "settings") {
       setCompsRaw({ ...DEFAULT_COMPS_STATE, ...(next.comps ?? {}) });
       setPipelineRaw({ ...EMPTY_PIPELINE, ...(next.pipeline ?? {}) });
+      setGpPartnersRaw(gpPartnersOf(next.gpPartners));
       if (next.baseCurve?.points?.length) setBaseCurveRaw(next.baseCurve);
       if (typeof next.anchorToLive === "boolean") setAnchorToLiveRaw(next.anchorToLive);
     }
@@ -1175,7 +1181,7 @@ export default function Home() {
 
 
 
-  const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, valuations, auditLog });
+  const workspaceData = () => ({ v: 1, app: "industrial-uw", savedAt: new Date().toISOString(), deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, gpPartners, valuations, auditLog });
 
 
 
@@ -1463,9 +1469,9 @@ export default function Home() {
   const scope = validWorkingOn(workingOn, workingOptions);
   const fundDeals = useMemo(() => scopeDeals(firmFundDeals, scope, resolveFund), [firmFundDeals, scope, resolveFund]);
   const viewFunds = useMemo(() => scopeFunds(funds, scope), [funds, scope]);
-  // Firm Economics (1.1.9): its tab shows only when this firm is both a GP
-  // and the sponsor in at least one portfolio with assets.
-  const firmBoth = useMemo(() => [...new Set(firmFundDeals.map((d) => d.inputs?.fundName?.trim()).filter(Boolean))].some((n) => partiesOf({ ...DEFAULT_FUND_TERMS, ...(funds[n] ?? {}) }).firmRole === "both"), [firmFundDeals, funds]);
+  // Firm Economics (1.1.9): shown when there is a portfolio with assets
+  // (1.1.10: the firm is always the sponsor, so every portfolio counts).
+  const firmBoth = useMemo(() => firmFundDeals.some((d) => d.inputs?.fundName?.trim()), [firmFundDeals]);
   const viewDeals = useMemo(() => scopeOpenDeals(deals, scope, resolveFund, pipeline), [deals, scope, resolveFund, pipeline]);
   // Document Library (user, 11/24): every deal, open or saved, firm-wide.
   const libraryDeals = useMemo(() => { const seen = new Set(); return [...deals, ...savedDeals].filter((d) => d?.id && !seen.has(d.id) && seen.add(d.id)); }, [deals, savedDeals]);
@@ -1762,6 +1768,52 @@ export default function Home() {
     if (!ids.length) { window.alert("Load Model Fund I first: the construction test data matches its sample assets."); return; }
     noteAudit(`Added construction test data (${jobs.length} jobs, ${invoices.length} invoices) to ${ids.length} sample asset${ids.length === 1 ? "" : "s"}`);
     setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: r.updates[d.id] } } : d)));
+  }
+
+  // Sample data → Add sample GP partners (1.1.10): the fictional partners and
+  // their agreement PDFs with Claude's abstracts, to check in GP Partners.
+  async function handleAddSampleGpPartners() {
+    if (!requireEdit()) return;
+    if (!(session && dbLink?.id)) { window.alert("Sign in to the firm first: the agreements are stored in the database."); return; }
+    const { addSampleGpPartners } = await import("@/lib/sampleDocs");
+    setSampleDocMsg("Adding sample GP partners…");
+    try {
+      const r = await addSampleGpPartners({ workspaceId: dbLink.id, email: session?.user?.email ?? null, gp: gpPartners, onProgress: (x) => setSampleDocMsg(`Adding sample GP partners… ${x}`) });
+      setGpPartners(r.gp);
+      setSampleDocMsg("");
+      setActiveTab("gppartners");
+      window.alert(`Added ${r.done.length} sample GP agreement${r.done.length === 1 ? "" : "s"}${r.skipped.length ? ` (${r.skipped.length} already uploaded)` : ""}. Check and save their terms in Finance → GP Partners.${r.failed.length ? `\n\n${r.failed.length} couldn't be added: ${r.failed.map((f) => f.error).join("; ")}` : ""}`);
+    } catch (e) {
+      setSampleDocMsg("");
+      window.alert(`Couldn't add the sample GP partners: ${e.message || e}`);
+    }
+  }
+
+  // Finance → GP Partners (user, 11/26, 1.1.10): add a partner; save (check)
+  // an agreement, which rebuilds its portfolio's parties from every checked
+  // agreement there; remove one. Each returns an error message or nothing.
+  function handleAddGpPartner(name) {
+    if (!requireEdit()) return "View only.";
+    const r = addPartner(gpPartners, name, { by: session?.user?.email ?? "" });
+    if (r.error) return r.error;
+    setGpPartners(r.gp);
+    return null;
+  }
+  const reapplyPartners = (gp, portfolio) => setFunds((prev) => ({ ...prev, [portfolio]: applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[portfolio] ?? {}), name: portfolio }, portfolio, gp) }));
+  function handleSaveGpAgreement(a) {
+    if (!requireEdit()) return "View only.";
+    const r = saveAgreement(gpPartners, a, { by: session?.user?.email ?? "" });
+    if (r.error) return r.error;
+    setGpPartners(r.gp);
+    reapplyPartners(r.gp, a.portfolio);
+    return null;
+  }
+  function handleRemoveGpAgreement(id) {
+    if (!requireEdit()) return;
+    const a = gpPartners.agreements.find((x) => x.id === id);
+    const gp = removeAgreement(gpPartners, id);
+    setGpPartners(gp);
+    if (a) reapplyPartners(gp, a.portfolio);
   }
 
   // Sample data → Add sample tenant credit and aged rent (user, 11/26, 1.1.8).
@@ -2064,7 +2116,7 @@ export default function Home() {
             <div className="relative" data-testid="more-menu">
               <button type="button" aria-label="More" aria-expanded={moreOpen} aria-haspopup="menu" onClick={() => setMoreOpen((o) => !o)} title="Backup, restore and sample data" className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">⋯</button>
               {moreOpen && (
-                <div className="absolute right-0 z-30 mt-1 w-80 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                <div className="absolute right-0 z-30 mt-1 max-h-[calc(100vh-7rem)] w-80 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 shadow-lg" data-testid="more-menu-panel">{/* 1.1.10: scrolls when the Sample data list is taller than the window */}
                   {session && dbLink?.id && <button type="button" onClick={() => { setMoreOpen(false); setCloudOpen(true); }} title="The firm's database: people with access, sign out" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Database and people…</button>}
                   <button type="button" onClick={() => { setMoreOpen(false); handleExportWorkspace(); }} title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Download backup</button>
                   {(!session || dbLink?.role === "owner") && (
@@ -2095,6 +2147,7 @@ export default function Home() {
                             { label: "Add sample business plans", sub: "A fictional business plan and monthly actuals for each Model Fund I asset; Route 9 runs At Risk and Harbor Light Off Plan (replaces earlier sample plans; plans you made are kept)", run: handleAddSamplePlans, ask: "Add fictional business plans and monthly actuals to the Model Fund I sample assets? Earlier sample plans are replaced; plans you made yourself are kept, and nothing else changes." },
                             { label: "Add sample prospects", sub: "A fictional leasing pipeline for each Model Fund I asset (prospects on the vacant units and a renewal), leasing managers, and rent comps where an asset has none (replaces earlier sample prospects; yours are kept)", run: handleAddSampleLeasing, ask: "Add a fictional leasing pipeline to the Model Fund I sample assets, with rent comps where an asset has none? Earlier sample prospects are replaced; prospects and comps you entered are kept." },
                             { label: "Add sample marks and market data", sub: "A fictional submarket for each Model Fund I asset (Market Data, with the asset tagged) and quarterly marks after each asset's first six months (Valuation); replaces earlier sample entries, keeps yours", run: handleAddSampleMarket, ask: "Add fictional market data (a submarket per Model Fund I asset) and sample marks? Earlier sample entries are replaced; your own submarkets, marks and asset tags are kept." },
+                            { label: "Add sample GP partners", sub: "Two fictional outside GP partners of Model Fund I and their agreements (one fund-wide, one for Granite Ave only), read by Claude and waiting to be checked in Finance → GP Partners", run: handleAddSampleGpPartners, ask: "Add two fictional outside GP partners and upload their agreements to Model Fund I's documents? Nothing changes in the fund until you check and save each agreement's terms in Finance → GP Partners." },
                             { label: "Add sample tenant credit and aged rent", sub: "Fictional credit records, a credit-change flag and prospect screenings for the Model Fund I tenants, and a sample aged receivables report (replaces earlier sample entries; yours are kept)", run: handleAddSampleCredit, ask: "Add fictional tenant credit records, a credit-change flag, prospect screenings and a sample aged receivables report to Model Fund I? Earlier sample entries are replaced; records, flags and uploads you made are kept." },
                             { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
                             { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
@@ -2600,6 +2653,10 @@ export default function Home() {
             {activeTab === "gpecon" && (
               <GpEconomics role="gp" deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
             )}
+            {activeTab === "gppartners" && (
+              <GpPartners deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} gp={gpPartners} canEdit={!locked} workspaceId={dbLink?.id ?? null} email={session?.user?.email ?? null} scopeName={scope ? scopeLabel(scope, funds) : ""}
+                onAddPartner={handleAddGpPartner} onSaveAgreement={handleSaveGpAgreement} onRemoveAgreement={handleRemoveGpAgreement} />
+            )}
             {activeTab === "firmecon" && (
               <FirmEconomics deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
             )}
@@ -2875,6 +2932,7 @@ export default function Home() {
                 workspaceId={session && dbLink?.id && dbLink.role !== "viewer" ? dbLink.id : null}
                 email={session?.user?.email ?? null}
                 portfolioAssets={fundEditor.mode === "edit" ? libraryDeals.filter((d) => resolveFund(d.inputs?.fundName) === fundEditor.name).map((d) => ({ id: d.id, name: d.inputs?.propertyName || d.id })) : []}
+                gpPartners={gpPartners}
               />
             )}
           </div>

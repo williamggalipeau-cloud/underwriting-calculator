@@ -625,5 +625,21 @@
    "file": "credit/screening-demo-event-rentals.pdf",
    "title": "screening-demo-event-rentals.pdf"
   }
+ ],
+ "gpAgreements": [
+  {
+   "partner": "Fictional Capital Partners LP",
+   "portfolio": "Model Fund I",
+   "deal": null,
+   "file": "gp-agreements/gp-co-investment-agreement-fictional-capital-partners.pdf",
+   "abstract": "gp-agreements/gp-co-investment-agreement-fictional-capital-partners.json"
+  },
+  {
+   "partner": "Sample Family Office LLC",
+   "portfolio": "Model Fund I",
+   "deal": "Granite Ave Industrial",
+   "file": "gp-agreements/gp-participation-agreement-sample-family-office-granite-ave.pdf",
+   "abstract": "gp-agreements/gp-participation-agreement-sample-family-office-granite-ave.json"
+  }
  ]
 }

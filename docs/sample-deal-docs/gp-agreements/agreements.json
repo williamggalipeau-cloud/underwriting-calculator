@@ -1,0 +1,31 @@
+{
+ "_note": "Fictional sample GP partner agreements for Model Fund I (1.1.10, user 11/26). Printed by scripts/sample-deal-docs/gp_agreements.cjs; each agreement's abstract is what Claude would read from it (doc_type gp_agreement), uploaded by Sample data → Add sample GP partners for the user to check in Finance → GP Partners. Every party and person is fictional.",
+ "agreements": [
+  {
+   "file": "gp-co-investment-agreement-fictional-capital-partners.pdf",
+   "partner_name": "Fictional Capital Partners LP",
+   "portfolio": "Model Fund I",
+   "deal": null,
+   "capital_pct": 40,
+   "promote_pct_of_gp_side": 50,
+   "effective_date": "2026-01-15",
+   "effective_long": "January 15, 2026",
+   "title": "GP Co-Investment Agreement",
+   "scope_text": "the general partner commitment to Model Fund I (the \"Fund\") and every investment the Fund makes",
+   "notice": "Example Fund GP LLC"
+  },
+  {
+   "file": "gp-participation-agreement-sample-family-office-granite-ave.pdf",
+   "partner_name": "Sample Family Office LLC",
+   "portfolio": "Model Fund I",
+   "deal": "Granite Ave Industrial",
+   "capital_pct": 50,
+   "promote_pct_of_gp_side": 40,
+   "effective_date": "2026-03-01",
+   "effective_long": "March 1, 2026",
+   "title": "GP Participation Agreement",
+   "scope_text": "solely the Fund's investment in the property known as Granite Ave Industrial (the \"Property\"), and no other investment of the Fund",
+   "notice": "Example Fund GP LLC"
+  }
+ ]
+}
