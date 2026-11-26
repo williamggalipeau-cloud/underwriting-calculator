@@ -677,6 +677,7 @@ underwriting-calculator/
 ├── docs/USER_MANUAL.md       This manual
 ├── supabase/setup.sql        Database setup (run once in the Supabase SQL Editor)
 ├── public/                   Static icons
+├── vercel.json                    Vercel: redirects the .vercel.app address to https://baywise.baysidecre.com
 ├── .github/workflows/tests.yml    Node, regression and browser tests on every pull request and push to main (Vercel builds and hosts the site, §10)
 ├── next.config.js            Static export, basePath /underwriting-calculator
 ├── package.json / package-lock.json
@@ -3689,8 +3690,10 @@ http://localhost:3000/underwriting-calculator).
 11/26 once sign-in, saving and documents were checked on Vercel.
 - **Address:** **https://baywise.baysidecre.com** (the firm's domain,
   registered through Vercel, which manages its DNS). Vercel's own address,
-  `https://underwriting-calculator-nine.vercel.app`, redirects to it, so
-  everyone signs in on one address.
+  `https://underwriting-calculator-nine.vercel.app`, redirects to it
+  (`vercel.json`; Vercel's settings don't offer a redirect on its built-in
+  address), so everyone signs in on one address. Preview links aren't
+  redirected.
 - **Deploy:** merge to `main`. Vercel builds and publishes production within
   a minute or two. **Check it went live:** the project's **Deployments** in
   Vercel shows the newest Production deployment as **Ready**, and the app's
