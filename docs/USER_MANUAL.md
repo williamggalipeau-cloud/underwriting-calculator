@@ -1,6 +1,6 @@
 # Baywise · Industrial Real Estate Management — User Manual
 
-Live site: https://williamggalipeau-cloud.github.io/underwriting-calculator/
+Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
 Version: **1.1.7** (released 2026-11-25). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
@@ -259,7 +259,7 @@ One-time setup (full detail, table layout and admin queries in §12):
    to run again.
 2. Under **Authentication → URL Configuration**, set the **Site URL** and a
    **Redirect URL** to
-   `https://williamggalipeau-cloud.github.io/underwriting-calculator/`.
+   `https://baywise.baysidecre.com/` (and the Redirect URLs listed in §12.1).
 3. The project URL and publishable key are in `lib/cloud.js`. The
    publishable key is designed to be public: sign-in and the database's
    row-level security rules protect the data. Never put the `service_role`
@@ -677,7 +677,8 @@ underwriting-calculator/
 ├── docs/USER_MANUAL.md       This manual
 ├── supabase/setup.sql        Database setup (run once in the Supabase SQL Editor)
 ├── public/                   Static icons
-├── .github/workflows/deploy.yml   Build and publish to GitHub Pages on push to main
+├── vercel.json                    Vercel: redirects the .vercel.app address to https://baywise.baysidecre.com
+├── .github/workflows/tests.yml    Node, regression and browser tests on every pull request and push to main (Vercel builds and hosts the site, §10)
 ├── next.config.js            Static export, basePath /underwriting-calculator
 ├── package.json / package-lock.json
 ├── eslint.config.mjs, postcss.config.mjs, jsconfig.json ("@/..." path alias)
@@ -3684,45 +3685,38 @@ http://localhost:3000/underwriting-calculator).
 **Check:** `npm run lint`, then `npm run build` (writes the static site to
 `out/`).
 
-**Hosting (1.1.7, user 11/25): moving from GitHub Pages to Vercel.** The
-code stays on GitHub; Vercel (Pro plan) builds and hosts the site from it.
+**Hosting (1.1.7, user 11/25): Vercel.** The code stays on GitHub; Vercel
+(Pro plan) builds and hosts the site from it. GitHub Pages was retired on
+11/26 once sign-in, saving and documents were checked on Vercel.
 - **Address:** **https://baywise.baysidecre.com** (the firm's domain,
   registered through Vercel, which manages its DNS). Vercel's own address,
-  `https://underwriting-calculator-nine.vercel.app`, serves the same site;
-  once GitHub Pages is switched off it is set to redirect to the firm's
-  address, so everyone signs in on one address.
-- **Same code, both hosts during the move:** `next.config.js` serves the site
-  at the root of the Vercel address (Vercel sets `VERCEL=1` when it builds)
-  and under `/underwriting-calculator` on GitHub Pages.
-- **Production:** every merge to `main` is built and published by Vercel.
-- **Preview links:** every pull request gets its own Vercel preview address,
-  so a patch can be clicked through before it's merged. Previews use the same
-  database, so treat them as the live firm's data.
-- **Rollback:** Vercel → the project → Deployments → an earlier deployment →
-  **Promote to Production** (one click), as well as redeploying a release tag.
-- **Sign-in:** Supabase must list the Vercel address (and the preview
-  pattern) under Authentication → URL Configuration (§12.1).
-- **Switching off GitHub Pages:** once sign-in, saving and documents are
-  checked on Vercel, the GitHub Pages deploy is retired.
+  `https://underwriting-calculator-nine.vercel.app`, redirects to it
+  (`vercel.json`; Vercel's settings don't offer a redirect on its built-in
+  address), so everyone signs in on one address. Preview links aren't
+  redirected.
+- **Deploy:** merge to `main`. Vercel builds and publishes production within
+  a minute or two. **Check it went live:** the project's **Deployments** in
+  Vercel shows the newest Production deployment as **Ready**, and the app's
+  header shows the new version.
+- **Preview links:** every pull request gets its own Vercel preview address
+  (posted on the pull request by the Vercel bot), so a patch can be clicked
+  through before it's merged. Previews are visible only to the Vercel team
+  and use the same database, so treat them as the live firm's data.
+- **Base path:** `next.config.js` serves the site at the root on Vercel
+  (Vercel sets `VERCEL=1` when it builds). Elsewhere (local builds and the
+  browser tests) it keeps the old `/underwriting-calculator` path, so
+  `npm run dev` opens at http://localhost:3000/underwriting-calculator.
+- **Sign-in:** Supabase's Site URL is the firm's address, and its Redirect
+  URLs list the firm's address, the .vercel.app address and the preview
+  pattern (§12.1).
+- **Tests:** `.github/workflows/tests.yml` still runs every check on each
+  pull request and push to main; Vercel only builds and hosts.
 
-**Deploy (GitHub Pages, until it's switched off):** merge to `main`.
-`.github/workflows/deploy.yml` builds and publishes to GitHub Pages, usually
-within a few minutes.
-- **Two jobs:** the build job uploads the site package, then the deploy job
-  publishes it.
-- **Automatic retry:** GitHub sometimes doesn't yet list a package that was
-  just uploaded. When that happens, the deploy waits a minute and tries once
-  more.
-- **If both tries fail:** the live site stays on the previous version. Re-run
-  the failed job from the Actions tab.
-- **Check it went live:** confirm the "Deploy to GitHub Pages" run is green
-  before saying a change is live.
-
-**Releases:** see §13 (tags `v1.0.0`, …). To revert to an earlier release,
-run the deploy workflow on that release's tag (Actions → Deploy to GitHub
-Pages → Run workflow → the tag). If GitHub's Pages settings only allow
-deploying from `main`, put `main` back to the tag's code with a revert
-commit instead; the tag itself never changes.
+**Releases:** see §13 (tags `v1.0.0`, …). To revert to an earlier release:
+in Vercel → the project → **Deployments**, find the deployment of that
+release's merge commit and click **Promote to Production** (one click; the
+tag itself never changes). For a release older than 1.1.7 (built for GitHub
+Pages), put `main` back to the tag's code with a revert commit instead.
 
 **Refresh the forward curve:**
 - **In the app:** Deal Screener → Update from Pensford, then upload
@@ -4380,7 +4374,7 @@ and nothing is saved; nothing is ever saved in the browser.
 | Setup script | [`supabase/setup.sql`](../supabase/setup.sql) |
 | Client library | `@supabase/supabase-js` 2.x |
 | Sign-in method | Email + password (Authentication → Sign In / Providers → Email). Email is used to confirm new accounts and for password resets. |
-| Site / Redirect URL | `https://williamggalipeau-cloud.github.io/underwriting-calculator/` (Authentication → URL Configuration). From 1.1.7 also `https://baywise.baysidecre.com/**`, `https://underwriting-calculator-nine.vercel.app/**` and the preview pattern `https://*-williamggalipeau-clouds-projects.vercel.app/**` (§10, Hosting); `https://baywise.baysidecre.com/` becomes the Site URL once GitHub Pages is switched off. |
+| Site / Redirect URL | Site URL `https://baywise.baysidecre.com/` since 11/26 (Authentication → URL Configuration); it was the retired GitHub Pages address. Redirect URLs: `https://baywise.baysidecre.com/**`, `https://underwriting-calculator-nine.vercel.app/**` and the preview pattern `https://*-williamggalipeau-clouds-projects.vercel.app/**` (§10, Hosting). |
 
 ### 12.2 One-time setup
 
@@ -4651,7 +4645,7 @@ Every future release is checked against these:
 
 ### What's in 1.1.7
 
-- **Hosting moves to Vercel (§10):** the same code builds for Vercel (at the root of its address) and for GitHub Pages until that's switched off. Every pull request gets a Vercel preview link to click through before merging; rollback is one click.
+- **Hosting moves to Vercel (§10):** Baywise is at https://baywise.baysidecre.com; GitHub Pages is retired. Every pull request gets a Vercel preview link to click through before merging; rollback is one click.
 - **Load Model Fund I / Add sample documents:** the sample sales the sale documents are filed on are saved at once, instead of waiting for autosave.
 
 ### What's in 1.1.6
