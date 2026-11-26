@@ -73,7 +73,7 @@ export function CriticalDatesView({ leases, assetName, title, asOf, credit, docs
                     <td className="px-2.5 py-1.5">{r.tenant}</td>
                     <td className="px-2.5 py-1.5 font-medium">
                       {r.label}
-                      <span className="ml-1 text-[10px] font-normal text-gray-400">{r.kindLabel}</span>
+                      <span className="ml-1 text-[10px] font-normal text-gray-500">{r.kindLabel}</span>
                       {r.calculation && <p className="text-[10px] font-normal text-blue-700">= {r.calculation}</p>}
                     </td>
                     <td className="px-2.5 py-1.5">{r.notice || "—"}</td>
@@ -86,7 +86,7 @@ export function CriticalDatesView({ leases, assetName, title, asOf, credit, docs
           </table>
         </div>
       )}
-      <p className="text-[11px] text-gray-400">
+      <p className="text-[11px] text-gray-500">
         Dates come from each lease&apos;s abstract and each reviewed document on the Documents tab (calculated dates show their arithmetic; insurance turns amber 60 days before expiry); SNDA and estoppel response periods run from a request, so they have no date.
         {credit ? " Financial statements due come from lease clauses requiring statements and the statements on file under Tenant credit." : ""}{" "}
         Reminders: nothing is sent from the app. A Claude scheduled task could check these dates weekly and notify you before notice deadlines; ask Claude to set one up if you want it.

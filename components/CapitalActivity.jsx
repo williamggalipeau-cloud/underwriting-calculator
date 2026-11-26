@@ -18,6 +18,7 @@ export default function CapitalActivity({ fundName, activity = [], autoActivity 
   const allAssets = [...deals, ...otherAssets.filter((a) => !deals.some((d) => d.id === a.id))];
   const sortByName = (xs) => [...xs].sort((a, b) => (a.inputs?.propertyName || "").localeCompare(b.inputs?.propertyName || ""));
   const [msg, setMsg] = useState(null);
+  const [showAll, setShowAll] = useState(false); // 1.1.11: latest 10 entries unless asked
   const fileRef = useRef(null);
   const today = new Date().toISOString().slice(0, 10);
   // Automatic fund-expense entries (lib/fundExpenses) are shown with the
@@ -62,8 +63,8 @@ export default function CapitalActivity({ fundName, activity = [], autoActivity 
     <div className="mt-3 border-t border-gray-100 pt-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h5 className="text-xs font-semibold text-gray-700">Capital activity (actuals)</h5>
-          <p className="text-[10px] text-gray-400">
+          <h5 className="scroll-mt-16 text-xs font-semibold text-gray-700" data-index="Capital activity">Capital activity (actuals)</h5>
+          <p className="text-[10px] text-gray-500">
             Enter each capital call and sub line draw or repayment as it happens. With entries, called capital and the line balance to date
             come from here; only needs after today come from the model.
           </p>
@@ -96,6 +97,10 @@ export default function CapitalActivity({ fundName, activity = [], autoActivity 
         </div>
       </div>
       {msg && <p className={`mt-1 text-[11px] ${msg.ok ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>}
+      {sorted.length > 12 && (
+        // 1.1.11 (UI review): long histories show the latest 10 entries.
+        <button type="button" onClick={() => setShowAll((x) => !x)} className="mt-2 text-xs font-medium text-blue-700 hover:underline" data-testid="capital-activity-showall">{showAll ? "Show the latest 10 only" : `Show all ${sorted.length} entries (${sorted.length - 10} earlier hidden)`}</button>
+      )}
       {sorted.length > 0 && (
         <div className="mt-2 overflow-x-auto">
           <table className="w-full text-xs tabular-nums">
@@ -111,7 +116,7 @@ export default function CapitalActivity({ fundName, activity = [], autoActivity 
               </tr>
             </thead>
             <tbody>
-              {sorted.map((a) =>
+              {(showAll || sorted.length <= 12 ? sorted : sorted.slice(-10)).map((a) =>
                 a.auto ? (
                   <tr key={a.id} className="border-b border-gray-100 bg-sky-50/40 text-gray-700">
                     <td className="px-1.5 py-1 whitespace-nowrap">{a.date}</td>
@@ -188,7 +193,7 @@ export default function CapitalActivity({ fundName, activity = [], autoActivity 
                   {runCell(a.run.line, a.run.line < 0)}
                   {commitments > 0 && runCell(a.run.dryPowder, a.run.dryPowder < 0)}
                   <td className="px-1.5 py-1 text-right">
-                    <button type="button" onClick={() => drop(a.id)} className="text-gray-400 hover:text-red-600" aria-label="Delete entry">✕</button>
+                    <button type="button" onClick={() => drop(a.id)} className="text-gray-500 hover:text-red-600" aria-label="Delete entry">✕</button>
                   </td>
                 </tr>
                 )
@@ -209,7 +214,7 @@ export default function CapitalActivity({ fundName, activity = [], autoActivity 
               </tfoot>
             )}
           </table>
-          <p className="mt-1 text-[10px] text-gray-400">
+          <p className="mt-1 text-[10px] text-gray-500">
             The Source column shows how each entry was created: <span className="font-medium text-emerald-800">User added</span> (typed
             in), <span className="font-medium">User imported</span> (from a file), <span className="font-medium text-sky-800">Automatic</span> or{" "}
             <span className="font-medium text-indigo-800">Automatic, kept</span>; hover over it for details. Automatic rows are the fund&apos;s expenses to date: the quarterly management fee,

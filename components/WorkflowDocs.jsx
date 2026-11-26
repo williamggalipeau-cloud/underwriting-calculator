@@ -58,15 +58,15 @@ export default function WorkflowDocs({ label = "Documents", workspaceId, canEdit
 
   return (
     <details className="rounded-xl border border-gray-200 bg-white text-xs" open={open} onToggle={(e) => setOpen(e.currentTarget.open)} data-testid="workflow-docs">
-      <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold">{label} <span className="font-normal text-gray-400">({docs === null ? "…" : rows.length})</span></summary>
+      <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold">{label} <span className="font-normal text-gray-500">({docs === null ? "…" : rows.length})</span></summary>
       <div className="space-y-2 border-t border-gray-100 px-3 py-2">
         {error && <p className="rounded border border-red-200 bg-red-50 px-2 py-1 text-red-800">{error}</p>}
-        {rows.length === 0 ? <p className="text-gray-400">None yet.</p> : (
+        {rows.length === 0 ? <p className="text-gray-500">None yet.</p> : (
           <table className="w-full">
             <tbody>
               {rows.map(({ d, c }) => (
                 <tr key={d.id} className="border-b border-gray-100 last:border-0" data-testid="workflow-doc">
-                  <td className="py-1 pr-2"><span className="font-semibold">{c.name || c.typeLabel}</span><div className="text-[10px] text-gray-400">{c.typeLabel}{d.deal_id ? ` · ${nameOf(d.deal_id)}` : ` · ${d.fund_name}`}</div></td>
+                  <td className="py-1 pr-2"><span className="font-semibold">{c.name || c.typeLabel}</span><div className="text-[10px] text-gray-500">{c.typeLabel}{d.deal_id ? ` · ${nameOf(d.deal_id)}` : ` · ${d.fund_name}`}</div></td>
                   <td className="whitespace-nowrap py-1 pr-2 text-gray-500">{fmt(d.created_at)}</td>
                   <td className="py-1 pr-2"><span className="rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px]">{STATUS_LABEL[d.status] ?? "Uploaded"}</span></td>
                   <td className="py-1 text-right">{d.files?.length > 0 && <button type="button" onClick={() => openFile(d)} className="font-medium text-blue-700 hover:underline">Open</button>}</td>
@@ -84,7 +84,7 @@ export default function WorkflowDocs({ label = "Documents", workspaceId, canEdit
               <label className={`${btn} cursor-pointer border-blue-200 bg-white text-blue-700`}>{busy ? "Uploading…" : "+ Upload PDF"}
                 <input type="file" accept="application/pdf,.pdf" multiple className="sr-only" disabled={busy} aria-label={`${label}: upload`} onChange={(e) => { const f = [...(e.target.files ?? [])]; e.target.value = ""; upload(f); }} />
               </label>
-              <span className="text-gray-400">PDF, up to {MAX_FILE_MB} MB</span>
+              <span className="text-gray-500">PDF, up to {MAX_FILE_MB} MB</span>
             </div>
           ) : <span />}
           {onOpenLibrary && <button type="button" onClick={onOpenLibrary} className="text-blue-700 hover:underline">See all in Document Library →</button>}

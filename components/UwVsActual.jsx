@@ -44,7 +44,7 @@ export default function UwVsActual({ deal, canEdit, email, onApplyDeal }) {
   if (!b?.inputs) {
     return (
       <section className="rounded-lg border border-dashed border-gray-300 px-3 py-3 text-xs text-gray-600" data-testid="uw-vs-actual">
-        <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Underwritten vs. actual</h4>
+        <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Underwritten vs. actual</h4>
         <p>No underwriting baseline yet. Freezing one keeps a copy of the model as underwritten (do it at closing{inputs.icApproved ? "; the IC-approved figures are on this deal" : ""}); actuals from the Asset Business Plan and the current model are then compared with it.</p>
         {canEdit && onApplyDeal && <button type="button" onClick={() => freeze(false)} className={`${btn} mt-2 border-blue-600 bg-blue-600 text-white`}>Freeze underwriting baseline</button>}
       </section>
@@ -58,7 +58,7 @@ export default function UwVsActual({ deal, canEdit, email, onApplyDeal }) {
     <section className="space-y-3 rounded-lg border border-gray-200 px-3 py-3" data-testid="uw-vs-actual">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Underwritten vs. actual + projected</h4>
+          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Underwritten vs. actual + projected</h4>
           <p className="text-[11px] text-gray-500">
             Baseline frozen {usDate(b.at.slice(0, 10))}{b.by ? ` by ${b.by}` : ""} ({b.source === "ic" ? "with the IC-approved figures on the deal" : "closing model"}). Actuals: {c.actual.actualMonths} months of NOI from the Asset Business Plan; the rest from today&apos;s model.
           </p>
@@ -102,7 +102,7 @@ export default function UwVsActual({ deal, canEdit, email, onApplyDeal }) {
               </li>
             ))}
           </ul>
-          <p className="mt-1 text-[10px] text-gray-400">Each group of inputs is switched from the baseline to today&apos;s values in turn (price, leasing, expenses, capex, financing, timing, exit) and the change in IRR credited to it; operations to date is actual NOI vs. the model.</p>
+          <p className="mt-1 text-[10px] text-gray-500">Each group of inputs is switched from the baseline to today&apos;s values in turn (price, leasing, expenses, capex, financing, timing, exit) and the change in IRR credited to it; operations to date is actual NOI vs. the model.</p>
         </div>
       </div>
 
@@ -111,13 +111,13 @@ export default function UwVsActual({ deal, canEdit, email, onApplyDeal }) {
           <thead className="text-gray-500">
             <tr className="border-b border-gray-200">
               <th className="py-1 pr-2 text-left font-medium">By year</th>
-              {c.years.map((y) => <th key={y.year} className="px-2 py-1 text-right font-medium whitespace-nowrap">Year {y.year}<div className="text-[9px] font-normal text-gray-400">{y.status}</div></th>)}
+              {c.years.map((y) => <th key={y.year} className="px-2 py-1 text-right font-medium whitespace-nowrap">Year {y.year}<div className="text-[9px] font-normal text-gray-500">{y.status}</div></th>)}
             </tr>
           </thead>
           <tbody>
             {YEAR_METRICS.map(([k, l, unit]) => (
               <tr key={k} className="border-b border-gray-100 align-top">
-                <td className="py-1 pr-2 text-gray-600 whitespace-nowrap">{l}<div className="text-[9px] text-gray-400">underwritten / actual + proj. / var.</div></td>
+                <td className="py-1 pr-2 text-gray-600 whitespace-nowrap">{l}<div className="text-[9px] text-gray-500">underwritten / actual + proj. / var.</div></td>
                 {c.years.map((y) => {
                   const m = y.metrics[k];
                   return (
@@ -154,7 +154,7 @@ export function FundUwTable({ deals, fundName, onOpen }) {
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-gray-900">Underwritten vs. actual + projected · {fundName}</h3>
         <div className="flex items-center gap-2 text-xs">
-          {without > 0 && <span className="text-gray-400">{without} asset{without === 1 ? "" : "s"} without a baseline</span>}
+          {without > 0 && <span className="text-gray-500">{without} asset{without === 1 ? "" : "s"} without a baseline</span>}
           <button type="button" className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => downloadBlob(writeXlsx(fundRowsXlsx(rows), { sheetName: "Underwritten vs actual", title: `Baywise · ${fundName} underwritten vs. actual` }), `${safeFileName(fundName)}-underwritten-vs-actual.xlsx`)}>Excel</button>
         </div>
       </div>
@@ -171,7 +171,7 @@ export function FundUwTable({ deals, fundName, onOpen }) {
                 <td className="px-2 py-1.5 text-right font-medium">{fmtV(r.irr, "%")}</td>
                 <td className={`px-2 py-1.5 text-right font-semibold ${tone(r.gap)}`}>{fmtD(r.gap, "%")}</td>
                 <td className="px-2 py-1.5 text-right">{fmtV(r.uwEm, "x")} → {fmtV(r.em, "x")}</td>
-                <td className="px-2 py-1.5 text-right">{fmtM(r.uwNoi)} → {fmtM(r.noi)} <span className="text-[10px] text-gray-400">yr {r.year} {r.status}</span></td>
+                <td className="px-2 py-1.5 text-right">{fmtM(r.uwNoi)} → {fmtM(r.noi)} <span className="text-[10px] text-gray-500">yr {r.year} {r.status}</span></td>
                 <td className={`px-2 py-1.5 text-right ${tone(r.noiVarPct)}`}>{isFinite(r.noiVarPct) ? `${r.noiVarPct > 0 ? "+" : ""}${r.noiVarPct.toFixed(1)}%` : "—"}</td>
                 <td className="px-2 py-1.5 text-right text-gray-500">{r.actualMonths}</td>
               </tr>
@@ -179,7 +179,7 @@ export function FundUwTable({ deals, fundName, onOpen }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-1 text-[10px] text-gray-400">Ranked by IRR gap, largest shortfall first. Actual + projected = actual NOI to date (Asset Business Plan) and today&apos;s model for the rest of the hold.</p>
+      <p className="mt-1 text-[10px] text-gray-500">Ranked by IRR gap, largest shortfall first. Actual + projected = actual NOI to date (Asset Business Plan) and today&apos;s model for the rest of the hold.</p>
     </section>
   );
 }

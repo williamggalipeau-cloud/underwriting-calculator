@@ -43,7 +43,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
 
   // ── Load Model Fund I: the complete test fund, now with tenant credit and aged rent ──
   const sm = p.getByTestId("sample-data-menu");
-  if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); }
+  if (!(await sm.isVisible())) { await FX.openSetup(p); await p.waitForTimeout(200); }
   await sm.getByRole("button", { name: /Sample data/ }).click();
   await p.waitForTimeout(200);
   await sm.getByRole("menuitem", { name: /Load Model Fund I/ }).click();

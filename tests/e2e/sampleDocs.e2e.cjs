@@ -46,7 +46,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   await FX.saveLoadUpgrade(p);
   const sm = p.getByTestId("sample-data-menu");
-  const openMenu = async () => { if (!(await sm.isVisible())) { await p.getByRole("button", { name: "More", exact: true }).click(); await p.waitForTimeout(200); } await sm.getByRole("button", { name: /Sample data/ }).click(); await p.waitForTimeout(200); };
+  const openMenu = async () => { if (!(await sm.isVisible())) { await FX.openSetup(p); await p.waitForTimeout(200); } await sm.getByRole("button", { name: /Sample data/ }).click(); await p.waitForTimeout(200); };
   await openMenu();
   await sm.getByRole("menuitem", { name: /Add sample documents/ }).click();
   for (let i = 0; i < 60 && !alerts.some((a) => /^Added|^Couldn't add/.test(a)); i++) await p.waitForTimeout(500);

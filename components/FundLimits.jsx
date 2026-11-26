@@ -46,7 +46,7 @@ export default function FundLimits({ fundName, terms, deals, values, lineBalance
         {rows.length > 0 && <button type="button" onClick={() => downloadBlob(writeXlsx(limitsXlsx(fundName, rows), { sheetName: "Fund limits", title: `Baywise · ${fundName} fund limits` }), `${safeFileName(fundName)}-fund-limits.xlsx`)} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700">Excel</button>}
       </div>
       {rows.length === 0 ? (
-        <p className="text-xs text-gray-400" data-testid="no-limits">No limits yet. Upload the fund&apos;s LPA or PPM on the Documents tab and use its investment limits, or add an internal limit below.</p>
+        <p className="text-xs text-gray-500" data-testid="no-limits">No limits yet. Upload the fund&apos;s LPA or PPM on the Documents tab and use its investment limits, or add an internal limit below.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs tabular-nums">

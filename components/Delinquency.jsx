@@ -33,7 +33,7 @@ export function DelinquencySummary({ delinq, deals, title = "Rent delinquency", 
           ...PAST_DUE.map((k) => [BUCKETS.find((b) => b[0] === k)[1], usd(last.buckets[k]), pct(last.bucketPct[k])]),
           ["Tenants late", String(last.tenantsDelinquent), `net of deposits ${usd(last.netOfDeposits)}`],
         ].map(([l, v, sub]) => (
-          <div key={l}><p className="text-[10px] uppercase tracking-wide text-gray-400">{l}</p><p className="font-semibold tabular-nums">{v}</p><p className="text-[10px] text-gray-500">{sub}</p></div>
+          <div key={l}><p className="text-[10px] uppercase tracking-wide text-gray-500">{l}</p><p className="font-semibold tabular-nums">{v}</p><p className="text-[10px] text-gray-500">{sub}</p></div>
         ))}
       </div>
       <p className="mt-1 text-[11px] text-gray-500">
@@ -191,7 +191,7 @@ export default function Delinquency({ fundName, deals, dealId, delinq, leases = 
                   const cure = lease?.abstract ? fieldOf(lease.abstract, "default_cure")?.value : "";
                   return (
                     <tr key={t.tenantCode} className={`border-t border-gray-100 align-top ${t.buckets.d180 + t.buckets.over180 > 0 ? "bg-red-50/50" : t.delinquent > 0 ? "" : "text-gray-500"}`}>
-                      <td className="px-2 py-1"><span className="font-medium">{t.tenant}</span><p className="font-mono text-[10px] text-gray-400">{t.tenantCode}{Object.keys(t.byCharge).filter((k) => t.byCharge[k] > 0).map((k) => ` · ${CHARGE_TYPES[k]}`).join("")}</p></td>
+                      <td className="px-2 py-1"><span className="font-medium">{t.tenant}</span><p className="font-mono text-[10px] text-gray-500">{t.tenantCode}{Object.keys(t.byCharge).filter((k) => t.byCharge[k] > 0).map((k) => ` · ${CHARGE_TYPES[k]}`).join("")}</p></td>
                       <td className="px-2 py-1">{t.asset} · {t.unitName}</td>
                       {BUCKETS.map(([k]) => <td key={k} className="px-2 py-1 text-right">{t.buckets[k] ? usd(t.buckets[k]) : ""}</td>)}
                       <td className="px-2 py-1 text-right text-emerald-700">{t.buckets.prepay ? usd(t.buckets.prepay) : ""}</td>

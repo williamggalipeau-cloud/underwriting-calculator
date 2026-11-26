@@ -15,13 +15,13 @@ const fmtD = (v, u) => {
   const a = Math.abs(v);
   return u === "%" ? `${s}${a.toFixed(1)} pts` : u === "x" ? `${s}${a.toFixed(2)}x` : `${s}$${(a / 1e6).toFixed(2)}M`;
 };
-const tone = (v, good = 1) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-400" : v * good > 0 ? "text-emerald-700" : "text-red-600");
+const tone = (v, good = 1) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-500" : v * good > 0 ? "text-emerald-700" : "text-red-600");
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "—");
 
 // The notice for an owned asset, and the offer to update the Pipeline row
 // when the screener's figures differ from it. (The deals to pick from are in
 // the Pipeline Deal dropdown since 1.1.6: components/PipelineDealPicker.jsx.)
-export function ScreenerPicker({ activeDeal, owned, pipelineRow = null, onSyncRow = null }) {
+export function ScreenerPicker({ activeDeal, owned, pipelineRow = null, onSyncRow = null, activeRows = [], onPickRow = null }) {
   const q = activeDeal.quick ?? {};
   const diffs = pipelineRow ? [
     ["askingPrice", "price", q.purchasePrice],
@@ -35,6 +35,22 @@ export function ScreenerPicker({ activeDeal, owned, pipelineRow = null, onSyncRo
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="screener-owned">
           <span className="font-semibold">{activeDeal.inputs.propertyName}</span> is an owned asset of {activeDeal.inputs.fundName} (acquired {usDate(activeDeal.inputs.acquisitionDate)}). Deal Screener is for pipeline deals; owned assets are on the Asset Management tabs. Choose a Pipeline Deal above.
         </p>
+      )}
+      {/* 1.1.11 (UI review): no dead end: the active Pipeline deals to pick from. */}
+      {owned && onPickRow && (
+        activeRows.length ? (
+          <div className="rounded-lg border border-gray-200 bg-white p-3" data-testid="screener-pick-list">
+            <p className="mb-2 text-xs font-semibold text-gray-700">Screen a pipeline deal</p>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {activeRows.map((r) => (
+                <button key={r.id} type="button" onClick={() => onPickRow(r.id)} className="rounded-lg border border-gray-200 px-3 py-2 text-left text-xs hover:border-blue-300 hover:bg-blue-50">
+                  <b className="block text-sm text-gray-900">{r.name}</b>
+                  <span className="text-gray-600">{[r.stage ? r.stage[0].toUpperCase() + r.stage.slice(1) : "", r.askingPrice > 0 ? `$${(r.askingPrice / 1e6).toFixed(1)}M` : "", r.sf > 0 ? `${Math.round(r.sf).toLocaleString("en-US")} SF` : ""].filter(Boolean).join(" · ")}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : <p className="text-xs text-gray-600" data-testid="screener-pick-empty">No active deals on the Pipeline. Add one in Acquisitions → Pipeline, then screen it here.</p>
       )}
       {!owned && diffs.length > 0 && onSyncRow && (
         <p className="flex flex-wrap items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs text-sky-900" data-testid="screener-sync">
@@ -163,7 +179,7 @@ export default function ScreenerFundImpact({ activeDeal, deals, funds, todayISO,
               <div className="flex justify-between"><span>Largest state, % of value</span><span className="tabular-nums">{fmt(r.without.conc.state.value, "%")} → {fmt(r.with.conc.state.value, "%")} {r.with.conc.state.what ? `(${r.with.conc.state.what})` : ""}</span></div>
               <div className="flex justify-between"><span>Fund leverage (LTV)</span><span className="tabular-nums">{fmt(r.without.conc.ltv.value, "%")} → {fmt(r.with.conc.ltv.value, "%")}</span></div>
               <div className="pt-1" data-testid="impact-limits">
-                {r.limits.length === 0 ? <span className="text-gray-400">No fund limits set (Reports → Fund limits).</span>
+                {r.limits.length === 0 ? <span className="text-gray-500">No fund limits set (Reports → Fund limits).</span>
                   : r.newBreaches.length ? <span className="font-semibold text-red-700">Would breach: {r.newBreaches.map((l) => `${l.label} (${l.actual?.toFixed(1)} vs. ${l.limit})`).join("; ")}</span>
                   : <span className="text-emerald-700">No new limit breaches ({r.limits.length} limits checked).</span>}
               </div>

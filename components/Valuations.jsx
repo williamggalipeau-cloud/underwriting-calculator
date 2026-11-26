@@ -41,10 +41,10 @@ const tone = (n) => (n > 0 ? "text-emerald-700" : n < 0 ? "text-red-600" : "text
 
 function Change({ c }) {
   if (!c) return null;
-  if (c.acquired) return <div className="text-[10px] text-gray-400">Acquired</div>;
+  if (c.acquired) return <div className="text-[10px] text-gray-500">Acquired</div>;
   return (
     <div className={`text-[10px] ${tone(c.change)}`}>
-      {signed(c.change, fmtM)} <span className="text-gray-400">·</span> {signed(c.changePct, (n) => fmtPct(n, 1))}
+      {signed(c.change, fmtM)} <span className="text-gray-500">·</span> {signed(c.changePct, (n) => fmtPct(n, 1))}
     </div>
   );
 }
@@ -56,7 +56,7 @@ function ValueTrend({ trend }) {
     <div className="overflow-x-auto rounded-xl border border-gray-200" data-testid="value-trend">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 bg-gray-50 px-3 py-2">
         <h4 className="text-xs font-semibold text-gray-700">Value change, quarter over quarter</h4>
-        <span className="text-[10px] text-gray-400">Last four quarters to {quarterLabel(trend.quarters.at(-1))} · change from the prior quarter in $ and %</span>
+        <span className="text-[10px] text-gray-500">Last four quarters to {quarterLabel(trend.quarters.at(-1))} · change from the prior quarter in $ and %</span>
       </div>
       <table className="w-full text-xs tabular-nums">
         <thead className="text-gray-500">
@@ -83,7 +83,7 @@ function ValueTrend({ trend }) {
           <tr className="border-t-2 border-gray-200 bg-gray-50/60">
             <td className="px-2.5 py-1.5 text-left font-semibold text-gray-800">
               Fund total
-              <div className="text-[10px] font-normal text-gray-400">Same-store: assets valued in both quarters</div>
+              <div className="text-[10px] font-normal text-gray-500">Same-store: assets valued in both quarters</div>
             </td>
             {trend.fund.map((f) => (
               <td key={f.quarterEnd} className="px-2.5 py-1.5 text-right align-top">
@@ -152,7 +152,7 @@ function MarkEditor({ asset, marks, onChange, onOpenDoc }) {
                     disabled={r.heldAtCost && !(m.value > 0)}
                     title={r.heldAtCost ? (r.markIgnored ? "Not used: the asset is held at cost for its first 6 months. Clear it or keep it for reference." : "Held at cost for the first 6 months after acquisition") : ""}
                     onChange={(e) => set(r.quarterEnd, { value: numIn(e.target.value), source: m.source ?? (r.appraisalQuarter ? "appraisal" : "internal") })}
-                    className={`w-32 rounded border px-1.5 py-0.5 text-right disabled:bg-gray-50 ${r.markIgnored ? "border-amber-300 text-gray-400 line-through" : "border-gray-300"}`}
+                    className={`w-32 rounded border px-1.5 py-0.5 text-right disabled:bg-gray-50 ${r.markIgnored ? "border-amber-300 text-gray-500 line-through" : "border-gray-300"}`}
                     aria-label={`Fair value ${quarterLabel(r.quarterEnd)}`}
                   />
                 </td>
@@ -191,7 +191,7 @@ function MarkEditor({ asset, marks, onChange, onOpenDoc }) {
           })}
         </tbody>
       </table>
-      <p className="mt-1.5 text-[10px] text-gray-400">
+      <p className="mt-1.5 text-[10px] text-gray-500">
         Quarters ending within 6 months of acquisition are held at cost (purchase price + capex budget, plus capex added), whatever the quarter; no appraisal is due for them. After that, leave Fair value blank to use the roll-forward (last mark plus capex since). An entered Q1/Q3 value overrides the roll-forward.
       </p>
     </div>
@@ -262,7 +262,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
     return (
       <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
         <p className="text-sm text-gray-600">No fund assets yet.</p>
-        <p className="mt-1 text-xs text-gray-400">Put deals in a fund (Fund field, or Load Model Fund I) to value them here.</p>
+        <p className="mt-1 text-xs text-gray-500">Put deals in a fund (Fund field, or Load Model Fund I) to value them here.</p>
       </div>
     );
   }
@@ -372,7 +372,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
             ))}
           </div>
         )}
-        <p className="mt-1.5 text-[10px] text-gray-400">
+        <p className="mt-1.5 text-[10px] text-gray-500">
           An appraisal is due at each Q2 and Q4 end after the acquisition quarter (assets are held at cost in that quarter) and is overdue {DUE_DAYS} days
           after quarter end. Until it is entered, the asset is carried at its roll-forward value.
         </p>
@@ -408,7 +408,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
                       <tr className={`border-t border-gray-100 ${isOpen ? "bg-blue-50/40" : "hover:bg-gray-50"}`}>
                         <td className="px-2.5 py-2 text-left">
                           <div className="font-medium text-gray-800">{a.name}</div>
-                          <div className="text-[10px] text-gray-400">Acquired {fmtDate(a.acq)} · exit {fmtDate(a.exit)}</div>
+                          <div className="text-[10px] text-gray-500">Acquired {fmtDate(a.acq)} · exit {fmtDate(a.exit)}</div>
                         </td>
                         <td className="px-2.5 py-2 text-right font-semibold text-gray-900">{fmtM(r.value)}</td>
                         <td className="px-2.5 py-2 text-right whitespace-nowrap"><BasisBadge row={r} /></td>
@@ -429,7 +429,7 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
                           })()}
                         </td>
                         <td className={`px-2.5 py-2 text-right ${r.unrealized < 0 ? "text-red-600" : r.unrealized > 0 ? "text-emerald-700" : ""}`}>
-                          {fmtM(r.unrealized)} <span className="text-gray-400">({fmtPct((r.unrealized / r.cost) * 100)})</span>
+                          {fmtM(r.unrealized)} <span className="text-gray-500">({fmtPct((r.unrealized / r.cost) * 100)})</span>
                         </td>
                         <td className="px-2.5 py-2 text-right">{fmtM(r.debt)}</td>
                         <td className="px-2.5 py-2 text-right font-semibold">{fmtM(r.nav)}</td>
@@ -471,21 +471,21 @@ export default function Valuations({ deals, funds = {}, marks = {}, onMarksChang
                       <tbody>{checks.map(({ d, c }) => (
                         <tr key={d.id} className="border-t border-gray-100" data-testid="valuation-market-row">
                           <td className="px-2 py-1.5 font-medium">{d.inputs.propertyName}</td>
-                          <td className="px-2 py-1.5 text-gray-600">{c.submarket ? `${c.submarket.name}${c.quarter ? ` · ${c.quarter.replace("-", " ")}` : ""}` : <span className="text-gray-400">not tagged</span>}</td>
+                          <td className="px-2 py-1.5 text-gray-600">{c.submarket ? `${c.submarket.name}${c.quarter ? ` · ${c.quarter.replace("-", " ")}` : ""}` : <span className="text-gray-500">not tagged</span>}</td>
                           {["cap", "rent", "vacancy", "growth"].map((k) => { const r = c.rows.find((x) => x.kind === k); return <td key={k} className="px-2 py-1.5">{r ? <span className="flex flex-wrap items-center gap-1"><span className="text-gray-600">{gapLabel(r)}</span><StatusChip r={r} /></span> : "—"}</td>; })}
                         </tr>
                       ))}</tbody>
                     </table>
                   </div>
                 )}
-                <p className="text-[10px] text-gray-400">Difference = this asset minus the market (cap rate in bp, rent in %, vacancy and growth in points). Cap rate is the latest mark&apos;s, else the exit cap. Flags at {fundName}&apos;s levels: ±{flags.capBp} bp, ±{flags.rentPct}%, ±{flags.vacancyPts} pts, ±{flags.growthPts} pt; red past {flags.redMultiple}× (Edit fund → Market check flag levels).</p>
+                <p className="text-[10px] text-gray-500">Difference = this asset minus the market (cap rate in bp, rent in %, vacancy and growth in points). Cap rate is the latest mark&apos;s, else the exit cap. Flags at {fundName}&apos;s levels: ±{flags.capBp} bp, ±{flags.rentPct}%, ±{flags.vacancyPts} pts, ±{flags.growthPts} pt; red past {flags.redMultiple}× (Edit fund → Market check flag levels).</p>
               </div>
             );
           })()}
 
           <ValueTrend trend={valueTrend(val, asOf, 4)} />
 
-          <p className="text-[11px] text-gray-400 leading-relaxed">
+          <p className="text-[11px] text-gray-500 leading-relaxed">
             <span className="font-medium text-gray-500">Method:</span>{" "}assets are held at cost (price + capex budget) in the acquisition quarter.
             Each later quarter uses the entered mark if there is one, otherwise the last mark plus capex since. Equity NAV = fair value − loan
             balance + the asset&apos;s cash reserve. Interim returns use actual cash flows to date plus NAV as the ending value; IRRs under one year

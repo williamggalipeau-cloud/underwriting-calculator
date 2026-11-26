@@ -63,16 +63,16 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
                 const e = extensionTest(l);
                 return (
                   <tr key={l.id} className="border-t border-gray-100" data-testid="debt-loan-row">
-                    <td className="px-1.5 py-1 font-medium">{l.name}</td><td className="px-1.5 py-1">{l.lender || <span className="text-gray-400">not entered</span>}</td><td className="px-1.5 py-1">{money(l.balance)}</td>
+                    <td className="px-1.5 py-1 font-medium">{l.name}</td><td className="px-1.5 py-1">{l.lender || <span className="text-gray-500">not entered</span>}</td><td className="px-1.5 py-1">{money(l.balance)}</td>
                     <td className="px-1.5 py-1"><span className={`rounded px-1 py-0.5 text-[10px] font-semibold ${HEDGE[l.hedge][1]}`}>{HEDGE[l.hedge][0]}</span> {l.floating ? `S+${l.spreadPct.toFixed(2)}%` : pct(l.fixedRatePct, 2)}</td>
                     <td className="px-1.5 py-1">{usDate(l.currentMaturity)}</td><td className="px-1.5 py-1 text-gray-500">{usDate(l.finalMaturity)}</td><td className="px-1.5 py-1">{l.extensionsLeft}</td>
-                    <td className={`px-1.5 py-1 ${l.tests.minDscr && l.dscr < l.tests.minDscr ? "text-red-700 font-semibold" : ""}`}>{x2(l.dscr)}</td><td className="px-1.5 py-1">{pct(l.debtYieldPct)}</td><td className="px-1.5 py-1">{pct(l.ltvPct)}<span className="block text-[10px] text-gray-400">{l.valueBasis}</span></td>
+                    <td className={`px-1.5 py-1 ${l.tests.minDscr && l.dscr < l.tests.minDscr ? "text-red-700 font-semibold" : ""}`}>{x2(l.dscr)}</td><td className="px-1.5 py-1">{pct(l.debtYieldPct)}</td><td className="px-1.5 py-1">{pct(l.ltvPct)}<span className="block text-[10px] text-gray-500">{l.valueBasis}</span></td>
                     <td className="px-1.5 py-1" data-testid="ext-test">{e.status === "pass" ? <span className="text-emerald-700">Passes ({usDate(e.date)})</span> : e.status === "fail" ? <span className="font-semibold text-red-700" title={e.checks.filter((c) => !c.pass).map((c) => `${c.test} ${c.unit === "x" ? x2(c.value) : pct(c.value)} vs ${c.max ? "max" : "min"} ${c.unit === "x" ? x2(c.required) : pct(c.required)}`).join("; ")}>Fails: {e.checks.filter((c) => !c.pass).map((c) => c.test).join(", ")}</span> : <span className="text-gray-500">{e.status}</span>}</td>
                   </tr>
                 );
               })}</tbody>
             </table></div>
-            <p className="mt-1 text-[11px] text-gray-400">DSCR, debt yield and LTV in the current hold year from the model; value from the latest valuation mark (else cost). Extension tests project the asset&apos;s DSCR, debt yield and LTV at its next maturity against the loan&apos;s tests (the sizing constraints unless covenants are entered).</p>
+            <p className="mt-1 text-[11px] text-gray-500">DSCR, debt yield and LTV in the current hold year from the model; value from the latest valuation mark (else cost). Extension tests project the asset&apos;s DSCR, debt yield and LTV at its next maturity against the loan&apos;s tests (the sizing constraints unless covenants are entered).</p>
           </Card>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -83,7 +83,7 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
                     <span className="font-semibold">{y.year}</span>
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-1.5"><div className="h-3 rounded bg-blue-600" style={{ width: `${(y.current / maxBar) * 100}%` }} title={y.currentLoans.join(", ")} /><span className="tabular-nums text-gray-700">{y.current ? `${money(y.current)} (${pct(y.currentPct, 0)})` : ""}</span></div>
-                      <div className="flex items-center gap-1.5"><div className="h-2 rounded bg-blue-200" style={{ width: `${(y.extended / maxBar) * 100}%` }} title={y.extendedLoans.join(", ")} /><span className="tabular-nums text-gray-400">{y.extended ? `${money(y.extended)} if fully extended` : ""}</span></div>
+                      <div className="flex items-center gap-1.5"><div className="h-2 rounded bg-blue-200" style={{ width: `${(y.extended / maxBar) * 100}%` }} title={y.extendedLoans.join(", ")} /><span className="tabular-nums text-gray-500">{y.extended ? `${money(y.extended)} if fully extended` : ""}</span></div>
                     </div>
                   </div>
                 ))}
@@ -99,7 +99,7 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
             <Card title="Lender concentration" testid="debt-lenders">
               <table className="w-full text-xs tabular-nums"><thead className="text-gray-500"><tr><th className="text-left font-medium">Lender</th><th className="text-right font-medium">Balance</th><th className="text-right font-medium">% of debt</th><th className="text-left pl-2 font-medium">Loans</th></tr></thead>
                 <tbody>{lc.rows.map((r) => <tr key={r.lender} className="border-t border-gray-100"><td className="py-0.5">{r.lender}</td><td className="py-0.5 text-right">{money(r.balance)}</td><td className="py-0.5 text-right">{pct(r.pct)}</td><td className="py-0.5 pl-2 text-gray-500">{r.loans.join(", ")}</td></tr>)}</tbody></table>
-              <p className="mt-1 text-[11px] text-gray-400">HHI {lc.hhi.toLocaleString("en-US")} (10,000 = one lender). Lender names come from each asset&apos;s Debt inputs.</p>
+              <p className="mt-1 text-[11px] text-gray-500">HHI {lc.hhi.toLocaleString("en-US")} (10,000 = one lender). Lender names come from each asset&apos;s Debt inputs.</p>
             </Card>
             <Card title="Refinance planner" testid="debt-refi">
               <div className="flex flex-wrap items-end gap-2 text-xs">
@@ -135,12 +135,12 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
                       <tbody>{certs.map((c) => (
                         <tr key={c.dealId} className="border-t border-gray-100" data-testid="cert-row">
                           <td className="py-0.5">{c.asset}</td><td className="py-0.5 text-gray-500">{c.lender || "—"}</td>
-                          {c.rows.map((r) => <td key={r.test} className={`py-0.5 text-right ${r.pass ? "" : "font-semibold text-red-700"}`}>{r.unit === "x" ? x2(r.actual) : pct(r.actual)} <span className="text-[10px] text-gray-400">{r.kind === "min" ? "≥" : "≤"} {r.unit === "x" ? x2(r.required) : pct(r.required)}</span></td>)}
+                          {c.rows.map((r) => <td key={r.test} className={`py-0.5 text-right ${r.pass ? "" : "font-semibold text-red-700"}`}>{r.unit === "x" ? x2(r.actual) : pct(r.actual)} <span className="text-[10px] text-gray-500">{r.kind === "min" ? "≥" : "≤"} {r.unit === "x" ? x2(r.required) : pct(r.required)}</span></td>)}
                           <td className={`py-0.5 text-right font-semibold ${c.compliant ? "text-emerald-700" : "text-red-700"}`}>{c.compliant ? "In compliance" : "Breach"}</td>
                         </tr>
                       ))}</tbody></table>
                   )}
-                  <p className="mt-1 text-[11px] text-gray-400">Each certificate tests the quarter&apos;s DSCR, debt yield and LTV (model NOI for that hold year; the latest valuation mark at the quarter end) against the loan&apos;s covenants, with the calculation and a signature block. Review against the loan agreement&apos;s definitions before signing.</p>
+                  <p className="mt-1 text-[11px] text-gray-500">Each certificate tests the quarter&apos;s DSCR, debt yield and LTV (model NOI for that hold year; the latest valuation mark at the quarter end) against the loan&apos;s covenants, with the calculation and a signature block. Review against the loan agreement&apos;s definitions before signing.</p>
                 </>
               );
             })()}

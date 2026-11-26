@@ -89,7 +89,7 @@ function BenchmarkSection({ bm }) {
 function Stat({ label, value }) {
   return (
     <div className="rounded-lg border border-gray-200 px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide text-gray-400">{label}</div>
+      <div className="text-[10px] uppercase tracking-wide text-gray-500">{label}</div>
       <div className="text-sm font-semibold tabular-nums text-gray-900">{value}</div>
     </div>
   );
@@ -258,7 +258,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
         )}
         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs" data-testid="report-summary-change">
           <p className="text-[11px] text-gray-500">Change vs. last quarter{summary.prevLabel ? ` (${summary.prevLabel})` : ""}</p>
-          {!summary.change ? <p className="text-gray-400">No prior quarter to compare with.</p> : (
+          {!summary.change ? <p className="text-gray-500">No prior quarter to compare with.</p> : (
             <>
               <p className="text-sm font-semibold">{summary.moved.length ? `${summary.moved.length} measure${summary.moved.length === 1 ? "" : "s"} moved` : "No change"}</p>
               <p className="text-gray-600">{summary.moved.slice(0, 4).map((c) => `${c.label} ${summaryChange(c)}`).join(" · ")}</p>
@@ -276,7 +276,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           <summary className="cursor-pointer font-medium text-gray-700">Change vs. last quarter: all measures</summary>
           <table className="mt-2 w-full tabular-nums">
             <thead className="text-gray-500"><tr><th className="text-left font-medium">Measure</th><th className="text-right font-medium">Now</th><th className="text-right font-medium">Last quarter</th><th className="text-right font-medium">Change</th></tr></thead>
-            <tbody>{summary.change.map((c) => <tr key={c.label} className="border-t border-gray-100"><td className="py-1">{c.label}</td><td className="text-right">{summaryValue(c.now, c.unit)}</td><td className="text-right">{summaryValue(c.prev, c.unit)}</td><td className={`text-right ${c.change == null || Math.abs(c.change) < 1e-9 ? "text-gray-400" : ""}`}>{summaryChange(c)}</td></tr>)}</tbody>
+            <tbody>{summary.change.map((c) => <tr key={c.label} className="border-t border-gray-100"><td className="py-1">{c.label}</td><td className="text-right">{summaryValue(c.now, c.unit)}</td><td className="text-right">{summaryValue(c.prev, c.unit)}</td><td className={`text-right ${c.change == null || Math.abs(c.change) < 1e-9 ? "text-gray-500" : ""}`}>{summaryChange(c)}</td></tr>)}</tbody>
           </table>
         </details>
       )}
@@ -340,7 +340,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
       <div className="rounded-xl border border-gray-200 p-3 text-xs" data-testid="report-issued">
         <h3 className="mb-2 text-sm font-semibold text-gray-800">Issued · {r.quarterLabel}</h3>
         {issued.length === 0 ? (
-          <p className="text-gray-400">Nothing issued for this quarter yet.</p>
+          <p className="text-gray-500">Nothing issued for this quarter yet.</p>
         ) : (
           <ul className="space-y-1.5">
             {issued.map((x) => (

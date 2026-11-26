@@ -13,7 +13,7 @@ const fmt = (v, unit) => (v == null || !Number.isFinite(Number(v)) ? "—" : uni
 
 function Spark({ values, label }) {
   const xs = values.filter((v) => v != null);
-  if (xs.length < 2) return <span className="text-[10px] text-gray-400">—</span>;
+  if (xs.length < 2) return <span className="text-[10px] text-gray-500">—</span>;
   const min = Math.min(...xs), max = Math.max(...xs), W = 90, H = 24;
   const pts = values.map((v, i) => (v == null ? null : `${(i / (values.length - 1)) * W},${H - ((v - min) / (max - min || 1)) * (H - 4) - 2}`)).filter(Boolean).join(" ");
   return <svg width={W} height={H} role="img" aria-label={`${label} trend`} className="inline-block"><polyline points={pts} fill="none" stroke="#2563eb" strokeWidth="1.5" /></svg>;
@@ -98,7 +98,7 @@ export default function MarketData({ comps, onChange, deals = [], canEdit = fals
             <section className="space-y-1.5">
               <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Quarterly statistics: {cur.name}</h3>
                 {canEdit && <button type="button" onClick={() => setMarket((m) => ({ ...m, stats: [...m.stats, makeStat({ submarketId: cur.id, quarter: quarterKey(new Date().toISOString().slice(0, 10)) })] }))} className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium">+ Quarter</button>}</div>
-              {series.length === 0 ? <p className="rounded-lg border border-dashed border-gray-300 p-3 text-center text-xs text-gray-400">No statistics yet: upload a CoStar or broker report, or add a quarter.</p> : (
+              {series.length === 0 ? <p className="rounded-lg border border-dashed border-gray-300 p-3 text-center text-xs text-gray-500">No statistics yet: upload a CoStar or broker report, or add a quarter.</p> : (
                 <div className="overflow-x-auto rounded-xl border border-gray-200"><table className="w-full text-xs tabular-nums">
                   <thead className="bg-gray-50 text-gray-500"><tr><th className="px-1.5 py-1.5 text-left font-medium">Quarter</th>{STAT_FIELDS.map(([k, l]) => <th key={k} className="px-1.5 py-1.5 text-left font-medium whitespace-nowrap">{l}</th>)}<th className="px-1.5 py-1.5 text-left font-medium">Source</th></tr></thead>
                   <tbody>{series.map((s) => (
@@ -122,17 +122,17 @@ export default function MarketData({ comps, onChange, deals = [], canEdit = fals
           <thead className="bg-gray-50 text-gray-500"><tr><th className="px-1.5 py-1.5 text-left font-medium">Asset</th><th className="px-1.5 py-1.5 text-left font-medium">Submarket</th><th className="px-1.5 py-1.5 text-left font-medium">Rent $/SF (asset / market)</th><th className="px-1.5 py-1.5 text-left font-medium">Rent growth %/yr</th><th className="px-1.5 py-1.5 text-left font-medium">Vacancy %</th><th className="px-1.5 py-1.5 text-left font-medium">Exit cap / market cap</th></tr></thead>
           <tbody>{deals.map((d) => {
             const v = assetVsMarket(d.inputs, market);
-            const cell = (key, unit) => { const r = v?.rows.find((x) => x.key === key); if (!r) return "—"; return <span>{fmt(r.asset, unit)} / {fmt(r.market, unit)}{r.diff != null ? <span className={`ml-1 text-[10px] ${Math.abs(r.diff) < 1e-9 ? "text-gray-400" : "text-gray-500"}`}>({r.diff >= 0 ? "+" : ""}{unit === "psf" ? `$${r.diff.toFixed(2)}` : `${r.diff.toFixed(2)}`})</span> : null}</span>; };
+            const cell = (key, unit) => { const r = v?.rows.find((x) => x.key === key); if (!r) return "—"; return <span>{fmt(r.asset, unit)} / {fmt(r.market, unit)}{r.diff != null ? <span className={`ml-1 text-[10px] ${Math.abs(r.diff) < 1e-9 ? "text-gray-500" : "text-gray-500"}`}>({r.diff >= 0 ? "+" : ""}{unit === "psf" ? `$${r.diff.toFixed(2)}` : `${r.diff.toFixed(2)}`})</span> : null}</span>; };
             return (
               <tr key={d.id} className="border-t border-gray-100" data-testid="market-asset-row">
-                <td className="px-1.5 py-1 font-medium">{d.inputs.propertyName}<span className="block text-[10px] text-gray-400">{d.inputs.city}{d.inputs.state ? `, ${d.inputs.state}` : ""}</span></td>
+                <td className="px-1.5 py-1 font-medium">{d.inputs.propertyName}<span className="block text-[10px] text-gray-500">{d.inputs.city}{d.inputs.state ? `, ${d.inputs.state}` : ""}</span></td>
                 <td className="px-1.5 py-1"><select aria-label={`Submarket for ${d.inputs.propertyName}`} value={d.inputs.submarketId ?? ""} disabled={!canEdit} onChange={(e) => onUpdateDeal(d.id, (c) => ({ ...c, submarketId: e.target.value || null }))} className={inp}><option value="">—</option>{market.submarkets.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></td>
                 <td className="px-1.5 py-1">{cell("rent", "psf")}</td><td className="px-1.5 py-1">{cell("growth", "pct")}</td><td className="px-1.5 py-1">{cell("vacancy", "pct")}</td><td className="px-1.5 py-1">{cell("exitCap", "pct")}</td>
               </tr>
             );
           })}</tbody>
         </table></div>
-        <p className="text-[11px] text-gray-400">Market figures: the submarket&apos;s latest quarter; rent growth is the asking-rent trend over the last four quarters (small-bay when given). Asset figures are the model inputs.</p>
+        <p className="text-[11px] text-gray-500">Market figures: the submarket&apos;s latest quarter; rent growth is the asking-rent trend over the last four quarters (small-bay when given). Asset figures are the model inputs.</p>
       </section>
     </div>
   );

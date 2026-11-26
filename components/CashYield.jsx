@@ -40,7 +40,7 @@ export function AssetCashYield({ data, equity }) {
         </span>
       </div>
       <Bars items={data.rows.map((r) => ({ label: `Y${r.year}`, values: [{ key: "yield", value: r.yield, color: "bg-blue-500" }] }))} />
-      <p className="mt-1 text-[11px] text-gray-400">Each hold year&apos;s pre-tax cash flow (after debt service, caps and asset fees) ÷ equity invested at closing.</p>
+      <p className="mt-1 text-[11px] text-gray-500">Each hold year&apos;s pre-tax cash flow (after debt service, caps and asset fees) ÷ equity invested at closing.</p>
     </div>
   );
 }
@@ -92,7 +92,7 @@ export function FundCashYield({ data }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-1 text-[11px] text-gray-400">
+      <p className="mt-1 text-[11px] text-gray-500">
         Equity invested = equity in assets held, weighted by days held in the year. Gross = the assets&apos; operating cash flow (after debt
         service and asset fees). Net = operating income distributed to investors after fund expenses, sub line costs and the fund cash
         reserve. Sale proceeds are excluded. Life average = total cash ÷ total equity-years.

@@ -160,8 +160,8 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, o
                     ))}
                     <td className="px-1.5 py-1 font-semibold" data-testid="prospect-ner">{psf(ner)}</td>
                     <td className="px-1.5 py-1"><input aria-label="Expected start" type="date" value={p.expectedStart} disabled={!ed} onChange={(e) => set({ expectedStart: e.target.value })} className={inp} /></td>
-                    <td className="px-1.5 py-1" data-testid="prospect-vs-plan">{v ? <span className={v.rentVsPct != null && v.rentVsPct < 0 ? "text-red-700" : "text-emerald-700"}>{pct(v.rentVsPct)}<span className="block text-[10px] text-gray-400">plan {psf(v.targetRentPSF)}</span></span> : <span className="text-gray-400">no plan</span>}</td>
-                    <td className="px-1.5 py-1">{v?.downtime != null ? <span className={v.downtimeVs > 0 ? "text-red-700" : "text-emerald-700"}>{v.downtime} mo{v.targetDowntime != null ? <span className="block text-[10px] text-gray-400">plan {v.targetDowntime} mo</span> : null}</span> : "—"}</td>
+                    <td className="px-1.5 py-1" data-testid="prospect-vs-plan">{v ? <span className={v.rentVsPct != null && v.rentVsPct < 0 ? "text-red-700" : "text-emerald-700"}>{pct(v.rentVsPct)}<span className="block text-[10px] text-gray-500">plan {psf(v.targetRentPSF)}</span></span> : <span className="text-gray-500">no plan</span>}</td>
+                    <td className="px-1.5 py-1">{v?.downtime != null ? <span className={v.downtimeVs > 0 ? "text-red-700" : "text-emerald-700"}>{v.downtime} mo{v.targetDowntime != null ? <span className="block text-[10px] text-gray-500">plan {v.targetDowntime} mo</span> : null}</span> : "—"}</td>
                     <td className="px-1.5 py-1"><input aria-label="Next step" value={p.nextStep} disabled={!ed} onChange={(e) => set({ nextStep: e.target.value })} className={`${inp} w-28`} /><input aria-label="Next date" type="date" value={p.nextDate} disabled={!ed} onChange={(e) => set({ nextDate: e.target.value })} className={`${inp} mt-0.5 block`} /></td>
                     <td className="px-1.5 py-1" data-testid="prospect-credit">
                       {screeningComplete(p.screening) ? (
@@ -185,7 +185,7 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, o
             </table>
           </div>
         )}
-        <p className="text-[11px] text-gray-400">Net effective rent = rent over the term (with escalations) less free rent and TI, per year. Plan = the latest business plan revision&apos;s leasing row for the unit; downtime runs from the lease end (or today, when vacant) to the expected start.{scope === "fund" ? " Edit prospects on each asset's own view." : ""}</p>
+        <p className="text-[11px] text-gray-500">Net effective rent = rent over the term (with escalations) less free rent and TI, per year. Plan = the latest business plan revision&apos;s leasing row for the unit; downtime runs from the lease end (or today, when vacant) to the expected start.{scope === "fund" ? " Edit prospects on each asset's own view." : ""}</p>
       </section>
 
       {/* ── Rent Comps ── */}

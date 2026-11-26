@@ -119,7 +119,7 @@ function ThirdParty({ deal, deals, canEdit, onUpdate, workspaceId, email, scopeN
       {editing && <ResearchForm key={editing} initial={editing === "new" ? {} : researchOf(deal.inputs).find((r) => r.id === editing)} canUpload={!!workspaceId} onCancel={() => setEditing(null)} onSave={save} />}
 
       <div className="grid gap-3 sm:grid-cols-3" data-testid="research-summary">
-        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3"><p className="text-xs text-gray-500">Reports</p><p className="text-lg font-bold tabular-nums">{sum.count}</p><p className="text-[11px] text-gray-400">{sum.files} PDF{sum.files === 1 ? "" : "s"} · {sum.links} link{sum.links === 1 ? "" : "s"}</p></div>
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3"><p className="text-xs text-gray-500">Reports</p><p className="text-lg font-bold tabular-nums">{sum.count}</p><p className="text-[11px] text-gray-500">{sum.files} PDF{sum.files === 1 ? "" : "s"} · {sum.links} link{sum.links === 1 ? "" : "s"}</p></div>
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 sm:col-span-2"><p className="text-xs text-gray-500">Assumptions supported</p>
           <p className="text-xs">{sum.covered.length ? sum.covered.map(assumptionLabel).join(", ") : "None yet"}</p>
           {sum.count > 0 && sum.missing.length > 0 && <p className="text-[11px] text-amber-700">No research yet for: {sum.missing.map(assumptionLabel).join(", ")}</p>}

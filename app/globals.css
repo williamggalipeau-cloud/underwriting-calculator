@@ -24,3 +24,18 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 1.1.11 (UI review): phones are for quick looks and use (user, 11/26).
+   - Tables inside a scrolling box keep a readable width and scroll sideways,
+     with the first column fixed, instead of squeezing into narrow columns.
+   - Buttons, menus and fields are large enough to tap (40px) outside tables.
+   - Home shows its first 5 actions; the rest are one tap away. */
+@media (max-width: 639px) {
+  .overflow-x-auto > table { min-width: 40rem; }
+  .overflow-x-auto > table th:first-child,
+  .overflow-x-auto > table td:first-child { position: sticky; left: 0; z-index: 1; background: #fff; box-shadow: 1px 0 0 #f3f4f6; }
+  .overflow-x-auto > table thead th:first-child { background: #f9fafb; }
+  main button:not(table button), main select:not(table select), main input:not(table input):not([type="checkbox"]):not([type="radio"]),
+  header button, header select, nav button { min-height: 40px; }
+  [data-phone-more="true"] { display: none; }
+}

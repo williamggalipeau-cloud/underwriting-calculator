@@ -155,7 +155,7 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
       <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6" data-testid="pipeline-totals">
         {totals.map((t) => (
           <button key={t.stage} type="button" onClick={() => setF({ ...f, stage: f.stage === t.stage ? "active" : t.stage })} className={`rounded-lg border px-3 py-2 text-left ${f.stage === t.stage ? "border-blue-400 ring-1 ring-blue-200" : "border-gray-200"}`}>
-            <div className="text-[10px] uppercase tracking-wide text-gray-400">{t.label}</div>
+            <div className="text-[10px] uppercase tracking-wide text-gray-500">{t.label}</div>
             <div className="text-sm font-semibold tabular-nums text-gray-900">{t.count} · {fmtM(t.value)}</div>
             <div className="text-[10px] text-gray-500">{Math.round(t.sf).toLocaleString("en-US")} SF{t.stage !== "closed" && t.stage !== "passed" ? ` · weighted ${fmtM(t.weighted)}` : ""}</div>
           </button>
@@ -185,7 +185,7 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
                 const x = derived(d);
                 return (
                   <tr key={d.id} className="border-t border-gray-100 align-top" data-testid="pipeline-row">
-                    <td className={`${td} min-w-[160px]`}><div className="font-medium text-gray-900">{d.name}</div><div className="text-[10px] text-gray-500">{[d.address, d.city, d.state].filter(Boolean).join(", ")}</div>{d.source && <div className="text-[10px] text-gray-400">{d.source}</div>}</td>
+                    <td className={`${td} min-w-[160px]`}><div className="font-medium text-gray-900">{d.name}</div><div className="text-[10px] text-gray-500">{[d.address, d.city, d.state].filter(Boolean).join(", ")}</div>{d.source && <div className="text-[10px] text-gray-500">{d.source}</div>}</td>
                     <td className={td}>{d.market || "—"}</td>
                     <td className={`${td} text-right`}>{d.sf ? Math.round(d.sf).toLocaleString("en-US") : "—"}</td>
                     <td className={`${td} text-right`}>{fmtM(d.askingPrice)}</td>
@@ -233,7 +233,7 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
         </div>
       )}
       <PipelineReport pipeline={pipeline} deals={allDeals} funds={funds} curve={curve} canEdit={canEdit} email={email} onChange={onChange} />
-      {deals.some((d) => d.notes) && <p className="text-[11px] text-gray-400">Notes are kept with each deal and exported to Excel.</p>}
+      {deals.some((d) => d.notes) && <p className="text-[11px] text-gray-500">Notes are kept with each deal and exported to Excel.</p>}
     </section>
   );
 }

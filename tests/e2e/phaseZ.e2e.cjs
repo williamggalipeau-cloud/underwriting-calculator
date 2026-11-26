@@ -47,7 +47,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const home = p.getByTestId("home");
 
   check((await home.count()) === 1, "the app opens on Home");
-  check((await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0 && /^Dashboard/.test(await p.getByTestId("home").locator("h2").innerText()), "Home is in the header (not in Functions); the landing page is the Dashboard");
+  check((await p.locator("header").getByTestId("home-button").count()) === 1 && (await p.locator("nav").getByRole("button", { name: "Home", exact: true }).count()) === 0 && /^Home/.test(await p.getByTestId("home").locator("h2").innerText()), "Home is in the header (not in Functions); the landing page is Home (1.1.11: one name)");
 
   // ── Actions Needed (urgent) and Calendar (upcoming), user 11/24 ──
   const att = p.getByTestId("attention");
@@ -66,7 +66,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const color = async (re) => att.getByTestId("action-row").filter({ hasText: re }).locator("[data-overdue]").evaluate((e) => [e.dataset.overdue, e.className]);
   const [od, odCls] = await color(/without a \d{4}-\d{2}-\d{2} mark/);
   const [soon, soonCls] = await color(/Example Tenant Co expires/);
-  check(od === "yes" && /text-red-700/.test(odCls) && soon === "no" && /text-gray-900/.test(soonCls) && !/red/.test(soonCls), "overdue in red, due within 30 days in black");
+  check(od === "yes" && !/red/.test(odCls) && soon === "no" && /text-gray-900/.test(soonCls) && !/red/.test(soonCls), "1.1.11: red only on the status chip (overdue marked by its Past Due chip), not the text");
   // Done: the overdue item leaves Actions Needed and shows done on the Calendar
   const nAct = await att.getByTestId("action-row").count();
   check((await att.getByRole("button", { name: /^Done/ }).count()) === 0, "no Done button: Status marks it");
@@ -179,9 +179,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // The Baywise logo returns to the landing page too
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(400);
-  await p.getByRole("button", { name: "Baywise: go to the Dashboard" }).click();
+  await p.getByRole("button", { name: "Baywise: go to Home" }).click();
   await p.waitForTimeout(600);
-  check((await p.getByTestId("home").count()) === 1, "the Baywise logo returns to the Dashboard");
+  check((await p.getByTestId("home").count()) === 1, "the Baywise logo returns to Home");
   await p.screenshot({ path: `${S}/home.png`, fullPage: true });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();

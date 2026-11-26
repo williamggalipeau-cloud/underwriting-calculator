@@ -38,7 +38,7 @@ function Stat({ label, value, sub }) {
     <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
       <p className="text-xs text-gray-500">{label}</p>
       <p className="text-lg font-bold tabular-nums text-gray-900">{value}</p>
-      {sub && <p className="text-[11px] text-gray-400">{sub}</p>}
+      {sub && <p className="text-[11px] text-gray-500">{sub}</p>}
     </div>
   );
 }
@@ -139,7 +139,7 @@ function ImportPanel({ onImport, onClose }) {
                 <select
                   value={state.info.mapping[f.key] ?? ""}
                   onChange={(e) => setMap(f.key, e.target.value)}
-                  className={`w-44 rounded-md border px-1.5 py-1 text-xs ${state.info.mapping[f.key] != null ? "border-blue-300 bg-white" : "border-gray-200 bg-gray-50 text-gray-400"}`}
+                  className={`w-44 rounded-md border px-1.5 py-1 text-xs ${state.info.mapping[f.key] != null ? "border-blue-300 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"}`}
                 >
                   <option value="">— not in file —</option>
                   {state.info.headers.map((h, i) => (
@@ -320,7 +320,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
       {s.comps.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
           <p className="text-sm text-gray-600">No comps yet.</p>
-          <p className="mt-1 text-xs text-gray-400">Import an export from CoStar, Crexi or a broker, or add comps by hand.</p>
+          <p className="mt-1 text-xs text-gray-500">Import an export from CoStar, Crexi or a broker, or add comps by hand.</p>
           <button type="button" onClick={() => setComps(exampleComps())} className="mt-3 text-xs font-medium text-blue-600 hover:underline">
             Load example comps to try the tab
           </button>
@@ -356,7 +356,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
               <span className="text-gray-500">Market growth / yr (time adj.)</span>
               <NumInput value={s.marketGrowthPct} step="0.5" onChange={(v) => update({ marketGrowthPct: v })} className="w-24" />
             </label>
-            <p className="text-gray-400 max-w-xs">
+            <p className="text-gray-500 max-w-xs">
               $/SF is moved from each sale date to {fmtDate(asOfISO)}{" "}(your acquisition date) at this rate, then each comp&apos;s own adjustment is applied.
             </p>
           </div>
@@ -400,7 +400,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
                       {subjPSF && medPSF ? `${subjPSF > medPSF ? "+" : ""}${(((subjPSF - medPSF) / medPSF) * 100).toFixed(1)}%` : "—"}
                     </td>
                     <td className="px-2.5 py-1.5 text-right">
-                      {fmtM(valueAtPSF)} {valueAtPSF && <span className="text-gray-400">vs {fmtM(subject.price)} price</span>}
+                      {fmtM(valueAtPSF)} {valueAtPSF && <span className="text-gray-500">vs {fmtM(subject.price)} price</span>}
                     </td>
                   </tr>
                   <tr className="border-b border-gray-100">
@@ -411,7 +411,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
                       {subjCap != null && medCap != null ? `${subjCap >= medCap ? "+" : ""}${Math.round((subjCap - medCap) * 100)} bp` : "—"}
                     </td>
                     <td className="px-2.5 py-1.5 text-right">
-                      {fmtM(valueAtCap)} {valueAtCap && <span className="text-gray-400">at {fmtPct(medCap)} cap</span>}
+                      {fmtM(valueAtCap)} {valueAtCap && <span className="text-gray-500">at {fmtPct(medCap)} cap</span>}
                     </td>
                   </tr>
                   <tr>
@@ -422,7 +422,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
                       {medCap != null ? `${subject.exitCap >= medCap ? "+" : ""}${Math.round((subject.exitCap - medCap) * 100)} bp` : "—"}
                     </td>
                     <td className="px-2.5 py-1.5 text-right">
-                      {fmtM(subject.exitValue)} exit <span className="text-gray-400">= {fmtPSF(exitPSF)}/SF</span>
+                      {fmtM(subject.exitValue)} exit <span className="text-gray-500">= {fmtPSF(exitPSF)}/SF</span>
                     </td>
                   </tr>
                 </tbody>
@@ -438,7 +438,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
               <NumInput value={s.spreadBp} step="5" onChange={(v) => update({ spreadBp: v })} className="w-16" />
               <span className="text-gray-600">bp =</span>
               <span className="font-semibold text-gray-900">{fmtPct(suggestedExitCap)}</span>
-              {exitAtSuggested && <span className="text-gray-400">(exit value {fmtM(exitAtSuggested)})</span>}
+              {exitAtSuggested && <span className="text-gray-500">(exit value {fmtM(exitAtSuggested)})</span>}
               <button
                 type="button"
                 disabled={suggestedExitCap == null}
@@ -477,7 +477,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
                     </td>
                     <td className="px-2.5 py-1.5 text-left">
                       <div className="font-medium text-gray-800">{c.name || "—"}</div>
-                      <div className="text-[10px] text-gray-400">
+                      <div className="text-[10px] text-gray-500">
                         {[c.city, c.state].filter(Boolean).join(", ")}
                         {c.submarket && ` · ${c.submarket}`}
                         {c.propertyType && ` · ${c.propertyType}`}
@@ -495,7 +495,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
                     </td>
                     <td className="px-2.5 py-1.5 text-right font-semibold text-gray-900">{fmtPSF(adjustedPSF(c, adjOpts))}</td>
                     <td className="px-2.5 py-1.5 text-right">
-                      <button type="button" onClick={() => setComps(s.comps.filter((x) => x.id !== c.id))} className="text-gray-400 hover:text-red-600" aria-label={`Remove ${c.name}`}>
+                      <button type="button" onClick={() => setComps(s.comps.filter((x) => x.id !== c.id))} className="text-gray-500 hover:text-red-600" aria-label={`Remove ${c.name}`}>
                         ✕
                       </button>
                     </td>
@@ -504,7 +504,7 @@ export default function SalesComps({ state, onChange, subject, onSetExitCap }) {
               </tbody>
             </table>
           </div>
-          <p className="text-[11px] text-gray-400">
+          <p className="text-[11px] text-gray-500">
             Adj. % covers differences such as location, age, clear height or lease term (+ if the subject is better). Click a column to sort.
           </p>
         </>

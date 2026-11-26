@@ -179,7 +179,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(allChanges.some((c) => c.area === "Pipeline" || /Pipeline/.test(c.field ?? "") || /pipeline/i.test(JSON.stringify(c))), "pipeline changes in the change log");
 
   // Sample data → Add sample pipeline deals (user, 11/24): three fictional deals, added once
-  await p.getByRole("button", { name: "More", exact: true }).click();
+  await FX.openSetup(p);
   await p.getByTestId("sample-data-menu").getByRole("button", { name: /Sample data/ }).click();
   await p.getByRole("menuitem", { name: /Add sample pipeline deals/ }).click();
   await p.waitForTimeout(800);

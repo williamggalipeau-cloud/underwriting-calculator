@@ -28,7 +28,7 @@ function FactorRow({ label, sublabel, value, onChange, min, max, step = 1, suffi
     <div className="flex items-center gap-4">
       <div className="w-48 shrink-0">
         <p className="text-sm font-medium text-gray-700">{label}</p>
-        {sublabel && <p className="text-xs text-gray-400">{sublabel}</p>}
+        {sublabel && <p className="text-xs text-gray-500">{sublabel}</p>}
       </div>
       <div className="flex items-center gap-3 flex-1">
         <input
@@ -53,12 +53,12 @@ function FactorRow({ label, sublabel, value, onChange, min, max, step = 1, suffi
             }}
             className="w-16 text-right text-sm font-mono border border-gray-200 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           />
-          <span className="text-xs text-gray-400 w-8">{suffix}</span>
+          <span className="text-xs text-gray-500 w-8">{suffix}</span>
         </div>
       </div>
       <div className="w-20 text-right">
         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-          value === 0 ? "bg-gray-100 text-gray-400" :
+          value === 0 ? "bg-gray-100 text-gray-500" :
           value > 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
         }`}>
           {value === 0 ? "Base" : value > 0 ? `+${value}${suffix}` : `${value}${suffix}`}
@@ -82,7 +82,7 @@ function Delta({ base, stressed, format = "pct", higherIsBetter = true }) {
 
   if (!isFinite(delta)) return <span className="text-gray-300">—</span>;
   return (
-    <span className={`text-xs font-medium ${delta === 0 ? "text-gray-400" : isGood ? "text-emerald-600" : "text-red-600"}`}>
+    <span className={`text-xs font-medium ${delta === 0 ? "text-gray-500" : isGood ? "text-emerald-600" : "text-red-600"}`}>
       {display}
     </span>
   );
@@ -101,8 +101,8 @@ function MetricPair({ base, stressed, format = "pct", threshold, higherIsBetter 
   return (
     <td className="px-3 py-2.5 text-right tabular-nums">
       <div className="flex flex-col items-end gap-0.5">
-        <span className="text-xs text-gray-400">{formatVal(base)}</span>
-        <span className={`text-sm font-semibold ${isFinite(stressed) ? (good ? "text-emerald-700" : "text-red-600") : "text-gray-400"}`}>
+        <span className="text-xs text-gray-500">{formatVal(base)}</span>
+        <span className={`text-sm font-semibold ${isFinite(stressed) ? (good ? "text-emerald-700" : "text-red-600") : "text-gray-500"}`}>
           {formatVal(stressed)}
         </span>
         <Delta base={base} stressed={stressed} format={format} higherIsBetter={higherIsBetter} />
@@ -208,7 +208,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900">Stress Testing</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-gray-500 mt-0.5">
             Adjust risk factors below to see how returns shift under adverse scenarios.
             Base case values shown in grey; stressed values in colour.
           </p>
@@ -218,7 +218,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
             <button
               type="button"
               onClick={resetCurrentFactors}
-              className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+              className="text-xs text-gray-500 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
             >
               Reset
             </button>
@@ -307,7 +307,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           <tbody>{FACTORS.map((k) => (
             <tr key={k} className="border-t border-gray-100" data-testid="vol-row">
               <td className="py-1">{FACTOR_LABELS[k]}</td>
-              <td className="py-1"><input aria-label={`${FACTOR_LABELS[k]} volatility`} type="number" step="any" value={Math.round(vol[k] * 100) / 100} onChange={(e) => { const v = Number(e.target.value); if (v > 0) setVolEdits({ ...volEdits, [k]: v }); setSim(null); }} className="w-20 rounded border border-gray-200 px-1.5 py-0.5" /> <span className="text-gray-400">{k === "rateDelta" ? "bp" : "%"}</span></td>
+              <td className="py-1"><input aria-label={`${FACTOR_LABELS[k]} volatility`} type="number" step="any" value={Math.round(vol[k] * 100) / 100} onChange={(e) => { const v = Number(e.target.value); if (v > 0) setVolEdits({ ...volEdits, [k]: v }); setSim(null); }} className="w-20 rounded border border-gray-200 px-1.5 py-0.5" /> <span className="text-gray-500">{k === "rateDelta" ? "bp" : "%"}</span></td>
               <td className="py-1 text-gray-500">{volEdits[k] != null ? "edited" : volInfo.source[k]}</td>
               <td className="py-1">{sig[k] ? `${sig[k] >= 0 ? "+" : ""}${sig[k].toFixed(1)}σ` : "—"}</td>
             </tr>
@@ -332,7 +332,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-gray-700">
           {selectedInputs.propertyName || "Unnamed"}
-          {isBaseCase && <span className="ml-2 text-xs font-normal text-gray-400">(no stress applied)</span>}
+          {isBaseCase && <span className="ml-2 text-xs font-normal text-gray-500">(no stress applied)</span>}
         </h3>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -404,18 +404,18 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-700">
               Portfolio Impact
-              <span className="ml-2 text-xs font-normal text-gray-400">({savedDeals.length} saved asset{savedDeals.length !== 1 ? "s" : ""})</span>
+              <span className="ml-2 text-xs font-normal text-gray-500">({savedDeals.length} saved asset{savedDeals.length !== 1 ? "s" : ""})</span>
             </h3>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-xs text-gray-400">Base Portfolio IRR</p>
+                <p className="text-xs text-gray-500">Base Portfolio IRR</p>
                 <p className={`text-base font-bold tabular-nums ${isFinite(basePortfolioIRR) && basePortfolioIRR >= 14 ? "text-emerald-700" : "text-red-600"}`}>
                   {fmtPct(basePortfolioIRR)}
                 </p>
               </div>
               <div className="w-px h-8 bg-gray-200" />
               <div className="text-right">
-                <p className="text-xs text-gray-400">Stressed Portfolio IRR</p>
+                <p className="text-xs text-gray-500">Stressed Portfolio IRR</p>
                 <p className={`text-base font-bold tabular-nums ${isFinite(stressedPortfolioIRR) && stressedPortfolioIRR >= 14 ? "text-emerald-700" : "text-red-600"}`}>
                   {isBaseCase ? <span className="text-gray-300">—</span> : fmtPct(stressedPortfolioIRR)}
                 </p>
@@ -424,7 +424,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
                 <>
                   <div className="w-px h-8 bg-gray-200" />
                   <div className="text-right">
-                    <p className="text-xs text-gray-400">Portfolio IRR Impact</p>
+                    <p className="text-xs text-gray-500">Portfolio IRR Impact</p>
                     <p className={`text-base font-bold tabular-nums ${stressedPortfolioIRR >= basePortfolioIRR ? "text-emerald-700" : "text-red-600"}`}>
                       {(() => {
                         const d = stressedPortfolioIRR - basePortfolioIRR;
@@ -442,12 +442,12 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Asset</th>
-                  <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">IRR</th>
-                  <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Eq. Multiple</th>
-                  <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">CoC Y1</th>
-                  <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">DSCR</th>
-                  <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Equity Req.</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500">Asset</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">IRR</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">Eq. Multiple</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">CoC Y1</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">DSCR</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-500 whitespace-nowrap">Equity Req.</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -459,7 +459,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
                       <td className="px-3 py-2.5">
                         <p className="font-medium text-gray-800">{deal.inputs.propertyName || "Unnamed"}</p>
                         {deal.inputs.fundName && (
-                          <p className="text-xs text-gray-400">{deal.inputs.fundName}</p>
+                          <p className="text-xs text-gray-500">{deal.inputs.fundName}</p>
                         )}
                       </td>
                       <MetricPair base={b.irr} stressed={s.irr} format="pct" threshold={14} />
@@ -476,7 +476,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
                   <td className="px-3 py-2 font-semibold text-gray-700">Portfolio</td>
                   <td className="px-3 py-2 text-right tabular-nums">
                     <div className="flex flex-col items-end gap-0.5">
-                      <span className="text-xs text-gray-400">{fmtPct(basePortfolioIRR)}</span>
+                      <span className="text-xs text-gray-500">{fmtPct(basePortfolioIRR)}</span>
                       <span className={`text-sm font-bold ${isFinite(stressedPortfolioIRR) && stressedPortfolioIRR >= 14 ? "text-emerald-700" : "text-red-600"}`}>
                         {isBaseCase ? fmtPct(basePortfolioIRR) : fmtPct(stressedPortfolioIRR)}
                       </span>
@@ -489,7 +489,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
             </table>
           </div>
 
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             Grey = base case · Colour = stressed · Stressed IRR computed by re-running the full underwriting model with adjusted inputs.
             Portfolio IRR derived from year-by-year aggregation of all asset cash flows.
           </p>
@@ -499,7 +499,7 @@ export default function StressTest({ inputs, results, savedDeals, onStressedDeal
       {!hasPortfolio && (
         <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
           <p className="text-sm font-medium text-gray-500">No portfolio assets saved</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Save deals in the Portfolio Return tab to see portfolio-level stress impact here.
           </p>
         </div>

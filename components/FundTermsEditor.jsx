@@ -40,7 +40,7 @@ function Num({ label, value, onChange, suffix, prefix, step = 1, min = 0, hint }
         />
         {suffix && <span className="px-2.5 py-1.5 bg-gray-50 border-l border-gray-200 text-gray-500 text-sm">{suffix}</span>}
       </span>
-      {hint && <span className="text-[11px] text-gray-400">{hint}</span>}
+      {hint && <span className="text-[11px] text-gray-500">{hint}</span>}
     </label>
   );
 }
@@ -110,7 +110,7 @@ function LpaPanel({ workspaceId, email, fundName, terms, onUse, onUseLimit }) {
                     <tr key={r.key} className="border-t border-violet-100 align-top" data-testid={`lpa-row-${r.key}`}>
                       <td className="py-1 pr-2">{r.label}</td>
                       <td className="py-1 pr-2 text-gray-500">now {r.appValue == null || r.appValue === "" ? "—" : String(r.appValue)}</td>
-                      <td className="py-1 pr-2 font-medium">{String(r.docValue)}{r.limit?.clause ? <span className="ml-1 text-[10px] font-normal text-gray-400">§ {r.limit.clause}</span> : null}</td>
+                      <td className="py-1 pr-2 font-medium">{String(r.docValue)}{r.limit?.clause ? <span className="ml-1 text-[10px] font-normal text-gray-500">§ {r.limit.clause}</span> : null}</td>
                       <td className="py-1 text-right">
                         {r.differs ? (
                           <button type="button" onClick={() => (r.limit ? onUseLimit({ ...r.setValue, docId: d.id, quote: r.limit.evidence?.[0]?.quote ?? "" }) : onUse(r.target, r.setValue))} className="rounded border border-violet-300 bg-white px-2 py-0.5 text-violet-800">Use</button>
@@ -172,7 +172,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
       <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-gray-200 my-8">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="text-base font-semibold text-gray-900">{mode === "new" ? `New ${unitLc}` : `Edit terms · ${initial?.name}`}</h2>
-          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-700" aria-label="Close">✕</button>
+          <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700" aria-label="Close">✕</button>
         </div>
 
         <div className="px-6 py-5 space-y-6">
@@ -265,9 +265,9 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                     onChange={(e) => set("hurdleRatePct")(e.target.value === "" ? null : Math.max(0, parseFloat(e.target.value) || 0))}
                     className="w-full rounded-lg px-2.5 py-1.5 text-sm text-gray-900 outline-none"
                   />
-                  <span className="pr-2 text-xs text-gray-400">%/yr</span>
+                  <span className="pr-2 text-xs text-gray-500">%/yr</span>
                 </div>
-                <span className="text-[10px] text-gray-400">Cost of capital; blank = the preferred return</span>
+                <span className="text-[10px] text-gray-500">Cost of capital; blank = the preferred return</span>
               </label>
               <Num label="Mgmt fee" suffix="%/yr" step={0.25} value={t.mgmtFeePct} onChange={set("mgmtFeePct")} hint="Quarterly in advance, LPs only" />
               <label className="flex flex-col gap-1">
@@ -276,7 +276,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                   <option value="commitments-then-invested">Commitments, then invested</option>
                   <option value="invested">Invested capital</option>
                 </select>
-                <span className="text-[10px] text-gray-400">Commitments during the investment period, then invested capital in assets held</span>
+                <span className="text-[10px] text-gray-500">Commitments during the investment period, then invested capital in assets held</span>
               </label>
               <Num label={`${unit} cash reserve`} suffix="qtrs" step={1} value={t.cashReserveQuarters ?? 2} onChange={set("cashReserveQuarters")} hint="Quarters of projected fund expenses" />
               <Num label="Acquisition fee" suffix="% of price" step={0.25} value={t.acqFeePct ?? 0} onChange={set("acqFeePct")} hint="Paid to the sponsor when an asset is bought" />
@@ -287,7 +287,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                   <option value="lp+gp">LP + GP commitments (default)</option>
                   <option value="lp">LP commitments only</option>
                 </select>
-                <span className="text-[10px] text-gray-400">{t.revenueYieldBasisSource === "doc" ? `Read in from the ${unit === "Fund" ? "LPA" : unit === "JV" ? "JVA" : "SMA"}` : t.revenueYieldBasisSource === "user" ? "Set by you" : "Default"}: the commitments GP fees are measured against on GP Economics</span>
+                <span className="text-[10px] text-gray-500">{t.revenueYieldBasisSource === "doc" ? `Read in from the ${unit === "Fund" ? "LPA" : unit === "JV" ? "JVA" : "SMA"}` : t.revenueYieldBasisSource === "user" ? "Set by you" : "Default"}: the commitments GP fees are measured against on GP Economics</span>
               </label>
             </div>
             {fundType(t.type) === "Joint Venture" && (
@@ -362,7 +362,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                           <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of GP capital`} type="number" min={0} max={100} step={5} value={g.capitalPct} onChange={(e) => setGp(i, "capitalPct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
                           <td className="text-right"><span className="inline-flex items-center gap-1 whitespace-nowrap"><input aria-label={`GP ${i + 1}: share of promote`} type="number" min={0} max={100} step={5} value={g.promotePct} onChange={(e) => setGp(i, "promotePct", num(e.target.value))} className={`${sel} w-16 text-right`} />%</span></td>
                         </>)}
-                        <td className="text-right">{gps.length > 1 && <button type="button" onClick={() => setGps((gs) => gs.filter((_, j) => j !== i))} className="text-xs text-gray-400 hover:text-red-600">Remove</button>}</td>
+                        <td className="text-right">{gps.length > 1 && <button type="button" onClick={() => setGps((gs) => gs.filter((_, j) => j !== i))} className="text-xs text-gray-500 hover:text-red-600">Remove</button>}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -410,7 +410,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                           <td className="py-1">{portfolioAssets.find((a) => a.id === id)?.name ?? id}</td>
                           <td className="text-right"><input aria-label="Asset GP share of promote" type="number" min={0} max={100} step={5} value={v} onChange={(e) => setOverride(id, Math.min(100, Math.max(0, Number(e.target.value) || 0)))} className={`${sel} w-20 text-right`} /></td>
                           <td className="text-right text-gray-600">{100 - Number(v)}</td>
-                          <td className="text-right"><button type="button" onClick={() => setOverride(id, null)} className="text-xs text-gray-400 hover:text-red-600">Remove</button></td>
+                          <td className="text-right"><button type="button" onClick={() => setOverride(id, null)} className="text-xs text-gray-500 hover:text-red-600">Remove</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -478,7 +478,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
             </div>
             <div className="rounded-xl border border-gray-200 overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                <thead className="bg-gray-50 text-xs text-gray-500">
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold">Promote tier</th>
                     <th className="px-3 py-2 text-left font-semibold">Fund IRR up to (%)</th>
@@ -509,7 +509,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                       </td>
                       <td className="px-3 py-1.5 text-right">
                         {t.tiers.length > 1 && (
-                          <button type="button" onClick={() => setT((p) => ({ ...p, tiers: p.tiers.filter((_, j) => j !== i) }))} className="text-xs text-gray-400 hover:text-red-500">
+                          <button type="button" onClick={() => setT((p) => ({ ...p, tiers: p.tiers.filter((_, j) => j !== i) }))} className="text-xs text-gray-500 hover:text-red-500">
                             Remove
                           </button>
                         )}
@@ -528,7 +528,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 </button>
               )}
             </div>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-gray-500">
               Distributions: pref → return of capital → GP catch-up → split by the tier the {unitLc}&apos;s IRR falls in. Leave the top tier&apos;s hurdle blank.
             </p>
           </section>
@@ -548,7 +548,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                 <Num label="Spread over SOFR" suffix="%" step={0.05} value={t.subLineSpreadPct} onChange={set("subLineSpreadPct")} hint="30-day average SOFR" />
                 <Num label="Unused fee" suffix="%/yr" step={0.05} value={t.subLineUnusedFeePct} onChange={set("subLineUnusedFeePct")} />
                 <Num label="Max days outstanding" suffix="days" step={30} value={t.subLineMaxDays} onChange={set("subLineMaxDays")} hint="Then repaid by an LP call" />
-                <label className="flex flex-col gap-0.5 text-xs text-gray-600">Facility maturity<input aria-label="Sub line maturity" type="date" value={t.subLineMaturity ?? ""} onChange={(e) => set("subLineMaturity")(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /><span className="text-[11px] text-gray-400">Shown on the Dashboard&apos;s Calendar</span></label>
+                <label className="flex flex-col gap-0.5 text-xs text-gray-600">Facility maturity<input aria-label="Sub line maturity" type="date" value={t.subLineMaturity ?? ""} onChange={(e) => set("subLineMaturity")(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /><span className="text-[11px] text-gray-500">Shown on the Dashboard&apos;s Calendar</span></label>
               </div>
             )}
           </section>

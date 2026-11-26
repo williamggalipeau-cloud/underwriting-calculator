@@ -36,12 +36,12 @@ const FUNDING = {
   "Sub line": "text-gray-700",
   "Call + line": "text-gray-700",
   "Not tagged": "text-amber-700",
-  "—": "text-gray-400",
+  "—": "text-gray-500",
 };
 
 // "3 of 4": leases abstracted of those on the Leases tab.
 function LeasesCell({ info }) {
-  if (!info) return <span className="text-gray-400" title="No lease documents on the Leases tab">—</span>;
+  if (!info) return <span className="text-gray-500" title="No lease documents on the Leases tab">—</span>;
   const plural = info.leases === 1 ? "" : "s";
   const risk = info.highRisks ? `; ${info.highRisks} high risk flag${info.highRisks === 1 ? "" : "s"}` : "";
   const title = `${info.leases} lease${plural} on the Leases tab: ${info.abstracted} abstracted, ${info.applied} applied to the rent roll${risk}`;
@@ -51,22 +51,22 @@ function LeasesCell({ info }) {
 
 // [key, header, render(row), sortValue(row), group]
 const COLUMNS = [
-  ["location", "Location", (r) => r.location || <span className="text-gray-400">—</span>, (r) => r.location || "~", "Asset"],
+  ["location", "Location", (r) => r.location || <span className="text-gray-500">—</span>, (r) => r.location || "~", "Asset"],
   ["status", "Status", (r) => <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]}`}>{r.status}</span>, (r) => r.status, "Asset"],
   ["acq", "Acquired", (r) => (r.acqAssumed ? <span className="text-amber-700" title="No acquisition date entered: the fund's final close is assumed">{fmtDate(r.acq)}*</span> : fmtDate(r.acq)), (r) => r.acq, "Asset"],
   ["exit", "Exit", (r) => fmtDate(r.exit), (r) => r.exit, "Asset"],
   ["sf", "SF", (r) => fmt(r.sf), (r) => r.sf, "Asset"],
   ["units", "Units", (r) => (r.units ? fmt(r.units) : "—"), (r) => r.units, "Asset"],
-  ["occupancy", "Occupancy", (r) => (r.rentRoll ? fmtPct(r.occupancyPct, 0) : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (r.rentRoll ? r.occupancyPct : -Infinity), "Asset"],
-  ["vacancy", "Vacancy", (r) => (r.rentRoll ? fmtPct(r.vacancyPct, 0) : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (r.rentRoll ? r.vacancyPct : -Infinity), "Asset"],
+  ["occupancy", "Occupancy", (r) => (r.rentRoll ? fmtPct(r.occupancyPct, 0) : <span className="text-gray-500" title="No rent roll">—</span>), (r) => (r.rentRoll ? r.occupancyPct : -Infinity), "Asset"],
+  ["vacancy", "Vacancy", (r) => (r.rentRoll ? fmtPct(r.vacancyPct, 0) : <span className="text-gray-500" title="No rent roll">—</span>), (r) => (r.rentRoll ? r.vacancyPct : -Infinity), "Asset"],
   ["leases", "Leases abstracted", (r) => <LeasesCell info={r.leaseInfo} />, (r) => (r.leaseInfo ? r.leaseInfo.abstracted : -Infinity), "Asset"],
-  ["walt", "WALT", (r) => (isFinite(r.walt) ? `${r.walt.toFixed(1)} yrs` : <span className="text-gray-400" title="No rent roll">—</span>), (r) => (isFinite(r.walt) ? r.walt : -Infinity), "Asset"],
+  ["walt", "WALT", (r) => (isFinite(r.walt) ? `${r.walt.toFixed(1)} yrs` : <span className="text-gray-500" title="No rent roll">—</span>), (r) => (isFinite(r.walt) ? r.walt : -Infinity), "Asset"],
   ["price", "Price", (r) => fmtM(r.price), (r) => r.price, "Capital"],
   ["pricePSF", "$/SF", (r) => `$${fmt(r.pricePSF)}`, (r) => r.pricePSF, "Capital"],
   ["loan", "Loan", (r) => fmtM(r.loan), (r) => r.loan, "Capital"],
   ["ltv", "Loan / price", (r) => fmtPct(r.ltv, 0), (r) => r.ltv, "Capital"],
   ["sizedBy", "Sized by", (r) => <span title={`${r.sizing.tested} sizing test${r.sizing.tested === 1 ? "" : "s"} on (Debt tab)`}>{r.sizing.binding}</span>, (r) => r.sizing.binding, "Capital"],
-  ["cushion", "Sizing cushion", (r) => (isFinite(r.sizing.cushionPct) ? <span className={r.sizing.cushionPct < 5 ? "text-amber-700" : ""} title={`Loan could grow ${fmtPct(r.sizing.cushionPct)} before ${r.sizing.next} binds`}>{fmtPct(r.sizing.cushionPct)}</span> : <span className="text-gray-400" title="Only one sizing test is on">—</span>), (r) => (isFinite(r.sizing.cushionPct) ? r.sizing.cushionPct : -Infinity), "Capital"],
+  ["cushion", "Sizing cushion", (r) => (isFinite(r.sizing.cushionPct) ? <span className={r.sizing.cushionPct < 5 ? "text-amber-700" : ""} title={`Loan could grow ${fmtPct(r.sizing.cushionPct)} before ${r.sizing.next} binds`}>{fmtPct(r.sizing.cushionPct)}</span> : <span className="text-gray-500" title="Only one sizing test is on">—</span>), (r) => (isFinite(r.sizing.cushionPct) ? r.sizing.cushionPct : -Infinity), "Capital"],
   ["equity", "Equity", (r) => fmtM(r.equity), (r) => r.equity, "Capital"],
   ["funding", "Funding", (r) => <span className={FUNDING[r.funding.label] ?? ""}>{r.funding.label}</span>, (r) => r.funding.label, "Capital"],
   ["noi1", "Yr-1 NOI", (r) => fmtM(r.noi1), (r) => r.noi1, "Underwriting"],
@@ -110,7 +110,7 @@ function Fact({ label, value, sub }) {
       <span className="text-gray-500">{label}</span>
       <span className="text-right font-medium text-gray-900 tabular-nums">
         {value}
-        {sub && <span className="ml-1 font-normal text-gray-400">{sub}</span>}
+        {sub && <span className="ml-1 font-normal text-gray-500">{sub}</span>}
       </span>
     </div>
   );
@@ -184,7 +184,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
 
       {/* Leases (from the Leases tab) */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs" data-testid="asset-leases">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Leases</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Leases</span>
         <span>WALT <span className="font-medium">{isFinite(row.walt) ? `${row.walt.toFixed(1)} yrs` : "—"}</span></span>
         {row.leaseInfo ? (
           <>
@@ -213,7 +213,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
       {/* Terms */}
       <div className="grid gap-x-6 gap-y-3 text-xs md:grid-cols-2 xl:grid-cols-4">
         <div>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Acquisition</h4>
+          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Acquisition</h4>
           <Fact label="Purchase price" value={fmtM(row.price)} sub={`$${fmt(row.pricePSF)}/SF`} />
           <Fact label="Closing costs" value={fmtM(closingCosts)} />
           <Fact label="Capex budget" value={fmtM(capex)} sub={capex ? (inp.capexLenderFunded ? "lender-funded" : "equity-funded") : ""} />
@@ -223,7 +223,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
           {direct && <Fact label="NOI growth" value={fmtPct(inp.noiGrowthPct)} sub="per year" />}
         </div>
         <div>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Debt</h4>
+          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Debt</h4>
           <Fact label="Loan" value={fmtM(debt.loanAmount)} sub={`${fmtPct(row.ltv, 0)} of price`} />
           <Fact label="Rate" value={inp.floatingRate ? `SOFR + ${fmtPct(spread, 2)}` : fmtPct(inp.interestRatePct, 2)} sub={`yr 1 ${fmtPct(debt.effectiveRate, 2)}`} />
           <Fact label="Payments" value={(inp.ioPeriodYears ?? 0) >= hold ? "Interest-only" : `${inp.ioPeriodYears ?? 0} yrs IO, ${inp.amortizationYears}-yr amort.`} />
@@ -231,7 +231,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
           <Fact label="Extension fee" value={inp.extensionFeeAmount ? fmtM(inp.extensionFeeAmount) : inp.extensionFeePct ? fmtPct(inp.extensionFeePct, 2) : "—"} />
           <Fact label="Rate cap strike" value={sofrStrike != null ? `${fmtPct(sofrStrike, 2)} SOFR` : "—"} sub={inp.capTermYears ? `${inp.capTermYears}-yr caps` : ""} />
           <Fact label="Year-1 DSCR" value={isFinite(row.dscr1) ? `${row.dscr1.toFixed(2)}x` : "—"} sub={`debt yield ${fmtPct(debt.debtYield)}`} />
-          <h4 className="mb-1 mt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Loan sizing</h4>
+          <h4 className="mb-1 mt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Loan sizing</h4>
           {row.sizing.tests.map((t) => (
             <Fact
               key={t.name}
@@ -242,7 +242,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
           ))}
         </div>
         <div>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Fees & exit</h4>
+          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Fees & exit</h4>
           <Fact label="Asset management" value={am ? `${fmtPct(am.value)} of equity` : "—"} />
           <Fact label="Property management" value={inp.pmFeePct ? `${fmtPct(inp.pmFeePct)} of ${inp.pmFeeBasis === "value" ? "value" : "NOI"}` : `${fmtPct(inp.managementFeePct)} of EGR`} />
           <Fact label="Construction management" value={inp.cmFeePct ? `${fmtPct(inp.cmFeePct)} of price / yr` : "—"} />
@@ -252,7 +252,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
           <Fact label="Net sale proceeds" value={fmtM(returns.equityReversion)} sub="after loan payoff" />
         </div>
         <div>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Returns (underwritten)</h4>
+          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Returns (underwritten)</h4>
           <Fact label="Equity" value={fmtM(debt.equityRequired)} />
           <Fact label="Peak equity" value={fmtM(peakEquity)} />
           <Fact label="Profit" value={fmtM(profit)} />
@@ -301,7 +301,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Valuation history */}
         <div>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Valuation history</h4>
+          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Valuation history</h4>
           {valuationRows.length ? (
             <table className="w-full text-xs tabular-nums">
               <thead className="text-gray-500">
@@ -325,12 +325,12 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-gray-400">No completed quarter since acquisition yet. Marks are entered on the Valuation tab.</p>
+            <p className="text-xs text-gray-500">No completed quarter since acquisition yet. Marks are entered on the Valuation tab.</p>
           )}
         </div>
         {/* Capital activity */}
         <div>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Capital activity tagged to this asset</h4>
+          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Capital activity tagged to this asset</h4>
           {activity.length ? (
             <table className="w-full text-xs tabular-nums">
               <thead className="text-gray-500">
@@ -352,7 +352,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-gray-400">None. Tag the call or line draw that funded this asset under Portfolio Return → Capital activity.</p>
+            <p className="text-xs text-gray-500">None. Tag the call or line draw that funded this asset under Portfolio Return → Capital activity.</p>
           )}
         </div>
       </div>
@@ -393,7 +393,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
     return (
       <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
         <p className="text-sm text-gray-600">No fund assets yet.</p>
-        <p className="mt-1 text-xs text-gray-400">Put deals in a fund (Fund field, or Load Model Fund I) to see them here.</p>
+        <p className="mt-1 text-xs text-gray-500">Put deals in a fund (Fund field, or Load Model Fund I) to see them here.</p>
       </div>
     );
   }
@@ -488,7 +488,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
           <div key={label} className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
             <p className="text-[11px] text-gray-500">{label}</p>
             <p className="text-base font-bold tabular-nums text-gray-900">{value}</p>
-            <p className="text-[10px] text-gray-400">{sub}</p>
+            <p className="text-[10px] text-gray-500">{sub}</p>
           </div>
         ))}
       </div>
@@ -496,7 +496,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-xs tabular-nums text-gray-900">
           <thead>
-            <tr className="text-[10px] uppercase tracking-wide text-gray-400">
+            <tr className="text-[10px] uppercase tracking-wide text-gray-500">
               <th className="sticky left-0 z-10 bg-white px-2.5 pt-2 text-left font-medium"></th>
               {groupSpans.map(([g, bg, span]) => (
                 <th key={g} colSpan={span} className={`${bg} border-l border-gray-200 px-2.5 pt-2 text-center font-medium`}>{g}</th>
@@ -528,7 +528,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
                   ) : (
                     <span className="font-medium text-gray-800" title="Saved snapshot">{r.name}</span>
                   )}
-                  <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                  <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
                     <button
                       type="button"
                       onClick={() => showDetail(r.id)}
@@ -564,7 +564,7 @@ export default function AssetSummary({ deals, funds = {}, marks = {}, curve, onO
         <AssetDetail row={rows.find((r) => r.id === detailId)} onOpenDeal={onOpenDeal} onOpenLeases={onOpenLeases} onClose={() => setDetailId(null)} canEdit={canEdit} email={email} onApplyDeal={onApplyDeal} />
       )}
 
-      <p className="text-[11px] leading-relaxed text-gray-400">
+      <p className="text-[11px] leading-relaxed text-gray-500">
         <span className="font-medium text-gray-500">How totals work:</span>{" "}dollar figures and SF are summed. $/SF, loan / price (the loan includes lender-funded capex) and the going-in and
         exit caps are weighted (total ÷ total). IRR is pooled across every asset&apos;s dated equity cash flows; the multiple is total
         distributions ÷ total equity. Underwriting figures are each asset&apos;s current model (gross, before fund fees and promote). Fair
