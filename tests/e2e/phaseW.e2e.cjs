@@ -40,7 +40,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   check(areas.indexOf("Finance") === areas.indexOf("Portfolio Management") + 1, `a Finance area after Portfolio Management: ${areas.join(", ")}`);
   await FX.openArea(p, "GP Economics");
   const tabs = await p.getByRole("group", { name: "Finance" }).getByRole("button").allInnerTexts();
-  check(tabs.length === 2 && /^GP Economics/.test(tabs[0]) && /^Sponsor Economics/.test(tabs[1]), "Finance: GP Economics and Sponsor Economics (user, 11/24)");
+  check(tabs.length === 3 && /^GP Economics/.test(tabs[0]) && /^Sponsor Economics/.test(tabs[1]) && /^Firm Economics/.test(tabs[2]), "Finance: GP Economics, Sponsor Economics and (1.1.9, the firm is both) Firm Economics");
   await FX.openArea(p, "Portfolio Debt");
   check(!(await p.getByRole("group", { name: "Portfolio Management" }).innerText()).includes("GP Economics"), "and not under Portfolio Management");
   const money = async (id) => Number((await p.getByTestId(id).locator("p").nth(1).innerText()).replace(/[$M,]/g, ""));
@@ -70,6 +70,25 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   const txt = require("child_process").execFileSync("pdftotext", ["-layout", pdfPath, "-"]).toString();
   check(/GP Economics/.test(txt) && /INTERNAL - not for distribution/.test(txt) && /Total GP economics/.test(txt) && /Split by GP party/.test(txt) && /Model Fund I/.test(txt), "GP PDF: internal, totals, portfolios");
   await p.screenshot({ path: `${S}/gp-economics.png`, fullPage: true });
+
+  // ── Firm Economics (1.1.9): the firm is both GP and sponsor ──
+  await FX.openTab(p, "Firm Economics");
+  await p.waitForTimeout(2500);
+  const fe = p.getByTestId("firm-economics");
+  const fv = async (id) => Number((await fe.getByTestId(id).locator("p").nth(1).innerText()).replace(/[$M,]/g, ""));
+  const fEq = await fv("fe-equity"), fFees = await fv("fe-fees"), fPr = await fv("fe-promote"), fCo = await fv("fe-coinvest"), fTot = await fv("fe-total");
+  check(Math.abs(fEq - eq) < 0.02 && Math.abs(fPr - pr) < 0.02 && Math.abs(fCo - co) < 0.02, `Firm Economics: equity ${fEq}M, promote ${fPr}M and co-invest ${fCo}M match GP Economics (the only GP)`);
+  check(fFees > 0 && Math.abs(fFees + fPr + fCo - fTot) < 0.03, `fees ${fFees}M + promote + co-invest = total to the firm ${fTot}M`);
+  check(/capital only/.test(await fe.getByTestId("fe-roe").innerText()) && /with fees/.test(await fe.getByTestId("fe-roe").innerText()) && /\d/.test(await fe.getByTestId("fe-irr").innerText()) && /\/ yr/.test(await fe.getByTestId("fe-ry").innerText()), "ROE / IRR / multiple on capital only (with fees beside), Revenue Yield a year");
+  check(/Model Fund I/.test(await fe.getByTestId("fe-by-portfolio").innerText()) && /None/.test(await fe.getByTestId("fe-by-portfolio").innerText()), "by portfolio: Model Fund I, no outside GP partner");
+  for (const [tb, id] of [["By year", "fe-by-year"], ["Fees by type", "fe-fees-by-type"], ["Promote split", "fe-promote-split"], ["By asset", "fe-by-asset"]]) { await fe.getByRole("tab", { name: tb }).click(); await p.waitForTimeout(250); check((await fe.getByTestId(id).locator("tbody tr").count()) > 0, `Firm Economics: ${tb}`); }
+  const [fx] = await Promise.all([p.waitForEvent("download"), fe.getByRole("button", { name: "Excel" }).click()]);
+  check(/^firm-economics-.*\.xlsx$/.test(fx.suggestedFilename()), "Firm Economics Excel");
+  const [fp] = await Promise.all([p.waitForEvent("download"), fe.getByRole("button", { name: "PDF", exact: true }).click()]);
+  const fpPath = `${S}/firm-economics.pdf`; await fp.saveAs(fpPath);
+  const ftxt = require("child_process").execFileSync("pdftotext", ["-layout", fpPath, "-"]).toString();
+  check(/Firm Economics/.test(ftxt) && /INTERNAL - not for distribution/.test(ftxt) && /Promote split/.test(ftxt) && /capital only/i.test(ftxt), "Firm Economics PDF");
+  await p.screenshot({ path: `${S}/firm-economics.png`, fullPage: true });
 
   // ── Sponsor Economics: the operator ──
   await FX.openTab(p, "Sponsor Economics");
@@ -120,6 +139,7 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
     await FX.openTab(p, "Sponsor Economics");
     await p.waitForTimeout(2000);
     check(/\(0 of 1\)/.test(await p.getByTestId("gp-totals-label").innerText()) && (await money("gp-fees")) === 0, "Sponsor Economics: nothing counted once the operator is outside");
+    check(!(await p.getByRole("group", { name: "Finance" }).innerText()).includes("Firm Economics"), "Firm Economics hidden once the firm isn't the sponsor anywhere");
     await FX.openTab(p, "GP Economics");
     await p.waitForTimeout(2000);
     const bp = await p.getByTestId("gp-by-party").locator("tbody tr").allInnerTexts();
