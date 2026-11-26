@@ -2116,7 +2116,7 @@ export default function Home() {
             <div className="relative" data-testid="more-menu">
               <button type="button" aria-label="More" aria-expanded={moreOpen} aria-haspopup="menu" onClick={() => setMoreOpen((o) => !o)} title="Backup, restore and sample data" className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">⋯</button>
               {moreOpen && (
-                <div className="absolute right-0 z-30 mt-1 w-80 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                <div className="absolute right-0 z-30 mt-1 max-h-[calc(100vh-7rem)] w-80 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 shadow-lg" data-testid="more-menu-panel">{/* 1.1.10: scrolls when the Sample data list is taller than the window */}
                   {session && dbLink?.id && <button type="button" onClick={() => { setMoreOpen(false); setCloudOpen(true); }} title="The firm's database: people with access, sign out" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Database and people…</button>}
                   <button type="button" onClick={() => { setMoreOpen(false); handleExportWorkspace(); }} title="Download a copy of all the firm's data (deals, funds, capital activity, valuations, comps, curve, change log) to keep" className="block w-full rounded px-2 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50">Download backup</button>
                   {(!session || dbLink?.role === "owner") && (
