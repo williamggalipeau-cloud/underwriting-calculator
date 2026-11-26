@@ -30,7 +30,7 @@ ok(by("cap").every((a) => a.days >= 0 && a.days <= 366), "rate caps expiring wit
 const ap = by("appraisal")[0];
 ok(ap && ap.assets.length === deals.filter((d) => d.inputs.acquisitionDate <= "2026-09-30").length - 1 && !ap.assets.includes("Ridgeway Trade Center") && ap.tab === "valuations", `appraisals: ${ap?.assets.length} held assets without a 9/30 mark (the marked one excluded)`);
 const rent = by("rent");
-ok(rent.length === 1 && rent[0].amount === 3000 && /Late Tenant LLC: \$3,000 60\+ days late/.test(rent[0].text) && rent[0].tab === "units", "rent 60+ days late from the latest delinquency report (30-day bucket not counted)");
+ok(rent.length === 1 && rent[0].amount === 500 && /Late Tenant LLC: \$500 60\+ days late/.test(rent[0].text) && rent[0].tab === "units", "rent 60+ days late from the latest delinquency report (61+ days only: the 1–30 and 31–60 buckets are not counted, 1.1.8)");
 ok(att.findIndex((a) => !a.date && !["covenant", "condition"].includes(a.kind)) > att.findIndex((a) => a.kind === "lease"), "dated items before other undated ones");
 ok(att.findIndex((a) => ["covenant", "condition"].includes(a.kind) && !a.date) <= 0 && att.filter((a) => a.date).every((a, i, xs) => i === 0 || a.date >= xs[i - 1].date), "urgent undated items (covenant breach, immediate repair) lead; dated ones by date");
 

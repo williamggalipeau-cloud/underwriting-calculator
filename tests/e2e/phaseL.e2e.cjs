@@ -116,7 +116,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await rp.getByTestId("report-portfolio").locator("tbody tr").count()) >= 7, "portfolio table: assets held at quarter end");
   // Summary on top (11/24): watch list, change vs. last quarter, issued
   const rsum = rp.getByTestId("report-summary");
-  check((await rsum.count()) === 1 && /Watch list/.test(await rsum.innerText()) && /not in the shareable report/.test(await rp.getByTestId("report-summary-watch").innerText()) && /asset/.test(await rp.getByTestId("report-summary-watch").innerText()), "quarterly summary: the watch list (internal, marked)");
+  check((await rsum.count()) === 1 && /Watch list/.test(await rsum.innerText()) && /\(internal\)/.test(await rp.getByTestId("report-summary-watch").innerText()) && (await rp.getByLabel("Version").count()) === 0 && /asset/.test(await rp.getByTestId("report-summary-watch").innerText()), "quarterly summary: the watch list (internal, marked); no Version choice (1.1.8: Internal only)");
   check(/Change vs\. last quarter \(2026 Q2\)/.test(await rp.getByTestId("report-summary-change").innerText()), `quarterly summary: change vs. last quarter: ${(await rp.getByTestId("report-summary-change").innerText()).replace(/\s+/g, " ")}`);
   check(/Draft \(not issued\)/.test(await rp.getByTestId("report-summary-issued").innerText()), "quarterly summary: nothing issued yet");
   check((await rp.getByTestId("report-change-table").locator("tbody tr").count()) === 8, "every measure in the change table");
@@ -127,21 +127,19 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await letterBox.fill("Dear Investors,\n\nRoute 9 leased two units this quarter (test letter).");
   await p.waitForTimeout(600);
   const [sp1] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), rp.getByRole("button", { name: /PDF \(draft\)/ }).click()]);
-  const shPath = S + "/l_report_shareable.pdf"; await sp1.saveAs(shPath);
+  const shPath = S + "/l_report_draft.pdf"; await sp1.saveAs(shPath);
   const shTxt = execFileSync("pdftotext", ["-layout", shPath, "-"]).toString();
-  check(/Route 9 leased two units this quarter/.test(shTxt) && /Fund summary · 2026 Q3/.test(shTxt) && /Route 9 Small Bay/.test(shTxt) && !/INTERNAL/.test(shTxt), "shareable PDF: the letter, summary and asset pages; not marked internal");
-  check(/Summary/.test(shTxt) && /Change vs\. last quarter \(2026 Q2\)/.test(shTxt) && /Draft \(not issued\)/.test(shTxt) && !/Watch list/.test(shTxt) && shTxt.indexOf("Change vs. last quarter") < shTxt.indexOf("Route 9 leased two units"), "shareable PDF: the summary on top, with no watch list");
+  check(/Route 9 leased two units this quarter/.test(shTxt) && /Fund summary · 2026 Q3/.test(shTxt) && /Route 9 Small Bay/.test(shTxt) && /INTERNAL/.test(shTxt), "draft PDF: the letter, summary and asset pages; marked internal (1.1.8)");
+  check(/Summary/.test(shTxt) && /Change vs\. last quarter \(2026 Q2\)/.test(shTxt) && /Draft \(not issued\)/.test(shTxt) && /Watch list/.test(shTxt) && shTxt.indexOf("Change vs. last quarter") < shTxt.indexOf("Route 9 leased two units"), "draft PDF: the summary on top, with the watch list");
   const shImgs = execFileSync("pdfimages", ["-list", shPath]).toString().trim().split("\n").length - 2;
-  check(shImgs >= 1, `shareable PDF: ${shImgs} asset cover photo(s)`);
-  // Internal version
-  await rp.getByLabel("Version").selectOption("internal");
-  await p.waitForTimeout(1200);
+  check(shImgs >= 1, `draft PDF: ${shImgs} asset cover photo(s)`);
+  // Internal version (the only one since 1.1.8)
   check((await rp.getByTestId("internal-banner").count()) === 1 && /1 asset with an underwriting baseline/.test(await rp.getByTestId("internal-summary").innerText()), "internal version: banner and Route 9's baseline counted");
   await rp.getByLabel("Internal notes").fill("Watch Route 9 taxes (test note).");
   await p.waitForTimeout(600);
   await rp.getByRole("button", { name: "Issue report" }).click();
   await p.waitForTimeout(1000);
-  check((await rp.getByTestId("issued-report").count()) === 1 && /v1 · internal/.test(await rp.getByTestId("issued-report").innerText()), "internal report issued as v1");
+  check((await rp.getByTestId("issued-report").count()) === 1 && /v1 · Internal/.test(await rp.getByTestId("issued-report").innerText()), "internal report issued as v1");
   const [ip] = await Promise.all([p.waitForEvent("download", { timeout: 60000 }), rp.getByTestId("issued-report").getByRole("button", { name: "PDF" }).click()]);
   const inPath = S + "/l_report_internal.pdf"; await ip.saveAs(inPath);
   const inTxt = execFileSync("pdftotext", ["-layout", inPath, "-"]).toString();
@@ -168,11 +166,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const [xf] = await Promise.all([p.waitForEvent("download"), fl.getByRole("button", { name: "Excel" }).click()]);
   check(/fund-limits\.xlsx$/.test(xf.suggestedFilename()), `limits Excel: ${xf.suggestedFilename()}`);
 
-  await rp.getByLabel("Version").selectOption("shareable");
-  await p.waitForTimeout(800);
   check((await rp.getByTestId("issued-report").count()) === 1, "issued list shows the quarter's issued reports");
   const [xl] = await Promise.all([p.waitForEvent("download"), rp.getByRole("button", { name: "Excel" }).first().click()]);
-  check(/2026-Q3-shareable-report\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
+  check(/2026-Q3-internal-report\.xlsx$/.test(xl.suggestedFilename()), `Excel: ${xl.suggestedFilename()}`);
   await p.screenshot({ path: S + "/phaseL_reports.png", fullPage: true });
 
   // Risk report (internal)
@@ -180,8 +176,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(2000);
   const rk = rp.getByTestId("risk-report");
   check((await rk.count()) === 1 && /Internal — not for distribution/.test(await rk.innerText()), "risk report: marked internal");
-  check(/Cascade Commercial Bank/.test(await rk.getByTestId("risk-lenders").innerText()) && /Cascade Commercial Bank holds/.test(await rk.getByTestId("risk-fund-flags").innerText()), "lender concentration over 35% flagged");
-  check(/Atlas Derivatives Bank/.test(await rk.getByTestId("risk-caps").innerText()) && /No provider entered/.test(await rk.getByTestId("risk-caps").innerText()), "cap counterparties, and the asset with no provider");
+  check(/Cascade Commercial Bank/.test(await rk.getByTestId("risk-lenders").textContent()) && /Cascade Commercial Bank holds/.test(await rk.getByTestId("risk-fund-flags").innerText()), "lender concentration over 35% flagged");
+  check(/Atlas Derivatives Bank/.test(await rk.getByTestId("risk-caps").textContent()) && /No provider entered/.test(await rk.getByTestId("risk-caps").textContent()), "cap counterparties, and the asset with no provider");
   check((await rk.getByTestId("risk-watch").locator("tbody tr").count()) >= 3, "watch list ranks assets");
   const groups = await rk.locator("section[data-testid^=risk-group-]").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
   check(groups.join() === "Summary,Tenant and Leasing,Financial,Concentration,Operational", `risk report grouped: ${groups.join(", ")}`);
@@ -192,8 +188,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const kh = await rk.getByTestId("risk-change").innerText();
   check(/^KRI Trending \(vs\. 6\/30\/2026\)/.test(kh.trim()) && /\bKRI\b\s+Now/.test(kh) && !/Concentration\s+Now/.test(kh) && /KRI Trending/.test(await rk.getByTestId("risk-summary").innerText()), "KRI Trending (vs. 6/30/2026), with a KRI column (1.1.5)");
   check(await inGroup("tenant", "risk-leasing") && await inGroup("tenant", "risk-lease-flags") && await inGroup("financial", "risk-debt") && await inGroup("financial", "risk-stress") && await inGroup("financial", "risk-valuation") && await inGroup("concentration", "risk-tenants") && await inGroup("concentration", "risk-fund-limits") && await inGroup("concentration", "risk-lenders") && await inGroup("operational", "risk-execution") && (await rk.getByTestId("risk-env").count()) === 0, "each section in its group (no Environmental and climate, 1.1.5) (largest tenants and fund limits under Concentration)");
+  // Risks first (1.1.8): exception lists on top of each group, reference tables collapsed.
+  check(await inGroup("tenant", "risk-leasing-risks") && await inGroup("tenant", "risk-credit") && await inGroup("tenant", "risk-aged") && await inGroup("financial", "risk-debt-risks") && await inGroup("financial", "risk-valuation-risks") && await inGroup("concentration", "risk-limit-checks"), "risks first: Leasing Risks, Tenant Credit, Aged Rent, Debt Risks, Valuation Risks, Limit Checks (1.1.8)");
+  check(!(await rk.getByTestId("risk-debt-ref").evaluate((e) => e.open)) && !(await rk.getByTestId("risk-concentration-ref").evaluate((e) => e.open)), "reference tables collapsed (1.1.8)");
+  const lc = await rk.getByTestId("risk-limit-checks").innerText();
+  check(/Single lender \(fund debt\)\s+Internal\s+Cascade Commercial Bank[\s\S]*Breached/.test(lc) && lc.indexOf("Breached") < (lc.indexOf("OK") < 0 ? 1e9 : lc.indexOf("OK")), "Limit Checks: worst first, the single-lender limit breached");
+  check(/No aged receivables uploaded/.test(await rk.getByTestId("risk-aged").innerText()) && /No aged receivables uploaded/.test(await rk.getByTestId("risk-summary-aged").innerText()), "Aged Rent: none uploaded for this fund");
   check(/assets? flagged/.test(await rk.getByTestId("risk-summary").innerText()) && /Draft \(not issued\)|issued · latest/.test(await rk.getByTestId("risk-summary").innerText()), "summary cards");
-  check(/Fund leverage/.test(await rk.getByTestId("risk-fund-limits").innerText()), "fund limits in the risk report");
+  check(/Fund leverage/.test(await rk.getByTestId("risk-fund-limits").textContent()), "fund limits in the risk report");
   check((await rk.getByTestId("risk-stress").locator("tbody tr").count()) >= 8 && /All four together/.test(await rk.getByTestId("risk-stress").innerText()), "stress tests: fund and each asset under five shocks");
   check(/No owner's insurance certificate/.test(await rk.getByTestId("risk-insurance").innerText()) && /No abstracted leases/.test(await rk.getByTestId("risk-lease-flags").innerText()), "insurance and lease flags load from the database (none on file here)");
   check((await rk.getByTestId("risk-change").locator("tbody tr").count()) === 10 && /Largest lender/.test(await rk.getByTestId("risk-change").innerText()) && /6\/30\/2026/.test(await rk.getByTestId("risk-change").innerText()), "KRI Trending rows (6/30/2026)");

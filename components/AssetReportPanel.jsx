@@ -37,7 +37,8 @@ export default function AssetReportPanel({ r, fundName, store, canEdit, email, o
   const letter = draft.letter ?? draftAssetLetter(r);
   const notes = draft.notes ?? "";
   const saveDraft = (patch) => canEdit && onFundTermsChange(fundName, { reports: { ...store, drafts: { ...(store.drafts ?? {}), [dk]: { letter, notes, ...patch } } } });
-  const issued = (store.issued ?? []).filter((x) => x.quarter === r.quarter && x.assetId === r.assetId && (canEdit || x.kind === "shareable"));
+  // Every issued report, for viewers too (1.1.8: Internal only; earlier shareable copies are kept, marked retired).
+  const issued = (store.issued ?? []).filter((x) => x.quarter === r.quarter && x.assetId === r.assetId);
   const base = `${safeFileName(r.asset.name)}-${r.quarter}-${k}-asset-report`;
   const pdf = async (rep, opts, name) => {
     setBusy(true);
@@ -125,7 +126,7 @@ export default function AssetReportPanel({ r, fundName, store, canEdit, email, o
         {issued.length === 0 ? <p className="text-gray-400">Nothing issued for this asset and quarter yet.</p> : (
           <ul className="space-y-1.5">{issued.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-100 px-2 py-1.5" data-testid="issued-report">
-              <span><span className="font-semibold">v{x.v} · {x.kind}</span> <span className="text-gray-500">· issued {usDate(String(x.at).slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · value {fmtM(x.report.value.end)}</span></span>
+              <span><span className="font-semibold">v{x.v} · {x.kind === "shareable" ? "Shareable (retired)" : "Internal"}</span> <span className="text-gray-500">· issued {usDate(String(x.at).slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · value {fmtM(x.report.value.end)}</span></span>
               <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(x.report, { letter: x.letter, notes: x.notes, issued: x }, `${safeFileName(x.assetName || r.asset.name)}-${x.quarter}-${x.kind}-asset-report-v${x.v}.pdf`)}>PDF</button>
             </li>
           ))}</ul>

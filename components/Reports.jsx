@@ -1,15 +1,15 @@
 "use client";
 
-// Phase L: Reports tab (Library). The quarterly performance report in a
-// shareable and an internal version, with an editable letter; issued
-// versions keep their figures frozen. PDF and Excel. The app never sends
-// anything: download and upload to the investor portal.
+// Phase L: Reports tab (Library). The quarterly performance report, Internal
+// only since 1.1.8 (Baywise is used inside the firm and doesn't produce
+// official client documents), with an editable letter; issued versions keep
+// their figures frozen. PDF and Excel.
 import { useMemo, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { fundOptionLabel, fundType } from "@/lib/fundTypes";
 import { lastCompletedQuarterEnd, quarterLabel } from "@/lib/valuations";
 import { writeXlsx } from "@/lib/xlsx";
-import { REPORT_KINDS, buildQuarterlyReport, draftLetter, issueReport, quarterSummary, reportXlsx, summaryChange, summaryValue } from "@/lib/quarterlyReport";
+import { buildQuarterlyReport, draftLetter, issueReport, quarterSummary, reportXlsx, summaryChange, summaryValue } from "@/lib/quarterlyReport";
 import { riskReport } from "@/lib/riskReport";
 import { benchmarksOf, fundBenchmarkBase, reportBenchmarks } from "@/lib/benchmarks";
 import { buildAssetReport } from "@/lib/assetReport";
@@ -49,18 +49,12 @@ const QSHORT = { 1: "Top quartile", 2: "2nd quartile", 3: "3rd quartile", 4: "Bo
 const QCLS = { 1: "bg-emerald-50 text-emerald-800", 2: "bg-emerald-50/50 text-emerald-700", 3: "bg-amber-50 text-amber-800", 4: "bg-red-50 text-red-700" };
 // The report's benchmark section (phase Y): fund TWR vs. the NCREIF indexes,
 // vintage quartiles and the PME; loaded on the Benchmarking tab.
-function BenchmarkSection({ bm, included, kind, canEdit, store, onChange }) {
+function BenchmarkSection({ bm }) {
   if (!bm) return <p className="rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-500" data-testid="report-benchmarks-none">Benchmarks: none loaded. Upload NCREIF, Preqin / Cambridge or REIT returns on Portfolio Management → Benchmarking to add a benchmark section to the report.</p>;
   return (
     <div className="space-y-2 rounded-xl border border-gray-200 p-3 text-xs" data-testid="report-benchmarks">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-gray-800">Benchmarks <span className="font-normal text-gray-500">· as of {bm.endQ}</span>{!included && <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600">not in the shareable version</span>}</h3>
-        {canEdit && (
-          <label className="flex items-center gap-1.5 text-gray-700" title="Benchmark data is licensed (NCREIF, Preqin, Cambridge): include it in the LP version only if the licenses allow redistribution">
-            <input type="checkbox" aria-label="Include benchmarks in the shareable version" checked={!!store.benchmarksShareable} onChange={(e) => onChange({ benchmarksShareable: e.target.checked })} />
-            Include in the shareable version
-          </label>
-        )}
+        <h3 className="text-sm font-semibold text-gray-800">Benchmarks <span className="font-normal text-gray-500">· as of {bm.endQ}</span></h3>
       </div>
       <div className="grid gap-3 lg:grid-cols-3">
         <div className="overflow-x-auto rounded-lg border border-gray-100">
@@ -113,14 +107,14 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const qs = useMemo(() => { const o = []; let q = lastQ; for (let i = 0; i < 6; i++) { o.push(q); q = prevQ(q); } return o; }, [lastQ]);
   const [qPick, setQPick] = useState(null);
   const qEnd = qs.includes(qPick) ? qPick : lastQ;
-  const [kind, setKind] = useState("shareable");
-  const k = canEdit ? kind : "shareable"; // viewers see the shareable version only
+  // Internal only (user, 11/25, 1.1.8): Baywise is used inside the firm and
+  // doesn't produce official client documents, so the "Shareable" version is
+  // gone; everyone with access (viewers too) sees the Internal version.
+  const k = "internal";
   const prevQEnd = prevQ(qEnd);
-  const prevReport = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd: prevQEnd, todayISO: t0, curve, kind: "shareable" }) : null), [fundName, fundDeals, terms, marks, prevQEnd, t0, curve]);
+  const prevReport = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd: prevQEnd, todayISO: t0, curve, kind: "internal" }) : null), [fundName, fundDeals, terms, marks, prevQEnd, t0, curve]);
   const baseReport = useMemo(() => (fundName ? buildQuarterlyReport(fundDeals, terms, marks, { qEnd, todayISO: t0, curve, kind: k }) : null), [fundName, fundDeals, terms, marks, qEnd, t0, curve, k]);
-  // Benchmarks (phase Y feeding the report), as of the report quarter end:
-  // always in the internal version; in the shareable one only when the fund
-  // says so (benchmark licenses can limit redistribution).
+  // Benchmarks (phase Y feeding the report), as of the report quarter end.
   const bmb = useMemo(() => benchmarksOf(comps), [comps]);
   const bmStore = terms.reports ?? {};
   const bench = useMemo(() => {
@@ -131,7 +125,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
       return reportBenchmarks(base, bmb, { strategy: bmStore.benchmarkStrategy ?? "" });
     } catch { return null; }
   }, [fundName, baseReport, fundDeals, terms, marks, curve, bmb, bmStore.benchmarkStrategy]);
-  const benchIn = !!bench && (k === "internal" || !!bmStore.benchmarksShareable);
+  const benchIn = !!bench;
   const report = useMemo(() => (baseReport && benchIn ? { ...baseReport, benchmarks: bench } : baseReport), [baseReport, bench, benchIn]);
   // Report on the portfolio (the fund) or one asset in it (user, 11/24).
   const [assetPick, setAssetPick] = useState("");
@@ -162,7 +156,8 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
   const letter = draft.letter ?? draftLetter(report);
   const notes = draft.notes ?? "";
   const saveDraft = (patch) => canEdit && onFundTermsChange(fundName, { reports: { ...store, drafts: { ...(store.drafts ?? {}), [dk]: { letter, notes, ...patch } } } });
-  const issued = (store.issued ?? []).filter((x) => x.quarter === dk && !x.assetId && (canEdit || x.kind === "shareable"));
+  // Every issued report, for viewers too; shareable copies issued before 1.1.8 stay as history, marked retired.
+  const issued = (store.issued ?? []).filter((x) => x.quarter === dk && !x.assetId);
   const base = `${safeFileName(fundName)}-${dk}-${k}-report`;
   const prevOk = prevReport && prevReport.qEnd === prevQEnd && prevReport.portfolio.length > 0 ? prevReport : null;
   const summary = quarterSummary(report, prevOk, { issued, watch });
@@ -214,11 +209,6 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           <select aria-label="Quarter" value={qEnd} onChange={(e) => setQPick(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">
             {qs.map((q) => <option key={q} value={q}>{quarterLabel(q)}</option>)}
           </select>
-          {canEdit && (
-            <select aria-label="Version" value={k} onChange={(e) => setKind(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5">
-              {REPORT_KINDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          )}
           {!assetId && <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(r, { letter, notes, summary }, `${base}-draft.pdf`)}>{busy ? "Making PDF…" : "PDF (draft)"}</button>}
           {!assetId && <button type="button" className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => downloadBlob(writeXlsx(reportXlsx(r, { letter, notes, summary }), { sheetName: "Quarterly report", title: `Baywise · ${fundName} ${r.quarterLabel} report` }), `${base}.xlsx`)}>Excel</button>}
           {canEdit && !assetId && <button type="button" onClick={issue} className={`${btn} border-blue-600 bg-blue-600 text-white`}>Issue report</button>}
@@ -261,7 +251,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
       <div className="grid gap-2 sm:grid-cols-3" data-testid="report-summary">
         {canEdit && (
           <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs" data-testid="report-summary-watch">
-            <p className="text-[11px] text-gray-500">Watch list <span className="text-red-700">(internal{k === "shareable" ? "; not in the shareable report" : ""})</span></p>
+            <p className="text-[11px] text-gray-500">Watch list <span className="text-red-700">(internal)</span></p>
             <p className="text-sm font-semibold">{watch ? `${watch.length} asset${watch.length === 1 ? "" : "s"} flagged` : "—"}</p>
             <p className="text-gray-600">{watch?.slice(0, 3).map((w) => `${w.name} (${w.score})`).join(", ") || "Nothing flagged"}</p>
           </div>
@@ -301,8 +291,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
       </div>
       {r.returns.note && <p className="text-xs text-amber-800">Net returns not yet meaningful: {r.returns.note}.</p>}
 
-      <BenchmarkSection bm={bench} included={benchIn} kind={k} canEdit={canEdit} store={store}
-        onChange={(patch) => canEdit && onFundTermsChange(fundName, { reports: { ...store, ...patch } })} />
+      <BenchmarkSection bm={bench} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="text-xs">
@@ -356,7 +345,7 @@ export default function Reports({ deals, funds = {}, marks = {}, curve, canEdit,
           <ul className="space-y-1.5">
             {issued.map((x) => (
               <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-100 px-2 py-1.5" data-testid="issued-report">
-                <span><span className="font-semibold">v{x.v} · {x.kind}</span> <span className="text-gray-500">· issued {usDate(String(x.at).slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · NAV {fmtM(x.report.nav.end)}</span></span>
+                <span><span className="font-semibold">v{x.v} · {x.kind === "shareable" ? "Shareable (retired)" : "Internal"}</span> <span className="text-gray-500">· issued {usDate(String(x.at).slice(0, 10))}{x.by ? ` by ${x.by}` : ""} · NAV {fmtM(x.report.nav.end)}</span></span>
                 <button type="button" disabled={busy} className={`${btn} border-gray-300 bg-white text-gray-700`} onClick={() => pdf(x.report, { letter: x.letter, notes: x.notes, issued: x, summary: x.summary ?? null }, `${safeFileName(fundName)}-${x.quarter}-${x.kind}-report-v${x.v}.pdf`)}>PDF</button>
               </li>
             ))}

@@ -32,7 +32,7 @@ ok(r.value.end === 14_000_000 && r.value.basis === "appraisal" && r.value.start 
 ok(r.returns.irr != null && isFinite(r.returns.tvpi), `equity IRR ${r.returns.irr?.toFixed(1)}%, multiple ${r.returns.tvpi?.toFixed(2)}x at the mark`);
 ok(r.operations.noiYtd && Math.abs(r.operations.noiYtd.vsPlanPct + 10) < 0.01 && r.operations.noiYtd.months === 9, "NOI year to date 10% under plan, 9 months");
 ok(r.plan && r.plan.milestones.length > 0 && r.plan.milestones.every((m) => ["open", "due", "late", "done"].includes(m.status)) && r.operations.occupancyTarget != null, "business plan: milestones with status, KPI targets");
-ok(r.debt.loan > 0 && r.debt.ltv > 0 && !r.internal, "debt and LTV; no internal block in the shareable version");
+ok(r.debt.loan > 0 && r.debt.ltv > 0 && r.kind === "internal" && r.internal, "debt and LTV; the report is Internal by default (1.1.8: no shareable version)");
 const ri = A.buildAssetReport(deals, terms, marks, { assetId: "sample-deal-2", qEnd, todayISO: "2026-11-24", kind: "internal" });
 ok(ri.internal && Array.isArray(ri.internal.budget) && ri.internal.budget.some((x) => /Net operating income|rent/i.test(x.line)), `internal: budget variances (${ri.internal.budget.length})`);
 ok(A.buildAssetReport(deals, terms, marks, { assetId: "nope", qEnd }) === null, "an unknown asset: no report");
@@ -43,7 +43,7 @@ ok(xs[0][0].includes("Route 9 Small Bay") && xs.some((x) => x[0] === "Equity IRR
 // Issued separately from the fund report, versioned per asset
 let st = Q.issueReport({}, r, { by: "a@example.com" });
 st = Q.issueReport(st, r, { by: "a@example.com" });
-ok(st.issued.length === 2 && st.issued[1].v === 2 && st.issued[1].assetId === "sample-deal-2" && st.issued[1].id === "rep-2026-Q3-shareable-sample-deal-2-2" && st.issued[0].assetName === "Route 9 Small Bay", "issued and versioned per asset");
+ok(st.issued.length === 2 && st.issued[1].v === 2 && st.issued[1].assetId === "sample-deal-2" && st.issued[1].id === "rep-2026-Q3-internal-sample-deal-2-2" && st.issued[0].assetName === "Route 9 Small Bay", "issued and versioned per asset");
 const fr = Q.buildQuarterlyReport(deals, terms, marks, { qEnd, todayISO: "2026-11-24" });
 st = Q.issueReport(st, fr, {});
 ok(st.issued.at(-1).v === 1 && !st.issued.at(-1).assetId, "the fund report keeps its own versions");

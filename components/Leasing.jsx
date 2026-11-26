@@ -3,7 +3,7 @@
 // Phase R: Leasing tab (Asset Management, after Leases). Leasing Pipeline
 // and Rent Comps for one asset, with a whole-fund view of the pipeline.
 // Data lives on each asset (inputs.leasing); onUpdate(dealId, fn) edits it.
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import VacantUnits from "@/components/VacantUnits";
 import {
   ACTIVE_PROSPECT_STAGES, PROSPECT_SOURCES, PROSPECT_STAGES, RENT_COMP_FIELDS, allProspects, detectRentCompMapping, filterRentComps, importRentComps, leasingOf,
@@ -13,6 +13,8 @@ import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 import { COMPS_DOC_TYPES, PROSPECT_DOC_TYPES, leasingDocs, leasingTypeLabel, uploadLeasingDoc } from "@/lib/leasingDocs";
 import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+import CreditForm from "@/components/CreditForm";
+import { OWN_RATINGS, RESULTS, screeningComplete, signProspect } from "@/lib/creditReview";
 
 // Upload area for a prospect or the rent comps (signed in to the firm).
 function Docs({ docs, types, ctx, compact = false }) {
@@ -50,6 +52,8 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, o
   const [f, setF] = useState({ since: "", minSF: "", maxSF: "", submarket: "", leaseType: "" });
   const [msg, setMsg] = useState(null);
   const [pending, setPending] = useState(null); // { grid, det } awaiting column confirmation
+  const [screenFor, setScreenFor] = useState(null); // prospect id whose credit screening is open (1.1.8)
+  const [creditMsg, setCreditMsg] = useState(null); // { kind: "ok" | "err", text }
   const [allDocs, setAllDocs] = useState([]);
   const reload = () => (workspaceId ? listDealDocs(workspaceId).then(setAllDocs).catch(() => {}) : Promise.resolve());
   useEffect(() => { reload(); }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -127,23 +131,30 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, o
             {canEdit && scope === "asset" && <button type="button" onClick={() => { const u = units.filter((z) => z.leaseStatus === "occupied" && z.leaseEnd).sort((a, b) => (a.leaseEnd < b.leaseEnd ? -1 : 1))[0]; edit((l) => ({ ...l, prospects: [...l.prospects, makeProspect({ kind: "renewal", unitId: u?.id ?? "", tenant: u?.tenantName ?? "", sf: u?.squareFeet ?? null, source: "Existing tenant" })] })); }} className={`${btn} border-gray-300 bg-white`}>+ Renewal</button>}
           </div>
         </div>
+        {creditMsg && <p role="status" data-testid="credit-msg" className={`rounded-lg border px-3 py-1.5 text-xs ${creditMsg.kind === "err" ? "border-amber-300 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{creditMsg.text}</p>}
         {shown.length === 0 ? <p className="rounded-xl border border-dashed border-gray-300 p-5 text-center text-xs text-gray-500">No prospects{showDone ? "" : " in progress"}.</p> : (
           <div className="overflow-x-auto rounded-xl border border-gray-200">
             <table className="w-full text-xs tabular-nums">
-              <thead className="bg-gray-50 text-gray-500"><tr>{[...(scope === "fund" ? ["Asset"] : []), "Unit", "Prospect / tenant", "Kind", "Source / broker", "Stage", "SF", "Asking", "Proposed", "Term (mo)", "Free (mo)", "TI/SF", "Net effective", "Start", "vs. plan rent", "Downtime vs. plan", "Next step", ...(workspaceId ? ["Documents"] : [])].map((h) => <th key={h} className="px-1.5 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
+              <thead className="bg-gray-50 text-gray-500"><tr>{[...(scope === "fund" ? ["Asset"] : []), "Unit", "Prospect / tenant", "Kind", "Source / broker", "Stage", "SF", "Asking", "Proposed", "Term (mo)", "Free (mo)", "TI/SF", "Net effective", "Start", "vs. plan rent", "Downtime vs. plan", "Next step", "Credit", ...(workspaceId ? ["Documents"] : [])].map((h) => <th key={h} className="px-1.5 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>{shown.map((x) => {
                 const p = x.p, ed = canEdit && scope === "asset";
                 const set = (patch) => (scope === "asset" ? setP(p.id, patch) : onUpdate(x.dealId, (cur) => ({ ...cur, leasing: { ...leasingOf(cur), prospects: leasingOf(cur).prospects.map((z) => (z.id === p.id ? { ...z, ...patch } : z)) } })));
                 const v = vsPlan(x.inputs, p, todayISO);
                 const ner = netEffective(p);
                 return (
-                  <tr key={p.id} className="border-t border-gray-100 align-top" data-testid="prospect-row">
+                  <Fragment key={p.id}>
+                  <tr className="border-t border-gray-100 align-top" data-testid="prospect-row">
                     {scope === "fund" && <td className="px-1.5 py-1">{x.asset}</td>}
                     <td className="px-1.5 py-1"><select aria-label="Unit" value={p.unitId} disabled={!ed} onChange={(e) => set({ unitId: e.target.value })} className={inp}><option value="">—</option>{(x.inputs.units ?? []).map((u) => <option key={u.id} value={u.id}>{u.name || u.id}{u.leaseStatus !== "occupied" ? " (vacant)" : ""}</option>)}</select></td>
                     <td className="px-1.5 py-1"><input aria-label="Prospect" value={p.tenant} disabled={!ed} onChange={(e) => set({ tenant: e.target.value })} className={`${inp} w-32`} /></td>
                     <td className="px-1.5 py-1">{p.kind === "renewal" ? "Renewal" : "New"}</td>
                     <td className="px-1.5 py-1"><select aria-label="Source" value={p.source} disabled={!ed} onChange={(e) => set({ source: e.target.value })} className={inp}>{PROSPECT_SOURCES.map((s) => <option key={s}>{s}</option>)}</select><input aria-label="Broker" placeholder="Broker" value={p.broker} disabled={!ed} onChange={(e) => set({ broker: e.target.value })} className={`${inp} mt-0.5 block w-28`} /></td>
-                    <td className="px-1.5 py-1"><select aria-label="Prospect stage" value={p.stage} disabled={!canEdit} onChange={(e) => set({ stage: e.target.value })} className={`${inp} ${STAGE_CLS[p.stage]}`}>{PROSPECT_STAGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>{p.stage === "lost" && <input aria-label="Lost reason" placeholder="Why lost" value={p.lostReason} disabled={!canEdit} onChange={(e) => set({ lostReason: e.target.value })} className={`${inp} mt-0.5 block w-28`} />}</td>
+                    <td className="px-1.5 py-1"><select aria-label="Prospect stage" value={p.stage} disabled={!canEdit} onChange={(e) => {
+                      // Signed (1.1.8): the credit screening is required, then copied to the unit.
+                      if (e.target.value !== "signed") return set({ stage: e.target.value });
+                      if (!screeningComplete(p.screening)) { setCreditMsg({ kind: "err", text: `Record the credit screening for ${p.tenant || "this prospect"} before marking it signed (Credit → Add screening).` }); setScreenFor(p.id); return; }
+                      onUpdate(x.dealId, (cur) => { const res = signProspect(cur, p.id, { by: email ?? "" }); return res.inputs ?? cur; });
+                    }} className={`${inp} ${STAGE_CLS[p.stage]}`}>{PROSPECT_STAGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>{p.stage === "lost" && <input aria-label="Lost reason" placeholder="Why lost" value={p.lostReason} disabled={!canEdit} onChange={(e) => set({ lostReason: e.target.value })} className={`${inp} mt-0.5 block w-28`} />}</td>
                     {[["sf", "SF", "w-16"], ["askingRentPSF", "Asking rent", "w-16"], ["proposedRentPSF", "Proposed rent", "w-16"], ["termMonths", "Term", "w-12"], ["freeMonths", "Free months", "w-12"], ["tiPSF", "TI per SF", "w-14"]].map(([k, l, w]) => (
                       <td key={k} className="px-1.5 py-1"><input aria-label={l} type="number" step="any" value={p[k] ?? ""} disabled={!ed} onChange={(e) => set({ [k]: num(e.target.value) })} className={`${inp} ${w}`} /></td>
                     ))}
@@ -152,8 +163,23 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, o
                     <td className="px-1.5 py-1" data-testid="prospect-vs-plan">{v ? <span className={v.rentVsPct != null && v.rentVsPct < 0 ? "text-red-700" : "text-emerald-700"}>{pct(v.rentVsPct)}<span className="block text-[10px] text-gray-400">plan {psf(v.targetRentPSF)}</span></span> : <span className="text-gray-400">no plan</span>}</td>
                     <td className="px-1.5 py-1">{v?.downtime != null ? <span className={v.downtimeVs > 0 ? "text-red-700" : "text-emerald-700"}>{v.downtime} mo{v.targetDowntime != null ? <span className="block text-[10px] text-gray-400">plan {v.targetDowntime} mo</span> : null}</span> : "—"}</td>
                     <td className="px-1.5 py-1"><input aria-label="Next step" value={p.nextStep} disabled={!ed} onChange={(e) => set({ nextStep: e.target.value })} className={`${inp} w-28`} /><input aria-label="Next date" type="date" value={p.nextDate} disabled={!ed} onChange={(e) => set({ nextDate: e.target.value })} className={`${inp} mt-0.5 block`} /></td>
+                    <td className="px-1.5 py-1" data-testid="prospect-credit">
+                      {screeningComplete(p.screening) ? (
+                        <button type="button" onClick={() => setScreenFor(screenFor === p.id ? null : p.id)} className="text-left">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${p.screening.source === "own" ? (p.screening.rating === "weak" ? "bg-red-100 text-red-800" : "bg-emerald-50 text-emerald-800") : p.screening.result === "declined" ? "bg-red-100 text-red-800" : p.screening.result === "conditions" ? "bg-amber-100 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>{p.screening.source === "own" ? `Own: ${OWN_RATINGS.find(([k]) => k === p.screening.rating)?.[1]}` : RESULTS.find(([k]) => k === p.screening.result)?.[1]}</span>
+                          <span className="block text-[10px] text-gray-500">{p.screening.source === "own" ? "Own assessment" : `${p.screening.provider} · ${p.screening.reportDate}`}{p.screening.score != null && p.screening.score !== "" ? ` · ${p.screening.score}` : ""}</span>
+                        </button>
+                      ) : canEdit && scope === "asset" ? <button type="button" onClick={() => setScreenFor(screenFor === p.id ? null : p.id)} className="rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">Add screening</button> : <span className="text-amber-700">None yet</span>}
+                    </td>
                     {workspaceId && <td className="px-1.5 py-1"><Docs compact docs={lDocs.filter((d) => d.target === p.id)} types={PROSPECT_DOC_TYPES} ctx={ctxFor(x.dealId, p.id)} /></td>}
                   </tr>
+                  {screenFor === p.id && (
+                    <tr data-testid="prospect-screening-row"><td colSpan={30} className="px-1.5 pb-2">
+                      <p className="mb-1 text-[11px] font-semibold text-gray-700">Credit screening: {p.tenant || "prospect"} <span className="font-normal text-gray-500">(required before Signed; copied to the tenant when the lease is signed)</span></p>
+                      <CreditForm value={p.screening ?? null} canEdit={canEdit && p.stage !== "signed"} onCancel={() => setScreenFor(null)} onSave={(sc) => { set({ screening: { ...sc, by: email ?? "", at: new Date().toISOString() } }); setScreenFor(null); setCreditMsg({ kind: "ok", text: `Credit screening saved for ${p.tenant || "the prospect"}.` }); }} />
+                    </td></tr>
+                  )}
+                  </Fragment>
                 );
               })}</tbody>
             </table>

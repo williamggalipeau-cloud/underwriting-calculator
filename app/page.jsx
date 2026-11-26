@@ -9,6 +9,7 @@ import ReturnsAnalysis from "@/components/ReturnsAnalysis";
 import SensitivityTables from "@/components/SensitivityTables";
 import AssetPicker from "@/components/AssetPicker";
 import PipelineDealPicker from "@/components/PipelineDealPicker";
+import TenantCreditTab from "@/components/TenantCreditTab";
 import { screenerOptions, screenerState, selectedRow } from "@/lib/screenerPicker";
 import HomeView, { SetupMaintenance } from "@/components/Home";
 import AcquisitionDocs from "@/components/AcquisitionDocs";
@@ -23,6 +24,7 @@ import { importConstruction, parseInvoices, parseJobs } from "@/lib/construction
 import { addSamplePlans } from "@/lib/samplePlans";
 import { addSampleLeasing } from "@/lib/sampleLeasing";
 import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
+import { addSampleCredit } from "@/lib/sampleCredit";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -471,6 +473,7 @@ const TAB_GROUPS = [
     { id: "plan",        label: "Asset Business Plan" },
     { id: "units",       label: "Rent Roll" },
     { id: "leases",      label: "Leases" },
+    { id: "credit",      label: "Tenant Credit" }, // 1.1.8 (user, 11/26)
     { id: "leasing",     label: "Active Leasing" },
     { id: "valuations",  label: "Valuation" },
     { id: "debt",        label: "Debt" },
@@ -510,7 +513,7 @@ const TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 const TAB_COUNT_TITLES = { pipeline: "Active pipeline deals", forsale: "Sales in progress", offers: "Offers on sales in progress" };
 
 // Tabs that show one deal: they get the Asset dropdown.
-const DEAL_TABS = new Set(["quick", "units", "leases", "leasing", "taxes", "insurance", "condition", "contracts", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
+const DEAL_TABS = new Set(["quick", "units", "leases", "credit", "leasing", "taxes", "insurance", "condition", "contracts", "plan", "debt", "cashflow", "returns", "sensitivity", "research", "sellhold"]);
 
 
 export default function Home() {
@@ -1623,6 +1626,10 @@ export default function Home() {
     built = built.map((d) => (plans.updates[d.id] ? { ...d, inputs: { ...d.inputs, businessPlan: plans.updates[d.id] } } : d));
     const leasing = addSampleLeasing(built, { todayISO });
     built = built.map((d) => (leasing.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...leasing.updates[d.id] } } : d));
+    // 1.1.8: sample tenant credit (records, a credit-change flag, prospect
+    // screenings) and a sample aged receivables report on the fund.
+    const credit = addSampleCredit(built, { todayISO, funds, fundName: SAMPLE_FUND_NAME });
+    built = built.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d));
     // 1.1.5: sample submarkets (each asset tagged) and marks.
     const mkt = addSampleMarketAndMarks({ market: comps?.market, valuations, deals: built, todayISO });
     built = built.map((d) => (mkt.tags[d.id] ? { ...d, inputs: { ...d.inputs, submarketId: mkt.tags[d.id] } } : d));
@@ -1651,7 +1658,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
     });
     // The fictional pipeline deals load with the sample fund too (1.1, user
     // 11/25); ones already there are kept as they are.
@@ -1749,6 +1756,19 @@ export default function Home() {
     if (!ids.length) { window.alert("Load Model Fund I first: the construction test data matches its sample assets."); return; }
     noteAudit(`Added construction test data (${jobs.length} jobs, ${invoices.length} invoices) to ${ids.length} sample asset${ids.length === 1 ? "" : "s"}`);
     setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: r.updates[d.id] } } : d)));
+  }
+
+  // Sample data → Add sample tenant credit and aged rent (user, 11/26, 1.1.8).
+  function handleAddSampleCredit() {
+    if (!requireEdit()) return;
+    const todayISO = new Date().toISOString().slice(0, 10);
+    const r = addSampleCredit(deals, { todayISO, funds, fundName: SAMPLE_FUND_NAME });
+    const ids = Object.keys(r.updates);
+    if (!ids.length) { window.alert("Load Model Fund I first: the sample tenant credit is for its assets."); return; }
+    noteAudit(`Added sample tenant credit (${r.counts.records} records, ${r.counts.flags} flag, ${r.counts.screenings} prospect screenings)${r.delinquency ? " and a sample aged receivables report" : ""}`);
+    setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...r.updates[d.id] } } : d)));
+    if (r.delinquency) setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...(prev[SAMPLE_FUND_NAME] ?? {}), delinquency: r.delinquency } }));
+    window.alert(`Added sample tenant credit to ${ids.length} sample assets${r.delinquency ? " and a sample aged receivables report to Model Fund I" : " (Model Fund I has aged receivables of its own; those are kept)"}. See Asset Management → Tenant Credit and the risk report.`);
   }
 
   // Sample data → Add sample business plans (user, 11/25, 1.1.2): a fictional
@@ -2062,13 +2082,14 @@ export default function Home() {
                             For demos and testing. These change the firm&apos;s data for everyone and are logged in the change log. The sample assets and addresses are fictional.
                           </p>
                           {[
-                            { label: "Load Model Fund I", sub: "The complete test fund: rebuild the nine fictional sample assets (edits to them are lost) with sample business plans, actuals, prospects, marks and market data, construction data and documents (tenant-named leases replace unnamed ones); the sample pipeline deals, pre-screened; portfolio manager Taylor Brooks", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone, with sample business plans, actuals, prospects, marks, construction data and documents; any edits to them are lost. Lease records on the sample assets with no tenant name are replaced by the tenant-named sample leases. The sample pipeline deals are added and screened." },
+                            { label: "Load Model Fund I", sub: "The complete test fund: rebuild the nine fictional sample assets (edits to them are lost) with sample business plans, actuals, prospects, marks and market data, construction data and documents (tenant-named leases replace unnamed ones); the sample pipeline deals, pre-screened; portfolio manager Taylor Brooks; sample tenant credit and aged rent", run: handleLoadSamplePortfolio, ask: "Load Model Fund I? This rebuilds the nine fictional sample assets in the firm's data for everyone, with sample business plans, actuals, prospects, marks, construction data and documents; any edits to them are lost. Lease records on the sample assets with no tenant name are replaced by the tenant-named sample leases. The sample pipeline deals are added and screened." },
                             { label: "Add drawn photos to the sample assets", sub: "Drawn photos and floor plans for sample assets with none (edits kept)", run: handleAddSampleMedia, ask: "Add drawn (fictional) photos and floor plans to the sample assets that have none? Nothing else on them changes." },
                             { label: "Add risk test data to the sample assets", sub: "Made-up lenders, cap providers and environmental entries (where empty)", run: handleAddRiskTestData, ask: "Add made-up lenders, rate cap providers and environmental entries to the sample assets where they're empty? Nothing else changes." },
                             { label: "Add sample documents", sub: "Fictional Model Fund I documents (LPA, PPM, asset, sale and lease documents) with their abstracts, into the Document Library (skips any already there)", run: handleAddSampleDocs, ask: "Upload the fictional Model Fund I sample documents to the firm's document store, with their abstracts? Documents already there are skipped. Disposition documents go on a sale (a new fictional sample sale where an asset has none)." },
                             { label: "Add sample business plans", sub: "A fictional business plan and monthly actuals for each Model Fund I asset; Route 9 runs At Risk and Harbor Light Off Plan (replaces earlier sample plans; plans you made are kept)", run: handleAddSamplePlans, ask: "Add fictional business plans and monthly actuals to the Model Fund I sample assets? Earlier sample plans are replaced; plans you made yourself are kept, and nothing else changes." },
                             { label: "Add sample prospects", sub: "A fictional leasing pipeline for each Model Fund I asset (prospects on the vacant units and a renewal), leasing managers, and rent comps where an asset has none (replaces earlier sample prospects; yours are kept)", run: handleAddSampleLeasing, ask: "Add a fictional leasing pipeline to the Model Fund I sample assets, with rent comps where an asset has none? Earlier sample prospects are replaced; prospects and comps you entered are kept." },
                             { label: "Add sample marks and market data", sub: "A fictional submarket for each Model Fund I asset (Market Data, with the asset tagged) and quarterly marks after each asset's first six months (Valuation); replaces earlier sample entries, keeps yours", run: handleAddSampleMarket, ask: "Add fictional market data (a submarket per Model Fund I asset) and sample marks? Earlier sample entries are replaced; your own submarkets, marks and asset tags are kept." },
+                            { label: "Add sample tenant credit and aged rent", sub: "Fictional credit records, a credit-change flag and prospect screenings for the Model Fund I tenants, and a sample aged receivables report (replaces earlier sample entries; yours are kept)", run: handleAddSampleCredit, ask: "Add fictional tenant credit records, a credit-change flag, prospect screenings and a sample aged receivables report to Model Fund I? Earlier sample entries are replaced; records, flags and uploads you made are kept." },
                             { label: "Add sample comps", sub: "Fictional sales comps (Comps) and rent comps (Active Leasing) for sample assets with none (edits kept)", run: handleAddSampleComps, ask: "Add fictional sales and rent comps to the sample assets that have none? Assets with comps of their own are not changed." },
                             { label: "Add sample pipeline deals", sub: "Three fictional deals (under contract, LOI, screening) in Acquisitions → Pipeline", run: handleAddSamplePipeline, ask: "Add three fictional pipeline deals to the Pipeline? Deals already there are not changed." },
                             { label: "Add construction test data", sub: "Fictional TI and capital jobs with invoices for the sample assets (replaces earlier sample jobs)", run: handleAddConstructionTestData, ask: "Add the fictional construction jobs and invoices (mock TI actuals) to the sample assets? Earlier sample jobs are replaced; nothing else changes." },
@@ -2352,6 +2373,18 @@ export default function Home() {
             )}
             {activeTab === "funddebt" && (
               <FundDebt deals={viewDeals.filter((d) => d.inputs.fundName?.trim()).map((d) => ({ ...d, inputs: { ...d.inputs, fundName: resolveFund(d.inputs.fundName) } }))} funds={viewFunds} marks={valuations} />
+            )}
+            {activeTab === "credit" && (
+              <TenantCreditTab
+                workspaceId={session && dbLink?.id ? dbLink.id : null}
+                email={session?.user?.email ?? null}
+                deal={activeDeal?.inputs?.fundName?.trim() ? activeDeal : null}
+                deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
+                funds={funds}
+                canEdit={!locked}
+                onUpdate={updateDealInputs}
+                onOpenLeases={(id) => { setActiveDealId(id); setActiveTab("leases"); }}
+              />
             )}
             {activeTab === "leasing" && (
               <Leasing
