@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.7** (released 2026-11-25). The version shows next to the Baywise
+Version: **1.1.8** (released 2026-11-26). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -344,6 +344,7 @@ in the header, next to User manual.
 | **Asset Summary** | One row per asset in a fund, with a Details panel per asset (leases, terms, year-by-year cash flow, returns, valuation history, capital activity). A **Leases abstracted** column (e.g. 3 of 4) and the Details' leases line (WALT, next critical date, risk flags, Open Leases tab) come from the Leases tab when signed in. Columns: status, dates, SF, price, loan, equity, funding, underwriting (NOI, caps, exit value, IRR, multiple, CoC, DSCR) and latest valuation (fair value, NAV, unrealized gain, TVPI), with fund totals. Sortable; Excel export; click an asset to open it. Details also has **Underwritten vs. actual** (freeze a baseline; by-year and returns comparison, the IRR gap by cause, Excel and a PDF report; §7.32). |
 | **Unit Roll** | Unit-by-unit rent roll and leases: generate, edit, or import a CSV or Excel rent roll (**Download template** / **Download Excel**). Summary tiles (units, leased, occupancy, WALT, in-place vs market rent, rent rolling in 12 months), lease expirations by year, critical dates for the next 12 months, tenant industries by **SIC code**, and **▸ Lease details** per unit (dates, deposit, guarantor, recoveries, renewal and termination options, other rights, notes). See §7.19. The rent roll drives the cash flow only while the deal uses rent-roll NOI; under Direct NOI it is reference data. **Rent delinquency** (below the roll): upload Yardi's aged receivables each month (§7.29); a red **$ late** badge marks units with past-due balances and **⚠ estoppel** marks units whose estoppel differs from the lease. |
 | **Leases** | Lease documents for each asset, stored privately in the database. **Add a lease**: tenant, the rent roll unit(s) it covers, and its PDFs (base lease first, then amendments; drag to reorder; each marked Lease, Amendment or Other). Each lease card lists its documents (click to open; links last an hour), with **+ Add documents**, **Edit tenant / units** and **Delete lease**. **Abstract with Claude** makes a prompt (1-hour document links, the Model Fund I template) for a Claude session with the CREparser connector and saves the finished abstract; **View abstract** shows key terms by group, rent schedule, critical dates and risk flags, each with its clause, quote and a link to the PDF page, and amended terms with their earlier value (§7.24). **This asset / Whole fund** switches between the selected asset's leases and every lease in its fund. Viewers can open documents and abstracts; owners and editors can change them. **Apply to rent roll** compares the abstract with a rent roll unit field by field (tick the fields to change) or adds a new unit prefilled from it, shows the effect on units, occupancy, WALT and mark to market before you apply, marks the lease "Applied to rent roll" and logs each field as from the abstract (§7.25). A flag on each abstracted lease shows whether its unit matches the lease, differs (which fields) or is not on the rent roll yet. **Critical dates** and **Risk flags** (views at the top, for this asset or the whole fund) list every deadline and flagged clause from the abstracts, filterable, with Excel export and a printable **Abstraction report (PDF)** (§7.26). **Tenant credit** on each lease holds credit reports and tenant / guarantor financial statements with key figures and flags (owners and editors only; §7.27). Needs sign-in and an open database workspace. |
+| **Tenant Credit** (1.1.8) | The credit review of every tenant, one asset or all: latest credit record, score vs. threshold, status (Weak / Watch / Missing / OK), flags, rent 60+ days late, review due at renewal; **Add credit record**, **Flag credit change**, **Clear flag** (§7.62). Prospects need a credit screening on Active Leasing before they can be marked Signed. |
 | **Valuation** | **Market check** (1.1, §7.57): each asset's latest mark cap rate, rent, vacancy and growth against its submarket, flagged at the portfolio's levels. Quarterly fair value for each fund asset: Q2/Q4 appraisals, Q1/Q3 roll-forward, appraisal schedule, asset NAV and interim returns, each asset's quarter-over-quarter value change for the last four quarters ($ and %) with each asset's planned exit cap, a PDF report of valuation adjustments and their effect on returns, import and export of marks. (Fund NAV and the fund's gross / net LP interim returns and value change are on Portfolio Return.) |
 | **Research** (Acquisitions) | **Comps**: import CoStar / Crexi / broker exports or add comps by hand. Filters, time and per-comp adjustments, statistics, a comparison with your deal, and a button that sets your exit cap from the comps. Each asset keeps its own comps. **Third-Party**: the reports the underwriting used (market reports, appraisals, BOVs, rent surveys, environmental, PCA, credit, zoning), each a PDF or a link with a summary of what it supports; Excel and PDF (§7.48). |
 | **Debt** | Loan sizing (LTV, DSCR, LTC and debt-yield limits; the smallest wins; DSCR 1.25×, LTC 75% and debt yield 8% are on by default), **rate cap** (initial strike, cap term, renewal strike, market or manual pricing, and the full schedule: each hold year's SOFR and all-in strike, each cap's cost and the institution that wrote it; §7.5), rate schedule, covenant tests by year, TI reserve. The live NY Fed SOFR and forward-curve panel is at the top of this tab. |
@@ -2186,25 +2187,28 @@ always. A PDF upload as the floor plan prints as the schematic.
 ### 7.32b Reports: the quarterly performance report (phase L)
 
 The **Reports** tab (Library) builds each quarter's performance report from
-the app's own figures. Choose the fund, the quarter (default: the last
-completed one) and the version:
-- **Shareable** (for investors and the investor portal): the letter; fund
+the app's own figures. Choose the fund and the quarter (default: the last
+completed one). Since 1.1.8 the report is **Internal only** (user, 11/25:
+Baywise is used inside the firm and doesn't produce official client
+documents; reports issued as "shareable" before 1.1.8 stay in the issued
+list, marked **Shareable (retired)**). Everyone with access, viewers too,
+sees the Internal version and its issued copies. It contains:
+- the letter; fund
   summary (net LP IRR, TVPI, DPI, RVPI, gross IRR and TVPI since
   inception); the quarter's LP NAV movement (start, contributions,
   distributions, change in value, end) and gross asset value; capital
   called and distributed against commitments; property debt and loan to
   value; the portfolio table; plan vs. actual once a fund plan is frozen
   (§7.33); and a half page per asset with its cover photo, value, occupancy,
-  NOI (actual and plan), business plan status and loan.
-- **Internal** (owners and editors only): the same plus underwritten vs.
-  actual by asset (§7.32), flagged budget variances with their comments
+  NOI (actual and plan), business plan status and loan;
+- underwritten vs. actual by asset (§7.32), flagged budget variances with their comments
   (§7.30) and **internal notes**; every page is marked "INTERNAL - not for
   distribution".
 
 The **letter** starts as a draft written from the figures (with a
 placeholder for the quarter's highlights); edit it in place, or **Redraft
 from the figures**. Drafts are saved per quarter. **PDF (draft)** and
-**Excel** download the current version. **Issue report** freezes the
+**Excel** download the report. **Issue report** freezes the
 figures, letter and notes as an issued version (v1, v2…) with who and when;
 later changes never alter it, and its PDF can be downloaded again from the
 issued list. Before LPs have funded capital, net returns show as not yet
@@ -2214,16 +2218,14 @@ anything: download the PDF and upload it to the investor portal.
 **Summary on top** (11/24, like the risk report, §7.32d). Three cards open
 the report, and the same summary is on the first page of the PDF (above the
 letter) and at the top of the Excel:
-- **Watch list**: the risk report's flagged assets and their scores. It is
-  internal: owners and editors see the card on screen in both versions, but
-  it goes into the PDF and Excel of the **internal** version only, never the
-  shareable one.
+- **Watch list**: the risk report's flagged assets and their scores, on
+  screen and in the PDF and Excel.
 - **Change vs. last quarter**: LP NAV, net LP IRR, TVPI, DPI, LP capital
   called (%), occupancy (weighted by SF), loan to value and the number of
   assets, now against the previous quarter end, with the measures that
   moved. Open **Change vs. last quarter: all measures** for the full table.
 - **Issued reports**: how many versions have been issued for the quarter
-  and the latest (version, shareable or internal, date and who). An issued
+  and the latest (version, date and who). An issued
   version keeps the summary as it was when issued.
 
 **Report on: the portfolio or one asset (user, 11/24).** The **Report on**
@@ -2277,22 +2279,37 @@ The internal quarterly report includes the limits table.
 
 ### 7.32d Risk report (internal, phase L)
 
-On the Reports tab, **Risk report (internal)** (owners and editors; never in
-the shareable report) shows, as of the quarter end, grouped by similar risks
-(user, 11/24). The screen, the Excel and the PDF all use the same order:
-1. **Summary** (on top of every risk report). It starts with three cards:
+On the Reports tab, **Risk report (internal)** (owners and editors) shows,
+as of the quarter end, grouped by similar risks (user, 11/24). Since 1.1.8
+it is **risks first** (user, 11/26): each group opens with only what needs
+attention, worst first (red, then amber), and the full tables are collapsed
+underneath as **(reference)**. The screen, the Excel and the PDF all use the
+same order:
+1. **Summary** (on top of every risk report). It starts with four cards:
    the watch list (assets flagged and the top three), **KRI Trending** (the
-   key risk indicators that rose since last quarter), and whether the report
-   has been issued for this date (latest version, when and by whom). Then the
-   full **Watch list** and **KRI Trending**. **Issued risk reports** are at
-   the bottom of the report (1.1.5).
-2. **Tenant and Leasing:** lease expirations and rollover, and lease risk
-   flags.
-3. **Financial:** debt, TI funding coverage, stress tests, and valuation
-   (marks vs. cost).
-4. **Concentration:** fund limits, largest tenants, industry, geography,
-   debt by lender, rate cap counterparties, and the concentration limits
-   used.
+   key risk indicators that rose since last quarter), **Rent 60+ days past
+   due** (1.1.8, from Aged Rent) and whether the report has been issued for
+   this date. Then the full **Watch list** and **KRI Trending**. **Issued
+   risk reports** are at the bottom of the report (1.1.5).
+2. **Tenant and Leasing:** **Leasing Risks** (a unit vacant 180+ days,
+   12-month rollover of 30%+ of an asset's rent, a tenant of 10%+ of an
+   asset's rent expiring within 18 months with no renewal in the pipeline, a
+   renewal notice deadline within 90 days, a fund rollover cliff of 25%+ in
+   one year), **Tenant Credit** (flagged tenants; §7.62), **Aged Rent**
+   (§7.62), then lease expirations (reference) and lease risk flags.
+3. **Financial:** **Debt Risks** (maturity within 18 months, DSCR below or
+   within 0.10x of its test, floating with no cap, a cap expiring within 12
+   months, LTV vs. 75%, debt yield vs. 8%, DSCR at the cap strike, a
+   refinance gap at maturity sized at today's tests), the loan schedule
+   (reference), TI funding coverage, stress tests, **Valuation Risks** (an
+   asset marked 5%+ below cost; assets inside the threshold aren't listed)
+   and marks vs. cost (reference).
+4. **Concentration:** **Limit Checks**, one row per limit (internal and LPA /
+   PPM), worst first: Breached, **Near limit** (at 90% of a limit or more)
+   or OK, with the KRI change; then fund limits, tenants, industry,
+   geography, lenders and cap counterparties (reference), the concentration
+   limits and the **risk thresholds** (each editable per portfolio, with the
+   weak-credit score thresholds).
 5. **Operational:** execution (the IRR gap, budget variances, the plan gap),
    and insurance certificates. (Environmental and climate was removed in
    1.1.5 as not critical; the entries stay on each asset.)
@@ -3194,10 +3211,8 @@ loaded here (`reportBenchmarks`):
 - the since-inception PME (KS-PME and the IRR spread) for each REIT series;
 - each benchmark's source note.
 
-It is always in the **internal** version. Benchmark licenses (NCREIF, Preqin,
-Cambridge) often limit redistribution, so it goes into the **shareable** (LP)
-version only when **Include in the shareable version** is ticked for the
-fund (saved with the fund's report settings). The PDF gets a Benchmarks page
+It is always in the report (Internal only since 1.1.8, so there is no
+shareable switch any more). The PDF gets a Benchmarks page
 with a method note and the sources, and the Excel a Benchmarks block.
 Issuing a report freezes the benchmark figures with it. With nothing loaded,
 the report says where to upload them.
@@ -3591,6 +3606,63 @@ Pipeline** directly, so every pipeline deal is listed, screened or not
 - **Closed:** points to the asset it became (**Open asset →**, which opens
   its Asset Business Plan like every owned asset), or, if not converted yet,
   to the Pipeline to convert it.
+
+### 7.62 Tenant Credit and Aged Rent (`lib/creditReview.js`, `lib/agedRent.js`, version 1.1.8)
+
+**Asset Management → Tenant Credit** (user, 11/26; after Leases, before
+Active Leasing) is the credit review of every tenant, for one asset or all
+assets, with three filters: **Needs attention** (Weak, Watch or Missing),
+**Review due at renewal (next 12 months)** and **All tenants**. One row per
+occupied unit with a tenant: the latest credit record and its source, score
+against its threshold, status, flags, rent 60+ days late, annual rent, lease
+end and **review due**. A tenant's credit is reviewed **at renewal**: the
+review is due at the lease's renewal notice deadline (its end less its
+renewal notice months), else at its end. **Open** shows the tenant's credit
+history (screenings, our assessments, credit reports and statements on the
+lease, flags) with the actions: **Add credit record**, **Flag credit
+change** (date and what changed) and **Clear flag** (with a note). Every
+change is saved with the asset and logged.
+
+**Status:**
+- **Weak:** an open credit-change flag, a score below its threshold, our own
+  assessment "Weak", a declined screening, or rent 60+ days late.
+- **Watch:** issues noted or approved with conditions; from the credit
+  documents on the lease, a falling score, rising leverage or overdue
+  statements.
+- **Missing:** no credit record at all. **OK** otherwise.
+
+**Weak-credit thresholds** (defaults, editable per portfolio in the risk
+report's thresholds): consumer (FICO-type, 300–850) below 650, D&B Paydex
+(0–100) below 70, Experian Intelliscore (1–100) below 40, our own
+assessment "Weak".
+
+**Screening before signing (Active Leasing).** Each prospect has a
+**Credit** column. The screening comes from a **screening app report** (e.g.
+TurboTenant: app, report date, score type and score, result, issues,
+conditions), a **credit agency report** (e.g. D&B, Experian Business: the
+same fields), or, when neither exists, **our own assessment** (rating
+Strong / Acceptable / Weak and its basis). It can't be left blank: a
+prospect can't move to **Signed** until it's recorded. On signing, the
+screening is copied to the unit the lease is for, as the tenant's first
+credit record. Attach the report PDF with the prospect's documents (type
+"Credit screening report").
+
+**Aged Rent** (risk report, Tenant and Leasing) comes from the fund's latest
+Yardi aged receivables upload (Rent Roll tab, §7.29): every tenant with rent
+past due, by bucket (1–30, 31–60, 61–90, 91–180, over 180 days), the
+tenant's security deposit, the net exposure (past due less the deposit) and
+the change vs. the prior month's upload, with the fund total. **60+ days**
+means 61 days and older (the 61–90, 91–180 and over-180 buckets): it is
+highlighted, totalled in the summary card, and flags the tenant Weak in
+Tenant Credit. (The Dashboard's "60+ days late" alert used the same rule
+from 1.1.8; before, it also counted the 31–60 bucket by mistake.) Only
+assets held at the report's quarter end are included.
+
+**Sample data → Add sample tenant credit and aged rent** (also in Load
+Model Fund I): fictional credit records for every Model Fund I tenant (four
+Weak stories and one Missing), a credit-change flag, screenings on the
+prospects at LOI or lease out, and a two-month sample aged receivables
+report on the fund (only when the fund has no upload of its own).
 
 ## 8. Worked example: the default deal
 
@@ -4374,7 +4446,7 @@ and nothing is saved; nothing is ever saved in the browser.
 | Setup script | [`supabase/setup.sql`](../supabase/setup.sql) |
 | Client library | `@supabase/supabase-js` 2.x |
 | Sign-in method | Email + password (Authentication → Sign In / Providers → Email). Email is used to confirm new accounts and for password resets. |
-| Site / Redirect URL | Site URL `https://baywise.baysidecre.com/` since 11/26 (Authentication → URL Configuration); it was the retired GitHub Pages address. Redirect URLs: `https://baywise.baysidecre.com/**`, `https://underwriting-calculator-nine.vercel.app/**` and the preview pattern `https://*-williamggalipeau-clouds-projects.vercel.app/**` (§10, Hosting). |
+| Site / Redirect URL | Site URL `https://baywise.baysidecre.com/` since 11/26 (Authentication → URL Configuration); it was the retired GitHub Pages address, now removed. Redirect URLs: `https://baywise.baysidecre.com/**`, `https://underwriting-calculator-nine.vercel.app/**` and the preview pattern `https://*-williamggalipeau-clouds-projects.vercel.app/**` (§10, Hosting). |
 
 ### 12.2 One-time setup
 
@@ -4627,9 +4699,9 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
-| **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions are removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
+| **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
 | **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
 | **1.6** | Treasury Management (fund and asset bank accounts): cash position, unrestricted vs. restricted; bank concentration (flag above 25% at one bank); cash above FDIC limits (per entity, per bank); the interest rate cash earns and its cash drag against the fund's target and actual IRR; accounts a loan requires at the lender; **Lender Cash Sweep** (accounts swept after a covenant failure, and how much); a quarterly forecast for a rolling year against minimum cash of one quarter of planned expenses. Imports from manual entry, CSV, BAI2, CAMT.053 / MT940 and Yardi, built so treasury systems such as Kyriba can connect later. New **Treasury**, **Bank Accounts** and **Cash Forecast** tabs at the front of **Finance**; Distribution Analysis reads its balances from Treasury; the Dashboard alerts on Lender Cash Sweeps | Planned (added 11/25) |
@@ -4642,6 +4714,14 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.8
+
+- **Risk report, risks first (§7.32d):** each group opens with only what needs attention, worst first: **Leasing Risks**, **Debt Risks**, **Valuation Risks** and **Limit Checks** (with "Near limit" at 90% of a limit); the full tables are collapsed underneath; thresholds editable per portfolio.
+- **Tenant Credit (§7.62):** a new Asset Management tab for the credit review of every tenant (reviewed at renewal), credit-change flags, and a Tenant Credit section in the risk report. A credit screening (screening app, credit agency, or our own assessment) is required before a prospect can be marked Signed, and moves to the tenant.
+- **Aged Rent (§7.62):** past-due rent by age from the Yardi aged receivables upload, net of deposits, with the change vs. last month; 60+ days highlighted. The Dashboard's "60+ days late" alert now counts 61+ days only (it also counted 31–60 before).
+- **Reports are Internal only:** the Shareable version is removed; viewers see the Internal version; earlier shareable copies stay in the issued list, marked retired.
+- **Sample data:** Load Model Fund I adds sample tenant credit and a sample aged receivables report.
 
 ### What's in 1.1.7
 

@@ -57,7 +57,7 @@ const CSV = [
   await FX.openArea(p, "Debt");
   const am = p.getByRole("group", { name: "Asset Management" });
   const tabs = await am.getByRole("button").allInnerTexts();
-  check(tabs.indexOf("Active Leasing") === tabs.indexOf("Leases") + 1, "an Active Leasing tab right after Leases");
+  check(tabs.indexOf("Tenant Credit") === tabs.indexOf("Leases") + 1 && tabs.indexOf("Active Leasing") === tabs.indexOf("Leases") + 2, "Leases, then Tenant Credit (1.1.8), then Active Leasing");
   await FX.openTab(p, "Active Leasing");
   await p.waitForTimeout(800);
   const lp = p.getByTestId("leasing-pipeline");

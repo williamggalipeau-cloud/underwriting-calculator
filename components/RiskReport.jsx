@@ -4,7 +4,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { listDealDocs } from "@/lib/dealDocs";
 import { listLeases } from "@/lib/leaseDocs";
-import { DEFAULT_RISK_LIMITS, concentrationChange, riskReport, riskXlsx } from "@/lib/riskReport";
+import { listCreditDocs } from "@/lib/creditDocs";
+import { DEFAULT_RISK_LIMITS, DEFAULT_RISK_THRESHOLDS, RISK_THRESHOLD_LABELS, concentrationChange, riskReport, riskXlsx } from "@/lib/riskReport";
+import { DEFAULT_CREDIT_THRESHOLDS, SCORE_TYPES, STATUS_LABEL } from "@/lib/creditReview";
+import { BUCKETS } from "@/lib/delinquency";
 import { COLORS as TI_COLORS } from "@/lib/tiFunding";
 import StateTileMap from "@/components/StateTileMap";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
@@ -40,6 +43,25 @@ function T({ head, rows, right = [] }) {
   );
 }
 const over = (v, lim) => (v > lim ? <span className="font-semibold text-red-700">{pct(v)}</span> : pct(v));
+const LEVEL_CLS = { red: "bg-red-100 text-red-800", amber: "bg-amber-100 text-amber-800" };
+const Level = ({ l }) => <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${LEVEL_CLS[l] ?? "bg-gray-100 text-gray-700"}`}>{l === "red" ? "Red" : l === "amber" ? "Amber" : l}</span>;
+const Count = ({ rows }) => {
+  const red = rows.filter((x) => x.level === "red").length, amb = rows.filter((x) => x.level === "amber").length;
+  return <span className="ml-2 inline-flex gap-1 align-middle">{red > 0 && <span className="rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">{red}</span>}{amb > 0 && <span className="rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white">{amb}</span>}</span>;
+};
+// The exception list for a risk group: only what needs attention, worst first (1.1.8).
+function RiskRows({ rows, owner = true, empty }) {
+  if (!rows.length) return <p className="text-xs text-emerald-700">{empty}</p>;
+  return <T head={["Asset", "Risk", "Measure", "Threshold", "Key date", ...(owner ? ["Owner"] : []), "Level"]} rows={rows.map((x) => [x.asset, x.risk, x.measure, x.threshold, x.keyDate ? (/^\d{4}$/.test(x.keyDate) ? x.keyDate : usDate(x.keyDate)) : "—", ...(owner ? [x.owner || "—"] : []), <Level key="l" l={x.level} />])} />;
+}
+// Reference tables, collapsed under the exceptions (1.1.8).
+const Ref = ({ title, testId, children }) => (
+  <details className="rounded-xl border border-gray-200 bg-gray-50/40 p-2" data-testid={testId}>
+    <summary className="cursor-pointer text-xs font-medium text-gray-600">{title} (reference)</summary>
+    <div className="mt-2 space-y-3">{children}</div>
+  </details>
+);
+const STATUS_CLS = { weak: "bg-red-100 text-red-800", watch: "bg-amber-100 text-amber-800", missing: "bg-gray-100 text-gray-700", ok: "bg-emerald-50 text-emerald-800" };
 
 // A heading over related sections (user, 11/24: group the report by similar risks).
 function Group({ id, title, desc, children }) {
@@ -65,8 +87,8 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
   useEffect(() => {
     if (!workspaceId) return;
     let live = true;
-    Promise.all([listLeases(workspaceId).catch(() => []), listDealDocs(workspaceId).catch(() => [])])
-      .then(([leases, dealDocs]) => live && setDocs({ leases, dealDocs }))
+    Promise.all([listLeases(workspaceId).catch(() => []), listDealDocs(workspaceId).catch(() => []), listCreditDocs(workspaceId).catch(() => [])])
+      .then(([leases, dealDocs, creditDocs]) => live && setDocs({ leases, dealDocs, creditDocs }))
       .catch((e) => live && setDocsErr(e.message));
     return () => { live = false; };
   }, [workspaceId]);
@@ -81,6 +103,9 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
   const issued = (store.riskIssued ?? []).filter((x) => x.asOf === asOf);
   const base = `${safeFileName(fundName)}-risk-report-${asOf}`;
   const setLimit = (k, v) => canEdit && onFundTermsChange(fundName, { riskLimits: { ...(terms.riskLimits ?? {}), [k]: v === "" ? DEFAULT_RISK_LIMITS[k] : Number(v) } });
+  const setThreshold = (k, v) => canEdit && onFundTermsChange(fundName, { riskThresholds: { ...(terms.riskThresholds ?? {}), [k]: v === "" ? DEFAULT_RISK_THRESHOLDS[k] : Number(v) } });
+  const setCreditThreshold = (k, v) => canEdit && onFundTermsChange(fundName, { creditThresholds: { ...(terms.creditThresholds ?? {}), [k]: v === "" ? DEFAULT_CREDIT_THRESHOLDS[k] : Number(v) } });
+  const kri = Object.fromEntries((change ?? []).map((c) => [c.key, c.change]));
 
   async function pdf(rep, issuedAt) {
     setBusy(true);
@@ -98,7 +123,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
   return (
     <div className="space-y-3" data-testid="risk-report">
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
-        <span><span className="font-semibold">Internal — not for distribution.</span> Risk report as of {usDate(asOf)} (the quarter end). Never part of the shareable report.</span>
+        <span><span className="font-semibold">Internal — not for distribution.</span> Risk report as of {usDate(asOf)} (the quarter end).</span>
         <span className="flex gap-2">
           <button type="button" disabled={busy} onClick={() => pdf(r, null)} className="rounded-lg border border-red-200 bg-white px-3 py-1 font-medium text-red-800">{busy ? "Making PDF…" : "PDF"}</button>
           <button type="button" onClick={() => downloadBlob(writeXlsx(riskXlsx(fundName, r), { sheetName: "Risk report", title: `Baywise · ${fundName} risk report (internal)` }), `${base}.xlsx`)} className="rounded-lg border border-red-200 bg-white px-3 py-1 font-medium text-red-800">Excel</button>
@@ -108,7 +133,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
 
       {/* Summary at the top of every risk report (user, 11/24): watch list, KRI Trending (1.1.5). */}
       <Group id="summary" title="Summary" desc="The watch list and the KRIs that moved since last quarter; details by risk follow, and the reports issued for this date are at the bottom.">
-      <div className="grid gap-2 sm:grid-cols-3" data-testid="risk-summary">
+      <div className="grid gap-2 sm:grid-cols-4" data-testid="risk-summary">
         <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs">
           <p className="text-[11px] text-gray-500">Watch list</p>
           <p className="text-sm font-semibold">{r.watch.length} asset{r.watch.length === 1 ? "" : "s"} flagged{r.fundFlags.length ? ` · ${r.fundFlags.length} fund-level flag${r.fundFlags.length === 1 ? "" : "s"}` : ""}</p>
@@ -120,6 +145,10 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
             const up = change.filter((c) => c.change != null && c.change > 1e-9 && !/HHI/.test(c.label)).sort((a, b) => b.change - a.change);
             return <><p className="text-sm font-semibold">{up.length} KRI{up.length === 1 ? "" : "s"} up vs. last quarter</p><p className="text-gray-600">{up.slice(0, 3).map((c) => `${c.label} +${c.change.toFixed(1)} pts`).join(", ") || "None rose"}</p></>;
           })()}
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs" data-testid="risk-summary-aged">
+          <p className="text-[11px] text-gray-500">Rent 60+ days past due</p>
+          {!r.aged ? <p className="text-gray-400">No aged receivables uploaded.</p> : <><p className={`text-sm font-semibold ${r.aged.late60.amount > 0 ? "text-red-700" : ""}`}>{fmtM(r.aged.late60.amount)} ({r.aged.late60.tenants} tenant{r.aged.late60.tenants === 1 ? "" : "s"})</p><p className="text-gray-600">As of {usDate(r.aged.asOf)} · all past due {fmtM(r.aged.fund.pastDue)}</p></>}
         </div>
         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
           <p className="text-[11px] text-gray-500">Issued reports ({usDate(asOf)})</p>
@@ -146,13 +175,30 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
 
       </Group>
 
-      <Group id="tenant" title="Tenant and Leasing" desc="Lease expirations and rollover, and risks written into the leases.">
-      <div className="grid gap-3 lg:grid-cols-2">
+      <Group id="tenant" title="Tenant and Leasing" desc="Only what needs attention, worst first; the full tables are collapsed underneath.">
+      <Sec title={<>Leasing Risks<Count rows={r.leasingRisks} /></>} testId="risk-leasing-risks" right={<span className="text-[11px] text-gray-500">Thresholds: {fundName}&apos;s (Risk thresholds, below)</span>}>
+        <RiskRows rows={r.leasingRisks} empty="No leasing risks over their thresholds." />
+      </Sec>
+      <Sec title={<>Tenant Credit{r.credit.length > 0 && <span className="ml-2 rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">{r.credit.length}</span>}</>} testId="risk-credit" right={<span className="text-[11px] text-gray-500">Flagged tenants only; every tenant on Asset Management → Tenant Credit</span>}>
+        {r.credit.length === 0 ? <p className="text-xs text-emerald-700">No tenant flagged for weak credit.</p> : (
+          <T head={["Tenant", "Asset", "Annual rent", "% fund rent", "Lease ends", "Status", "Why flagged", "Latest record"]} right={[2, 3]} rows={r.credit.map((c) => [c.tenant, c.asset, fmtM(c.rent), pct(c.pctFundRent), usDate(c.leaseEnd), <span key="s" className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${STATUS_CLS[c.status]}`}>{STATUS_LABEL[c.status]}</span>, <ul key="w" className="list-disc pl-4">{c.reasons.map((x, i) => <li key={i} className={x.level === "weak" ? "text-red-800" : "text-amber-800"}>{x.text}</li>)}</ul>, c.latest ? `${c.latest.sourceLabel}${c.latest.date ? ` · ${usDate(c.latest.date)}` : ""}` : "None on file"])} />
+        )}
+      </Sec>
+      <Sec title="Aged Rent" testId="risk-aged" right={r.aged ? <span className="text-[11px] text-gray-500">Yardi aged receivables as of {usDate(r.aged.asOf)}{r.aged.prevAsOf ? `; change vs. ${usDate(r.aged.prevAsOf)}` : ""}</span> : null}>
+        {!r.aged ? <p className="text-xs text-gray-400">No aged receivables uploaded for {fundName}: upload the Yardi aged receivables report on Asset Management → Rent Roll.</p> : r.aged.tenants.length === 0 ? <p className="text-xs text-emerald-700">No rent past due.</p> : (
+          <T head={["Tenant", "Asset", ...BUCKETS.slice(1).map(([, l]) => l), "Past due", "Deposit", "Net exposure", "Change"]} right={[2, 3, 4, 5, 6, 7, 8, 9, 10]}
+            rows={[...r.aged.tenants.map((t) => [t.tenant, t.asset, ...["d30", "d60", "d90", "d180", "over180"].map((k) => <span key={k} className={["d90", "d180", "over180"].includes(k) && t.buckets[k] > 0 ? "font-semibold text-red-700" : ""}>{t.buckets[k] ? fmtM(t.buckets[k]) : "—"}</span>), fmtM(t.pastDue), fmtM(t.deposit), <span key="n" className={t.net > 0 ? "text-red-700" : "text-emerald-700"}>{fmtM(t.net)}</span>, t.change == null ? "—" : `${t.change > 0 ? "+" : ""}${fmtM(t.change)}`]),
+              [<b key="f">{fundName}</b>, "", ...["d30", "d60", "d90", "d180", "over180"].map((k) => <b key={k}>{r.aged.fund.buckets[k] ? fmtM(r.aged.fund.buckets[k]) : "—"}</b>), <b key="p">{fmtM(r.aged.fund.pastDue)}</b>, <b key="d">{fmtM(r.aged.fund.deposit)}</b>, <b key="n">{fmtM(r.aged.fund.net)}</b>, r.aged.fund.change == null ? "—" : `${r.aged.fund.change > 0 ? "+" : ""}${fmtM(r.aged.fund.change)}`]]} />
+        )}
+        <p className="mt-1 text-[11px] text-gray-500">Red: 61+ days late (61–90, 91–180, over 180). Net exposure = past due less the tenant&apos;s security deposit. A tenant 60+ days late is also flagged in Tenant Credit.</p>
+      </Sec>
+      <Ref title="Lease expirations by year (% of rent)" testId="risk-leasing-ref">
         <Sec title="Leasing: expirations by year (% of rent)" testId="risk-leasing">
           <T head={["", ...r.leasing.years.map(String), "12-mo rollover", "Vacant (SF)"]} right={[1, 2, 3, 4, 5, 6, 7, 8]}
             rows={[["Fund", ...r.leasing.fund.by.map((b) => pct(b.rentPct, 0)), pct(r.leasing.fund.rollover12RentPct, 0), pct(r.leasing.fund.vacancyPct, 0)],
               ...r.leasing.assets.map((a) => [a.name, ...a.by.map((b) => pct(b.rentPct, 0)), pct(a.rollover12RentPct, 0), pct(a.vacancyPct, 0)])]} />
         </Sec>
+      </Ref>
         <Sec title="Lease risk flags" testId="risk-lease-flags">
           {!r.leaseFlags ? <p className="text-xs text-gray-400">{workspaceId ? (docsErr || "Loading leases…") : "Sign in to see the lease risk flags."}</p> : r.leaseFlags.rows.length === 0 ? <p className="text-xs text-gray-400">No abstracted leases with risk flags.</p> : (
             <>
@@ -161,14 +207,19 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
             </>
           )}
         </Sec>
-      </div>
       </Group>
 
-      <Group id="financial" title="Financial" desc="Debt and coverage, TI funding, stress tests and marks.">
+      <Group id="financial" title="Financial" desc="Debt, TI funding, stress tests and marks: exceptions first, full tables collapsed.">
+      <Sec title={<>Debt Risks<Count rows={r.debtRisks} /></>} testId="risk-debt-risks">
+        <RiskRows rows={r.debtRisks} empty="No debt risks over their thresholds." />
+        <p className="mt-1 text-[11px] text-gray-500">Checked: maturity, DSCR vs. its test (and within {r.thresholds.dscrCushion.toFixed(2)}x), floating with no cap, cap expiry, LTV vs. {r.thresholds.ltvMaxPct}%, debt yield vs. {r.thresholds.debtYieldMinPct}%, DSCR at the cap strike, refinance gap at maturity (sized at today&apos;s tests).</p>
+      </Sec>
+      <Ref title="Loan schedule" testId="risk-debt-ref">
       <Sec title="Debt" testId="risk-debt">
         <T head={["Asset", "Loan", "LTV", "Lender", "SOFR +", "Matures", "DSCR", "Test", "Cap strike", "Cap expires", "Provider", "Cap value"]} right={[1, 2, 4, 6, 7, 8, 11]}
           rows={r.debt.map((d) => [d.name, fmtM(d.loan), pct(d.ltv), d.lender || "—", pct(d.spreadPct, 2), usDate(d.maturity), d.dscr == null ? "—" : <span className={d.dscr < d.minDscr ? "font-semibold text-red-700" : ""}>{d.dscr.toFixed(2)}x</span>, `${d.minDscr.toFixed(2)}x`, d.capped ? pct(d.strike, 2) : "none", d.capped ? usDate(d.capEnd) : "—", d.provider || (d.capped ? <span className="text-amber-700">not entered</span> : "—"), fmtM(d.capValue)])} />
       </Sec>
+      </Ref>
       {r.ti && (
         <Sec title={`TI funding coverage, next 8 quarters${withActions ? " · with scenario actions" : ""}`} testId="risk-ti" right={<span className="flex items-center gap-3 text-[11px] text-gray-500"><span>Facility → asset cash flow → sub line (to {usDate(r.ti.lineExpires)}) → capital call</span><label className="flex items-center gap-1 text-gray-700"><input type="checkbox" aria-label="Show with scenario actions" checked={withActions} onChange={(e) => setWithActions(e.target.checked)} />With scenario actions ({actions.length})</label></span>}>
           <div className="overflow-x-auto">
@@ -233,12 +284,26 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           rows={[["Fund (equity-weighted)", pct(r.stress.fund.baseIrr), ...r.stress.fund.byShock.map((x) => `${pct(x.irr)}${x.breaches ? ` · ${x.breaches} breach${x.breaches > 1 ? "es" : ""}` : ""}`)],
             ...r.stress.assets.map((a) => [a.name, pct(a.baseIrr), ...a.results.map((x) => <span key={x.key} className={x.breach ? "font-semibold text-red-700" : ""} title={x.minDscr != null ? `Lowest DSCR ${x.minDscr.toFixed(2)}x (test ${a.test.toFixed(2)}x)` : undefined}>{pct(x.irr)}</span>)])]} />
       </Sec>
+      <Sec title={<>Valuation Risks<Count rows={r.valuationRisks} /></>} testId="risk-valuation-risks">
+        <RiskRows rows={r.valuationRisks} empty={`No asset marked more than ${r.thresholds.markBelowCostPct}% below cost.`} />
+      </Sec>
+      <Ref title="Marks vs. cost, every asset" testId="risk-valuation-ref">
         <Sec title="Valuation: marks vs. cost" testId="risk-valuation">
           <T head={["Asset", "Cost", "Value", "vs. cost", "Implied cap", "Exit cap"]} right={[1, 2, 3, 4, 5]} rows={r.valuation.map((v) => [v.name, fmtM(v.cost), fmtM(v.value), v.unrealizedPct == null ? "—" : <span className={v.unrealizedPct < 0 ? "text-red-700" : ""}>{pct(v.unrealizedPct)}</span>, pct(v.impliedCap, 2), pct(v.exitCap, 2)])} />
         </Sec>
+      </Ref>
       </Group>
 
-      <Group id="concentration" title="Concentration" desc="Fund limits, and exposure to single tenants, industries, places, lenders and cap counterparties.">
+      <Group id="concentration" title="Concentration" desc="Every limit (LPA / PPM and internal), worst first; the exposure tables are collapsed underneath.">
+      <Sec title={<>Limit Checks{r.limitChecks.filter((x) => x.status !== "ok").length > 0 && <span className="ml-2 rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">{r.limitChecks.filter((x) => x.status !== "ok").length}</span>}</>} testId="risk-limit-checks">
+        <T head={["Limit", "Source", "Largest exposure", "Now", "Limit", "KRI vs. last qtr", "Status"]} right={[3, 4, 5]} rows={r.limitChecks.map((l) => {
+          const u = l.unit === "%" ? "%" : ` ${l.unit ?? ""}`;
+          const k = kri[l.key];
+          return [l.label, l.source, l.largest || "—", l.now == null ? "—" : `${l.now.toFixed(1)}${u}`, `${l.limit}${u}`, k == null ? "—" : `${k > 0 ? "+" : ""}${k.toFixed(1)} pts`, <span key="s" className={l.status === "breached" ? "font-semibold text-red-700" : l.status === "near" ? "font-semibold text-amber-700" : "text-emerald-700"}>{l.status === "breached" ? "Breached" : l.status === "near" ? "Near limit" : "OK"}</span>];
+        })} />
+        <p className="mt-1 text-[11px] text-gray-500">&quot;Near limit&quot; = at {r.thresholds.nearLimitPct}% of a limit or more.</p>
+      </Sec>
+      <Ref title="Fund limits, tenants, industry, geography, lenders and cap counterparties" testId="risk-concentration-ref">
       {r.fundLimits.length > 0 && (
         <Sec title="Fund limits (LPA / PPM and internal)" testId="risk-fund-limits">
           <T head={["Limit", "Source", "Limit", "Actual", "Largest", "Status"]} right={[2, 3]} rows={r.fundLimits.map((l) => [l.label, l.source, l.unit === "text" ? l.limit : `${l.limit}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.actual == null ? "—" : `${l.actual.toFixed(1)}${l.unit === "%" ? "%" : ` ${l.unit}`}`, l.what || "—", <span key="s" className={l.status === "breached" ? "font-semibold text-red-700" : l.status === "near" ? "text-amber-700" : ""}>{l.status}</span>])} />
@@ -268,6 +333,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
           {r.caps.missing.length > 0 && <p className="mt-1 text-[11px] text-amber-800">No provider entered (Debt tab → Rate cap): {r.caps.missing.join(", ")}.</p>}
         </Sec>
       </div>
+      </Ref>
       <Sec title="Concentration limits used here" testId="risk-limits">
         <div className="flex flex-wrap gap-3 text-xs">
           {Object.entries(DEFAULT_RISK_LIMITS).map(([k]) => (
@@ -276,6 +342,26 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
               <input aria-label={`Risk limit ${k}`} type="number" disabled={!canEdit} value={lim[k]} onChange={(e) => setLimit(k, e.target.value)} className="w-16 rounded border border-gray-300 px-1 py-0.5 text-right" />%
             </label>
           ))}
+        </div>
+      </Sec>
+      <Sec title="Risk thresholds used here" testId="risk-thresholds">
+        <div className="flex flex-wrap gap-3 text-xs">
+          {Object.keys(DEFAULT_RISK_THRESHOLDS).map((k) => (
+            <label key={k} className="flex items-center gap-1">
+              <span className="text-gray-600">{RISK_THRESHOLD_LABELS[k]}</span>
+              <input aria-label={`Risk threshold ${k}`} type="number" step="any" disabled={!canEdit} value={r.thresholds[k]} onChange={(e) => setThreshold(k, e.target.value)} className="w-16 rounded border border-gray-300 px-1 py-0.5 text-right" />
+            </label>
+          ))}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-3 text-xs" data-testid="credit-thresholds">
+          <span className="font-medium text-gray-700">Weak credit below:</span>
+          {SCORE_TYPES.map(([k, l]) => (
+            <label key={k} className="flex items-center gap-1">
+              <span className="text-gray-600">{l}</span>
+              <input aria-label={`Credit threshold ${k}`} type="number" disabled={!canEdit} value={{ ...DEFAULT_CREDIT_THRESHOLDS, ...(terms.creditThresholds ?? {}) }[k]} onChange={(e) => setCreditThreshold(k, e.target.value)} className="w-16 rounded border border-gray-300 px-1 py-0.5 text-right" />
+            </label>
+          ))}
+          <span className="text-gray-500">Our own assessment: &quot;Weak&quot;.</span>
         </div>
       </Sec>
       </Group>
