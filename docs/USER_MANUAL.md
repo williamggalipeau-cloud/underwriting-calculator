@@ -4374,7 +4374,7 @@ and nothing is saved; nothing is ever saved in the browser.
 | Setup script | [`supabase/setup.sql`](../supabase/setup.sql) |
 | Client library | `@supabase/supabase-js` 2.x |
 | Sign-in method | Email + password (Authentication → Sign In / Providers → Email). Email is used to confirm new accounts and for password resets. |
-| Site / Redirect URL | Site URL `https://baywise.baysidecre.com/` since 11/26 (Authentication → URL Configuration); it was the retired GitHub Pages address. Redirect URLs: `https://baywise.baysidecre.com/**`, `https://underwriting-calculator-nine.vercel.app/**` and the preview pattern `https://*-williamggalipeau-clouds-projects.vercel.app/**` (§10, Hosting). |
+| Site / Redirect URL | Site URL `https://baywise.baysidecre.com/` since 11/26 (Authentication → URL Configuration); it was the retired GitHub Pages address, now removed. Redirect URLs: `https://baywise.baysidecre.com/**`, `https://underwriting-calculator-nine.vercel.app/**` and the preview pattern `https://*-williamggalipeau-clouds-projects.vercel.app/**` (§10, Hosting). |
 
 ### 12.2 One-time setup
 
