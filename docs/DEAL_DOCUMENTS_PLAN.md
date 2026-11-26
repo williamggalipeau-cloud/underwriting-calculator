@@ -63,7 +63,7 @@ warehouse is 3.0.
 
 ## Where we left off (end of 11/25)
 
-**Live: version 1.1.11, UI polish** (merged 11/26 as PR #117, `a5c6af8`, with the user's OK; the v1.1.11 GitHub Release is to publish from its link). The user said "do all of the UI enhancements" and answered "a phone is for quick looks and use" (11/26); mockups for items 1, 4 and 5 were sent (scratchpad ui1111.png). All 13 review items are built:
+**Live: version 1.1.11, UI polish** (merged 11/26 as PR #117, `a5c6af8`, with the user's OK; GitHub Release v1.1.11 published and checked 11/26). The user said "do all of the UI enhancements" and answered "a phone is for quick looks and use" (11/26); mockups for items 1, 4 and 5 were sent (scratchpad ui1111.png). All 13 review items are built:
 1. Rent Roll: unit table first, Unit and Tenant sticky, full names, "e.g." hints only on focus, expense columns on request, supporting sections collapsed with headlines, Regenerate / Clear all in ⋯ with a confirm. Rent delinquency stays open (it has the upload controls).
 2. Phone: tables in scroll boxes keep 40rem and fix the first column; 40px tap targets outside tables; the ☰ Menu button; Home's first 5 actions.
 3. Grey text: text-gray-400 → 500 (408 places).
