@@ -27,6 +27,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
     else if (u.includes("/workspace_members")) body = JSON.stringify([{ workspace_id: "w1", role: "owner", email: "t@example.com" }]);
     else if (u.includes("/workspaces")) body = acc.includes("vnd.pgrst.object") ? JSON.stringify(ws) : JSON.stringify([ws]);
     else if (u.includes("/storage/")) body = JSON.stringify({ Key: "x" });
+    // 1.1.9: Blue Mesa's sample screening report, already uploaded (tagged to the tenant).
+    else if (u.includes("/deal_documents") && req.method() === "GET") body = JSON.stringify([{ id: "dd-cr1", workspace_id: "w1", deal_id: "sample-deal-1", doc_type: "other", title: "[leasing:tenant:blue-mesa-fulfillment] Credit screening report: screening-blue-mesa-fulfillment.pdf", files: [{ name: "screening-blue-mesa-fulfillment.pdf", path: "w1/sample-deal-1/dd-cr1/f.pdf" }], created_at: "2026-11-26T00:00:00Z" }]);
     r.fulfill({ status: 200, contentType: "application/json", body });
   });
   await ctx.route("**/maps.google.com/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<html></html>" }));
@@ -62,6 +64,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const hl = tc.getByTestId("credit-row").filter({ hasText: "Harbor Light Industrial" });
   check(/Credit change: Lost its largest customer/.test(await hl.innerText()) && /Rent 60\+ days late/.test(await hl.innerText()) && /Paydex 74 \/ 70/.test(await hl.innerText()), "Harbor Light: score passes, but a credit-change flag and rent 60+ days late → Weak");
   check(/Consumer 612 \/ 650/.test(await tc.getByTestId("credit-row").filter({ hasText: "Airport Flex Park" }).innerText()), "Airport Flex: score 612 below 650, shown in red");
+  // 1.1.9: the record is read off the sample report, and links to its PDF.
+  await tc.getByTestId("credit-row").filter({ hasText: "Airport Flex Park" }).getByRole("button", { name: "Open" }).click();
+  await p.waitForTimeout(400);
+  const det = tc.getByTestId("credit-detail");
+  check(/Keystone Tenant Screening \(fictional\)/.test(await det.innerText()) && /10\/2\/2026/.test(await det.innerText()) && (await det.getByTestId("credit-report-link").count()) === 1, "Blue Mesa's record = its sample report (provider, date), with View report");
+  await tc.getByTestId("credit-row").filter({ hasText: "Airport Flex Park" }).getByRole("button", { name: "Close" }).click();
+  await p.waitForTimeout(200);
   // Clear the flag (logged with a note)
   await hl.getByRole("button", { name: "Open" }).click();
   await p.waitForTimeout(400);

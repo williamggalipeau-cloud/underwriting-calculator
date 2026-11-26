@@ -16,11 +16,12 @@ ok(m.deals.find((d) => d.name === "airport-flex-insurance-desert-aero").leaseTen
 
 const deals = ["Airport Flex Park", "Route 9 Small Bay", "Harbor Light Industrial", "Mill Creek Business Park", "Lakeshore Service Center", "Ridgeway Trade Center", "Canal Street Workshops", "Southpoint Flex", "Granite Ave Industrial"].map((n, i) => ({ id: `sample-deal-${i + 1}`, inputs: { propertyName: n, fundName: "Model Fund I" } }));
 const empty = P.sampleDocPlan(m, { deals });
-ok(empty.add.length === 41 && empty.skip.length === 0, "an empty store: all 41 are added");
+const docsOnly = (xs) => xs.filter((x) => x.kind !== "credit"); // 1.1.9's credit reports: tests/node/sampleCreditReports.test.cjs
+ok(docsOnly(empty.add).length === 41 && docsOnly(empty.skip).length === 0, "an empty store: all 41 are added");
 const leases = [{ deal_id: "sample-deal-1", tenant: "Desert Aero Parts LLC", files: [{ name: "02-airport-flex-park-desert-aero.pdf" }] }];
 const docs = [{ deal_id: "sample-deal-1", files: [{ name: "airport-flex-om.pdf" }] }, { deal_id: null, fund_name: "Model Fund I", files: [{ name: "model-fund-i-lpa.pdf" }] }];
 const some = P.sampleDocPlan(m, { deals, docs, leases });
-ok(some.add.length === 38 && some.skip.filter((x) => x.reason === "already uploaded").length === 3, "already uploaded (a lease, the OM, the LPA): skipped, not doubled");
+ok(docsOnly(some.add).length === 38 && some.skip.filter((x) => x.reason === "already uploaded").length === 3, "already uploaded (a lease, the OM, the LPA): skipped, not doubled");
 const fewer = P.sampleDocPlan(m, { deals: deals.slice(0, 1) });
 ok(fewer.skip.some((x) => /isn't in the firm/.test(x.reason)) && fewer.add.every((x) => !x.dealId || x.dealId === "sample-deal-1"), "assets not in the firm are skipped");
 

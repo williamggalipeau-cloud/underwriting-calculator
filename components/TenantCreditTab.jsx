@@ -8,6 +8,8 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import CreditForm from "@/components/CreditForm";
 import { listLeases } from "@/lib/leaseDocs";
 import { listCreditDocs } from "@/lib/creditDocs";
+import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+import { leasingDocs, tenantDocTarget } from "@/lib/leasingDocs";
 import { agedRent } from "@/lib/agedRent";
 import { KIND_LABEL, docDate } from "@/lib/tenantCredit";
 import { OWN_RATINGS, RESULTS, SCORE_TYPE_SHORT, STATUS_LABEL, creditFilter, creditOf, creditRows, latestText, makeFlag, recordFrom } from "@/lib/creditReview";
@@ -24,11 +26,12 @@ export default function TenantCreditTab({ deal, deals = [], funds = {}, canEdit 
   const [mode, setMode] = useState(null); // "record" | "flag" | { clear: flagId }
   const [flagDraft, setFlagDraft] = useState({ date: todayISO, reason: "" });
   const [clearNote, setClearNote] = useState("");
-  const [db, setDb] = useState({ leases: [], creditDocs: [] });
+  const [db, setDb] = useState({ leases: [], creditDocs: [], dealDocs: [] });
   useEffect(() => {
     if (!workspaceId) return;
     let live = true;
-    Promise.all([listLeases(workspaceId).catch(() => []), listCreditDocs(workspaceId).catch(() => [])]).then(([leases, creditDocs]) => live && setDb({ leases, creditDocs }));
+    // 1.1.9: the tenants' credit report PDFs (asset documents tagged to the tenant).
+    Promise.all([listLeases(workspaceId).catch(() => []), listCreditDocs(workspaceId).catch(() => []), listDealDocs(workspaceId).catch(() => [])]).then(([leases, creditDocs, dealDocs]) => live && setDb({ leases, creditDocs, dealDocs: leasingDocs(dealDocs) }));
     return () => { live = false; };
   }, [workspaceId]);
   const shownDeals = useMemo(() => (scope === "asset" && deal ? [deal] : deals), [scope, deal, deals]);
@@ -41,6 +44,10 @@ export default function TenantCreditTab({ deal, deals = [], funds = {}, canEdit 
   }, [shownDeals, deals, funds, db, todayISO]);
   const counts = { attention: creditFilter(rows, "attention", todayISO).length, review: creditFilter(rows, "review", todayISO).length, all: rows.length };
   const list = creditFilter(rows, filter, todayISO);
+  // A credit record's PDF, or the tenant's other credit documents (1.1.9).
+  const reportDoc = (dealId, file) => (file ? db.dealDocs.find((d) => d.dealId === dealId && d.name === file && d.target.startsWith("tenant:")) ?? null : null);
+  const tenantDocs = (r) => db.dealDocs.filter((d) => d.dealId === r.dealId && d.target === tenantDocTarget(r.tenant) && !r.records.some((x) => x.file === d.name));
+  const openDoc = async (d) => { const f = d.doc.files?.[0]; if (f) window.open(await dealFileLink(f.path), "_blank", "noopener"); };
   const editUnit = (dealId, unitId, fn) => onUpdate(dealId, (cur) => ({ ...cur, units: (cur.units ?? []).map((u) => (u.id === unitId ? { ...u, credit: fn(creditOf(u)) } : u)) }));
   if (!deal && scope === "asset") return <p className="text-xs text-gray-500">Choose an asset.</p>;
 
@@ -89,13 +96,15 @@ export default function TenantCreditTab({ deal, deals = [], funds = {}, canEdit 
                           <p className="font-semibold text-gray-700">Credit history: {r.tenant}</p>
                           {r.records.length === 0 && r.docs.length === 0 && r.flags.length === 0 && <p className="text-gray-500">No credit record yet.</p>}
                           <ul className="space-y-1">
-                            {[...r.records.map((x) => ({ d: x.date || String(x.at).slice(0, 10), t: x.source === "own" ? `Own assessment: ${OWN_RATINGS.find(([k]) => k === x.rating)?.[1] ?? x.rating}${x.basis ? ` (${x.basis})` : ""}` : `${x.kind === "screening" ? "Screening" : "Report"}: ${x.provider}${x.score != null && x.score !== "" ? ` · ${SCORE_TYPE_SHORT[x.scoreType] ?? "score"} ${x.score}` : ""} · ${RESULTS.find(([k]) => k === x.result)?.[1] ?? ""}${x.issues ? ` · issues: ${x.issues}` : ""}${x.conditions ? ` · conditions: ${x.conditions}` : ""}`, by: x.by })),
+                            {[...r.records.map((x) => ({ d: x.date || String(x.at).slice(0, 10), t: x.source === "own" ? `Own assessment: ${OWN_RATINGS.find(([k]) => k === x.rating)?.[1] ?? x.rating}${x.basis ? ` (${x.basis})` : ""}` : `${x.kind === "screening" ? "Screening" : "Report"}: ${x.provider}${x.score != null && x.score !== "" ? ` · ${SCORE_TYPE_SHORT[x.scoreType] ?? "score"} ${x.score}` : ""} · ${RESULTS.find(([k]) => k === x.result)?.[1] ?? ""}${x.issues ? ` · issues: ${x.issues}` : ""}${x.conditions ? ` · conditions: ${x.conditions}` : ""}`, by: x.by, doc: reportDoc(r.dealId, x.file) })),
+                              ...tenantDocs(r).map((d) => ({ d: String(d.doc.created_at ?? "").slice(0, 10), t: `${d.typeLabel}: ${d.name}`, by: "", doc: d })),
                               ...r.docs.map((x) => ({ d: docDate(x), t: `${KIND_LABEL[x.kind] ?? x.kind} on the lease${x.figures?.score ? ` · score ${x.figures.score}` : ""}${x.figures?.rating ? ` · rating ${x.figures.rating}` : ""}`, by: "" })),
                               ...r.flags.map((f) => ({ d: f.date, t: `⚑ Credit change: ${f.reason}${f.status === "cleared" ? ` · cleared ${String(f.clearedAt).slice(0, 10)}${f.clearNote ? ` (${f.clearNote})` : ""}` : " · open"}`, by: f.by, flag: f }))]
                               .sort((a, b) => (a.d < b.d ? 1 : -1))
                               .map((x, i) => (
                                 <li key={i} className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 bg-white px-2 py-1">
                                   <span><span className="text-gray-500">{usDate(x.d)}</span> · {x.t}{x.by ? <span className="text-gray-400"> · {x.by}</span> : null}</span>
+                                  {x.doc && <button type="button" onClick={() => openDoc(x.doc)} className={`${btn} border-blue-200 text-blue-700`} data-testid="credit-report-link">View report</button>}
                                   {canEdit && x.flag?.status === "open" && <button type="button" onClick={() => { setMode({ clear: x.flag.id }); setClearNote(""); }} className={`${btn} border-gray-300 text-gray-700`}>Clear flag</button>}
                                 </li>
                               ))}

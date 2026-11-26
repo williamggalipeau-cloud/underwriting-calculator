@@ -399,5 +399,231 @@
    ],
    "abstract": "leases/10-lakeshore-north-texas-fleet.json"
   }
+ ],
+ "credit": [
+  {
+   "kind": "tenant",
+   "asset": "Airport Flex Park",
+   "tenant": "Blue Mesa Fulfillment",
+   "type": "credit_screening",
+   "file": "credit/screening-blue-mesa-fulfillment.pdf",
+   "title": "screening-blue-mesa-fulfillment.pdf"
+  },
+  {
+   "kind": "tenant",
+   "asset": "Harbor Light Industrial",
+   "tenant": "Copper Canyon Tile & Stone",
+   "type": "credit_report",
+   "file": "credit/credit-report-copper-canyon-tile-stone.pdf",
+   "title": "credit-report-copper-canyon-tile-stone.pdf"
+  },
+  {
+   "kind": "tenant",
+   "asset": "Ridgeway Trade Center",
+   "tenant": "Riverbend Flooring",
+   "type": "credit_memo",
+   "file": "credit/credit-assessment-riverbend-flooring.pdf",
+   "title": "credit-assessment-riverbend-flooring.pdf"
+  },
+  {
+   "kind": "tenant",
+   "asset": "Southpoint Flex",
+   "tenant": "Desert Sky Print Shop",
+   "type": "credit_screening",
+   "file": "credit/screening-desert-sky-print-shop.pdf",
+   "title": "screening-desert-sky-print-shop.pdf"
+  },
+  {
+   "kind": "tenant",
+   "asset": "Route 9 Small Bay",
+   "tenant": "Sierra Coffee Roasters",
+   "type": "credit_report",
+   "file": "credit/credit-report-sierra-coffee-roasters.pdf",
+   "title": "credit-report-sierra-coffee-roasters.pdf"
+  },
+  {
+   "kind": "tenant",
+   "asset": "Canal Street Workshops",
+   "tenant": "Prairie Glass & Glazing",
+   "type": "credit_screening",
+   "file": "credit/screening-prairie-glass-glazing.pdf",
+   "title": "screening-prairie-glass-glazing.pdf"
+  },
+  {
+   "kind": "tenant",
+   "asset": "Mill Creek Business Park",
+   "tenant": "Harbor Precision Machining",
+   "type": "credit_report",
+   "file": "credit/credit-report-harbor-precision-machining.pdf",
+   "title": "credit-report-harbor-precision-machining.pdf"
+  },
+  {
+   "kind": "tenant",
+   "asset": "Lakeshore Service Center",
+   "tenant": "Bayline Auto Parts",
+   "type": "credit_screening",
+   "file": "credit/screening-bayline-auto-parts.pdf",
+   "title": "screening-bayline-auto-parts.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Example Drone Works",
+   "type": "credit_screening",
+   "file": "credit/screening-example-drone-works.pdf",
+   "title": "screening-example-drone-works.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Sample Cabinetry LLC",
+   "type": "credit_screening",
+   "file": "credit/screening-sample-cabinetry-llc.pdf",
+   "title": "screening-sample-cabinetry-llc.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Fictional Marine Supply",
+   "type": "credit_screening",
+   "file": "credit/screening-fictional-marine-supply.pdf",
+   "title": "screening-fictional-marine-supply.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Placeholder Coffee Roasters",
+   "type": "credit_screening",
+   "file": "credit/screening-placeholder-coffee-roasters.pdf",
+   "title": "screening-placeholder-coffee-roasters.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Demo Fitness Equipment",
+   "type": "credit_screening",
+   "file": "credit/screening-demo-fitness-equipment.pdf",
+   "title": "screening-demo-fitness-equipment.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Model Signworks",
+   "type": "credit_screening",
+   "file": "credit/screening-model-signworks.pdf",
+   "title": "screening-model-signworks.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Test Brewing Co.",
+   "type": "credit_screening",
+   "file": "credit/screening-test-brewing-co.pdf",
+   "title": "screening-test-brewing-co.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Illustrative Auto Detailing",
+   "type": "credit_screening",
+   "file": "credit/screening-illustrative-auto-detailing.pdf",
+   "title": "screening-illustrative-auto-detailing.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Example Lighting Supply",
+   "type": "credit_screening",
+   "file": "credit/screening-example-lighting-supply.pdf",
+   "title": "screening-example-lighting-supply.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Sample Pet Products",
+   "type": "credit_screening",
+   "file": "credit/screening-sample-pet-products.pdf",
+   "title": "screening-sample-pet-products.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Fictional Print Shop",
+   "type": "credit_screening",
+   "file": "credit/screening-fictional-print-shop.pdf",
+   "title": "screening-fictional-print-shop.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Demo Solar Installers",
+   "type": "credit_screening",
+   "file": "credit/screening-demo-solar-installers.pdf",
+   "title": "screening-demo-solar-installers.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Placeholder Tile Distributors",
+   "type": "credit_screening",
+   "file": "credit/screening-placeholder-tile-distributors.pdf",
+   "title": "screening-placeholder-tile-distributors.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Model Bike Assembly",
+   "type": "credit_screening",
+   "file": "credit/screening-model-bike-assembly.pdf",
+   "title": "screening-model-bike-assembly.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Test Kitchen Commissary",
+   "type": "credit_screening",
+   "file": "credit/screening-test-kitchen-commissary.pdf",
+   "title": "screening-test-kitchen-commissary.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Illustrative Flooring Co.",
+   "type": "credit_screening",
+   "file": "credit/screening-illustrative-flooring-co.pdf",
+   "title": "screening-illustrative-flooring-co.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Example Medical Supply",
+   "type": "credit_screening",
+   "file": "credit/screening-example-medical-supply.pdf",
+   "title": "screening-example-medical-supply.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Sample Glass & Mirror",
+   "type": "credit_screening",
+   "file": "credit/screening-sample-glass-mirror.pdf",
+   "title": "screening-sample-glass-mirror.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Fictional HVAC Services",
+   "type": "credit_screening",
+   "file": "credit/screening-fictional-hvac-services.pdf",
+   "title": "screening-fictional-hvac-services.pdf"
+  },
+  {
+   "kind": "prospect",
+   "asset": null,
+   "tenant": "Demo Event Rentals",
+   "type": "credit_screening",
+   "file": "credit/screening-demo-event-rentals.pdf",
+   "title": "screening-demo-event-rentals.pdf"
+  }
  ]
 }

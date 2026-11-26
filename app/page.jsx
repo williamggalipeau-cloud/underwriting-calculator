@@ -42,6 +42,7 @@ import CashFlowAnalysis from "@/components/CashFlowAnalysis";
 import { DEFAULT_COMPS_STATE } from "@/components/SalesComps";
 import Research from "@/components/Research";
 import GpEconomics from "@/components/GpEconomics";
+import FirmEconomics from "@/components/FirmEconomics";
 import Benchmarking from "@/components/Benchmarking";
 import FundNav from "@/components/FundNav";
 import FundPlan from "@/components/FundPlan";
@@ -69,6 +70,7 @@ import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob, parseCSV } from "@/lib/fundTerms";
+import { partiesOf } from "@/lib/gpEconomics";
 import { fundNameResolver, mergeFundTerms, withCanonicalFund } from "@/lib/fundNames";
 import { appendChanges, auditSnapshot, BULK_LIMIT, diffWorkspace } from "@/lib/audit";
 import { applyExecutedCap } from "@/lib/dealDocApply";
@@ -499,6 +501,7 @@ const TAB_GROUPS = [
   { label: "Finance", tabs: [
     { id: "gpecon",      label: "GP Economics" },
     { id: "sponsorecon", label: "Sponsor Economics" },
+    { id: "firmecon",    label: "Firm Economics" }, // 1.1.9 (user, 11/26): only when the firm is both GP and sponsor somewhere
   ] },
   { label: "Research", tabs: [
     { id: "market",      label: "Market Data" },
@@ -1460,6 +1463,9 @@ export default function Home() {
   const scope = validWorkingOn(workingOn, workingOptions);
   const fundDeals = useMemo(() => scopeDeals(firmFundDeals, scope, resolveFund), [firmFundDeals, scope, resolveFund]);
   const viewFunds = useMemo(() => scopeFunds(funds, scope), [funds, scope]);
+  // Firm Economics (1.1.9): its tab shows only when this firm is both a GP
+  // and the sponsor in at least one portfolio with assets.
+  const firmBoth = useMemo(() => [...new Set(firmFundDeals.map((d) => d.inputs?.fundName?.trim()).filter(Boolean))].some((n) => partiesOf({ ...DEFAULT_FUND_TERMS, ...(funds[n] ?? {}) }).firmRole === "both"), [firmFundDeals, funds]);
   const viewDeals = useMemo(() => scopeOpenDeals(deals, scope, resolveFund, pipeline), [deals, scope, resolveFund, pipeline]);
   // Document Library (user, 11/24): every deal, open or saved, firm-wide.
   const libraryDeals = useMemo(() => { const seen = new Set(); return [...deals, ...savedDeals].filter((d) => d?.id && !seen.has(d.id) && seen.add(d.id)); }, [deals, savedDeals]);
@@ -2265,7 +2271,7 @@ export default function Home() {
               <div key={g.label} className="mt-1.5 border-t border-gray-100 pt-1.5" role="group" aria-label={g.label} data-testid="tab-group">
                 <span className="sr-only">{g.label}</span>
                 <div className="flex flex-wrap gap-1">
-                  {g.tabs.map((tab) => (
+                  {g.tabs.filter((tab) => tab.id !== "firmecon" || firmBoth).map((tab) => (
                     <button
                       key={tab.id}
                       type="button"
@@ -2593,6 +2599,9 @@ export default function Home() {
             )}
             {activeTab === "gpecon" && (
               <GpEconomics role="gp" deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
+            )}
+            {activeTab === "firmecon" && (
+              <FirmEconomics deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />
             )}
             {activeTab === "sponsorecon" && (
               <GpEconomics key="sponsor" role="sponsor" deals={fundDeals} funds={viewFunds} curve={effectiveCurve(baseCurve, anchorToLive, live)} scopeName={scope ? scopeLabel(scope, funds) : ""} />

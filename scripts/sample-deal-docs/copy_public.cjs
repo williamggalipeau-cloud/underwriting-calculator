@@ -13,7 +13,7 @@ const assetOf = (name) => { const k = Object.keys(PREFIX).find((p) => name.start
 // Asset documents that belong to a tenant's lease (insurance certificate, estoppel).
 const LEASE_TENANT = { "airport-flex-insurance-desert-aero": "Desert Aero Parts LLC", "airport-flex-estoppel-desert-aero": "Desert Aero Parts LLC" };
 fs.rmSync(OUT, { recursive: true, force: true });
-const manifest = { deals: [], dispositions: [], leases: [] };
+const manifest = { deals: [], dispositions: [], leases: [], credit: [] };
 const copy = (from, to) => { fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(from, to); };
 
 for (const [set, key] of [["deals", "deals"], ["dispositions", "dispositions"]]) {
@@ -37,6 +37,17 @@ for (const l of leases) {
   if (fs.existsSync(abs)) copy(abs, path.join(OUT, "leases", `${first}.json`));
   manifest.leases.push({ asset: l.asset, tenant: l.tenant, files: l.files.map((f) => `leases/${f}`), abstract: fs.existsSync(abs) ? `leases/${first}.json` : null });
 }
+// 1.1.9: the sample credit reports (tenant-screening/), read off the same
+// file as the app's sample credit records. Tenant reports are filed on their
+// asset, tagged to the tenant; prospect screenings on the prospect.
+const reports = JSON.parse(fs.readFileSync(path.join(R, "lib", "sampleCreditReports.json"), "utf8"));
+const TYPE = { app: "credit_screening", agency: "credit_report", own: "credit_memo" };
+for (const [kind, list] of [["tenant", reports.tenants], ["prospect", reports.prospects]]) {
+  for (const r of list) {
+    copy(path.join(R, "docs", "sample-deal-docs", "tenant-screening", r.file), path.join(OUT, "credit", r.file));
+    manifest.credit.push({ kind, asset: r.asset ?? null, tenant: r.tenant, type: TYPE[r.source], file: `credit/${r.file}`, title: r.file });
+  }
+}
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1));
-fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
-console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}`);
+fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases, and the sample credit reports) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
+console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}, credit ${manifest.credit.length}`);
