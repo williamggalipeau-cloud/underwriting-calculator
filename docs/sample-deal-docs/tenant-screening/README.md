@@ -1,0 +1,1 @@
+Fictional sample credit reports for the Model Fund I tenants and sample prospects (1.1.9). Generated from lib/sampleCreditReports.json by node scripts/sample-deal-docs/tenant_screening.cjs; do not edit here.

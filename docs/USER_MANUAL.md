@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.8** (released 2026-11-26). The version shows next to the Baywise
+Version: **1.1.9** (2026-11-26). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -303,7 +303,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
 | **Portfolio Management** | Portfolio Summary (with Plan vs. actual) · Portfolio Return · Portfolio Debt · Distribution Analysis · Stress Testing · Benchmarking | |
-| **Finance** | GP Economics, Sponsor Economics (11/24; §7.55) | |
+| **Finance** | GP Economics, Sponsor Economics (11/24; §7.55) · Firm Economics (1.1.9; §7.63; shown only when the firm is both a GP and the sponsor in a portfolio) | |
 | **Research** | Market Data | |
 | **Library** | Documents · Reports | |
 
@@ -553,6 +553,7 @@ dataviz). The app does not need them to run.
 | `@supabase/supabase-js` | 2.x | Database sign-in and storage (§12). |
 | `react`, `react-dom` | 19.2.4 | UI. |
 | `jspdf`, `jspdf-autotable` | 2.5.2, 3.8.4 | PDF reports, built in the browser and loaded only when you export (Valuation → Export PDF). |
+| `@vercel/speed-insights` | 2.x | Vercel Speed Insights: page-load timings on the live site, in the Vercel dashboard (added by Vercel's bot in PR #113; `<SpeedInsights />` in `app/layout.jsx`). No firm data is sent. |
 | `tailwindcss`, `@tailwindcss/postcss` | 4 | Styling (dev). |
 | `eslint`, `eslint-config-next` | 9 / 16.2.4 | Linting (dev). |
 
@@ -3664,6 +3665,78 @@ Weak stories and one Missing), a credit-change flag, screenings on the
 prospects at LOI or lease out, and a two-month sample aged receivables
 report on the fund (only when the fund has no upload of its own).
 
+**Sample credit reports (1.1.9, user 11/26: "have the reports read off of
+what you create").** One file, `lib/sampleCreditReports.json`, drives both
+the fictional report PDFs and the sample credit records, so they always
+match:
+- **The PDFs** (`docs/sample-deal-docs/tenant-screening/`, printed by
+  `node scripts/sample-deal-docs/tenant_screening.cjs`, copied to the site by
+  `copy_public.cjs`): tenant-screening reports (applicant, principal's
+  consumer score, result, conditions, issues), business credit reports
+  (payment index or business credit score, trade lines) and our own credit
+  assessment memos. Every provider and person is fictional and each page is
+  marked SAMPLE. 8 tenant reports (the largest tenant of each Model Fund I
+  asset; Granite Ave's Granite Courier has none, on purpose: Missing) and a
+  screening for every sample prospect name (the sample prospects' names
+  change with the date).
+- **The records:** Add sample tenant credit and aged rent / Load Model Fund I
+  read each story tenant's record (provider, date, score, result, issues,
+  conditions, rating, basis) and each screened prospect's screening from the
+  file, matched by asset and tenant name (unit ids change per build) or by
+  prospect name, and note the PDF's file name on the record. Other tenants
+  keep a generated clean screening.
+- **The uploads:** Add sample documents / Load Model Fund I upload a
+  tenant's report on its asset, tagged to the tenant (title
+  `[leasing:tenant:<tenant>] Credit screening report: <file>`; also Credit
+  report or Credit assessment memo), and a prospect's screening on the
+  prospect (its Docs column on Active Leasing). Not uploaded twice.
+- **Tenant Credit** shows **View report** on a record whose PDF is in the
+  store, and lists any other credit document tagged to the tenant in its
+  history.
+
+### 7.63 Firm Economics (`lib/firmEconomics.js`, version 1.1.9)
+
+Finance → **Firm Economics**: everything the firm earns in the portfolios
+where it is **both a GP and the sponsor**, counted once. The tab shows only
+when that is true of at least one portfolio with assets (by default the
+firm is both everywhere; set on each portfolio's terms, Edit fund / JV / SMA
+→ Parties and economics). Built on each portfolio's GP / sponsor split
+(§7.55), so where the firm is the only GP and the sponsor it equals GP
+Economics + Sponsor Economics.
+
+Decided with the user (11/26):
+- **Firm equity** = all of the GP capital when there is no outside GP
+  partner; with one, only the firm's share of the GP capital (its capital %
+  on the Parties). Plus the sponsor's own co-invest when one is entered
+  (usually 0%).
+- **Promote, both sides**, by the agreements: the GP side's share of the
+  promote vs. the sponsor (and any per-asset override), and within the GP
+  side the firm's **promote %** with the outside GP partner, not its
+  capital share. The sponsor side is the firm's.
+- **Co-invest profit** = the firm's share of the GP capital's profit (its
+  capital share) + the sponsor co-invest profit.
+- **Fees (counted once)** = every fee paid to the sponsor + the firm's
+  capital share of any fee paid to the GP; a fee outsourced to a third
+  party is nobody's revenue. To date from actual dates, as on Sponsor
+  Economics.
+- **Total to the firm** = fees + promote + co-invest profit, with each
+  one's share.
+- **ROE, IRR and multiple on capital only:** ROE = (promote + co-invest
+  profit) ÷ firm equity; multiple = 1 + that; IRR from dated flows (the
+  firm's equity in at each acquisition, by each asset's share of the
+  portfolio's equity, and back at each sale with its promote and co-invest
+  profit). ROE and multiple "with fees" are shown beside them. Fees need
+  almost no capital, so with fees the IRR can't be measured and ROE loses
+  its meaning; fees are measured by **Revenue Yield** = the firm's fees ÷
+  committed capital (the sponsor's basis, §7.55), over the life, per year
+  and to date.
+
+Views: **By portfolio** (outside GP partner and the firm's capital share),
+**By year** (fees in the year earned; promote and co-invest profit in the
+year of each sale; cumulative), **Fees by type** (paid to, life, to date),
+**Promote split** (GP side %, the firm's share of it, each side to the
+firm, realized) and **By asset**. **Excel** and **PDF**, marked internal.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -4699,7 +4772,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit; next, patch **1.1.10** (proposed, user 11/26): Finance → **GP Partners**, one list of outside GP capital partners with their agreements (terms read by Claude), tagged to their portfolios and deals, and total committed capital by partner |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4714,6 +4787,12 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.9
+
+- **Firm Economics (§7.63):** a new Finance tab, shown when the firm is both a GP and the sponsor in a portfolio: fees counted once, both sides of the promote, co-invest profit and the firm's equity (its share of the GP capital when there is an outside GP partner; the promote by the agreements), with ROE, IRR and multiple on capital only ("with fees" beside), Revenue Yield, by portfolio, year, fee type, promote split and asset; PDF and Excel.
+- **Sample credit reports (§7.62):** fictional screening reports, business credit reports and credit assessment memos for the Model Fund I story tenants and every sample prospect. The sample credit records are read off the same file, Add sample documents uploads them, and Tenant Credit links each record to its report (**View report**).
+- **Speed Insights (§4):** Vercel's page-load timings, added by Vercel's bot, are listed among the dependencies.
 
 ### What's in 1.1.8
 
