@@ -3686,6 +3686,11 @@ http://localhost:3000/underwriting-calculator).
 
 **Hosting (1.1.7, user 11/25): moving from GitHub Pages to Vercel.** The
 code stays on GitHub; Vercel (Pro plan) builds and hosts the site from it.
+- **Address:** **https://baywise.baysidecre.com** (the firm's domain,
+  registered through Vercel, which manages its DNS). Vercel's own address,
+  `https://underwriting-calculator-nine.vercel.app`, serves the same site;
+  once GitHub Pages is switched off it is set to redirect to the firm's
+  address, so everyone signs in on one address.
 - **Same code, both hosts during the move:** `next.config.js` serves the site
   at the root of the Vercel address (Vercel sets `VERCEL=1` when it builds)
   and under `/underwriting-calculator` on GitHub Pages.
@@ -4375,7 +4380,7 @@ and nothing is saved; nothing is ever saved in the browser.
 | Setup script | [`supabase/setup.sql`](../supabase/setup.sql) |
 | Client library | `@supabase/supabase-js` 2.x |
 | Sign-in method | Email + password (Authentication → Sign In / Providers → Email). Email is used to confirm new accounts and for password resets. |
-| Site / Redirect URL | `https://williamggalipeau-cloud.github.io/underwriting-calculator/` (Authentication → URL Configuration). From 1.1.7 also the Vercel address and its preview pattern (§10, Hosting); the Vercel address becomes the Site URL once GitHub Pages is switched off. |
+| Site / Redirect URL | `https://williamggalipeau-cloud.github.io/underwriting-calculator/` (Authentication → URL Configuration). From 1.1.7 also `https://baywise.baysidecre.com/**`, `https://underwriting-calculator-nine.vercel.app/**` and the preview pattern `https://*-williamggalipeau-clouds-projects.vercel.app/**` (§10, Hosting); `https://baywise.baysidecre.com/` becomes the Site URL once GitHub Pages is switched off. |
 
 ### 12.2 One-time setup
 
