@@ -384,7 +384,7 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
                         <td className="py-1.5 pr-2">{label}</td>
                         <td className="pr-2 text-xs text-gray-500">{termsOf(k)}</td>
                         <td className="pr-2">{k === "pm" || k === "cm" ? <select aria-label={`${label}: paid to`} value={P.feeTo[k]} onChange={(e) => set(key)(e.target.value)} className={sel}>{FEE_PAYEES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select> : <span className="text-xs text-gray-700" aria-label={`${label}: paid to`}>Sponsor (this firm)</span>}</td>
-                        <td>{P.feeTo[k] === "third" && (k === "pm" || k === "cm") && <input aria-label={`${label}: third party`} value={t[k === "pm" ? "pmThirdParty" : "cmThirdParty"] ?? ""} onChange={(e) => set(k === "pm" ? "pmThirdParty" : "cmThirdParty")(e.target.value)} placeholder="Provider (optional)" className={`${sel} w-44`} />}</td>
+                        <td>{k === "pm" && <span className="mr-2 text-[10px] text-gray-500" data-testid="pm-fee-default-note">Default only: an asset with its property management firm set in asset setup is paid as set there.</span>}{P.feeTo[k] === "third" && (k === "pm" || k === "cm") && <input aria-label={`${label}: third party`} value={t[k === "pm" ? "pmThirdParty" : "cmThirdParty"] ?? ""} onChange={(e) => set(k === "pm" ? "pmThirdParty" : "cmThirdParty")(e.target.value)} placeholder="Provider (optional)" className={`${sel} w-44`} />}</td>
                       </tr>
                     ))}
                   </tbody>
