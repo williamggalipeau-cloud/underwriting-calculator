@@ -505,7 +505,7 @@ Claude Code) built and maintains it, using the tools below.
 | **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. | `authorize_team_access`, `filter_project_envs`, `list_deployments` |
 | **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. | `list_deals`, `run_cre_debt_sizing` |
 | **CREparser Lease Abstraction** | Reading the fictional sample leases and validating their abstracts (§7.24); saving the "Light industrial (Model Fund I)" export template. Not used in the app's calculations. | `lease_prepare_upload`, `lease_open_upload`, `lease_read_pdf`, `lease_read_pages`, `lease_search_text`, `lease_combine_pdfs`, `lease_validate_abstract`, `lease_show_abstract`, `lease_save_template` |
-| **CREparser Deal Review** | Validating the abstracts of the fictional sample documents (offering memos, rent rolls, T-12s, LOIs, loan agreements, appraisals, estoppels and others) before they were shipped as sample data. Validation only; the viewer is not opened (user's rule). | `cre_account` and the validators named in §7.28 and §7.29 (`om_validate`, `rentroll_validate`, `t12_validate`, `loi_validate`, `loan_validate_abstract`, `appraisal_validate` and the others listed there) |
+| **CREparser Deal Review** | Checking the account and its plan. Its validators were **not** run on the sample deal documents: their abstracts are written by script from the fund and marked "Sample (fictional)", not connector-validated (the app shows that badge). A user can validate their own documents with it (§7.28). | `cre_account` |
 | **FactIQ** | Searching for SOFR data series while choosing a live rate source. The app uses the NY Fed API instead (§5). | `search_series` |
 
 The tool names are the ones recorded in the build sessions. Many more
@@ -522,11 +522,19 @@ connectors. This table is updated with each release.
 | `ololand-dd:real-estate-diligence` | Real-estate underwriting conventions for the deal set-up. |
 | `creparser-leases:lease-abstraction` | Lease abstraction workflow (start of the project). |
 | `dataviz` | Chart design for the Cash Flow tab (colors, marks). |
+| `ui-design-review:review` and `ui-design-review:ui-review` | The ease-of-use review of the screens behind the 1.1.11 polish patch. |
+
+This is every skill called in the build sessions, checked against the
+session record on 11/27.
 
 ### Agents
 
 - **web-fetch** — used to read the Pensford pages while working out how to
   get the forward curve and cap prices.
+- **general-purpose** — helper agents given a self-contained job: the code
+  review behind 1.1.12 and parts of the sample-document rewrite in 1.1.13.
+- **fork** — copies of the main session that built parts of 1.1.13 in
+  parallel (the sample fund pipeline, the property manager fields).
 
 ### Useful next to the app
 
@@ -2045,8 +2053,8 @@ reads "✓ Validated by the connector" or "Not connector-validated".
 | Insurance certificate | Owner or tenant (linked to the lease). **Check coverage**: policies lapsed or expiring within 60 days; for a tenant, the lease's requirements (general liability per occurrence and aggregate, umbrella, auto, pollution, workers' comp, additional insured, waiver of subrogation, read from the lease abstract) against the certificate. Expiry dates go to critical dates (amber 60 days before, red when lapsed). Loan insurance covenants come with phase F. |
 | LPA / PPM | Fund terms: commitments, GP commitment, management fee, preferred return, catch-up, investment period, term, extensions and their length, sub line size. Investment limits (single investment, tenant, state, metro, property types, non-core, fund and asset leverage, hold, other), each with its clause and quote, stored in the fund's `limits` (phase L checks actual vs limit). Also shown in **New fund / Edit all terms** (LPA / PPM panel: upload, then **Use** each term or limit). |
 
-**Loan agreement** (validated by the CREparser connector,
-`loan_validate_abstract`): loan amount → `loanAmountActual` (the engine
+**Loan agreement** (the CREparser connector's check for it is
+`loan_validate_abstract`; the sample one is not connector-validated): loan amount → `loanAmountActual` (the engine
 uses it instead of the sizing tests; "Loan agreement" is shown as the
 binding test), spread, floating rate, initial term, extensions, extension
 fee, IO and amortization years; covenants (`loanCovenants`: DSCR, debt
@@ -2077,7 +2085,8 @@ the loan matures (a replacement is needed). The cap's expiry and the
 replacement deadline (expiry minus the loan's days, 30 if none) go to
 critical dates.
 
-**Appraisal** (validated by the CREparser connector, `appraisal_validate`):
+**Appraisal** (the CREparser connector's check for it is `appraisal_validate`;
+the sample ones are not connector-validated):
 appraiser, effective date of value, report date, interest appraised, market
 value, direct cap rate, NOI and the value by each approach. **Apply** sets
 the mark of the quarter the effective date falls in (Valuation tab):

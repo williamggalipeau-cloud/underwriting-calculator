@@ -9,7 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Each release or patch (version bump) updates, in the same pull request:
 - `docs/DEAL_DOCUMENTS_PLAN.md`: "Where we left off" (what's live, what's next), the release's row in the Releases table, and what was decided and built.
 - `docs/USER_MANUAL.md`: the version line, the tab and calculation sections the change touches, the "What's in x.y.z" notes and the §13 roadmap row.
-- `docs/USER_MANUAL.md` §3 (user, 11/27): the connector table and its "Tools called" column. Before each release, check it against every connector tool used since the last one and add what is missing, including any change made to the live database at the user's request.
+- `docs/USER_MANUAL.md` §3 (user, 11/27: "the user manual has to be accurate after every update"): the connector table with its "Tools called" column, the skills table and the agents list. Before each release, count what was actually called in the session record (the `tool_use` entries in `~/.claude/projects/*/*.jsonl`: `mcp__*` tools, `Skill` and `Agent` calls) and make §3 match it: add what is missing, remove or correct what the record does not support, and note any change made to the live database at the user's request. Never describe a tool as used on the strength of memory.
 - `README.md` and `lib/version.js` / `package.json` when they change.
 
 Keep the design principles at the top of the plan doc in mind for every new feature.
