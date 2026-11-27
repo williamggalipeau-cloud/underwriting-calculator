@@ -52,9 +52,16 @@ app builds it**, so a document and the app never disagree. To rebuild:
    signed, with their abstracts. Every fact comes from `fund.json`
    (`lib/sampleAssetFacts.js` through the fund); nothing is typed in the
    generator.
-8. `node scripts/sample-deal-docs/copy_public.cjs` refreshes the copies the
+8. **Documents for the remaining types** (`more/`, 1.1.23):
+   `node scripts/sample-deal-docs/more_docs.cjs` writes a tenant billing, nine
+   acquisition documents, three sale documents, six leasing documents and
+   four Property Management documents. It reads the fund through
+   `lib/sampleFund.js` (on the fixed date) and the leases' `index.json`;
+   `--check` exits 1 when they are stale. Run it after the documents above,
+   because it reads the sales and terms they add to the fund.
+9. `node scripts/sample-deal-docs/copy_public.cjs` refreshes the copies the
    app uploads.
-9. When a document is rewritten or retired, add its file name to
+10. When a document is rewritten or retired, add its file name to
    `lib/sampleDocChanges.json` under the next `SAMPLE_DATA_VERSION` (fund and
    asset documents, `sales`, `leases`), so the automatic load replaces the
    earlier copy in a firm's data.

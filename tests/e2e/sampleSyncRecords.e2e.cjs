@@ -122,7 +122,7 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   const fund = findRow("fund", "Model Fund I");
   const assets = rows.filter((r) => r.kind === "deal" && r.key.startsWith("sample-deal-"));
   check(discarded, `the person moved to another tab during the load (${sawDialog ? "the unsaved-changes box appeared and they chose Discard" : "no unsaved-changes box: the asset changes were already saved"})`);
-  check(fund?.data?.sampleDataVersion === 9 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
+  check(fund?.data?.sampleDataVersion === 10 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
   {
     // 1.1.22: the fund-level sample records, in the saved fund record.
     const fd = fund?.data ?? {};
@@ -131,6 +131,14 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
     check((fd.fundPlan?.versions ?? []).length === 1 && (Number.isFinite(fd.fundPlan.versions[0].returns?.netLpIrr) ? Math.abs(fd.fundPlanTargets?.netIrrPct - fd.fundPlan.versions[0].returns.netLpIrr) < 0.006 : !fd.fundPlanTargets) && (fd.reports?.issued ?? []).length === 1 && (fd.reports.issued[0].report?.portfolio ?? []).length > 0, `1.1.22: the original plan, its targets (when the plan has a net return) and an issued report are saved (${(fd.fundPlan?.versions ?? []).length} plan, ${(fd.reports?.issued ?? []).length} report, target ${JSON.stringify(fd.fundPlanTargets)}, ${(fd.reports?.issued?.[0]?.report?.portfolio ?? []).length} assets in the report)`);
     const bm = findRow("settings", "main")?.data?.comps?.benchmarks ?? rows.find((r) => r.kind === "settings")?.data?.comps?.benchmarks ?? {};
     check(Object.keys(bm.index ?? {}).length === 3 && Object.keys(bm.monthly ?? {}).length === 7, `1.1.22: the sample benchmark series are saved with the firm's settings (${Object.keys(bm.index ?? {}).length} indexes, ${Object.keys(bm.monthly ?? {}).length} monthly)`);
+  }
+  {
+    // 1.1.23: the prospect with fixed terms and the research items of the remaining types, in the saved asset records.
+    const a1 = findRow("deal", "sample-deal-1")?.data?.inputs ?? {}, a3 = findRow("deal", "sample-deal-3")?.data?.inputs ?? {};
+    const dlp = (a1.leasing?.prospects ?? []).filter((x) => x.id === "sample-dlp-airport-flex-park-1");
+    check(dlp.length === 1 && dlp[0].tenant === "Example Bike Works LLC" && dlp[0].proposedRentPSF > 0 && (a1.units ?? []).some((u) => u.id === dlp[0].unitId && u.leaseStatus !== "occupied"), `1.1.23: the prospect with fixed terms is saved once on Airport Flex Park's vacant unit (${dlp.length})`);
+    const ids = (a) => (a.research ?? []).map((r) => r.id);
+    check(["srs-1-environmental", "srs-1-pca", "srs-1-credit", "srs-1-zoning"].every((id) => ids(a1).includes(id)) && ids(a3).includes("srs-3-bov") && new Set(ids(a1)).size === ids(a1).length, `1.1.23: the research items of the remaining types are saved (Airport Flex: ${ids(a1).join(", ")}; Harbor Light: ${ids(a3).join(", ")})`);
   }
   const noPm = assets.filter((r) => !r.data.inputs.propertyManager).map((r) => r.key);
   check(assets.length === 9 && noPm.length === 0, `all nine assets are saved with their property manager${noPm.length ? " — missing on: " + noPm.join(", ") : ""}`);

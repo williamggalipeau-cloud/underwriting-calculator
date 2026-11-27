@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.22** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.23** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -505,7 +505,7 @@ Claude Code) built and maintains it, using the tools below.
 | **GitHub** | Opening, updating and merging pull requests; checking the test runs and their logs; checking that a release was published. | `create_pull_request`, `update_pull_request`, `merge_pull_request`, `pull_request_read`, `list_pull_requests`, `actions_list`, `actions_run_trigger`, `get_job_logs`, `get_latest_release`, `get_release_by_tag`, `list_tags`, `add_reply_to_pull_request_comment` |
 | **Claude Code Remote** (cloud session tools) | Creating the cloud environment that allows `pensford.com` and `markets.newyorkfed.org`, watching pull requests, and scheduling check-ins. | `create_environment`, `get_environment`, `update_environment`, `create_session`, `create_trigger`, `get_trigger`, `list_triggers`, `update_trigger`, `delete_trigger`, `send_later`, `subscribe_pr_activity`, `unsubscribe_pr_activity`, `list_computer_folders`, `read_documentation` |
 | **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). Since 11/25 (user's choice; all data is test data): **reading** the live firm data to check features against it, and **writing** sample data only when the user asks, each write stamped "Claude (sample data, on request)", version-checked and logged in the audit log. New tables, types and policies stay in `supabase/*.sql` for the user to run. One exception, at the user's request (11/27, "shut the restriction off"): Claude put the two document read rules back as `deal_documents.sql` has them and removed two helper functions, after a draft of the 1.1.15 script had restricted them (§12.5). | `list_projects`, `list_tables`, `execute_sql`, `apply_migration`, `get_advisors` |
-| **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. | `authorize_team_access`, `filter_project_envs`, `list_deployments` |
+| **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. On 11/27, when a browser still showed 1.1.20 after 1.1.22 went out: checking that the 1.1.21 and 1.1.22 production builds were Ready and that `baywise.baysidecre.com` pointed at the 1.1.22 build (it did; the browser was showing a cached page). Read-only. | `authorize_team_access`, `filter_project_envs`, `list_deployments`, `list_aliases` |
 | **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. | `list_deals`, `run_cre_debt_sizing` |
 | **CREparser Lease Abstraction** | Reading the fictional sample leases and validating their abstracts (§7.24); saving the "Light industrial (Model Fund I)" export template. Not used in the app's calculations. | `lease_prepare_upload`, `lease_open_upload`, `lease_read_pdf`, `lease_read_pages`, `lease_search_text`, `lease_combine_pdfs`, `lease_validate_abstract`, `lease_show_abstract`, `lease_save_template` |
 | **CREparser Deal Review** | Checking the account and its plan. Its validators were **not** run on the sample deal documents: their abstracts are written by script from the fund and marked "Sample (fictional)", not connector-validated (the app shows that badge). A user can validate their own documents with it (§7.28). | `cre_account` |
@@ -1230,6 +1230,15 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 - **Legal entities:** the fund, the GP and nine property companies, with an
   ownership chart on Portfolio Summary; the documents use the same names.
 - **Property managers:** every sample asset has one, at the sponsor.
+- **Version 10 (1.1.23):** a sample document for each document type that
+  had none: 23 new documents and five research copies (below), a leasing
+  prospect with fixed terms on Airport Flex Park's vacant unit (Example Bike
+  Works LLC) for the leasing documents, and third-party research items of
+  the remaining types (appraisal, environmental, property condition, tenant
+  credit and zoning on Airport Flex Park; the broker opinion on Harbor
+  Light). A leasing document is filed only when the asset has that prospect,
+  the rent comp report only when the asset holds the comps it lists, and a
+  research file only on a research item the asset holds.
 - **Version 9 (1.1.22):** fund-level records on Model Fund I, each made by
   the same function its tab runs when you press the button, from the fund as
   it is: one subscription line draw per purchase in the capital activity
@@ -1284,7 +1293,7 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 
 **Sample material loads by itself (1.1.12).** When an owner opens a firm
 that has Model Fund I and its sample material is older than the app's
-(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13, 4 in 1.1.14, 5 in 1.1.16, 6 in 1.1.17, 7 in 1.1.18, 8 in 1.1.21 and 9 in 1.1.22), Baywise adds what is missing with no clicks:
+(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13, 4 in 1.1.14, 5 in 1.1.16, 6 in 1.1.17, 7 in 1.1.18, 8 in 1.1.21, 9 in 1.1.22 and 10 in 1.1.23), Baywise adds what is missing with no clicks:
 sample tenant credit and aged rent, the sample documents (credit report
 PDFs included) and the two sample GP partners with their agreements. It adds
 only what isn't there, keeps your own records, logs the update in the Change
@@ -3409,6 +3418,13 @@ read in, and who uploaded it and when; filter by deal, stage and document.
 Choosing a deal shows its **checklist**: every document by stage, ✓ when it's
 in, ○ when it's missing.
 
+**Documents filed on other tabs (1.1.23).** A property condition report, a
+Phase I report or a survey filed on Asset Summary, and an SNDA filed on Debt,
+are the documents this checklist calls Property condition report, Phase I
+environmental report, Title commitment and survey, and SNDA. They show in the
+list here marked read-only with the tab they are filed on, and tick the
+checklist, so the same report is not uploaded twice.
+
 **Database:** the new types need `supabase/acquisition_doc_types.sql` (run
 once by the project owner in the Supabase SQL Editor; it keeps every earlier
 type). Until then an upload of a new type is filed as Other with
@@ -5195,7 +5211,7 @@ Every future release is checked against these:
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; patch **1.1.21**: sample Property Management data and documents, third-party research, the sample leases' rent steps; planned patches **1.1.22** and **1.1.23** (row below) |
-| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.23** sample documents for the 37 document types that still have none (a tenant billing document; leasing documents such as a proposal, letter of intent, lease draft and approval memo; further acquisition, sale, research and Property Management document types), listed in the coverage test added in 1.1.22; **1.1.24** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
+| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.24** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5214,6 +5230,25 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.23
+
+A sample document for every document type that had none (§7.13). It loads by itself the next time an owner opens Baywise.
+
+- **23 new sample documents**, every figure read from the sample fund:
+  - **Library:** a tenant billing for Airport Flex Park, at the sample lease's rent, so the billing check finds no difference.
+  - **Acquisition Documents (Airport Flex Park), 9:** schedule of leases, the seller's listing summary, broker underwriting, site and floor plans, zoning report, lender appraisal, IC presentation, loan term sheet, and deed and title policy.
+  - **Dispositions (Harbor Light's sale), 3:** listing agreement, offering memorandum and a tenant estoppel.
+  - **Active Leasing (Airport Flex Park), 6:** a proposal, letter of intent, lease draft, approval memo and broker report on one prospect, and a rent comp report on the asset's rent comps.
+  - **Property Management, 4:** an assessment notice and a roof repair proposal (Airport Flex Park), the tax appeal (Mill Creek) and the insurance claim closing letter (Harbor Light).
+- **A leasing prospect with fixed terms.** The sample prospects change with the day they are added, so a document cannot be written for them. Airport Flex Park gets one more prospect, Example Bike Works LLC on its vacant unit, whose terms never change; the five leasing documents are written for it.
+- **Third-party research of every type.** Airport Flex Park gets research items for its appraisal, Phase I report, property condition report, a tenant's credit report and a zoning report; Harbor Light gets its sale's broker opinion. Each summarises what the asset already holds. Five of them are filed with a copy of the sample document the fund already has; the zoning report and the rent survey get the new documents.
+- **Acquisition Documents now counts documents filed on other tabs.** A property condition report, Phase I report or survey filed on Asset Summary, and an SNDA filed on Debt, are the same documents the acquisition checklist asks for. They now show on Acquisition Documents (read-only, with where they are filed) and tick the checklist.
+- **Coverage:** 34 of the 37 document types listed as missing in 1.1.22 now have a sample. Still listed, for 1.1.24: the sale closing statement, post-closing true-up and distribution notice (no sample asset is sold yet), the joint venture and separate account agreements, and a Phase II report (every Model Fund I Phase I is clean).
+- **No figure changes.**
+- **Also recorded in the plan for a future release (your requests, 11/27):** two quarterly reports (Quarterly Asset Performance and Quarterly Portfolio Performance, no investor letter); a closing calendar tab in Acquisitions, whose milestones we review together first; and a home page section showing every acquisition and disposition deal in process.
+- **Tests:** one new suite (`docs1123`, 83 checks) and new checks in the three browser tests of the load and the sample documents.
+- **No database change.**
 
 ### What's in 1.1.22
 

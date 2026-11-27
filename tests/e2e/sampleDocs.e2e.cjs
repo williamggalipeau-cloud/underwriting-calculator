@@ -51,25 +51,34 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("menuitem", { name: /Add sample documents/ }).click();
   for (let i = 0; i < 60 && !alerts.some((a) => /^Added|^Couldn't add/.test(a)); i++) await p.waitForTimeout(500);
   const done = alerts.find((a) => /^Added|^Couldn't add/.test(a)) ?? "";
-  check(/^Added 68 sample documents/.test(done), `the upload finished: ${done.replace(/\n/g, " / ").slice(0, 400)}`);
+  check(/^Added 85 sample documents/.test(done), `the upload finished: ${done.replace(/\n/g, " / ").slice(0, 400)}`);
   check(leases.length === 9 && leaseAbs.length === 9, `9 leases, each with its abstract (${leases.length}, ${leaseAbs.length})`);
-  check(docs.length === 59 && dealAbs.length === 51, `26 fund, asset and sale documents, 16 asset documents and SNDAs (1.1.17) and 9 Property Management documents (1.1.21; the 3 market reports are skipped: these assets have no research items), each with its abstract, + 8 credit reports (${docs.length}, ${dealAbs.length})`);
+  check(docs.length === 76 && dealAbs.length === 68, `26 fund, asset and sale documents, 16 asset documents and SNDAs (1.1.17), 9 Property Management documents (1.1.21) and 17 of 1.1.23 (the billing, 9 acquisition, 3 sale and 4 Property Management documents; the research files and the leasing documents are skipped: these assets have no research items, prospect or rent comps), each with its abstract, + 8 credit reports (${docs.length}, ${dealAbs.length})`);
   check(docs.filter((d) => /^\[leasing:tenant:[a-z0-9-]+\] (Credit screening report|Credit report|Credit assessment memo): /.test(d.title ?? "")).length === 8, "1.1.9: the 8 sample credit reports, each on its asset tagged to its tenant");
   check(docs.filter((d) => !d.deal_id && d.fund_name === "Model Fund I").length === 2, "the LPA and PPM on Model Fund I");
-  check(docs.filter((d) => /^\[sale:/.test(d.title ?? "")).length === 7 && !docs.some((d) => /closing statement/i.test(d.title ?? "") && /^\[sale:/.test(d.title ?? "")), "1.1.13: 7 sale documents filed on the three sales in progress (BOVs, offer letters, one contract; no closing statement)");
+  check(docs.filter((d) => /^\[sale:/.test(d.title ?? "")).length === 10 && !docs.some((d) => /closing statement/i.test(d.title ?? "") && /^\[sale:/.test(d.title ?? "")), "1.1.13: 7 sale documents filed on the three sales in progress (BOVs, offer letters, one contract; no closing statement), and 1.1.23's listing agreement, offering memo and estoppel on Harbor Light's");
   const cert = docs.find((d) => (d.files ?? []).some((f) => f.name === "airport-flex-insurance-blue-mesa-fulfillment.pdf"));
+  {
+    // 1.1.23: each new document is where its tab looks for it.
+    const t = (re) => docs.filter((d) => re.test(d.title ?? "")).length;
+    const bill = docs.find((d) => d.doc_type === "billing");
+    check(t(/^\[acq\] /) === 9 && t(/^\[pm:(parcels|appeals|claims|items)\] /) === 4 && t(/^\[sale:[^\]]+\] (Listing agreement|Offering memo \/ marketing|Estoppel): /) === 3, `1.1.23: 9 acquisition documents, 4 Property Management documents in the sections that had none and 3 sale documents (${t(/^\[acq\] /)}, ${t(/^\[pm:(parcels|appeals|claims|items)\] /)}, ${t(/^\[sale:[^\]]+\] (Listing agreement|Offering memo \/ marketing|Estoppel): /)})`);
+    const bml = leases.find((l) => l.tenant === "Blue Mesa Fulfillment");
+    check(bill && bill.deal_id === bml?.deal_id && bill.lease_id === bml?.id, "1.1.23: the tenant billing is on Airport Flex Park, linked to its tenant's lease");
+    check(t(/^\[leasing:(sample-dlp|comps)/) === 0 && t(/^\[research:srs-\d-(appraisal|environmental|pca|credit|zoning|bov|rent)\]/) === 0, "1.1.23: no leasing document or research file is filed on assets that have no prospect, rent comps or research item for it");
+  }
   check(cert?.lease_id && cert.lease_id === leases.find((l) => l.tenant === "Blue Mesa Fulfillment")?.id, "the tenant's certificate is linked to its lease (a tenant on the rent roll)");
-  check(uploads.length === 59 + 12, `every PDF stored (${uploads.length}: 26 documents + 16 asset documents and SNDAs + 9 Property Management documents + 8 credit reports + 12 lease files)`);
+  check(uploads.length === 76 + 12, `every PDF stored (${uploads.length}: 26 documents + 16 asset documents and SNDAs + 9 Property Management documents + 17 of 1.1.23 + 8 credit reports + 12 lease files)`);
   // A second click adds nothing
   alerts.length = 0;
   await openMenu();
   await sm.getByRole("menuitem", { name: /Add sample documents/ }).click();
   for (let i = 0; i < 40 && !alerts.some((a) => /^Added|^Couldn't add/.test(a)); i++) await p.waitForTimeout(500);
-  check(/^Added 0 sample documents/.test(alerts.find((a) => /^Added/.test(a)) ?? "") && docs.length === 59 && leases.length === 9, "a second click adds nothing (all skipped as already uploaded)");
+  check(/^Added 0 sample documents/.test(alerts.find((a) => /^Added/.test(a)) ?? "") && docs.length === 76 && leases.length === 9, "a second click adds nothing (all skipped as already uploaded)");
   // The library shows them
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1500);
-  check((await p.getByTestId("doc-row").count()) === 68, `Library → Documents lists all 68 (${await p.getByTestId("doc-row").count()})`);
+  check((await p.getByTestId("doc-row").count()) === 85, `Library → Documents lists all 85 (${await p.getByTestId("doc-row").count()})`);
   await p.waitForTimeout(22000);
   const sd = saved?.new_data ?? saved?.data;
   check(["Route 9 Small Bay", "Harbor Light Industrial", "Mill Creek Business Park"].every((n) => sd?.deals?.find((d) => d.inputs?.propertyName === n)?.inputs?.dispositions?.length === 1), "a sample sale on each of the three assets with sale documents");
