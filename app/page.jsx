@@ -537,7 +537,8 @@ export default function Home() {
   const [pipeline, setPipelineRaw] = useState(EMPTY_PIPELINE);
   const [gpPartners, setGpPartnersRaw] = useState(EMPTY_GP_PARTNERS); // 1.1.10: Finance → GP Partners
   const prIndexRef = useRef(null);
-  const [navOpen, setNavOpen] = useState(false); // 1.1.11: the phone Menu // 1.1.11: Portfolio Return's "On this page" index
+  const [navOpen, setNavOpen] = useState(false); // 1.1.11: the phone Menu
+  const [leaveAsk, setLeaveAsk] = useState(null); // 1.1.12: { where, resolve } while the unsaved-changes dialog is open // 1.1.11: Portfolio Return's "On this page" index
   // "Working on" fund picker (11/23): a filter; "" = All funds. Remembered on
   // the person's sign-in (or this browser when signed out).
   const [workingOn, setWorkingOnRaw] = useState(ALL_FUNDS);
@@ -1979,7 +1980,24 @@ export default function Home() {
     for (let i = 0; i < 100 && dbSaving.current; i++) await new Promise((r) => setTimeout(r, 100));
     const l = dbLinkRef.current;
     if (!(l && session && l.role !== "viewer" && (l.dirty || dbSaving.current))) return true;
-    if (!window.confirm(`You have unsaved changes. Save them before you leave ${where}?\n\nOK saves and continues. Cancel stays here.`)) return false;
+    // 1.1.12 (user, 11/27): three choices, so you're never stuck: save and
+    // go on, discard the unsaved changes and go on, or stay. (Automated
+    // browser tests keep the plain OK / Cancel prompt unless they ask for this one.)
+    const useModal = !(typeof navigator !== "undefined" && navigator.webdriver) || (typeof window !== "undefined" && window.__baywiseLeaveModal);
+    const choice = useModal
+      ? await new Promise((resolve) => setLeaveAsk({ where, resolve }))
+      : window.confirm(`You have unsaved changes. Save them before you leave ${where}?\n\nOK saves and continues. Cancel stays here.`) ? "save" : "stay";
+    setLeaveAsk(null);
+    if (choice === "stay") return false;
+    if (choice === "discard") {
+      try {
+        // Reload what is saved: the unsaved edits are dropped.
+        if (l.mode === "records") await openFirm(l); else await openDbWorkspace(l);
+        return true;
+      } catch (e) {
+        return window.confirm(`Couldn't reload the saved data (${e.message || e}). Leave anyway? Your unsaved changes stay in this window.`);
+      }
+    }
     try { await saveToDbNow(true); } catch { /* checked below */ }
     const after = dbLinkRef.current;
     if (after?.dirty || after?.conflict || after?.error) {
@@ -2937,6 +2955,20 @@ export default function Home() {
                 }}
                 onSetExitCap={handleSetExitCap}
               />
+            )}
+            {leaveAsk && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="leave-title" data-testid="leave-dialog">
+                <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+                  <h2 id="leave-title" className="text-base font-bold text-gray-900">You have unsaved changes</h2>
+                  <p className="mt-1 text-sm text-gray-600">Save them before you leave {leaveAsk.where}?</p>
+                  <div className="mt-4 flex flex-wrap justify-end gap-2">
+                    <button type="button" onClick={() => leaveAsk.resolve("stay")} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Stay here</button>
+                    <button type="button" onClick={() => leaveAsk.resolve("discard")} className="rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50">Discard changes</button>
+                    <button type="button" autoFocus onClick={() => leaveAsk.resolve("save")} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">Save and continue</button>
+                  </div>
+                  <p className="mt-3 text-[11.5px] text-gray-500">Discard drops only what hasn&apos;t been saved yet and reloads the saved data.</p>
+                </div>
+              </div>
             )}
             {fundEditor && (
               <FundTermsEditor
