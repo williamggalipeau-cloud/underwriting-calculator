@@ -53,5 +53,14 @@ const parsed = LD.leasingDocs(docs).find((x) => x.target === LD.tenantDocTarget(
 ok(parsed && parsed.typeLabel === "Credit screening report" && parsed.name === bm.file, "the title reads back as the tenant's credit screening report");
 ok(LD.leasingDocs(docs).find((x) => x.name === cc.file)?.typeLabel === "Credit report" && LD.leasingDocs(docs).find((x) => x.target === LD.tenantDocTarget("Riverbend Flooring"))?.typeLabel === "Credit assessment memo", "credit report and assessment memo types");
 
+// 1.1.13: two assets with a prospect of the same name, both screened: each gets its report (only the first did before).
+{
+  const P2 = j(R + "/lib/sampleDocs.js");
+  const rep = REPORTS.prospects[0];
+  const mk = (id, name, pid) => ({ id, inputs: { propertyName: name, units: [], leasing: { prospects: [{ id: pid, tenant: rep.tenant, kind: "new", stage: "loi", screening: { file: rep.file } }] } } });
+  const plan = P2.sampleDocPlan({ credit: [{ kind: "prospect", tenant: rep.tenant, type: "credit_screening", file: `credit/${rep.file}`, title: rep.file }] }, { deals: [mk("sample-deal-1", "A", "p-a"), mk("sample-deal-3", "B", "p-b")] });
+  ok(plan.add.length === 2 && plan.add.map((x) => x.target).sort().join() === "p-a,p-b" && plan.add.map((x) => x.dealId).sort().join() === "sample-deal-1,sample-deal-3", "a screening report is filed on every prospect that has it, one per asset");
+}
+
 console.log(fail ? `${fail} failed` : "all passed");
 process.exit(fail ? 1 : 0);
