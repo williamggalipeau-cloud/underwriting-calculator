@@ -497,15 +497,23 @@ Claude Code) built and maintains it, using the tools below.
 
 ### Connectors (MCP servers) used to build the app
 
-| Connector | What it was used for |
-|---|---|
-| **GitHub** | Opening and merging pull requests, and checking the GitHub Actions deploy runs and their logs. |
-| **Claude Code Remote** (cloud session tools) | Creating the cloud environment that allows `pensford.com` and `markets.newyorkfed.org`, watching PRs, and scheduling check-ins. |
-| **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. |
-| **CREparser Lease Abstraction** | Opened at the start for lease abstraction. Not used in the app's calculations. |
-| **FactIQ** | Searching for SOFR data series while choosing a live rate source. The app uses the NY Fed API instead (§5). |
-| **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). Since 11/25 (user's choice; all data is test data): **reading** the live firm data to check features against it, and **writing** sample data only when the user asks, each write stamped "Claude (sample data, on request)", version-checked and logged in the audit log. New tables, types and policies stay in `supabase/*.sql` for the user to run. |
-| **CREparser Deal Review** | Validating the abstracts of the fictional sample documents (offering memos, rent rolls, T-12s, LOIs, loan agreements, appraisals, estoppels and others) before they were shipped as sample data. Validation only. |
+| Connector | What it was used for | Tools called |
+|---|---|---|
+| **GitHub** | Opening, updating and merging pull requests; checking the test runs and their logs; checking that a release was published. | `create_pull_request`, `update_pull_request`, `merge_pull_request`, `pull_request_read`, `list_pull_requests`, `actions_list`, `actions_run_trigger`, `get_job_logs`, `get_latest_release`, `get_release_by_tag`, `list_tags`, `add_reply_to_pull_request_comment` |
+| **Claude Code Remote** (cloud session tools) | Creating the cloud environment that allows `pensford.com` and `markets.newyorkfed.org`, watching pull requests, and scheduling check-ins. | `create_environment`, `get_environment`, `update_environment`, `create_session`, `create_trigger`, `get_trigger`, `list_triggers`, `update_trigger`, `delete_trigger`, `send_later`, `subscribe_pr_activity`, `unsubscribe_pr_activity`, `list_computer_folders`, `read_documentation` |
+| **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). Since 11/25 (user's choice; all data is test data): **reading** the live firm data to check features against it, and **writing** sample data only when the user asks, each write stamped "Claude (sample data, on request)", version-checked and logged in the audit log. New tables, types and policies stay in `supabase/*.sql` for the user to run. One exception, at the user's request (11/27, "shut the restriction off"): Claude put the two document read rules back as `deal_documents.sql` has them and removed two helper functions, after a draft of the 1.1.15 script had restricted them (§12.5). | `list_projects`, `list_tables`, `execute_sql`, `apply_migration`, `get_advisors` |
+| **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. | `authorize_team_access`, `filter_project_envs`, `list_deployments` |
+| **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. | `list_deals`, `run_cre_debt_sizing` |
+| **CREparser Lease Abstraction** | Reading the fictional sample leases and validating their abstracts (§7.24); saving the "Light industrial (Model Fund I)" export template. Not used in the app's calculations. | `lease_prepare_upload`, `lease_open_upload`, `lease_read_pdf`, `lease_read_pages`, `lease_search_text`, `lease_combine_pdfs`, `lease_validate_abstract`, `lease_show_abstract`, `lease_save_template` |
+| **CREparser Deal Review** | Validating the abstracts of the fictional sample documents (offering memos, rent rolls, T-12s, LOIs, loan agreements, appraisals, estoppels and others) before they were shipped as sample data. Validation only; the viewer is not opened (user's rule). | `cre_account` and the validators named in §7.28 and §7.29 (`om_validate`, `rentroll_validate`, `t12_validate`, `loi_validate`, `loan_validate_abstract`, `appraisal_validate` and the others listed there) |
+| **FactIQ** | Searching for SOFR data series while choosing a live rate source. The app uses the NY Fed API instead (§5). | `search_series` |
+
+The tool names are the ones recorded in the build sessions. Many more
+connectors are installed in the Claude Code environment (finance, legal,
+design and others); none of them was used for Baywise and none is listed
+here. Claude also used its built-in tools (reading and editing files,
+running commands and tests, web search and web fetch), which are not
+connectors. This table is updated with each release.
 
 ### Skills loaded while building
 

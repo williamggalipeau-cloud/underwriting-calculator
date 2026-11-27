@@ -17,6 +17,7 @@ const acq = [
 ];
 const sale = { ...DS.makeSale({ reason: "plan_complete", targetPrice: 8200000 }), id: "sale-t1", stage: "offers", bovs: [{ ...DS.makeBov(), id: "bov-t1", broker: "Fictional Brokers", price: 8000000 }], offers: [{ ...DS.makeOffer(), id: "off-t1", buyer: "Example Buyer", price: 7900000, selected: true }] };
 data.deals = data.deals.map((d) => (d.id === "sample-deal-1" ? { ...d, inputs: { ...d.inputs, salesComps: { comps: acq, marketGrowthPct: 3, spreadBp: 25, filters: { sinceISO: "", minSF: "", maxSF: "", type: "" } }, dispositions: [sale] } } : d));
+data.deals = [...data.deals, { ...data.deals.find((d) => d.id === "sample-deal-1"), id: "pipe-t1", inputs: { ...data.deals.find((d) => d.id === "sample-deal-1").inputs, propertyName: "Fictional Pipeline Deal", fundName: "", dispositions: [] } }];
 data.activeDealId = "sample-deal-1";
 const d1 = data.deals.find((d) => d.id === "sample-deal-1");
 const now = Math.floor(Date.now() / 1000);
@@ -45,6 +46,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await ctx.route("**/maps.google.com/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<html></html>" }));
   const p = await ctx.newPage();
   p.on("pageerror", (e) => errs.push(e.message));
+  p.on("dialog", (d) => d.accept()); // leaving a tab with unsaved changes asks; the test leaves
   await p.goto(FX.BASE_URL);
   await p.waitForTimeout(3500);
   await FX.saveLoadUpgrade(p);
@@ -96,19 +98,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // Sell/Hold: value per SF next to basis per SF, and break-even occupancy.
   await go("Sell/Hold Analysis");
   await p.waitForTimeout(2500);
-  if (process.env.DEBUG) { await p.screenshot({ path: "/tmp/pgs/sh.png" }); console.log("DBG dialog", await p.getByTestId("leave-dialog").count(), (await p.locator("main").innerText()).replace(/\n+/g, " | ").slice(-900)); }
   const sf = M.assetSF(d1.inputs), basis = M.allInBasis(d1.inputs);
   check((await p.getByTestId("sh-basis-psf").innerText()).includes(`$${(basis / sf).toFixed(0)} / SF`) && /\$\d+ \/ SF/.test(await p.getByTestId("sh-price-psf").innerText()), `Sell/Hold: sale value per SF next to basis per SF ($${(basis / sf).toFixed(0)} / SF)`);
   const shBe = (await p.getByTestId("sh-break-even").innerText()).match(/\d+\.\d%/)?.[0] ?? "";
   check(shBe && debtBe.startsWith(shBe) && /pts/.test(await p.getByTestId("sh-cushion").innerText()), `Sell/Hold: the same break-even occupancy as Portfolio Debt for this asset (${shBe} and ${debtBe})`);
-
-  // Deal Screener: purchase price and all-in basis per SF, break-even occupancy.
-  await go("Deal Screener");
-  await p.waitForTimeout(1500);
-  const sm = p.getByTestId("screener-metrics");
-  if (await sm.count()) {
-    check(/\$\d+ \/ SF/.test(await p.getByTestId("screener-price-psf").innerText()) && /\$\d+ \/ SF/.test(await p.getByTestId("screener-basis-psf").innerText()) && /\d+\.\d%/.test(await p.getByTestId("screener-break-even").innerText()) && /pts/.test(await p.getByTestId("screener-cushion").innerText()), "Deal Screener: price and basis per SF, break-even occupancy and its cushion");
-  } else check(false, "Deal Screener: the price per SF and break-even tiles are shown");
 
   // Research: the asset's own comps are named the acquisition comps.
   await go("Comps");
@@ -120,6 +113,19 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(22000);
   const sd = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.id === "sample-deal-1")?.inputs;
   check(sd?.dispositions?.[0]?.comps?.comps?.length === 2 && sd.dispositions[0].comps.comps.every((c) => /^dc-/.test(c.id)) && sd.salesComps.comps.length === 2 && sd.salesComps.comps[0].id === "ac-1", "saved: the sale holds its own two comps; the acquisition comps are untouched");
+  // Deal Screener: purchase price and all-in basis per SF, break-even occupancy.
+  // A deal still in the pipeline (no portfolio yet) is the open deal.
+  ws.data = { ...data, activeDealId: "pipe-t1" };
+  await p.reload();
+  await p.waitForTimeout(3500);
+  await FX.saveLoadUpgrade(p);
+  await FX.openTab(p, "Deal Screener");
+  await p.waitForTimeout(1500);
+  const sm = p.getByTestId("screener-metrics");
+  if (await sm.count()) {
+    check(/\$\d+ \/ SF/.test(await p.getByTestId("screener-price-psf").innerText()) && /\$\d+ \/ SF/.test(await p.getByTestId("screener-basis-psf").innerText()) && /\d+\.\d%/.test(await p.getByTestId("screener-break-even").innerText()) && /pts/.test(await p.getByTestId("screener-cushion").innerText()), "Deal Screener: price and basis per SF, break-even occupancy and its cushion");
+  } else check(false, "Deal Screener: the price per SF and break-even tiles are shown");
+
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   console.log(fails ? `${fails} FAILED` : "ALL PASS");
   await b.close(); process.exitCode = fails ? 1 : 0;
