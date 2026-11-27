@@ -152,7 +152,7 @@ ok(man.deals.length === names.length && man.deals.every((d) => fs.readFileSync(`
   console.log(`NOT YET TIED lease-dependent documents: ${[...PENDING].join(", ")} (they name those tenants)`);
   const dispNoSale = man.dispositions.filter((x) => !(dealOf(x.asset)?.inputs.dispositions ?? []).length);
   console.log(`NOT YET TIED sale documents: ${dispNoSale.length} of ${man.dispositions.length} (the fund the app builds holds no sale; a sale is added only when the documents are uploaded)`);
-  ok(untiedLeases.length === 9 && PENDING.size === 3 && dispNoSale.length === 12, "the not-yet-tied list is exactly: 9 leases, 3 lease-dependent documents, 12 sale documents");
+  ok(untiedLeases.length === 9 && PENDING.size === 3 && dispNoSale.length === 12 && untiedJobs === 6, "the not-yet-tied list is exactly: 9 leases, 3 lease-dependent documents, 12 sale documents, 6 construction job tenants");
   void DISP;
 }
 
