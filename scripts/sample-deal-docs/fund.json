@@ -72,7 +72,7 @@
    },
    "model": {
     "equity": 2835858,
-    "noi1": 462176,
+    "noi1": 462412,
     "goingInCapPct": 6.42,
     "irrPct": 31,
     "multiple": 2.91,
@@ -608,7 +608,7 @@
    },
    "model": {
     "equity": 4926045,
-    "noi1": 763248,
+    "noi1": 763753,
     "goingInCapPct": 6.11,
     "irrPct": 35.1,
     "multiple": 3.3,
@@ -1228,7 +1228,7 @@
    },
    "model": {
     "equity": 3859871,
-    "noi1": 652212,
+    "noi1": 652674,
     "goingInCapPct": 6.66,
     "irrPct": 23.6,
     "multiple": 2.32,
@@ -1810,8 +1810,8 @@
    },
    "model": {
     "equity": 3309899,
-    "noi1": 500117,
-    "goingInCapPct": 5.95,
+    "noi1": 500400,
+    "goingInCapPct": 5.96,
     "irrPct": 42.2,
     "multiple": 4.05,
     "coc1Pct": -3.1,
@@ -2352,7 +2352,7 @@
    },
    "model": {
     "equity": 2127033,
-    "noi1": 347316,
+    "noi1": 347090,
     "goingInCapPct": 6.43,
     "irrPct": 26,
     "multiple": 2.51,
@@ -2824,8 +2824,8 @@
    },
    "model": {
     "equity": 5832527,
-    "noi1": 915746,
-    "goingInCapPct": 6.19,
+    "noi1": 915314,
+    "goingInCapPct": 6.18,
     "irrPct": 33.2,
     "multiple": 3.12,
     "coc1Pct": -2.8,
@@ -3490,8 +3490,8 @@
    },
    "model": {
     "equity": 3586004,
-    "noi1": 580918,
-    "goingInCapPct": 6.38,
+    "noi1": 581301,
+    "goingInCapPct": 6.39,
     "irrPct": 43.8,
     "multiple": 4.21,
     "coc1Pct": -2.6,
@@ -4046,7 +4046,7 @@
    },
    "model": {
     "equity": 2993592,
-    "noi1": 494597,
+    "noi1": 494842,
     "goingInCapPct": 6.51,
     "irrPct": 30.1,
     "multiple": 2.83,
@@ -4560,7 +4560,7 @@
    },
    "model": {
     "equity": 4571213,
-    "noi1": 724561,
+    "noi1": 725063,
     "goingInCapPct": 6.25,
     "irrPct": 32.2,
     "multiple": 3.05,

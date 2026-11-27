@@ -1,7 +1,7 @@
 {
  "doc_type": "offer_letter",
  "title": "Harbor Light Industrial LOI from Fictional Pacific Industrial Fund II",
- "summary": "Fictional Pacific Industrial Fund II offers $10,050,000 for Harbor Light Industrial with a $200,000 deposit and 45-day due diligence.",
+ "summary": "Fictional Pacific Industrial Fund II offers $10,100,000 for Harbor Light Industrial with a $200,000 deposit and 45-day due diligence.",
  "fields": [
   {
    "key": "loi_date",
@@ -38,11 +38,11 @@
   },
   {
    "key": "purchase_price",
-   "value": "$10,050,000",
+   "value": "$10,100,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Purchase Price is $10,050,000.",
+     "quote": "The Purchase Price is $10,100,000.",
      "page": 1
     }
    ]

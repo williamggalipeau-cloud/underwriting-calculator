@@ -173,7 +173,7 @@
    ],
    [
     "icApproved.noi1",
-    462176
+    462412
    ],
    [
     "icApproved.going_in_cap",
@@ -381,7 +381,7 @@
       "scope": "whole",
       "unitIds": [],
       "reason": "plan_complete",
-      "targetPrice": 10450000,
+      "targetPrice": 10500000,
       "targetCapPct": null,
       "targetClose": "",
       "stage": "offers",
@@ -390,10 +390,10 @@
        {
         "id": "sample-bov-3-1",
         "broker": "Sample Coastal Brokerage",
-        "price": 10150000,
-        "capPct": 6.43,
+        "price": 10200000,
+        "capPct": 6.4,
         "feePct": 1,
-        "notes": "Value range $9,850,000–$10,450,000; list $10,450,000; $282/SF; ten weeks; BOV dated 2026-11-02",
+        "notes": "Value range $9,900,000–$10,500,000; list $10,500,000; $283/SF; ten weeks; BOV dated 2026-11-02",
         "docId": null
        }
       ],
@@ -428,7 +428,7 @@
         "broker": "",
         "date": "2026-11-12",
         "round": "initial",
-        "price": 10050000,
+        "price": 10100000,
         "deposit": 200000,
         "ddDays": 45,
         "closingDays": 30,
@@ -454,7 +454,7 @@
       "scope": "whole",
       "unitIds": [],
       "reason": "plan_complete",
-      "targetPrice": 15850000,
+      "targetPrice": 15900000,
       "targetCapPct": null,
       "targetClose": "",
       "stage": "offers",
@@ -463,10 +463,10 @@
        {
         "id": "sample-bov-6-1",
         "broker": "Example Northwest Capital Markets",
-        "price": 15400000,
-        "capPct": 5.95,
+        "price": 15450000,
+        "capPct": 5.92,
         "feePct": 1.1,
-        "notes": "Value range $14,950,000–$15,850,000; list $15,850,000; $308/SF; eight weeks; BOV dated 2026-11-02",
+        "notes": "Value range $15,000,000–$15,900,000; list $15,900,000; $309/SF; eight weeks; BOV dated 2026-11-02",
         "docId": null
        }
       ],
@@ -501,7 +501,7 @@
         "broker": "",
         "date": "2026-11-18",
         "round": "initial",
-        "price": 15250000,
+        "price": 15300000,
         "deposit": 300000,
         "ddDays": 30,
         "closingDays": 45,

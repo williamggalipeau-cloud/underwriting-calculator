@@ -27,10 +27,11 @@ import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit, mergeCreditUpdate } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
+import { withSampleLeaseSteps } from "@/lib/sampleLeaseSteps";
 import { withSampleResearch } from "@/lib/sampleResearch";
 import { withSamplePropertyMgmt } from "@/lib/samplePropertyMgmt";
 import { withSampleAssetFacts, withSampleSnda } from "@/lib/sampleAssetFacts";
-import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale, withSampleSaleComps } from "@/lib/sampleDocTerms";
+import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale, withSampleSaleComps, withSampleTermChanges } from "@/lib/sampleDocTerms";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -1673,6 +1674,8 @@ export default function Home() {
         if (!d.id.startsWith("sample-deal-")) return d;
         let inp = mergeCreditUpdate(d.inputs, credit.updates[d.id]); // 1.1.18: only the credit fields, onto the asset as it is now
         inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
+        inp = withSampleTermChanges(inp, d.id, { fromVersion }); // 1.1.21: sample figures that changed, only where the asset still holds the earlier sample value
+        inp = withSampleLeaseSteps(inp, d.id); // 1.1.21: each sample lease's rent steps, on its tenant's unit (only where the unit has none)
         inp = withSampleSaleComps(inp); // 1.1.16: each sample sale's comps, copied from the asset's acquisition comps
         inp = withSampleSnda(withSampleAssetFacts(inp, d.id), d.id, { repair: fromVersion === 6 }); // 1.1.17: building and site facts, and SNDA statuses (only where none is set; 1.1.18 repairs a version-6 load that lost them)
         inp = withSampleResearch(inp, d.id, latestData.current?.comps?.market ?? cur.comps?.market); // 1.1.21: third-party research, only where the asset has none

@@ -18,6 +18,9 @@
   "route9-closing-disp.pdf",
   "route9-loan.pdf"
  ],
+ "8": [
+  "airport-flex-ic-memo.pdf"
+ ],
  "sales": {
   "3": [
    "harbor-light-bov.pdf",
@@ -32,6 +35,12 @@
    "route9-closing-disp.pdf",
    "route9-loi.pdf",
    "route9-psa.pdf"
+  ],
+  "8": [
+   "harbor-light-bov.pdf",
+   "harbor-light-loi.pdf",
+   "mill-creek-bov.pdf",
+   "mill-creek-loi.pdf"
   ]
  },
  "leases": {

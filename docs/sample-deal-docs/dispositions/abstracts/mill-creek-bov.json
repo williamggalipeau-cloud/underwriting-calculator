@@ -1,7 +1,7 @@
 {
  "doc_type": "bov",
  "title": "Mill Creek Business Park BOV",
- "summary": "Example Northwest Capital Markets values Mill Creek Business Park at $14,950,000–$15,850,000, most likely $15,400,000, and recommends listing at $15,850,000.",
+ "summary": "Example Northwest Capital Markets values Mill Creek Business Park at $15,000,000–$15,900,000, most likely $15,450,000, and recommends listing at $15,900,000.",
  "fields": [
   {
    "key": "broker",
@@ -27,66 +27,66 @@
   },
   {
    "key": "value_low",
-   "value": "$14,950,000",
+   "value": "$15,000,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Mill Creek Business Park at between $14,950,000 and $15,850,000.",
+     "quote": "We estimate the market value of Mill Creek Business Park at between $15,000,000 and $15,900,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_mid",
-   "value": "$15,400,000",
+   "value": "$15,450,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Our most likely value is $15,400,000.",
+     "quote": "Our most likely value is $15,450,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_high",
-   "value": "$15,850,000",
+   "value": "$15,900,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Mill Creek Business Park at between $14,950,000 and $15,850,000.",
+     "quote": "We estimate the market value of Mill Creek Business Park at between $15,000,000 and $15,900,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "price_psf",
-   "value": "308",
+   "value": "309",
    "status": "found",
    "evidence": [
     {
-     "quote": "That value is $308 per square foot.",
+     "quote": "That value is $309 per square foot.",
      "page": 1
     }
    ]
   },
   {
    "key": "cap_rate",
-   "value": "5.95%",
+   "value": "5.92%",
    "status": "found",
    "evidence": [
     {
-     "quote": "The most likely value reflects a 5.95% cap rate on in-place net operating income.",
+     "quote": "The most likely value reflects a 5.92% cap rate on in-place net operating income.",
      "page": 1
     }
    ]
   },
   {
    "key": "list_price",
-   "value": "$15,850,000",
+   "value": "$15,900,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We recommend a list price of $15,850,000.",
+     "quote": "We recommend a list price of $15,900,000.",
      "page": 1
     }
    ]
