@@ -48,8 +48,11 @@ const td = "px-2.5 py-1.5";
 function PlanChart({ rows }) {
   if (!rows.length) return null;
   const W = 720, H = 180, L = 56, B = 22;
-  let cf = 0, df = 0;
-  const pts = rows.map((r) => { cf += r.forecastCalled; df += r.forecastDistributed; return { ...r, cumFc: cf, cumFd: df }; });
+  const pts = rows.reduce((acc, r) => {
+    const prev = acc.at(-1);
+    acc.push({ ...r, cumFc: (prev?.cumFc ?? 0) + r.forecastCalled, cumFd: (prev?.cumFd ?? 0) + r.forecastDistributed });
+    return acc;
+  }, []);
   const max = Math.max(1, ...pts.flatMap((p) => [p.cumPlanCalled, p.cumPlanDistributed, p.cumFc, p.cumFd, p.cumActualCalled ?? 0, p.cumActualDistributed ?? 0]));
   const x = (i) => L + (i / Math.max(1, pts.length - 1)) * (W - L - 8);
   const y = (v) => H - B - (v / max) * (H - B - 8);

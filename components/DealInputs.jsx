@@ -3,7 +3,7 @@
 import AssetFacts from "@/components/AssetFacts";
 import { US_STATES } from "@/lib/assetLocations";
 import { useState } from "react";
-import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
+import { computeConstructionCostPSF } from "@/lib/calculations";
 import { fetchSofrCurve } from "@/lib/sofr";
 import { PM_FIRM_TYPES, pmFeeNote as pmFeeNoteOf, pmFirmOf } from "@/lib/propertyManager";
 

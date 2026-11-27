@@ -89,12 +89,19 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(800);
   check((await main.getByTestId("screener-sync").count()) === 0, "Update pipeline row: they match again");
   const imp = main.getByTestId("screener-impact");
-  check((await imp.count()) === 1 && /Scenario — not actual/.test(await imp.innerText()) && (await main.getByTestId("screener-owned").count()) === 0, "pipeline deal: Model in fund panel, labelled a scenario");
-  check((await imp.getByLabel("Model in fund").inputValue()) === "Model Fund I" && /Net LP IRR/.test(await imp.getByTestId("impact-returns").innerText()) && /Dry powder before → after/.test(await imp.getByTestId("impact-capital").innerText()), "fund with vs. without: returns, dry powder, concentration");
+  check((await imp.count()) === 1 && /Scenario — not actual/.test(await imp.innerText()) && (await main.getByTestId("screener-owned").count()) === 0, "pipeline deal: the fund summary line, labelled a scenario");
+  // 1.1.20: one summary line instead of the full panel (it duplicated Portfolio Impact).
+  const line = await imp.innerText();
+  check(/^In Model Fund I/.test(line.trim()) && /Net LP IRR [\d.]+% → [\d.]+%/.test(await imp.getByTestId("impact-line-irr").innerText()) && /Equity needed \$[\d.]+M/.test(await imp.getByTestId("impact-line-equity").innerText()) && /Dry powder after/.test(await imp.getByTestId("impact-line-powder").innerText()), `one line: the fund, net LP IRR without → with, equity needed, dry powder (${line.replace(/\s+/g, " ").slice(0, 160)})`);
+  check((await imp.getByLabel("Model in fund").count()) === 0 && (await imp.getByLabel("Compare against").count()) === 0 && (await imp.locator("table").count()) === 0 && (await imp.getByRole("button", { name: "Excel" }).count()) === 0, "the full table, the fund and base pickers and the Excel are no longer on the Screener");
   check((await p.locator("#pipeline-deal-picker option:checked").innerText()).startsWith("Glendale Commerce Center · Screening · screened") && (await main.getByTestId("screener-next").count()) === 1, "the screened deal is picked in the Pipeline Deal dropdown, with its next steps");
-  await imp.getByLabel("Compare against").selectOption("owned");
-  await p.waitForTimeout(800);
-  check(/owned assets only/.test(await imp.innerText()), "compare against owned assets only");
+  const irrWith = (await imp.getByTestId("impact-line-irr").innerText()).match(/→ ([\d.]+%)/)[1];
+  await imp.getByTestId("impact-open").click();
+  await p.waitForTimeout(2500);
+  const fi0 = main.getByTestId("fund-impact-tab");
+  check((await fi0.count()) === 1 && (await fi0.getByLabel("Candidate Glendale Commerce Center").isChecked()), "the button opens Portfolio Impact with this deal ticked");
+  const tabIrr = await fi0.getByTestId("impact-tab-returns").innerText();
+  check(tabIrr.includes(irrWith), `the Screener's net LP IRR with the deal (${irrWith}) is the one Portfolio Impact shows`);
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(800);
   check((await pl.getByTestId("pipeline-row").filter({ hasText: "Glendale Commerce Center" }).getByRole("button", { name: "Open in Screener" }).count()) === 1 && (await pl.getByLabel("Stage Glendale Commerce Center").inputValue()) === "screening", "screened: linked to its deal, moved to Screening");

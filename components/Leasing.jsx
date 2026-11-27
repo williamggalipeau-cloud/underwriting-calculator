@@ -7,7 +7,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import VacantUnits from "@/components/VacantUnits";
 import {
   ACTIVE_PROSPECT_STAGES, PROSPECT_SOURCES, PROSPECT_STAGES, RENT_COMP_FIELDS, allProspects, detectRentCompMapping, filterRentComps, importRentComps, leasingOf,
-  leasingXlsx, makeProspect, makeRentComp, netEffective, pipelineTotals, rentCompStats, rentCompsFromFile, rentVsComps, stageLabel, vsPlan,
+  leasingXlsx, makeProspect, makeRentComp, netEffective, pipelineTotals, rentCompStats, rentCompsFromFile, rentVsComps, vsPlan,
 } from "@/lib/leasing";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";

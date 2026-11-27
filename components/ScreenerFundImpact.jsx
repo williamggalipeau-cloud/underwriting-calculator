@@ -1,19 +1,18 @@
 "use client";
 
-// Phase M: Deal Screener shows pipeline deals only, with a "Model in fund"
-// picker: the chosen fund with vs. without this deal (modeling only).
-import { useMemo, useState } from "react";
-import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
+// Phase M: Deal Screener shows pipeline deals only, with a one-line summary
+// of the fund with vs. without this deal (modeling only; 1.1.20).
+import { useMemo } from "react";
+import { DEFAULT_FUND_TERMS } from "@/lib/fundTerms";
 import { fundOptionLabel } from "@/lib/fundTypes";
-import { writeXlsx } from "@/lib/xlsx";
-import { IMPACT_ROWS, fundImpact, impactXlsx } from "@/lib/fundImpact";
+import { IMPACT_ROWS, fundImpact } from "@/lib/fundImpact";
 
-const fmt = (v, u) => (v == null || !isFinite(v) ? "—" : u === "%" ? `${v.toFixed(1)}%` : u === "x" ? `${v.toFixed(2)}x` : `$${(v / 1e6).toFixed(2)}M`);
+const fmt = (v, u) => (v == null || !isFinite(v) ? "—" : u === "%" ? `${v.toFixed(2)}%` : u === "x" ? `${v.toFixed(2)}x` : `$${(v / 1e6).toFixed(2)}M`);
 const fmtD = (v, u) => {
   if (v == null || !isFinite(v)) return "—";
   const s = v > 0 ? "+" : v < 0 ? "−" : "";
   const a = Math.abs(v);
-  return u === "%" ? `${s}${a.toFixed(1)} pts` : u === "x" ? `${s}${a.toFixed(2)}x` : `${s}$${(a / 1e6).toFixed(2)}M`;
+  return u === "%" ? `${s}${a.toFixed(2)} pts` : u === "x" ? `${s}${a.toFixed(2)}x` : `${s}$${(a / 1e6).toFixed(2)}M`;
 };
 const tone = (v, good = 1) => (v == null || Math.abs(v) < 1e-9 ? "text-gray-500" : v * good > 0 ? "text-emerald-700" : "text-red-600");
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "—");
@@ -136,58 +135,41 @@ export function ScreenerRowCard({ row, state, justScreened = false, canEdit = fa
   );
 }
 
-export default function ScreenerFundImpact({ activeDeal, deals, funds, todayISO, curve, defaultFund = "" }) {
+// 1.1.20 (user, 11/27): the full "Model in fund" panel duplicated the
+// Portfolio Impact tab, so the screener keeps one summary line: the fund the
+// deal would be held in (its target fund on the Pipeline row, else the first
+// portfolio), the net LP IRR with and without it, the equity it needs, the
+// dry powder left and any limit it would newly breach. Choosing another
+// fund, the comparison base, the full table and the Excel are on Portfolio
+// Impact, one click away.
+export default function ScreenerFundImpact({ activeDeal, deals, funds, todayISO, curve, defaultFund = "", onOpenImpact = null }) {
   const names = Object.keys(funds);
-  const [pick, setPick] = useState(null);
-  const fund = names.includes(pick) ? pick : names.includes(defaultFund) ? defaultFund : names[0];
-  const [base, setBase] = useState("all");
+  const fund = names.includes(defaultFund) ? defaultFund : names[0];
   const terms = useMemo(() => (fund ? { ...DEFAULT_FUND_TERMS, ...(funds[fund] ?? {}), name: fund } : null), [funds, fund]);
   const fundDeals = useMemo(() => deals.filter((d) => d.inputs.fundName?.trim() === fund && d.id !== activeDeal.id), [deals, fund, activeDeal.id]);
   const r = useMemo(() => {
     if (!terms) return null;
-    try { return fundImpact(fundDeals, terms, [activeDeal], { todayISO, curve, base }); } catch { return null; }
-  }, [fundDeals, terms, activeDeal, todayISO, curve, base]);
+    try { return fundImpact(fundDeals, terms, [activeDeal], { todayISO, curve, base: "all" }); } catch { return null; }
+  }, [fundDeals, terms, activeDeal, todayISO, curve]);
   if (!names.length) return null;
+  const irr = IMPACT_ROWS.find(([k]) => k === "netLpIrr") ?? IMPACT_ROWS[0];
   return (
-    <section className="space-y-2 rounded-xl border border-indigo-200 bg-indigo-50/30 p-3" data-testid="screener-impact">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-gray-900">Model in fund <span className="ml-1 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-800">Scenario — not actual</span></h3>
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <select aria-label="Model in fund" value={fund} onChange={(e) => setPick(e.target.value)} className="rounded border border-gray-300 px-1.5 py-1">{names.map((n) => <option key={n} value={n}>{fundOptionLabel(n, funds)}</option>)}</select>
-          <select aria-label="Compare against" value={base} onChange={(e) => setBase(e.target.value)} className="rounded border border-gray-300 px-1.5 py-1">
-            <option value="all">vs. owned + other pipeline assets</option>
-            <option value="owned">vs. owned assets only</option>
-          </select>
-          {r && <button type="button" onClick={() => downloadBlob(writeXlsx(impactXlsx(fund, r), { sheetName: "Fund impact", title: `Baywise · ${fund} fund impact (scenario)` }), `${safeFileName(fund)}-impact-${safeFileName(activeDeal.inputs.propertyName || "deal")}.xlsx`)} className="rounded border border-gray-300 bg-white px-2 py-1">Excel</button>}
-        </div>
-      </div>
-      {!r ? <p className="text-xs text-gray-500">Couldn&apos;t run the fund with this deal.</p> : (
+    <section className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-indigo-200 bg-indigo-50/40 px-3 py-2 text-xs text-gray-800" data-testid="screener-impact">
+      <span className="font-semibold text-gray-900">In {fundOptionLabel(fund, funds)}</span>
+      <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-800">Scenario — not actual</span>
+      {!r ? <span className="text-gray-500">Couldn&apos;t run the fund with this deal.</span> : (
         <>
-          <div className="grid gap-3 lg:grid-cols-2">
-            <table className="w-full text-xs tabular-nums" data-testid="impact-returns">
-              <thead className="text-gray-500"><tr><th className="py-1 text-left font-medium">{fund}</th><th className="py-1 text-right font-medium">Without</th><th className="py-1 text-right font-medium">With</th><th className="py-1 text-right font-medium">Change</th></tr></thead>
-              <tbody>
-                {IMPACT_ROWS.map(([k, l, u]) => (
-                  <tr key={k} className="border-t border-indigo-100"><td className="py-1">{l}</td><td className="py-1 text-right">{fmt(r.without.returns[k], u)}</td><td className="py-1 text-right font-semibold">{fmt(r.with.returns[k], u)}</td><td className={`py-1 text-right ${tone(r.change[k])}`}>{fmtD(r.change[k], u)}</td></tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="space-y-1 text-xs" data-testid="impact-capital">
-              <div className="flex justify-between"><span>Equity this deal needs</span><span className="font-semibold tabular-nums">{fmt(r.change.equity, "$")}</span></div>
-              <div className="flex justify-between"><span>Dry powder before → after</span><span className={`tabular-nums ${r.overCommitted ? "font-semibold text-red-700" : ""}`}>{fmt(r.without.dryPowder, "$")} → {fmt(r.with.dryPowder, "$")}{r.dryPowderUsedPct != null ? ` (${r.dryPowderUsedPct.toFixed(1)}% used)` : ""}</span></div>
-              <div className="flex justify-between"><span>Largest tenant, % of fund rent</span><span className="tabular-nums">{fmt(r.without.conc.tenant.value, "%")} → {fmt(r.with.conc.tenant.value, "%")}</span></div>
-              <div className="flex justify-between"><span>Largest state, % of value</span><span className="tabular-nums">{fmt(r.without.conc.state.value, "%")} → {fmt(r.with.conc.state.value, "%")} {r.with.conc.state.what ? `(${r.with.conc.state.what})` : ""}</span></div>
-              <div className="flex justify-between"><span>Fund leverage (LTV)</span><span className="tabular-nums">{fmt(r.without.conc.ltv.value, "%")} → {fmt(r.with.conc.ltv.value, "%")}</span></div>
-              <div className="pt-1" data-testid="impact-limits">
-                {r.limits.length === 0 ? <span className="text-gray-500">No fund limits set (Reports → Fund limits).</span>
-                  : r.newBreaches.length ? <span className="font-semibold text-red-700">Would breach: {r.newBreaches.map((l) => `${l.label} (${l.actual?.toFixed(1)} vs. ${l.limit})`).join("; ")}</span>
-                  : <span className="text-emerald-700">No new limit breaches ({r.limits.length} limits checked).</span>}
-              </div>
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-500">Modeling only: the fund and this deal are not changed. Net figures run through the fund&apos;s sub line, expenses and waterfall. {r.base === "all" ? "Without = owned assets plus the fund's other pipeline assets." : "Without = owned assets only."}</p>
+          <span data-testid="impact-line-irr">{irr[1]} <span className="tabular-nums">{fmt(r.without.returns[irr[0]], irr[2])} → <b>{fmt(r.with.returns[irr[0]], irr[2])}</b></span> <span className={`tabular-nums ${tone(r.change[irr[0]])}`}>({fmtD(r.change[irr[0]], irr[2])})</span></span>
+          <span data-testid="impact-line-equity">Equity needed <b className="tabular-nums">{fmt(r.change.equity, "$")}</b></span>
+          <span data-testid="impact-line-powder" className={r.overCommitted ? "font-semibold text-red-700" : ""}>Dry powder after <b className="tabular-nums">{fmt(r.with.dryPowder, "$")}</b>{r.overCommitted ? " (over-committed)" : ""}</span>
+          <span data-testid="impact-limits">
+            {r.limits.length === 0 ? <span className="text-gray-500">No fund limits set</span>
+              : r.newBreaches.length ? <span className="font-semibold text-red-700">Would breach: {r.newBreaches.map((l) => l.label).join("; ")}</span>
+              : <span className="text-emerald-700">No new limit breaches</span>}
+          </span>
         </>
       )}
+      {onOpenImpact && <button type="button" onClick={() => onOpenImpact(fund)} className="ml-auto rounded-md bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700" data-testid="impact-open">Full comparison in Portfolio Impact →</button>}
     </section>
   );
 }

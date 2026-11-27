@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { DOC_TYPES, TYPE, BLOCKS, FIELDS, checkLocally, dealDocPrompt, parseDealAbstract } from "@/lib/dealDocTypes";
 import { applyDoc, applyRentRoll, appraisalMark, billingCheck, camCheck, capChecks, capFromDoc, compareDoc, estoppelChecks, icVariance, insuranceGaps, rentRollDiff } from "@/lib/dealDocApply";
 import { fundType } from "@/lib/fundTypes";
-import { createDealDoc, createDealDocWithFallback, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
+import { createDealDocWithFallback, dealFileLink, dealFileLinks, deleteDealDoc, listDealDocs, saveDealAbstract, updateDealDoc } from "@/lib/dealDocs";
 import { listLeases, PROJECT_REF, fmtBytes, MAX_FILE_MB, fileLink as leaseFileLink } from "@/lib/leaseDocs";
 import { WORKFLOWS, attachesTo, filterRows, groupRows, libraryCounts, libraryRows, workflowOfType, STATUS_LABEL as LIB_STATUS } from "@/lib/docLibrary";
 const LEASE_STATUS = { uploaded: "Uploaded", abstracted: "Abstracted – review", applied: "Applied to rent roll" };

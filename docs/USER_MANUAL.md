@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.19** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.20** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -712,7 +712,7 @@ underwriting-calculator/
 ├── supabase/setup.sql        Database setup (run once in the Supabase SQL Editor)
 ├── public/                   Static icons
 ├── vercel.json                    Vercel: redirects the .vercel.app address to https://baywise.baysidecre.com
-├── .github/workflows/tests.yml    Node, regression and browser tests on every pull request and push to main (Vercel builds and hosts the site, §10)
+├── .github/workflows/tests.yml    Lint, Node, regression and browser tests (browser tests with today fixed at 11/27/2026: tests/e2e/clock.cjs) on every pull request and push to main (Vercel builds and hosts the site, §10)
 ├── next.config.js            Static export, basePath /underwriting-calculator
 ├── package.json / package-lock.json
 ├── eslint.config.mjs, postcss.config.mjs, jsconfig.json ("@/..." path alias)
@@ -2558,7 +2558,7 @@ date added.
 - Every change is in the change log (area Pipeline). Fictional sample files
   for testing: `docs/sample-pipeline/`.
 
-### 7.36 Deal Screener: pipeline deals and Model in fund (phase M)
+### 7.36 Deal Screener: pipeline deals and the fund summary line (phase M)
 
 **Deal Screener is for pipeline deals only** (11/23): deals with no fund, or
 bought after today. A row of **Pipeline deals** at the top switches between
@@ -2567,16 +2567,18 @@ Management tabs instead of showing the screener. The app opens on
 the **Dashboard** (§7.42); opening an asset from Asset Summary goes to its business
 plan.
 
-**Model in fund** (above the screener inputs, labelled "Scenario — not
-actual"): choose the fund the deal would be held in (default: its target
-fund on the Pipeline tab) and compare against **owned plus other pipeline
-assets** (default) or **owned assets only**. The deal is always left out of
-the "without" side. Shown: gross IRR and multiple, net LP IRR and multiple
-(through the fund's sub line, expenses and waterfall) and GP promote,
-without / with / change; the equity the deal needs and dry powder before and
-after (red if the fund would be over-committed); the largest tenant and
-state shares and fund LTV before and after; and any fund limit (§7.32c) the
-deal would newly breach. Nothing changes on the fund or the deal. Excel.
+**The fund summary line** (above the screener inputs, labelled "Scenario —
+not actual"; since 1.1.20): one line for the fund the deal would be held in
+(its target fund on the Pipeline tab, else the first portfolio): **net LP IRR
+without → with the deal and the change**, the **equity the deal needs**, the
+**dry powder left** (red if the fund would be over-committed) and whether the
+deal would newly breach a fund limit (§7.32c). **Full comparison in Portfolio
+Impact →** opens Portfolio Impact (§7.37) on that fund with this deal ticked;
+the full table, the choice of fund and comparison base, concentration and
+the Excel are there. The line's figures are the ones Portfolio Impact shows
+(same calculation, same two decimals). Nothing changes on the fund or the
+deal. Before 1.1.20 this was a full "Model in fund" panel that repeated
+Portfolio Impact.
 When the screener's price, NOI or close date differ from the deal's
 Pipeline row, **Update pipeline row** copies them back (logged).
 
@@ -5165,8 +5167,8 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; planned patches **1.1.20** to **1.1.23** (row below) |
-| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.20** lease rent steps in the model (figures change, so before and after are reviewed first; where a lease and the unit's escalation disagree, the lease wins); **1.1.21** housekeeping, and the Deal Screener's "Model in fund" section reduced to one summary line with a button to Portfolio Impact; **1.1.22** complete test data and documents for every tab (Property Management, third-party research, fuller acquisition, valuation, debt and leasing documents) with a test that fails when a tab has none; **1.1.23** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; planned patches **1.1.21** and **1.1.22** (row below) |
+| **1.1.x** | Remaining version 1.1 patches, in order (renumbered 11/27 when the lease rent steps were folded into the test-data patch at the user's choice): **1.1.21** complete test data and documents for every tab (Property Management, third-party research, fuller acquisition, valuation, debt and leasing documents) with a test that fails when a tab has none, **plus the sample leases' rent steps on their units** (year-one NOI moves by −$432 to +$505 per sample asset; IRR and multiples unchanged at the precision shown; two sample sale values move $50,000 through rounding; the figures are shown to the user again before it merges); **1.1.22** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5185,6 +5187,18 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.20
+
+The Deal Screener's fund section becomes one line, and housekeeping. No figure changes anywhere.
+
+- **Deal Screener (§7.36).** The "Model in fund" panel repeated the Portfolio Impact tab. It is now one line: the fund, net LP IRR without → with the deal, the equity needed, the dry powder left and any new limit breach, with a button that opens Portfolio Impact on that fund with the deal ticked. The line's net LP IRR is the one Portfolio Impact shows (a browser test checks it).
+- **Housekeeping (nothing you see changes):**
+  - The code check (lint) now runs with every test run and fails on an error. It found one real one (a chart on the Fund Plan tab changed a value while drawing) and that is fixed; six unused imports were removed.
+  - Browser tests run with "today" fixed at 11/27/2026, the date of the sample data, so a test that passes today does not fail next month when a sample lease expires or a quarter turns. Time still passes normally during a test.
+- **Left for later:** shortening the waits in the browser tests (it risks unreliable tests for a small time saving) and splitting the largest page file.
+- **Numbering:** the lease rent steps join the test-data patch (your choice, 11/27), so the remaining patches are 1.1.21 (test data for every tab, with the rent steps) and 1.1.22 (sample joint venture and separate account).
+- **No database change and no new sample data.**
 
 ### What's in 1.1.19
 
