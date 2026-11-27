@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { capSchedule, capStrikeByYear } from "@/lib/quickUnderwrite";
+import { capReplacementCostAt } from "@/lib/calculations";
 
 const usd = (n) => (n == null || !isFinite(n) ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
 const pct = (n) => (n == null || !isFinite(n) || n <= 0 ? "—" : `${n.toFixed(2)}%`);
@@ -100,14 +101,13 @@ export default function RateCapSchedule({ cap, inputs, loanAmount, onChange, rea
   const sofrStrikes = capStrikeByYear(cap);
   const hold = Math.max(1, Math.round(inputs.holdPeriodYears ?? cap.holdYears ?? 1));
   const allIn = inputs.capStrikeRatesByYear ?? [];
-  const repl = inputs.capReplacementCosts ?? [];
   const acq = inputs.acquisitionDate || cap.acquisitionDate;
   const buys = new Set([0, ...sched.replacements.map((r) => r.year)]);
   const rows = Array.from({ length: hold }, (_, i) => {
     const bought = buys.has(i);
     // capReplacementCosts[y − 1] is the cap bought at the end of hold year y,
     // i.e. at the start of year y + 1.
-    const cost = !hasCap ? 0 : i === 0 ? inputs.capPremiumAmount ?? sched.initial : repl[i - 1] ?? 0;
+    const cost = !hasCap ? 0 : i === 0 ? inputs.capPremiumAmount ?? sched.initial : capReplacementCostAt(inputs, i);
     return {
       year: i + 1,
       from: addYearsISO(acq, i),

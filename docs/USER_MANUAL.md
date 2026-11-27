@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.14** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.15** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -869,6 +869,12 @@ changes appear in the change log.
 **Schedule.**
 - One cap is bought at closing, then a replacement every cap term (1 year)
   while the loan is outstanding. No cap is bought in the exit year.
+- **Cost of each replacement** (`capReplacementCostAt` in
+  `lib/calculations.js`): the cost entered for that year, when there is
+  one; otherwise the flat replacement cost at the end of each cap term. A
+  cost of 0 entered for a year is kept as 0. (1.1.15: an empty or short
+  list of yearly costs used to make the later replacements free while the
+  rate was still capped.)
 - Notional = loan amount.
 - The initial strike is the cap strike input (3.91%).
 - **Reset** renewals are struck at-the-money: the forward SOFR on the
@@ -3861,6 +3867,15 @@ every checked agreement there:
 
 Removing an agreement rebuilds the Parties without it.
 
+**Shares can't pass 100%** (1.1.15, `agreementsOver`). The outside partners
+of one portfolio can't hold more than 100% of the GP capital commitment, or
+of the promote paid to the GP, between them. **Save terms** checks this
+fund-wide and on each deal with its own terms, from every date a term
+starts, and refuses the agreement with a sentence naming the partners and
+the total. Agreements saved before 1.1.15 that already pass 100% are scaled
+back in proportion in the figures, so the parties never add up to more than
+the GP has; change one of them to clear it.
+
 **How the terms apply** (decided 11/26), asset by asset in
 `lib/gpEconomics.js`:
 - **A deal-level agreement** gives the partner its shares on that deal
@@ -4655,6 +4670,11 @@ and nothing is saved; nothing is ever saved in the browser.
   - each item names the version it started from;
   - a mismatch refuses the whole call (`conflict: kind/key is at version n`)
     and nothing is saved;
+  - an item with no version is a new record. If a record with that name
+    already exists (someone else created it first), the call is refused the
+    same way (1.1.15; it used to replace the other person's record). The app
+    then merges the two and saves again. A deleted record can still be saved
+    back without a version;
   - `changes` go to `audit_log`;
   - only owners and editors can save, and archived workspaces are refused.
 - **Never hard-deleted:** a removed deal is saved with `deleted = true`.
@@ -4781,7 +4801,9 @@ editors can open; owners and editors can add, change and delete them,
 directly under these rules. **Tenant credit** (`lease_credit_documents`):
 owners and editors only, for reading as well as changes. **Documents**
 (`deal_documents` and the `deal-docs` bucket): every member reads and
-opens; owners and editors add, change and delete; abstracts are saved with
+opens, viewers included (user, 11/27: Baywise is used only by employees of
+the firm who need access; finer access controls come in a later release).
+Owners and editors add, change and delete; abstracts are saved with
 `save_deal_abstract` (owners and editors). Storage paths must
 start with the workspace id (`lease_path_ws`). Abstracts are saved with `save_lease_abstract`
 (owners and editors; checked in the function as well).
@@ -4944,7 +4966,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); planned patches **1.1.15** (Dispositions comps with separate acquisition and disposition sets, price per SF, break-even occupancy) and **1.1.16** (twelve industrial asset characteristics, SNDAs) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); planned patches **1.1.16** (Dispositions comps with separate acquisition and disposition sets, price per SF, break-even occupancy), **1.1.17** (twelve industrial asset characteristics, SNDAs), **1.1.18** (lease rent steps in the model; property management fee paid asset by asset) and **1.1.19** (housekeeping) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4963,6 +4985,16 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.15
+
+Correctness.
+
+- **Access (§12.5), decided by the user 11/27:** people with view-only access read every document, credit reports and GP partner agreements included. Baywise is used only by employees of the firm who need access; finer access controls come in a later release (2.0). Nothing changes for anyone.
+- **Saving (§12.3).** A save can no longer replace a record that someone else created first; the two are merged. This needs the database script `supabase/release_1_1_15.sql`, run once by an owner in Supabase.
+- **Rate cap replacements (§7.5).** A year with no cost entered uses the flat replacement cost. Before, an empty list of yearly costs made the replacements free. Model Fund I is unchanged (test copy).
+- **GP Partners (§7.64).** The outside partners' shares of the GP capital and of the GP's promote can't pass 100% between them; the agreement is refused with the reason.
+- **Not in this patch:** paying the property management fee asset by asset (to this firm or a third-party servicer) changes Firm Economics figures, so it moves to 1.1.18 with the lease rent steps, where before and after are shown first. Until then the fee follows the fund's terms and an asset that disagrees shows a note.
 
 ### What's in 1.1.14
 

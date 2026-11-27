@@ -23,6 +23,7 @@ const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com", role: "authenticated", exp: now + 3600, aud: "authenticated" })}.sig`;
 const sess = { access_token: jwt, token_type: "bearer", expires_in: 3600, expires_at: now + 3600, refresh_token: "r", user: { id: "u1", email: "t@example.com" } };
 const saves = [];
+const blindSaves = []; // saves that tried to replace a live record without its version
 let conflictOnce = null; // { kind, key } to refuse once
 const workspaceSaves = [];
 let fails = 0;
@@ -57,6 +58,12 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
         row.updated_by_email = "colleague@example.com";
         status = 400;
         body = JSON.stringify({ code: "40001", message: `conflict: ${c.kind}/${c.key} is at version ${row.version}`, details: null, hint: null });
+      } else if (p.items.some((i) => i.expected_version == null && findRow(i.kind, i.key) && !findRow(i.kind, i.key).deleted)) {
+        // 1.1.15, as save_records does: a save with no version can't replace a live record.
+        const i = p.items.find((x) => x.expected_version == null && findRow(x.kind, x.key) && !findRow(x.kind, x.key).deleted);
+        blindSaves.push(`${i.kind}/${i.key}`);
+        status = 400;
+        body = JSON.stringify({ code: "40001", message: `conflict: ${i.kind}/${i.key} is at version ${findRow(i.kind, i.key).version}`, details: null, hint: null });
       } else {
         saves.push({ at: Date.now(), ...p });
         body = JSON.stringify(p.items.map((i) => {
@@ -169,6 +176,7 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   check(back && back.deleted === false && back.expected_version === 3 && back.data.inputs.propertyName === "Fictional Retired Dock", "Restore saves it back as it was (undeleted, with its version)");
   check(!(await p.getByTestId("recently-deleted").innerText().catch(() => "")).includes("Fictional Retired Dock"), "and it leaves the list");
 
+  check(blindSaves.length === 0, `no save tried to replace a live record without its version${blindSaves.length ? ` (${blindSaves.join(", ")})` : ""}`);
   console.log("errors", errs);
   if (errs.length) fails++;
   console.log(fails ? `${fails} FAILED` : "ALL PASS");
