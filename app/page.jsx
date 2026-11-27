@@ -103,7 +103,7 @@ import MarketCheck from "@/components/MarketCheck";
 import { flagsOf, marketCheck } from "@/lib/marketCheck";
 import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
 import { FIGURE_DEFS, firmSummary, fmtAum } from "@/lib/enterprise";
-import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
+import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, mergeData, recId, recordItems, sameData, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
 
 // The firm's data is saved record by record (phase Q) this many seconds after
 // the last change: every 2 minutes (user, 11/25, 1.1.6; it was about 1 second).
@@ -537,6 +537,7 @@ export default function Home() {
   const [pipeline, setPipelineRaw] = useState(EMPTY_PIPELINE);
   const [gpPartners, setGpPartnersRaw] = useState(EMPTY_GP_PARTNERS); // 1.1.10: Finance → GP Partners
   const prIndexRef = useRef(null);
+  const firstUnsavedAt = useRef(null); // 1.1.12: when the oldest unsaved edit was made
   const [navOpen, setNavOpen] = useState(false); // 1.1.11: the phone Menu
   const [leaveAsk, setLeaveAsk] = useState(null); // 1.1.12: { where, resolve } while the unsaved-changes dialog is open // 1.1.11: Portfolio Return's "On this page" index
   // "Working on" fund picker (11/23): a filter; "" = All funds. Remembered on
@@ -632,6 +633,8 @@ export default function Home() {
   // When anchoring is on and live rates are in, deals use the curve shifted
   // in parallel so it starts at today's NY Fed 30-day average SOFR.
   const [baseCurve, setBaseCurveRaw] = useState(DEFAULT_CURVE);
+  const baseCurveRef = useRef(DEFAULT_CURVE);
+  baseCurveRef.current = baseCurve;
   const [anchorToLive, setAnchorToLiveRaw] = useState(true);
   // Sign-in required to change data (lib/cloud REQUIRE_SIGN_IN): every data
   // edit goes through these guarded setters, which do nothing while the app
@@ -738,7 +741,9 @@ export default function Home() {
         if (cancelled) return;
         setLive(r);
         setLiveStatus("ok");
-        if (r.avg30) applyCurveToDeals(anchorCurveToLive(DEFAULT_CURVE, r.avg30.rate).curve);
+        // 1.1.12 (code review): anchor the firm's own curve if it has loaded by
+        // now, not the built-in one (which was then saved over it for everyone).
+        if (r.avg30) applyCurveToDeals(anchorCurveToLive(baseCurveRef.current ?? DEFAULT_CURVE, r.avg30.rate).curve);
       })
       .catch(() => !cancelled && setLiveStatus("error"));
     return () => {
@@ -911,9 +916,13 @@ export default function Home() {
       }
       latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, gpPartners, valuations, auditLog: log };
       if (schedule) {
+        // 1.1.12 (code review): the wait is counted from the first unsaved
+        // edit, so continuous editing can't put the save off for ever.
+        firstUnsavedAt.current ??= Date.now();
+        const wait = (dbLinkRef.current?.mode === "records" ? RECORD_SAVE_SECONDS : DB_SAVE_SECONDS) * 1000;
         clearTimeout(dbTimer.current);
-        dbTimer.current = setTimeout(() => saveRef.current?.(), (dbLinkRef.current?.mode === "records" ? RECORD_SAVE_SECONDS : DB_SAVE_SECONDS) * 1000);
-      }
+        dbTimer.current = setTimeout(() => saveRef.current?.(), Math.max(1000, Math.min(wait, firstUnsavedAt.current + wait - Date.now())));
+      } else firstUnsavedAt.current = null;
     }, dbLinkRef.current?.mode === "records" ? 150 : 400);
     return () => clearTimeout(t);
     // auditLog/auditUser are read through refs/closure; changes to them alone don't need a save.
@@ -1055,7 +1064,7 @@ export default function Home() {
       // An unsaved edit here to the same record wins locally; its save then
       // meets the conflict and reloads that record.
       const mine = savableRecords(cur).find((r) => r.kind === row.kind && r.key === row.key);
-      if (mine && JSON.stringify(mine.data) !== JSON.stringify(base.data)) return;
+      if (mine && !sameData(mine.data, base.data)) return;
     }
     recBase.current.set(id, { ...row });
     putRecord(row);
@@ -1067,16 +1076,29 @@ export default function Home() {
       : kind === "fund" ? `Fund terms of ${key}` : kind === "valuation" ? "Valuation marks" : "Settings";
 
   // A save met a newer version: reload that record and keep everything else.
+  // 1.1.12 (code review): the two versions are merged field by field (lib/
+  // records.js mergeData), so neither person's work is replaced; where both
+  // changed the same field, this browser's edit is kept and named.
   async function reloadConflict(l, c) {
     const row = await loadRecord(l.id, c.kind, c.key);
     const label = recordLabel(c.kind, c.key);
-    if (row) {
-      recBase.current.set(recId(c.kind, c.key), row);
+    const id = recId(c.kind, c.key);
+    const who = row?.updated_by_email || "someone else";
+    if (row && !row.deleted) {
+      const base = recBase.current.get(id);
+      const mine = savableRecords(latestData.current ?? workspaceData()).find((r) => r.kind === c.kind && r.key === c.key);
+      const m = mine && base ? mergeData(base.data, mine.data, row.data) : { data: row.data, conflicts: [] };
+      recBase.current.set(id, row); // the retry saves the merged record on top of their version
+      putRecord({ ...row, data: m.data });
+      const both = [...new Set(m.conflicts.map((p) => p.split(".").slice(-1)[0].replace(/\[.*$/, "")))].slice(0, 4);
+      setRecordNotice(`${label} was also changed by ${who}. Both sets of changes were merged${both.length ? `; where you both changed the same field (${both.join(", ")}), yours was kept` : ""}.`);
+    } else if (row) {
+      recBase.current.set(id, row);
       putRecord(row);
+      setRecordNotice(`${label} was removed by ${who}.`);
     } else {
-      recBase.current.delete(recId(c.kind, c.key));
+      recBase.current.delete(id);
     }
-    setRecordNotice(`${label} was changed by ${row?.updated_by_email || "someone else"}; reloaded. Your other changes are kept.`);
   }
 
   // One-time import of what the old app saved after the move (owners).
@@ -1162,7 +1184,7 @@ export default function Home() {
       if (e.conflict?.kind && attempt < 3) {
         dbSaving.current = false;
         await reloadConflict(l, e.conflict);
-        return saveRecordsNow(l, latestData.current ?? data, auditSnapshot(latestData.current ?? data), [], attempt + 1);
+        return saveRecordsNow(l, latestData.current ?? data, auditSnapshot(latestData.current ?? data), changes, attempt + 1); // keep the change-log rows through the retry
       }
       setDbLink((x) => (x ? { ...x, error: e.message } : x));
       throw e;
