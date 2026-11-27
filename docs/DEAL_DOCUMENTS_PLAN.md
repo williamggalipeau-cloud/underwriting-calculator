@@ -105,7 +105,7 @@ on the firm's own data warehouse 2.3.
   - The GP partner splits add up.
   - Cash is conserved from asset to fund.
 
-**In review: version 1.1.25, the lease in effect today on the remaining screens; Deal Screener renamed Underwriter** (built 11/27; Model Fund I's figures do not move; no sample data, `SAMPLE_DATA_VERSION` stays 10).
+**Live: version 1.1.25, the lease in effect today on the remaining screens; Deal Screener renamed Underwriter** (built 11/27; merged 11/27 as PR #131, `0c08de4`, with the user's OK and green tests; GitHub Release v1.1.25 published by the user and checked 11/27; Model Fund I's figures do not move; no sample data, `SAMPLE_DATA_VERSION` stays 10; Vercel Web Analytics switched on by the user in Vercel 11/27).
 - **Reads switched to `unitsToday` / `inputsToday`:** `lib/riskReport.js` (each asset's `units` as of the report date), `lib/fundLimits.js` (`limitInputs(..., { todayISO })`: tenants only; passed by the risk report, `components/FundLimits.jsx`, `lib/quarterlyReport.js` at the quarter end and `lib/fundImpact.js`), `lib/creditReview.js` (`creditRows` at `asOf`), `lib/assetReport.js` (at the quarter end, occupancy included), `lib/businessPlan.js` (`assetKpis`), `lib/home.js` (`vacantUnits`), `lib/delinquency.js` (`aggregate`, at the month's `asOf`), `lib/leasing.js` (`vsPlan`) and the Leasing tab's in-place rent against comps. `underwrite` is never given the transformed units.
 - **`unitToday` additions:** `leaseTodayKind`, `leaseTodayStart`, and `vacantSince` for a unit vacant between leases.
 - **SNDAs (`lib/snda.js`):** every reader takes `{ todayISO }`. `unit.snda.tenant` is recorded when a status is set on a new tenant's lease; on such a lease a record with no matching tenant is the former tenant's and is ignored (`formerTenant` on the row). Existing records are not rewritten, so the sample SNDAs are unchanged.
@@ -115,7 +115,7 @@ on the firm's own data warehouse 2.3.
 - **Vercel Web Analytics (user, 11/27):** `@vercel/analytics` 2.x, `<Analytics />` in `app/layout.jsx` beside Speed Insights. The user switches it on in the Vercel dashboard (Project → Analytics → Enable); there is no tool here to do it.
 - **Tests:** `leasetoday1125` node (31) and browser (10).
 
-**Live: version 1.1.24, leases signed after purchase** (built 11/27; merged 11/27 as PR #130, `08de56f`, with the user's OK and green tests; GitHub Release v1.1.24 published by the user and checked 11/27; Model Fund I's figures do not move; no sample load).
+**Earlier: version 1.1.24, leases signed after purchase** (built 11/27; merged 11/27 as PR #130, `08de56f`, with the user's OK and green tests; GitHub Release v1.1.24 published by the user and checked 11/27; Model Fund I's figures do not move; no sample load).
 - **Why (found starting the sample joint venture, 11/27):** the model is anchored at the purchase date (`analysisStart`; `unit.monthsRemaining` counted from it) and a unit held one lease. On a $50,000,000, 70-unit test asset: bought 6/2026, 0 of 63 leases ended by 11/27/2026; bought 3/2023, 60 of 63; bought 6/2022, 63 of 63. `signProspect` copied only the credit screening. The user chose to fix the model first (option 1), then approved the mockup: lease history (not a full re-forecast from today); Signed adds the lease automatically; an ended lease is flagged on the Rent Roll and the Dashboard.
 - **Data:** `unit.laterLeases` (`lib/leaseHistory.js`): `{ id, kind, tenantName, start, end, rentPSF, escalationPct, rentSteps?, freeMonths, tiPSF, lcPct, source, prospectId? }`. `leaseToday`, `unitToday` / `inputsToday`, `endedLeases`, `leaseHistory`, `addLaterLease` (refuses a start by the purchase date and overlaps), `laterLeaseMonths` for the model.
 - **Model** (`lib/calculations.js`, the unit loop): a later lease's months earn its rent; the gap before it is vacant at market; its TI, commission and free rent are charged in its first month; the last later lease's final month hands back to the rollover code; the purchase lease's end is not rolled when a later lease is recorded. A unit with no later leases takes none of these branches.
@@ -254,23 +254,64 @@ on the firm's own data warehouse 2.3.
   - **Closing calendar (user, 11/27; future release, release not chosen, nothing scoped or coded):** a new tab in Acquisitions with a closing calendar for each deal in process. Shown as a calendar view, with an entry for every critical milestone once an offer is accepted. **The milestone list is to be reviewed with the user before anything is built.** Starting point for that review: the dates the app already holds on a pipeline deal and its contract (PSA date, deposit due, due diligence start and deadline, hard date, loan closing, expected close) and the PSA abstract (title and survey objection dates, extension).
   - **Home page: deals in process (user, 11/27; to be scoped in the same release as the closing calendar, nothing scoped or coded):** a section on the home page that shows every acquisition deal and every disposition deal in process.
   - **Rename Deal Screener to Underwriter (user, 11/27; done in 1.1.25 at the user's request):** rename the tab and update every reference to the existing name: the app (tab label, buttons, messages, statuses such as "Deal Screener" on Acquisition Documents), the manual, the plan and the tests.
-  - **Acquisitions workflow (user, 11/27; recorded for the workflow to be defined in later stages, nothing scoped or coded).** The user's steps, with their four corrections of the same day applied (step references fixed; the second "offer made, offer letter signed" step removed; the IC memo locked before due diligence is the preliminary one; the repeated hard-deposit step removed):
+  - **Acquisitions workflow (user, 11/27; for the v1.2 workflow release; nothing scoped or coded).** The user's steps with their corrections of the same day, plus the steps Claude proposed and the user accepted ("add all"), marked **[added]**, and the user's later addition of the bank account and the portfolio accounting system. This replaces the 14-step list recorded in 1.1.25.
     1. The asset is identified and enters the pipeline.
-    2. Draft underwriting is created. Comps are found and updated.
-    3. Lender term sheets are obtained for financing, and the draft underwriting is updated.
-    4. Portfolio impact is assessed.
-    5. An offer is made. If accepted, go to step 6. If rejected, mark it so and go back to step 2.
-    6. A preliminary Investment Committee (IC) memo is drafted and the IC meeting scheduled.
-    7. The IC votes. If approved, go to step 8. If not, the deal is marked Passed and removed from the pipeline.
-    8. The underwriting and the preliminary IC memo are locked.
-    9. A soft, refundable deposit is made to begin due diligence, usually 14 to 30 days.
-    10. Due diligence begins.
-    11. When due diligence concludes, the Final IC memo is created and an IC meeting set for final approval. If approved, drafting of the Purchase and Sale Agreement begins.
-    12. After the P&S is executed, a hard, non-refundable deposit is made and the closing process begins.
-    13. The time from P&S to close is usually 60 days. Key milestones: title work, insurance setup, loan closed, deal closed.
-    14. The final asset business plan is created from the deal's final underwriting and the final closing statement.
+    2. **[added]** Confidentiality agreement signed and the offering memorandum received.
+    3. Draft underwriting created. Comps found and updated.
+    4. Lender term sheets obtained for financing; draft underwriting updated.
+    5. Portfolio impact assessed.
+    6. **[added]** Site tour.
+    7. Offer made. If accepted, go to step 8. If rejected, mark it so and go back to step 3.
+    8. Preliminary Investment Committee (IC) memo drafted and the IC meeting scheduled.
+    9. The IC votes; **[added]** for a joint venture or separate account deal, the partner or investor approves as well. If approved, go to step 10. If not, the deal is marked Passed and removed from the pipeline.
+    10. The underwriting and the preliminary IC memo are locked.
+    11. **[added]** The buying entity is set up (property-owning LLC, tax ID) and the asset's bank account opened (bank account: user, 11/27).
+    12. **[added]** Equity for the deposit arranged (capital call or credit line draw, with its notice period).
+    13. Soft, refundable deposit made to begin due diligence, usually 14 to 30 days.
+    14. Due diligence begins. **[added]** Third-party reports ordered (appraisal, Phase I, property condition, survey, title, zoning); leases reviewed and abstracted; tenant estoppels requested; tenant credit checked; insurance quoted.
+    15. **[added]** Loan: lender selected and application signed; the lender's appraisal and diligence run alongside.
+    16. When due diligence concludes, the Final IC memo is created and an IC meeting set for final approval (**[added]** with the partner's or investor's approval where required). If approved, drafting of the Purchase and Sale Agreement begins.
+    17. **[added]** If not approved, or diligence finds a problem: renegotiate price or terms and return to step 16, or terminate before the deposit goes hard, recover the soft deposit and mark the deal Passed.
+    18. After the P&S is executed, a hard, non-refundable deposit is made and the closing process begins.
+    19. The time from P&S to close is usually 60 days. Key milestones: title work, insurance setup, loan closed, deal closed.
+    20. **[added]** Loan commitment received, rate cap purchased, loan documents negotiated, SNDAs obtained where the lender requires them.
+    21. **[added]** Equity for closing called or drawn.
+    22. **[added]** Property manager engaged; tenant notification letters prepared.
+    23. **[added]** Closing statement reviewed and approved.
+    24. The loan closes and the deal closes.
+    25. **[added]** Onboarding: the deal becomes an owned asset in Baywise, final documents filed, rent roll and leases loaded, the asset set up in the portfolio accounting system (user, 11/27), the post-closing true-up settled.
+    26. The final asset business plan is created from the deal's final underwriting and the final closing statement.
 
-    It ties to the IC Memos tab, the closing calendar (step 13's milestones), the home page's deals in process, Portfolio Impact and the Deal Screener (to be renamed Underwriter). **Still to come from the user:** workflows for Dispositions, Leasing and Property Management, to be recorded here the same way.
+    Placed by Claude, to confirm when the workflow is built: the site tour before the offer (step 6) and the entity before the soft deposit (step 11). It ties to the IC Memos tab, the closing calendar (step 19's milestones), the home page's deals in process, Portfolio Impact and the Underwriter.
+  - **Dispositions workflow (user, 11/27; for v1.2; nothing scoped or coded).** The user's 16 steps with their two corrections (the Final IC memo comes before the P&S and hard deposit; "uploaded and saved"), plus the steps Claude proposed and the user accepted, marked **[added]**, and the user's later addition of the bank account and legal entities.
+    1. The asset enters the final year of its business plan, or the portfolio owner (separate account or joint venture) decides to sell.
+    2. Sell / Hold analysis completed.
+    3. **[added]** Broker opinions of value obtained from two or three brokers.
+    4. Preliminary IC Disposition memo created.
+    5. **[added]** Where the joint venture or separate account agreement requires it: the partner's or investor's consent, or their right of first offer.
+    6. If the IC approves the disposition, the sale process begins.
+    7. Broker selected, broker agreement signed and the listing created.
+    8. **[added]** Data room prepared (offering memorandum, rent roll, T-12, leases, reports).
+    9. The broker actively markets the asset.
+    10. Offers are received; **[added]** a best-and-final round where used.
+    11. The IC Disposition memo is updated with the offers received and an IC meeting scheduled.
+    12. If the IC votes to accept an offer, go to step 13. If not, the broker's marketing continues.
+    13. Offer letter signed and soft deposit received. Buyer due diligence begins and the P&S is negotiated. **[added]** The lender's payoff letter is requested (prepayment cost, or the buyer's assumption of the loan; ending the rate cap).
+    14. **[added]** If the buyer withdraws, or asks for changes the IC declines: the soft deposit is returned and the asset goes back to marketing (step 9).
+    15. When due diligence concludes, a Final IC memo is created noting any concessions or changes made because of buyer due diligence **[added]** and the net proceeds after the loan payoff; an IC meeting is set for final approval. If approved, the P&S is executed.
+    16. The P&S is final and the buyer makes the hard, non-refundable deposit.
+    17. The closing process starts. The closing agent / title insurer is selected.
+    18. **[added]** Tenant estoppels and SNDAs collected for the buyer.
+    19. Final closing statements are available.
+    20. The deal funds; **[added]** the loan is paid off or assumed and the rate cap ended; the title work is finalized.
+    21. **[added]** Operations hand-off: tenant notification letters, security deposits transferred, the property management agreement, service contracts and insurance ended.
+    22. **[added]** Proceeds distributed: waterfall and promote calculated, distribution notice sent, distribution made.
+    23. **[added]** Post-closing true-up: prorations settled, any holdback or escrow released.
+    24. The asset's bank account is closed and its related legal entities are retired (user, 11/27).
+    25. The asset is added to the Dispositions Track Record, and once all documents have been uploaded and saved (**[added]** and the true-up is complete) the asset is locked down and prevented from further editing.
+
+    Placed by Claude, to confirm when the workflow is built: the broker opinions before the preliminary memo (step 3).
+  - **Still to come from the user (11/27):** workflows for Leasing and Property Management, to be recorded here the same way.
 - **After merge:** the user opens Baywise once; Claude reads the live data back.
 
 **Live before it: version 1.1.13, sample data that ties out** (built 11/27; merged 11/27 as PR #119, `4746fd9`, with the user's OK and green tests; GitHub Release v1.1.13 published by the user and checked 11/27: tag `v1.1.13` on `4746fd9`).
