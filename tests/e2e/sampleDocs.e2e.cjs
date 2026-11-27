@@ -51,25 +51,25 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("menuitem", { name: /Add sample documents/ }).click();
   for (let i = 0; i < 60 && !alerts.some((a) => /^Added|^Couldn't add/.test(a)); i++) await p.waitForTimeout(500);
   const done = alerts.find((a) => /^Added|^Couldn't add/.test(a)) ?? "";
-  check(/^Added 48 sample documents/.test(done), `the upload finished: ${done.replace(/\n/g, " / ").slice(0, 400)}`);
+  check(/^Added 43 sample documents/.test(done), `the upload finished: ${done.replace(/\n/g, " / ").slice(0, 400)}`);
   check(leases.length === 9 && leaseAbs.length === 9, `9 leases, each with its abstract (${leases.length}, ${leaseAbs.length})`);
-  check(docs.length === 39 && dealAbs.length === 31, `31 fund, asset and sale documents, each with its abstract, + 8 credit reports (${docs.length}, ${dealAbs.length})`);
+  check(docs.length === 34 && dealAbs.length === 26, `26 fund, asset and sale documents, each with its abstract, + 8 credit reports (${docs.length}, ${dealAbs.length})`);
   check(docs.filter((d) => /^\[leasing:tenant:[a-z0-9-]+\] (Credit screening report|Credit report|Credit assessment memo): /.test(d.title ?? "")).length === 8, "1.1.9: the 8 sample credit reports, each on its asset tagged to its tenant");
   check(docs.filter((d) => !d.deal_id && d.fund_name === "Model Fund I").length === 2, "the LPA and PPM on Model Fund I");
-  check(docs.filter((d) => /^\[sale:/.test(d.title ?? "")).length === 12, "12 disposition documents filed on sales");
-  const cert = docs.find((d) => (d.files ?? []).some((f) => f.name === "airport-flex-insurance-desert-aero.pdf"));
-  check(cert?.lease_id && cert.lease_id === leases.find((l) => /Desert Aero/.test(l.tenant))?.id, "the tenant's certificate is linked to its lease");
-  check(uploads.length === 39 + 12, `every PDF stored (${uploads.length}: 31 documents + 8 credit reports + 12 lease files)`);
+  check(docs.filter((d) => /^\[sale:/.test(d.title ?? "")).length === 7 && !docs.some((d) => /closing statement/i.test(d.title ?? "") && /^\[sale:/.test(d.title ?? "")), "1.1.13: 7 sale documents filed on the three sales in progress (BOVs, offer letters, one contract; no closing statement)");
+  const cert = docs.find((d) => (d.files ?? []).some((f) => f.name === "airport-flex-insurance-blue-mesa-fulfillment.pdf"));
+  check(cert?.lease_id && cert.lease_id === leases.find((l) => l.tenant === "Blue Mesa Fulfillment")?.id, "the tenant's certificate is linked to its lease (a tenant on the rent roll)");
+  check(uploads.length === 34 + 12, `every PDF stored (${uploads.length}: 26 documents + 8 credit reports + 12 lease files)`);
   // A second click adds nothing
   alerts.length = 0;
   await openMenu();
   await sm.getByRole("menuitem", { name: /Add sample documents/ }).click();
   for (let i = 0; i < 40 && !alerts.some((a) => /^Added|^Couldn't add/.test(a)); i++) await p.waitForTimeout(500);
-  check(/^Added 0 sample documents/.test(alerts.find((a) => /^Added/.test(a)) ?? "") && docs.length === 39 && leases.length === 9, "a second click adds nothing (all skipped as already uploaded)");
+  check(/^Added 0 sample documents/.test(alerts.find((a) => /^Added/.test(a)) ?? "") && docs.length === 34 && leases.length === 9, "a second click adds nothing (all skipped as already uploaded)");
   // The library shows them
   await FX.openTab(p, "Documents");
   await p.waitForTimeout(1500);
-  check((await p.getByTestId("doc-row").count()) === 48, `Library → Documents lists all 48 (${await p.getByTestId("doc-row").count()})`);
+  check((await p.getByTestId("doc-row").count()) === 43, `Library → Documents lists all 43 (${await p.getByTestId("doc-row").count()})`);
   await p.waitForTimeout(22000);
   const sd = saved?.new_data ?? saved?.data;
   check(["Route 9 Small Bay", "Harbor Light Industrial", "Mill Creek Business Park"].every((n) => sd?.deals?.find((d) => d.inputs?.propertyName === n)?.inputs?.dispositions?.length === 1), "a sample sale on each of the three assets with sale documents");
