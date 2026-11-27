@@ -581,5 +581,167 @@
    "file": "gp-agreements/gp-participation-agreement-sample-family-office-granite-ave.pdf",
    "abstract": "gp-agreements/gp-participation-agreement-sample-family-office-granite-ave.json"
   }
+ ],
+ "assetFacts": [
+  {
+   "name": "airport-flex-pcr",
+   "kind": "pcr",
+   "asset": "Airport Flex Park",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/airport-flex-pcr.pdf",
+   "abstract": "asset-facts/airport-flex-pcr.json",
+   "title": "Airport Flex Park property condition report"
+  },
+  {
+   "name": "airport-flex-phase1",
+   "kind": "phase1",
+   "asset": "Airport Flex Park",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/airport-flex-phase1.pdf",
+   "abstract": "asset-facts/airport-flex-phase1.json",
+   "title": "Airport Flex Park Phase I environmental report"
+  },
+  {
+   "name": "airport-flex-survey",
+   "kind": "survey",
+   "asset": "Airport Flex Park",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/airport-flex-survey.pdf",
+   "abstract": "asset-facts/airport-flex-survey.json",
+   "title": "Airport Flex Park survey"
+  },
+  {
+   "name": "airport-flex-roof-warranty",
+   "kind": "roof_warranty",
+   "asset": "Airport Flex Park",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/airport-flex-roof-warranty.pdf",
+   "abstract": "asset-facts/airport-flex-roof-warranty.json",
+   "title": "Airport Flex Park roof warranty"
+  },
+  {
+   "name": "airport-flex-snda-ironwood-electrical-contractors",
+   "kind": "snda",
+   "asset": "Airport Flex Park",
+   "unit": "001",
+   "tenant": "Ironwood Electrical Contractors",
+   "file": "asset-facts/airport-flex-snda-ironwood-electrical-contractors.pdf",
+   "abstract": "asset-facts/airport-flex-snda-ironwood-electrical-contractors.json",
+   "title": "Airport Flex Park SNDA: Ironwood Electrical Contractors"
+  },
+  {
+   "name": "airport-flex-snda-evergreen-food-distributors",
+   "kind": "snda",
+   "asset": "Airport Flex Park",
+   "unit": "002",
+   "tenant": "Evergreen Food Distributors",
+   "file": "asset-facts/airport-flex-snda-evergreen-food-distributors.pdf",
+   "abstract": "asset-facts/airport-flex-snda-evergreen-food-distributors.json",
+   "title": "Airport Flex Park SNDA: Evergreen Food Distributors"
+  },
+  {
+   "name": "route9-pcr",
+   "kind": "pcr",
+   "asset": "Route 9 Small Bay",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/route9-pcr.pdf",
+   "abstract": "asset-facts/route9-pcr.json",
+   "title": "Route 9 Small Bay property condition report"
+  },
+  {
+   "name": "route9-phase1",
+   "kind": "phase1",
+   "asset": "Route 9 Small Bay",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/route9-phase1.pdf",
+   "abstract": "asset-facts/route9-phase1.json",
+   "title": "Route 9 Small Bay Phase I environmental report"
+  },
+  {
+   "name": "route9-survey",
+   "kind": "survey",
+   "asset": "Route 9 Small Bay",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/route9-survey.pdf",
+   "abstract": "asset-facts/route9-survey.json",
+   "title": "Route 9 Small Bay survey"
+  },
+  {
+   "name": "route9-roof-warranty",
+   "kind": "roof_warranty",
+   "asset": "Route 9 Small Bay",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/route9-roof-warranty.pdf",
+   "abstract": "asset-facts/route9-roof-warranty.json",
+   "title": "Route 9 Small Bay roof warranty"
+  },
+  {
+   "name": "route9-snda-pinnacle-electronics",
+   "kind": "snda",
+   "asset": "Route 9 Small Bay",
+   "unit": "001",
+   "tenant": "Pinnacle Electronics",
+   "file": "asset-facts/route9-snda-pinnacle-electronics.pdf",
+   "abstract": "asset-facts/route9-snda-pinnacle-electronics.json",
+   "title": "Route 9 Small Bay SNDA: Pinnacle Electronics"
+  },
+  {
+   "name": "route9-snda-sagebrush-landscape-supply",
+   "kind": "snda",
+   "asset": "Route 9 Small Bay",
+   "unit": "002",
+   "tenant": "Sagebrush Landscape Supply",
+   "file": "asset-facts/route9-snda-sagebrush-landscape-supply.pdf",
+   "abstract": "asset-facts/route9-snda-sagebrush-landscape-supply.json",
+   "title": "Route 9 Small Bay SNDA: Sagebrush Landscape Supply"
+  },
+  {
+   "name": "harbor-light-pcr",
+   "kind": "pcr",
+   "asset": "Harbor Light Industrial",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/harbor-light-pcr.pdf",
+   "abstract": "asset-facts/harbor-light-pcr.json",
+   "title": "Harbor Light Industrial property condition report"
+  },
+  {
+   "name": "harbor-light-phase1",
+   "kind": "phase1",
+   "asset": "Harbor Light Industrial",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/harbor-light-phase1.pdf",
+   "abstract": "asset-facts/harbor-light-phase1.json",
+   "title": "Harbor Light Industrial Phase I environmental report"
+  },
+  {
+   "name": "harbor-light-survey",
+   "kind": "survey",
+   "asset": "Harbor Light Industrial",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/harbor-light-survey.pdf",
+   "abstract": "asset-facts/harbor-light-survey.json",
+   "title": "Harbor Light Industrial survey"
+  },
+  {
+   "name": "harbor-light-roof-warranty",
+   "kind": "roof_warranty",
+   "asset": "Harbor Light Industrial",
+   "unit": null,
+   "tenant": null,
+   "file": "asset-facts/harbor-light-roof-warranty.pdf",
+   "abstract": "asset-facts/harbor-light-roof-warranty.json",
+   "title": "Harbor Light Industrial roof warranty"
+  }
  ]
 }

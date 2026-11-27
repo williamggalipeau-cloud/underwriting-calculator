@@ -57,6 +57,14 @@ for (const a of JSON.parse(fs.readFileSync(path.join(gpDir, "agreements.json"), 
   copy(path.join(gpDir, "abstracts", `${base}.json`), path.join(OUT, "gp-agreements", `${base}.json`));
   manifest.gpAgreements.push({ partner: a.partner_name, portfolio: a.portfolio, deal: a.deal, file: `gp-agreements/${a.file}`, abstract: `gp-agreements/${base}.json` });
 }
+// 1.1.17: the documents behind the building and site facts, and the signed SNDAs.
+const afDir = path.join(R, "docs", "sample-deal-docs", "asset-facts");
+manifest.assetFacts = [];
+for (const d of JSON.parse(fs.readFileSync(path.join(afDir, "index.json"), "utf8"))) {
+  copy(path.join(afDir, d.file), path.join(OUT, "asset-facts", d.file));
+  copy(path.join(afDir, "abstracts", `${d.name}.json`), path.join(OUT, "asset-facts", `${d.name}.json`));
+  manifest.assetFacts.push({ name: d.name, kind: d.kind, asset: d.asset, unit: d.unit, tenant: d.tenant, file: `asset-facts/${d.file}`, abstract: `asset-facts/${d.name}.json`, title: d.title });
+}
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1));
 fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases, and the sample credit reports) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
 console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}, credit ${manifest.credit.length}, GP agreements ${manifest.gpAgreements.length}`);

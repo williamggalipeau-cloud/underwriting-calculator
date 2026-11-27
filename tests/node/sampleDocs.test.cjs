@@ -16,7 +16,7 @@ ok(m.deals.find((d) => d.name === "airport-flex-insurance-blue-mesa-fulfillment"
 
 const deals = ["Airport Flex Park", "Route 9 Small Bay", "Harbor Light Industrial", "Mill Creek Business Park", "Lakeshore Service Center", "Ridgeway Trade Center", "Canal Street Workshops", "Southpoint Flex", "Granite Ave Industrial"].map((n, i) => ({ id: `sample-deal-${i + 1}`, inputs: { propertyName: n, fundName: "Model Fund I" } }));
 const empty = P.sampleDocPlan(m, { deals });
-const docsOnly = (xs) => xs.filter((x) => x.kind !== "credit"); // 1.1.9's credit reports: tests/node/sampleCreditReports.test.cjs
+const docsOnly = (xs) => xs.filter((x) => x.kind !== "credit" && x.kind !== "fact"); // 1.1.17's asset documents and SNDAs: tests/node/facts1117.test.cjs; // 1.1.9's credit reports: tests/node/sampleCreditReports.test.cjs
 ok(docsOnly(empty.add).length === 35 && docsOnly(empty.skip).length === 0, "an empty store: all 35 are added");
 const leases = [{ deal_id: "sample-deal-1", tenant: "Blue Mesa Fulfillment", files: [{ name: "02-airport-flex-park-blue-mesa-fulfillment.pdf" }] }];
 const docs = [{ deal_id: "sample-deal-1", files: [{ name: "airport-flex-om.pdf" }] }, { deal_id: null, fund_name: "Model Fund I", files: [{ name: "model-fund-i-lpa.pdf" }] }];
