@@ -57,7 +57,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await p.locator("#asset-picker").count()) === 1, "Research has the Asset dropdown");
 
   // ── Comps: the firm list until the asset's first edit ──
-  check((await rs.getByRole("tab", { name: "Sales Comps" }).getAttribute("aria-selected")) === "true", "opens on Sales Comps");
+  check((await rs.getByRole("tab", { name: "Acquisition Comps" }).getAttribute("aria-selected")) === "true", "opens on Acquisition Comps");
   check((await p.getByTestId("comps-firm-note").count()) === 1 && /Fictional Firm Comp/.test(await rs.innerText()), "an asset with no comps shows the firm list, with a note");
   await rs.getByRole("button", { name: "Clear" }).click();
   await p.waitForTimeout(300);

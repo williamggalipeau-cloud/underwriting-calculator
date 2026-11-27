@@ -1,5 +1,6 @@
 "use client";
 
+import { assetSF, breakEvenOccupancy } from "@/lib/assetMetrics";
 import { useMemo, useState } from "react";
 import { capStrikeByYear, quickUnderwrite, quickSensitivity, sofrForYear } from "@/lib/quickUnderwrite";
 import { fetchSofrCurve } from "@/lib/sofr";
@@ -284,7 +285,7 @@ function ForwardCurve({ inputs, onChange, onCurveImport }) {
   );
 }
 
-export default function QuickUnderwrite({ inputs, onChange, linked = false, onLinkChange, onCurveImport }) {
+export default function QuickUnderwrite({ inputs, onChange, linked = false, onLinkChange, onCurveImport, asset = null }) {
   const set = (field) => (v) => onChange((prev) => ({ ...prev, [field]: v }));
   const r = useMemo(() => quickUnderwrite(inputs), [inputs]);
   const grid = useMemo(() => quickSensitivity(inputs, GROWTH_STEPS, EXIT_CAP_STEPS), [inputs]);
@@ -424,6 +425,22 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
         <Stat label="Going-in cap" value={pct(r.goingInCap, 2)} />
         <Stat label="Yr 1 DSCR" value={mult(r.years[0].dscr)} tone={r.years[0].dscr < 1.25 ? "bad" : "default"} />
       </div>
+
+      {/* 1.1.16: price per SF and break-even occupancy (the SF and the rent roll are the asset's) */}
+      {asset && (() => {
+        const sf = assetSF(asset);
+        const basis = (inputs.purchasePrice ?? 0) + (inputs.closingCosts ?? 0) + (inputs.capex ?? 0);
+        const be = breakEvenOccupancy(asset, { year: 1 });
+        const psf = (v) => (sf > 0 ? `$${(v / sf).toFixed(0)} / SF` : "—");
+        return (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="screener-metrics">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3" data-testid="screener-price-psf"><div className="text-xs text-gray-500">Purchase price per SF</div><div className="text-lg font-bold tabular-nums">{psf(inputs.purchasePrice ?? 0)}</div><div className="text-[11px] text-gray-500">{sf > 0 ? `${usd(inputs.purchasePrice)} over ${Math.round(sf).toLocaleString("en-US")} SF` : "Enter the asset's SF in asset setup"}</div></div>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3" data-testid="screener-basis-psf"><div className="text-xs text-gray-500">All-in basis per SF</div><div className="text-lg font-bold tabular-nums">{psf(basis)}</div><div className="text-[11px] text-gray-500">{usd(basis)}: price + closing costs + capital plan</div></div>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3" data-testid="screener-break-even"><div className="text-xs text-gray-500">Break-even occupancy</div><div className="text-lg font-bold tabular-nums">{be ? `${be.breakEvenPct.toFixed(1)}%` : "—"}</div><div className="text-[11px] text-gray-500">{be ? "(operating expenses + debt service) ÷ potential gross income, year 1" : "Needs the asset's rent roll"}</div></div>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3" data-testid="screener-cushion"><div className="text-xs text-gray-500">Occupancy cushion</div><div className={`text-lg font-bold tabular-nums ${be?.status === "red" ? "text-red-600" : be?.status === "amber" ? "text-amber-700" : "text-gray-900"}`}>{be ? `${be.cushionPts.toFixed(1)} pts` : "—"}</div><div className="text-[11px] text-gray-500">{be ? `Occupancy ${be.occupancyPct.toFixed(1)}% · ${be.label}` : ""}</div></div>
+          </div>
+        );
+      })()}
 
       {r.warnings.length > 0 && (
         <ul className="space-y-1.5">

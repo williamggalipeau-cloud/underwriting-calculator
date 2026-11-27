@@ -122,10 +122,11 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   const fund = findRow("fund", "Model Fund I");
   const assets = rows.filter((r) => r.kind === "deal" && r.key.startsWith("sample-deal-"));
   check(discarded, `the person moved to another tab during the load (${sawDialog ? "the unsaved-changes box appeared and they chose Discard" : "no unsaved-changes box: the asset changes were already saved"})`);
-  check(fund?.data?.sampleDataVersion === 4 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
+  check(fund?.data?.sampleDataVersion === 5 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
   const noPm = assets.filter((r) => !r.data.inputs.propertyManager).map((r) => r.key);
   check(assets.length === 9 && noPm.length === 0, `all nine assets are saved with their property manager${noPm.length ? " — missing on: " + noPm.join(", ") : ""}`);
   check(assets.every((r) => r.data.inputs.icApproved || r.data.inputs.lenderName) && ["sample-deal-2", "sample-deal-3", "sample-deal-6"].every((k) => (findRow("deal", k).data.inputs.dispositions ?? []).length === 1), "the document terms and the three sales in progress are saved on the assets");
+  check(["sample-deal-2", "sample-deal-3", "sample-deal-6"].every((k) => { const i = findRow("deal", k).data.inputs; return (i.dispositions[0].comps?.comps ?? []).length > 0 && i.dispositions[0].comps.comps.length === (i.salesComps?.comps ?? []).length; }), "1.1.16: each sample sale is saved with its own comps, copied from the asset's acquisition comps");
   check(blindSaves.length === 0, `no save tried to replace a live record without its version${blindSaves.length ? ` (${blindSaves.join(", ")})` : ""}`);
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();

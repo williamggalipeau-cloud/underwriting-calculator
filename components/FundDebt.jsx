@@ -58,7 +58,7 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
 
           <Card title="Loans" testid="debt-loans">
             <div className="overflow-x-auto"><table className="w-full text-xs tabular-nums">
-              <thead className="text-gray-500"><tr>{["Asset", "Lender", "Balance", "Rate", "Maturity", "Fully extended", "Ext. left", "DSCR", "Debt yield", "LTV", "Next extension test"].map((h) => <th key={h} className="px-1.5 py-1 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
+              <thead className="text-gray-500"><tr>{["Asset", "Lender", "Balance", "Rate", "Maturity", "Fully extended", "Ext. left", "DSCR", "Break-even occ.", "Debt yield", "LTV", "Next extension test"].map((h) => <th key={h} className="px-1.5 py-1 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>{loans.map((l) => {
                 const e = extensionTest(l);
                 return (
@@ -66,13 +66,13 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
                     <td className="px-1.5 py-1 font-medium">{l.name}</td><td className="px-1.5 py-1">{l.lender || <span className="text-gray-500">not entered</span>}</td><td className="px-1.5 py-1">{money(l.balance)}</td>
                     <td className="px-1.5 py-1"><span className={`rounded px-1 py-0.5 text-[10px] font-semibold ${HEDGE[l.hedge][1]}`}>{HEDGE[l.hedge][0]}</span> {l.floating ? `S+${l.spreadPct.toFixed(2)}%` : pct(l.fixedRatePct, 2)}</td>
                     <td className="px-1.5 py-1">{usDate(l.currentMaturity)}</td><td className="px-1.5 py-1 text-gray-500">{usDate(l.finalMaturity)}</td><td className="px-1.5 py-1">{l.extensionsLeft}</td>
-                    <td className={`px-1.5 py-1 ${l.tests.minDscr && l.dscr < l.tests.minDscr ? "text-red-700 font-semibold" : ""}`}>{x2(l.dscr)}</td><td className="px-1.5 py-1">{pct(l.debtYieldPct)}</td><td className="px-1.5 py-1">{pct(l.ltvPct)}<span className="block text-[10px] text-gray-500">{l.valueBasis}</span></td>
+                    <td className={`px-1.5 py-1 ${l.tests.minDscr && l.dscr < l.tests.minDscr ? "text-red-700 font-semibold" : ""}`}>{x2(l.dscr)}</td><td className="px-1.5 py-1" data-testid="debt-break-even" title={l.breakEven ? `Occupancy ${l.breakEven.occupancyPct.toFixed(1)}%, cushion ${l.breakEven.cushionPts.toFixed(1)} points` : ""}>{l.breakEven ? <>{pct(l.breakEven.breakEvenPct)}{l.breakEven.status !== "ok" && <span className={`ml-1 rounded px-1 text-[10px] font-semibold ${l.breakEven.status === "red" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>{l.breakEven.label}</span>}</> : "—"}</td><td className="px-1.5 py-1">{pct(l.debtYieldPct)}</td><td className="px-1.5 py-1">{pct(l.ltvPct)}<span className="block text-[10px] text-gray-500">{l.valueBasis}</span></td>
                     <td className="px-1.5 py-1" data-testid="ext-test">{e.status === "pass" ? <span className="text-emerald-700">Passes ({usDate(e.date)})</span> : e.status === "fail" ? <span className="font-semibold text-red-700" title={e.checks.filter((c) => !c.pass).map((c) => `${c.test} ${c.unit === "x" ? x2(c.value) : pct(c.value)} vs ${c.max ? "max" : "min"} ${c.unit === "x" ? x2(c.required) : pct(c.required)}`).join("; ")}>Fails: {e.checks.filter((c) => !c.pass).map((c) => c.test).join(", ")}</span> : <span className="text-gray-500">{e.status}</span>}</td>
                   </tr>
                 );
               })}</tbody>
             </table></div>
-            <p className="mt-1 text-[11px] text-gray-500">DSCR, debt yield and LTV in the current hold year from the model; value from the latest valuation mark (else cost). Extension tests project the asset&apos;s DSCR, debt yield and LTV at its next maturity against the loan&apos;s tests (the sizing constraints unless covenants are entered).</p>
+            <p className="mt-1 text-[11px] text-gray-500">DSCR, break-even occupancy, debt yield and LTV in the current hold year from the model (break-even occupancy = (operating expenses + debt service) ÷ potential gross income; flagged when occupancy is within 10 points of it); value from the latest valuation mark (else cost). Extension tests project the asset&apos;s DSCR, debt yield and LTV at its next maturity against the loan&apos;s tests (the sizing constraints unless covenants are entered).</p>
           </Card>
 
           <div className="grid gap-4 lg:grid-cols-2">

@@ -5,6 +5,7 @@ import { DECISIONS, DEFAULT_REFI, allHoldDecisions, assetSellHold, fundScenario,
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
 import { actualNoi, valueAtCap } from "@/lib/assetMedia";
+import { allInBasis, assetSF, breakEvenOccupancy, perSF } from "@/lib/assetMetrics";
 
 const pct = (v, d = 1) => (isFinite(v) ? `${v.toFixed(d)}%` : "n/m");
 const x = (v) => (isFinite(v) ? `${v.toFixed(2)}x` : "—");
@@ -332,6 +333,21 @@ function AssetView({ a, inputs, hurdle, canEdit, capRate, onCap, refiT, setRefi,
           </div>
         ))}
       </div>
+
+      {/* 1.1.16: price per SF next to basis per SF, and break-even occupancy */}
+      {(() => {
+        const sf = assetSF(inputs), basis = allInBasis(inputs), be = breakEvenOccupancy(inputs, { todayISO: new Date().toISOString().slice(0, 10) });
+        const vPsf = perSF(a.valueNow, sf), bPsf = perSF(basis, sf);
+        const f0 = (v) => (v == null ? "—" : `$${v.toFixed(0)} / SF`);
+        return (
+          <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4" data-testid="sh-metrics">
+            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2" data-testid="sh-price-psf"><p className="text-[11px] text-gray-500">Sale value per SF</p><p className="text-sm font-bold tabular-nums">{f0(vPsf)}</p><p className="text-[10px] text-gray-500">{m(a.valueNow)} over {Math.round(sf).toLocaleString("en-US")} SF</p></div>
+            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2" data-testid="sh-basis-psf"><p className="text-[11px] text-gray-500">Basis per SF</p><p className={`text-sm font-bold tabular-nums ${vPsf != null && bPsf != null && vPsf < bPsf ? "text-amber-700" : ""}`}>{f0(bPsf)}</p><p className="text-[10px] text-gray-500">{m(basis)}: price + closing costs + capital plan{vPsf != null && bPsf != null && vPsf < bPsf ? " · the sale value is below basis" : ""}</p></div>
+            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2" data-testid="sh-break-even"><p className="text-[11px] text-gray-500">Break-even occupancy</p><p className="text-sm font-bold tabular-nums">{be ? pct(be.breakEvenPct, 1) : "—"}</p><p className="text-[10px] text-gray-500">(operating expenses + the current loan&apos;s debt service) ÷ potential gross income{be ? `, hold year ${be.year}` : ""}</p></div>
+            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2" data-testid="sh-cushion"><p className="text-[11px] text-gray-500">Occupancy cushion</p><p className={`text-sm font-bold tabular-nums ${be?.status === "red" ? "text-red-700" : be?.status === "amber" ? "text-amber-700" : ""}`}>{be ? `${be.cushionPts.toFixed(1)} pts` : "—"}</p><p className="text-[10px] text-gray-500">{be ? `Occupancy ${pct(be.occupancyPct, 1)} · ${be.label}` : ""}</p></div>
+          </div>
+        );
+      })()}
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs">
         <label className="flex flex-col gap-0.5"><span className="text-gray-500">Cap rate (exit cap)</span>

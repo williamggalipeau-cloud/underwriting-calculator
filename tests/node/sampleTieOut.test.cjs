@@ -260,7 +260,7 @@ for (const l of leaseIndex) {
 {
   const T = j(R + "/lib/sampleDocTerms.js"), SD = j(R + "/lib/sampleDocs.js"), CH = require(R + "/lib/sampleDocChanges.json");
   // A fund saved before 1.1.13 (no document terms) comes out as the fund the app builds.
-  const upgraded = bare.deals.map((d) => ({ ...d, inputs: T.withSampleSale(T.applySampleDocTerms(d.inputs, d.id, { keepExisting: true }), d.id) }));
+  const upgraded = bare.deals.map((d) => ({ ...d, inputs: T.withSampleSaleComps(T.withSampleSale(T.applySampleDocTerms(d.inputs, d.id, { keepExisting: true }), d.id)) }));
   const strip = (inp) => JSON.stringify({ ...inp, propertyManager: undefined, propertyManagementFirm: undefined }).replace(/mtm-[a-z0-9]+-/g, "mtm-"); // unit ids are made afresh on every build
   ok(upgraded.every((d, i) => strip(d.inputs) === strip(fund.deals[i].inputs)), "a fund saved before 1.1.13 gets exactly the document terms, lease terms and sales the app's own fund holds");
   // What the user entered is kept.
@@ -287,6 +287,23 @@ for (const l of leaseIndex) {
   const was = require(R + "/tests/fixtures/sample-manifest-1.1.12.json"); const wasNames = [...was.deals, ...was.dispositions].map((x) => x.file.split("/").pop()).concat(was.leases.flatMap((l) => l.files.map((f) => f.split("/").pop())));
   const unlisted = wasNames.filter((n) => !current.has(n) && !listed.has(n));
   ok(unlisted.length === 0, `every sample file of the previous release that is no longer loaded is on the replace list${unlisted.length ? " — missing: " + unlisted.join(", ") : ""}`);
+}
+
+// 12. 1.1.16: price per SF, break-even occupancy and the comps of a sale are the fund's own figures.
+{
+  const M = j(R + "/lib/assetMetrics.js"), DC = j(R + "/lib/dispositionCandidates.js"), DS = j(R + "/lib/dispositions.js"), C = j(R + "/lib/calculations.js");
+  const fj = require(R + "/scripts/sample-deal-docs/fund.json");
+  const offBasis = fund.deals.filter((d) => { const a = fj.assets.find((x) => x.id === d.id); return !a || Math.abs(M.allInBasis(d.inputs) - a.model.totalCost) > 0.5 || M.assetSF(d.inputs) !== a.sf; }).map((d) => d.id);
+  ok(offBasis.length === 0, `all-in basis and SF: the app's figures are the ones the sample documents were written from (fund.json)${offBasis.length ? ": " + offBasis.join(", ") : ""}`);
+  const offPsf = fund.deals.filter((d) => { const a = fj.assets.find((x) => x.id === d.id); const m = DC.candidateMetrics(d.inputs, fund.valuations[d.id], AS_OF); const mk = Object.entries(a.marks ?? {}).sort().at(-1); return Math.abs(m.basisPSF - a.model.totalCost / a.sf) > 1e-6 || (mk ? Math.abs(m.valuePSF - mk[1].value / a.sf) > 1e-6 : m.valuePSF != null); }).map((d) => d.id);
+  ok(offPsf.length === 0, `value per SF and basis per SF (Disposition Candidates) = the latest mark and the total cost over the asset's SF${offPsf.length ? ": " + offPsf.join(", ") : ""}`);
+  const offBe = fund.deals.filter((d) => { const u = C.underwrite(d.inputs), b = M.breakEvenOccupancy(d.inputs, { year: 1 }), y = u.annualCashFlows[0]; return !b || Math.abs(b.debtService - u.debt.annualDebtService) > 1 || Math.abs(b.breakEvenPct - ((y.operatingExpenses + y.debtService) / y.grossRevenue) * 100) > 1e-9 || Math.abs(b.cushionPts - (b.occupancyPct - b.breakEvenPct)) > 1e-9; }).map((d) => d.id);
+  ok(offBe.length === 0, `break-even occupancy: built from the model's own year (operating expenses, the loan's debt service, potential gross income)${offBe.length ? ": " + offBe.join(", ") : ""}`);
+  const sales = fund.deals.flatMap((d) => (d.inputs.dispositions ?? []).map((s) => ({ d, s })));
+  const offComps = sales.filter(({ d, s }) => { const acq = d.inputs.salesComps?.comps ?? [], dc = M.saleCompsOf(s)?.comps ?? []; return !acq.length || dc.length !== acq.length || dc.some((c, i) => c.name !== acq[i].name || c.price !== acq[i].price || c.sf !== acq[i].sf || c.capRate !== acq[i].capRate || c.saleDate !== acq[i].saleDate || c.id === acq[i].id); }).map(({ d }) => d.id);
+  ok(sales.length === 3 && offComps.length === 0, `each of the three sample sales has its own comps, copied from that asset's acquisition comps${offComps.length ? ": " + offComps.join(", ") : ""}`);
+  const offView = sales.filter(({ d, s }) => { const v = M.saleCompsView(d.inputs, s, { todayISO: AS_OF }); const offers = DS.offersCompared(d.inputs, s, { todayISO: AS_OF }); const sel = offers.find((o) => o.selected); const row = v.rows.find((r) => r.key.startsWith("offer:")); const bov = v.rows.find((r) => r.key.startsWith("bov:")); return !bov || bov.price !== s.bovs[0].price || (sel ? !row || row.price !== sel.price || Math.abs(row.psf - sel.psf) > 1e-9 || Math.abs(row.capPct - sel.capPct) > 1e-9 : !!row) || Math.abs(v.rows[0].price - v.avgPsf * v.sf) > 1e-6; }).map(({ d }) => d.id);
+  ok(offView.length === 0, `the comps section's broker opinion, asking price and selected offer are the sale's own, with the same $/SF and cap rate as the Offers view${offView.length ? ": " + offView.join(", ") : ""}`);
 }
 
 console.log(fail ? `${fail} FAILED` : "ALL PASS");

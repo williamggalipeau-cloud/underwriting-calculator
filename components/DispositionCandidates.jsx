@@ -6,10 +6,11 @@ import { useMemo } from "react";
 import { dispositionCandidates, WINDOW_MONTHS } from "@/lib/dispositionCandidates";
 
 const TH = "px-2 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500";
+const psf = (v) => (v == null || !Number.isFinite(v) ? "—" : `$${v.toFixed(0)}`);
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "");
 
-export default function DispositionCandidates({ deals = [], funds = {}, scopeName = "", todayISO = new Date().toISOString().slice(0, 10), onOpenSellHold = null, onOpenSale = null }) {
-  const { rows, next } = useMemo(() => dispositionCandidates(deals, funds, { todayISO }), [deals, funds, todayISO]);
+export default function DispositionCandidates({ deals = [], funds = {}, valuations = {}, scopeName = "", todayISO = new Date().toISOString().slice(0, 10), onOpenSellHold = null, onOpenSale = null }) {
+  const { rows, next } = useMemo(() => dispositionCandidates(deals, funds, { todayISO, valuations }), [deals, funds, todayISO, valuations]);
   return (
     <div className="space-y-3 text-gray-900" data-testid="disposition-candidates">
       <div>
@@ -27,7 +28,7 @@ export default function DispositionCandidates({ deals = [], funds = {}, scopeNam
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
                 <th className={TH}>Asset</th><th className={TH}>Portfolio</th><th className={TH}>Acquired</th><th className={TH}>Planned exit</th>
-                <th className={`${TH} text-right`}>Months left</th><th className={TH}>Plan recommendation</th><th className={TH}>Sell/Hold decision</th><th className={TH}>Sale</th><th className={TH} />
+                <th className={`${TH} text-right`}>Months left</th><th className={`${TH} text-right`}>Value / SF</th><th className={`${TH} text-right`}>Basis / SF</th><th className={`${TH} text-right`}>Break-even occ.</th><th className={TH}>Plan recommendation</th><th className={TH}>Sell/Hold decision</th><th className={TH}>Sale</th><th className={TH} />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -38,6 +39,9 @@ export default function DispositionCandidates({ deals = [], funds = {}, scopeNam
                   <td className="px-2 py-1.5 tabular-nums">{usDate(r.acquired)}</td>
                   <td className="whitespace-nowrap px-2 py-1.5 tabular-nums">{usDate(r.exit)}<span className="ml-1 text-[10px] text-gray-500">plan rev {r.planRev}</span></td>
                   <td className={`px-2 py-1.5 text-right tabular-nums ${r.past ? "font-medium text-red-700" : ""}`} data-testid="cell-months-left">{r.past ? `${Math.abs(r.monthsLeft)} past plan` : r.monthsLeft}</td>
+                  <td className="px-2 py-1.5 text-right tabular-nums" data-testid="cell-value-psf" title={r.value != null ? `Latest mark $${Math.round(r.value).toLocaleString("en-US")} (${usDate(r.valueDate)}) over ${Math.round(r.sf).toLocaleString("en-US")} SF` : "No mark yet"}>{psf(r.valuePSF)}</td>
+                  <td className={`px-2 py-1.5 text-right tabular-nums ${r.valuePSF != null && r.basisPSF != null && r.valuePSF < r.basisPSF ? "text-amber-700" : ""}`} data-testid="cell-basis-psf" title="All-in basis (price + closing costs + capital plan) per SF">{psf(r.basisPSF)}</td>
+                  <td className="px-2 py-1.5 text-right tabular-nums" data-testid="cell-break-even" title={r.breakEven ? `Occupancy ${r.breakEven.occupancyPct.toFixed(1)}%, cushion ${r.breakEven.cushionPts.toFixed(1)} points (hold year ${r.breakEven.year})` : ""}>{r.breakEven ? <>{r.breakEven.breakEvenPct.toFixed(1)}%{r.breakEven.status !== "ok" && <span className={`ml-1 rounded px-1 text-[10px] font-semibold ${r.breakEven.status === "red" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>{r.breakEven.label}</span>}</> : "—"}</td>
                   <td className="px-2 py-1.5">{r.recommendation || <span className="text-gray-500">—</span>}</td>
                   <td className="px-2 py-1.5" data-testid="cell-decision">
                     {r.heldLonger ? <span className="font-medium text-blue-800">Held past plan: {r.decision.text}</span>
@@ -52,7 +56,7 @@ export default function DispositionCandidates({ deals = [], funds = {}, scopeNam
           </table>
         </div>
       )}
-      <p className="text-[11px] text-gray-500">Planned exit: the latest business plan revision&apos;s target exit date, or the acquisition date plus its hold years. Assets with no business plan aren&apos;t listed. The Sell/Hold decision is the one saved on the Sell/Hold Analysis tab.</p>
+      <p className="text-[11px] text-gray-500">Planned exit: the latest business plan revision&apos;s target exit date, or the acquisition date plus its hold years. Assets with no business plan aren&apos;t listed. The Sell/Hold decision is the one saved on the Sell/Hold Analysis tab. Value / SF: the latest mark over the asset&apos;s SF. Basis / SF: price, closing costs and the capital plan over the SF (amber when the value is below it). Break-even occupancy: (operating expenses + the current loan&apos;s debt service) ÷ potential gross income for the hold year in progress; flagged when occupancy is within 10 points of it.</p>
     </div>
   );
 }
