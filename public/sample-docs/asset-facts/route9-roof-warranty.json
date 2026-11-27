@@ -1,0 +1,21 @@
+{
+ "doc_type": "roof_warranty",
+ "title": "Route 9 Small Bay roof warranty",
+ "asset": "Route 9 Small Bay",
+ "report_date": "2019-06-15",
+ "prepared_by": "Fictional Roofing Systems Co.",
+ "building": {
+  "roofType": "TPO",
+  "roofYear": 2019,
+  "roofWarrantyTo": 2039
+ },
+ "quotes": {
+  "roofType": "Fictional Roofing Systems Co. warrants the TPO membrane roofing system installed on the building.",
+  "roofYear": "The roofing system was completed in 2019.",
+  "roofWarrantyTo": "This warranty expires on December 31, 2039."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

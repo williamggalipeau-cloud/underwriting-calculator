@@ -122,7 +122,7 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   const fund = findRow("fund", "Model Fund I");
   const assets = rows.filter((r) => r.kind === "deal" && r.key.startsWith("sample-deal-"));
   check(discarded, `the person moved to another tab during the load (${sawDialog ? "the unsaved-changes box appeared and they chose Discard" : "no unsaved-changes box: the asset changes were already saved"})`);
-  check(fund?.data?.sampleDataVersion === 5 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
+  check(fund?.data?.sampleDataVersion === 6 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
   const noPm = assets.filter((r) => !r.data.inputs.propertyManager).map((r) => r.key);
   check(assets.length === 9 && noPm.length === 0, `all nine assets are saved with their property manager${noPm.length ? " — missing on: " + noPm.join(", ") : ""}`);
   check(assets.every((r) => r.data.inputs.icApproved || r.data.inputs.lenderName) && ["sample-deal-2", "sample-deal-3", "sample-deal-6"].every((k) => (findRow("deal", k).data.inputs.dispositions ?? []).length === 1), "the document terms and the three sales in progress are saved on the assets");

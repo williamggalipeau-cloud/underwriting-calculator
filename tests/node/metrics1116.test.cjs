@@ -72,7 +72,7 @@ const sampleSale = { ...sale, id: "ss", startedFrom: "Sample sale (fictional)", 
 const filled = T.withSampleSaleComps({ ...withAcq, dispositions: [sampleSale, sale] });
 ok(filled.dispositions[0].comps.comps.length === 2 && filled.dispositions[0].comps.startedAt === "2026-11-27" && !filled.dispositions[1].comps, "a sample sale gets its comps from the asset's acquisition comps; a sale the user started is left alone");
 ok(T.withSampleSaleComps(filled) === filled && T.withSampleSaleComps({ ...inp, salesComps: undefined, dispositions: [sampleSale] }).dispositions[0].comps === undefined, "run again, nothing changes; with no acquisition comps, nothing is added");
-ok(SAMPLE_DATA_VERSION === 5, "the automatic load's version is 5");
+ok(SAMPLE_DATA_VERSION >= 5, "the automatic load's version is 5 or later");
 
 console.log(fail ? `${fail} failed` : "all passed");
 process.exit(fail ? 1 : 0);

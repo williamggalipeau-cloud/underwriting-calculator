@@ -1,5 +1,6 @@
 "use client";
 
+import SndaView from "@/components/SndaView";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FILE_KINDS,
@@ -671,7 +672,7 @@ function LeaseCard({ lease, assetName, units, inputs, canEdit, workspaceId, emai
   );
 }
 
-export default function Leases({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, dealInputs, onApplyUnits, extraDates = [] }) {
+export default function Leases({ workspace, signedIn, email, userId, canEdit, deal, fundDeals, fundName, dealInputs, onApplyUnits, onUpdateInputs = null, extraDates = [] }) {
   const [scope, setScope] = useState("asset");
   const [leases, setLeases] = useState(null);
   const [error, setError] = useState(null);
@@ -802,12 +803,13 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 text-xs" role="tablist">
-            {[["leases", `Leases (${shown.length})`], ["dates", "Critical dates"], ["risks", "Risk flags"]].map(([k, l]) => (
+            {[["leases", `Leases (${shown.length})`], ["dates", "Critical dates"], ["risks", "Risk flags"], ["sndas", "SNDAs"]].map(([k, l]) => (
               <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`-mb-px border-b-2 px-3 py-1.5 font-medium ${view === k ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500 hover:text-gray-800"}`}>{l}</button>
             ))}
             {reporting && <span className="ml-2 text-gray-500">Making the report…</span>}
           </div>
           {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} docs={docsFor} milestones={milestonesFor} onReport={report} />}
+          {view === "sndas" && <SndaView deals={scope === "fund" ? (fundDeals ?? []).filter((d) => d.inputs?.acquisitionDate) : deal ? [deal] : []} title={scopeTitle} canEdit={canEdit} onUpdateInputs={onUpdateInputs} workspaceId={wsId} email={email} todayISO={today} />}
           {view === "risks" && <RiskFlagsView leases={shown} assetName={dealName} title={scopeTitle} onReport={report} />}
           {error && (
             <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">

@@ -15,6 +15,42 @@
     "Within 10 business days by a principal paydown or a cash collateral deposit"
    ],
    [
+    "loanTerms.floorPct",
+    0.5
+   ],
+   [
+    "loanTerms.maturityDate",
+    "2029-01-30"
+   ],
+   [
+    "loanTerms.lender",
+    "Desert Mountain Bank"
+   ],
+   [
+    "loanTerms.capMaxStrikePct",
+    4
+   ],
+   [
+    "loanTerms.capMinRating",
+    "A"
+   ],
+   [
+    "loanTerms.capReplacementDays",
+    30
+   ],
+   [
+    "loanTerms.prepayment",
+    "In whole after 12 months; 1% exit fee before then"
+   ],
+   [
+    "loanTerms.reserves",
+    "Monthly tax and insurance escrows"
+   ],
+   [
+    "loanTerms.reporting",
+    "Quarterly within 45 days; annual within 120 days"
+   ],
+   [
     "yearBuilt",
     1998
    ],
@@ -89,42 +125,6 @@
    [
     "loanAmountActual",
     4980000
-   ],
-   [
-    "loanTerms.floorPct",
-    0.5
-   ],
-   [
-    "loanTerms.maturityDate",
-    "2029-01-30"
-   ],
-   [
-    "loanTerms.lender",
-    "Desert Mountain Bank"
-   ],
-   [
-    "loanTerms.capMaxStrikePct",
-    4
-   ],
-   [
-    "loanTerms.capMinRating",
-    "A"
-   ],
-   [
-    "loanTerms.capReplacementDays",
-    30
-   ],
-   [
-    "loanTerms.prepayment",
-    "In whole after 12 months; 1% exit fee before then"
-   ],
-   [
-    "loanTerms.reserves",
-    "Monthly tax and insurance escrows"
-   ],
-   [
-    "loanTerms.reporting",
-    "Quarterly within 45 days; annual within 120 days"
    ],
    [
     "executedCaps",
@@ -243,10 +243,6 @@
     "Within 10 business days by a principal paydown or a cash collateral deposit"
    ],
    [
-    "loanAmountActual",
-    9125000
-   ],
-   [
     "loanTerms.floorPct",
     0.5
    ],
@@ -281,6 +277,10 @@
    [
     "loanTerms.reporting",
     "Quarterly within 45 days; annual within 120 days"
+   ],
+   [
+    "loanAmountActual",
+    9125000
    ],
    [
     "executedCaps",

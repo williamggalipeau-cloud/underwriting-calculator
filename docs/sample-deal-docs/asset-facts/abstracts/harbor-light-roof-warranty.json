@@ -1,0 +1,21 @@
+{
+ "doc_type": "roof_warranty",
+ "title": "Harbor Light Industrial roof warranty",
+ "asset": "Harbor Light Industrial",
+ "report_date": "2015-06-15",
+ "prepared_by": "Fictional Roofing Systems Co.",
+ "building": {
+  "roofType": "EPDM",
+  "roofYear": 2015,
+  "roofWarrantyTo": 2030
+ },
+ "quotes": {
+  "roofType": "Fictional Roofing Systems Co. warrants the EPDM membrane roofing system installed on the building.",
+  "roofYear": "The roofing system was completed in 2015.",
+  "roofWarrantyTo": "This warranty expires on December 31, 2030."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

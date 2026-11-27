@@ -27,6 +27,7 @@ import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
+import { withSampleAssetFacts, withSampleSnda } from "@/lib/sampleAssetFacts";
 import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale, withSampleSaleComps } from "@/lib/sampleDocTerms";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
@@ -1671,6 +1672,7 @@ export default function Home() {
         let inp = credit.updates[d.id] ? { ...d.inputs, ...credit.updates[d.id] } : d.inputs;
         inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
         inp = withSampleSaleComps(inp); // 1.1.16: each sample sale's comps, copied from the asset's acquisition comps
+        inp = withSampleSnda(withSampleAssetFacts(inp, d.id), d.id); // 1.1.17: building and site facts, and SNDA statuses (only where none is set)
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         return inp === d.inputs ? d : { ...d, inputs: inp };
       };
@@ -2193,6 +2195,7 @@ export default function Home() {
                 onChange={setInputs}
                 fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
                 fundTerms={funds[resolveFund(inputs.fundName)] ?? null}
+                docCtx={session && dbLink?.id ? { workspaceId: dbLink.id, dealId: activeDealId, email: session.user?.email ?? null, canEdit: !locked } : null}
               />
             </div>
           </aside>
@@ -2814,6 +2817,7 @@ export default function Home() {
                 fundName={resolveFund(inputs.fundName)}
                 dealInputs={(id) => (deals.find((d) => d.id === id) ?? savedDeals.find((d) => d.id === id))?.inputs ?? null}
                 onApplyUnits={handleApplyLease}
+                onUpdateInputs={updateDealInputs}
                 extraDates={entityDates(funds[resolveFund(inputs.fundName)]?.entities ?? [], resolveFund(inputs.fundName))}
               />
             )}

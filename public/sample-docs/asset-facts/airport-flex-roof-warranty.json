@@ -1,0 +1,21 @@
+{
+ "doc_type": "roof_warranty",
+ "title": "Airport Flex Park roof warranty",
+ "asset": "Airport Flex Park",
+ "report_date": "2018-06-15",
+ "prepared_by": "Fictional Roofing Systems Co.",
+ "building": {
+  "roofType": "TPO",
+  "roofYear": 2018,
+  "roofWarrantyTo": 2038
+ },
+ "quotes": {
+  "roofType": "Fictional Roofing Systems Co. warrants the TPO membrane roofing system installed on the building.",
+  "roofYear": "The roofing system was completed in 2018.",
+  "roofWarrantyTo": "This warranty expires on December 31, 2038."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

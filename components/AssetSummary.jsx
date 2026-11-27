@@ -53,6 +53,10 @@ function LeasesCell({ info }) {
 const COLUMNS = [
   ["location", "Location", (r) => r.location || <span className="text-gray-500">—</span>, (r) => r.location || "~", "Asset"],
   ["pm", "Property manager", (r) => (r.propertyManager ? <span title={r.pmFeeMismatch || undefined} className={r.pmFeeMismatch ? "text-amber-700" : ""} data-testid="cell-property-manager">{r.propertyManager}{r.pmFeeMismatch ? " ⚠" : ""}</span> : <span className="text-gray-500">—</span>), (r) => r.propertyManager || "~", "Asset"],
+  ["clear", "Clear height", (r) => (r.clearHeightFt != null ? `${r.clearHeightFt} ft` : "—"), (r) => r.clearHeightFt ?? -Infinity, "Asset"],
+  ["dock", "SF / dock door", (r) => (r.facts?.sfPerDockDoor != null ? fmt(Math.round(r.facts.sfPerDockDoor)) : "—"), (r) => r.facts?.sfPerDockDoor ?? -Infinity, "Asset"],
+  ["coverage", "Site coverage", (r) => (r.facts?.siteCoveragePct != null ? fmtPct(r.facts.siteCoveragePct, 0) : "—"), (r) => r.facts?.siteCoveragePct ?? -Infinity, "Asset"],
+  ["roof", "Roof life left", (r) => (r.facts?.roof ? <span className={r.facts.roof.insideHold ? "text-amber-700" : ""} title={r.facts.roof.insideHold ? "Ends inside the hold" : undefined} data-testid="cell-roof-life">{r.facts.roof.remaining} yrs</span> : "—"), (r) => r.facts?.roof?.remaining ?? -Infinity, "Asset"],
   ["status", "Status", (r) => <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]}`}>{r.status}</span>, (r) => r.status, "Asset"],
   ["acq", "Acquired", (r) => (r.acqAssumed ? <span className="text-amber-700" title="No acquisition date entered: the fund's final close is assumed">{fmtDate(r.acq)}*</span> : fmtDate(r.acq)), (r) => r.acq, "Asset"],
   ["exit", "Exit", (r) => fmtDate(r.exit), (r) => r.exit, "Asset"],

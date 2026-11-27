@@ -3,6 +3,7 @@
 // Phase S: Portfolio Debt tab (Portfolio Management, after Portfolio Return). Every
 // loan in the fund: maturity ladder, extension tests, refinance planner,
 // rate exposure and caps, lender concentration. Read-only.
+import { sndaByLoan } from "@/lib/snda";
 import { useMemo, useState } from "react";
 import { certificates, certificatesXlsx, extensionTest, fundDebtXlsx, fundLoans, lenderConcentration, maturityLadder, quarterEnds, rateExposure, refinance } from "@/lib/fundDebt";
 import { downloadBlob } from "@/lib/fundTerms";
@@ -94,6 +95,22 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
               {ex.caps.length > 0 && <table className="mt-2 w-full text-xs tabular-nums"><thead className="text-gray-500"><tr><th className="text-left font-medium">Cap</th><th className="text-right font-medium">Notional</th><th className="text-right font-medium">Strike</th><th className="text-right font-medium">Expires</th></tr></thead><tbody>{ex.caps.map((c) => <tr key={c.name} className={c.months <= 6 ? "text-red-700" : ""}><td>{c.name}</td><td className="text-right">{money(c.notional)}</td><td className="text-right">{pct(c.strikePct, 2)}</td><td className="text-right">{usDate(c.expires)} ({c.months} mo){c.beforeMaturity ? " · before maturity" : ""}</td></tr>)}</tbody></table>}
             </Card>
           </div>
+
+          {/* 1.1.17: how much of each loan's rent is under a signed SNDA */}
+          <Card title="SNDA coverage by loan" testid="debt-snda">
+            <div className="overflow-x-auto"><table className="w-full text-xs tabular-nums">
+              <thead className="text-gray-500"><tr>{["Asset", "Lender", "Loan", "Loan requires", "Required", "Signed", "Rent covered", "SF covered", "Status"].map((h) => <th key={h} className="px-1.5 py-1 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
+              <tbody>{sndaByLoan(loans).map((c) => (
+                <tr key={c.dealId} className="border-t border-gray-100" data-testid="debt-snda-row">
+                  <td className="px-1.5 py-1 font-medium">{c.asset}</td><td className="px-1.5 py-1">{c.lender || <span className="text-gray-500">not entered</span>}</td><td className="px-1.5 py-1">{money(c.loan)}</td>
+                  <td className="px-1.5 py-1">{c.ruleText}</td><td className="px-1.5 py-1">{c.required}</td><td className="px-1.5 py-1">{c.signed}</td>
+                  <td className="px-1.5 py-1">{c.rentCoveredPct == null ? "—" : pct(c.rentCoveredPct)}</td><td className="px-1.5 py-1">{c.sfCoveredPct == null ? "—" : pct(c.sfCoveredPct)}</td>
+                  <td className="px-1.5 py-1"><span title={c.outstandingTenants.join(", ") || undefined} className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${c.status === "complete" ? "bg-emerald-100 text-emerald-800" : c.status === "outstanding" ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-700"}`}>{c.label}</span></td>
+                </tr>
+              ))}</tbody>
+            </table></div>
+            <p className="mt-1 text-[11px] text-gray-500">An SNDA (subordination, non-disturbance and attornment agreement) is signed by tenant, landlord and lender. Which leases a loan requires one from is set on the Leases tab → SNDAs; with nothing set, none is assumed. Rent and SF covered: the share of occupied rent and SF under a signed SNDA.</p>
+          </Card>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title="Lender concentration" testid="debt-lenders">

@@ -1,5 +1,6 @@
 "use client";
 
+import AssetFacts from "@/components/AssetFacts";
 import { US_STATES } from "@/lib/assetLocations";
 import { useState } from "react";
 import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
@@ -708,7 +709,7 @@ function fmtK(n) {
   return `$${n.toFixed(0)}`;
 }
 
-export default function DealInputsPanel({ inputs, onChange, fundNames = [], linked = false, fundTerms = null }) {
+export default function DealInputsPanel({ inputs, onChange, fundNames = [], linked = false, fundTerms = null, docCtx = null }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
   const pmFeeNote = fundTerms ? pmFeeMismatch(inputs, fundTerms) : "";
   const [curveLoading, setCurveLoading] = useState(false);
@@ -844,6 +845,9 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           )}
         </div>
       </div>
+
+      {/* 1.1.17: industrial characteristics (Building; Location and site) */}
+      <AssetFacts inputs={inputs} onChange={onChange} SectionHeader={SectionHeader} docCtx={docCtx} />
 
       {/* NOI source + capex */}
       <div>

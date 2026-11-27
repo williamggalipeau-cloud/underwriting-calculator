@@ -1,0 +1,35 @@
+{
+ "doc_type": "survey",
+ "title": "Harbor Light Industrial survey",
+ "asset": "Harbor Light Industrial",
+ "report_date": "2026-04-02",
+ "prepared_by": "Fictional Land Surveying, Inc.",
+ "building": {
+  "landAcres": 2.1,
+  "footprintSF": 36000
+ },
+ "site": {
+  "zoning": "IG General Industrial",
+  "industrialByRight": "yes",
+  "residentialAdjacency": "None",
+  "truckRestrictions": "None",
+  "freewayName": "I-710",
+  "freewayMiles": 0.5,
+  "freewayNoResidential": "yes"
+ },
+ "quotes": {
+  "landAcres": "The parcel contains 2.1 acres, more or less.",
+  "footprintSF": "The building footprint measures 36,000 square feet.",
+  "zoning": "The property is zoned IG General Industrial. Industrial use is permitted by right.",
+  "industrialByRight": "The property is zoned IG General Industrial. Industrial use is permitted by right.",
+  "residentialAdjacency": "Adjoining residential uses: None. Posted truck route restrictions: None.",
+  "truckRestrictions": "Adjoining residential uses: None. Posted truck route restrictions: None.",
+  "freewayName": "Access to I-710 is 0.5 miles from the property and does not pass along a residential street.",
+  "freewayMiles": "Access to I-710 is 0.5 miles from the property and does not pass along a residential street.",
+  "freewayNoResidential": "Access to I-710 is 0.5 miles from the property and does not pass along a residential street."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

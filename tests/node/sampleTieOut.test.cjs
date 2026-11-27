@@ -306,5 +306,29 @@ for (const l of leaseIndex) {
   ok(offView.length === 0, `the comps section's broker opinion, asking price and selected offer are the sale's own, with the same $/SF and cap rate as the Offers view${offView.length ? ": " + offView.join(", ") : ""}`);
 }
 
+// 13. 1.1.17: the building and site facts, the SNDA statuses and their documents.
+{
+  const AF = j(R + "/lib/assetFacts.js"), SN = j(R + "/lib/snda.js");
+  const fj = require(R + "/scripts/sample-deal-docs/fund.json");
+  const off = fund.deals.filter((d) => { const a = fj.assets.find((x) => x.id === d.id); return !a || JSON.stringify(a.building) !== JSON.stringify(d.inputs.building) || JSON.stringify(a.site) !== JSON.stringify(d.inputs.site) || a.sndaRule !== (d.inputs.loanTerms?.sndaRule ?? "none") || a.units.some((u, k) => JSON.stringify(u.snda ?? null) !== JSON.stringify(d.inputs.units[k].snda ?? null)); }).map((d) => d.id);
+  ok(off.length === 0, `building facts, site facts and SNDA statuses: the generators' file holds exactly what the fund holds${off.length ? ": " + off.join(", ") : ""}`);
+  const dir = R + "/docs/sample-deal-docs/asset-facts";
+  const index = JSON.parse(fs.readFileSync(dir + "/index.json", "utf8"));
+  const bad = [];
+  for (const x of index) {
+    const a = JSON.parse(fs.readFileSync(`${dir}/abstracts/${x.name}.json`, "utf8")), d = fund.deals.find((z) => z.id === x.dealId);
+    const pub = R + "/public/sample-docs/asset-facts/" + x.name + ".json";
+    if (!fs.existsSync(`${dir}/${x.file}`) || !fs.existsSync(pub) || fs.readFileSync(pub, "utf8") !== fs.readFileSync(`${dir}/abstracts/${x.name}.json`, "utf8")) bad.push(x.name + " (files)");
+    const html = fs.readFileSync(`${dir}/html/${x.name}.html`, "utf8");
+    if (Object.values(a.quotes ?? {}).some((q) => !html.includes(String(q).replace(/ \((p\.1|§[\d.]+)\)$/, "")))) bad.push(x.name + " (a quote is not in the document)");
+    if (x.kind === "snda") { if (SN.sndaDocRows(a, d.inputs).some((r) => r.ok === false) || !html.includes(`$${Number(a.loan_amount).toLocaleString("en-US")}`)) bad.push(x.name); }
+    else if (AF.factDocRows(a, d.inputs).some((r) => r.differs || r.now == null)) bad.push(x.name);
+  }
+  ok(index.length === 16 && bad.length === 0, `the 16 asset documents and SNDAs: every stated fact is the fund's, every quote is in its document, and the copies the app uploads are current${bad.length ? ": " + bad.join(", ") : ""}`);
+  const unitsWithDoc = index.filter((x) => x.kind === "snda").map((x) => `${x.dealId}|${x.unit}`).sort().join();
+  const signedUnits = fund.deals.flatMap((d) => d.inputs.units.filter((u) => u.snda?.status === "signed").map((u) => `${d.id}|${u.name}`)).sort().join();
+  ok(unitsWithDoc === signedUnits, "every lease marked signed has its SNDA document, and no SNDA document is for a lease not marked signed");
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);
