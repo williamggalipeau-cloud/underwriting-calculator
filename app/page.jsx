@@ -1824,14 +1824,28 @@ export default function Home() {
         onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`),
       });
       const gpr = await addSampleGpPartners({ workspaceId: l.id, email, gp: cur.gpPartners, onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`) });
-      setGpPartners(gpr.gp);
+      // The agreements are switched on (user, 11/27): each one Claude's
+      // abstract gives complete terms for is saved as checked, and the
+      // fund's GP parties are rebuilt from them.
+      const { agreementFromAbstract } = await import("@/lib/gpPartners");
+      const { listDealDocs } = await import("@/lib/dealDocs");
+      let gp = gpr.gp, switched = 0;
+      for (const d of (await listDealDocs(l.id)).filter((x) => x.abstract?.doc_type === "gp_agreement")) {
+        if ((gp.agreements ?? []).some((a) => a.docId === d.id)) continue;
+        const draft = agreementFromAbstract(d.abstract, { gp, funds: cur.funds, deals: built, docId: d.id, fileName: d.files?.[0]?.name ?? "" });
+        const dup = draft && (gp.agreements ?? []).some((a) => a.partnerId === draft.partnerId && a.portfolio === draft.portfolio && (a.dealId || null) === (draft.dealId || null) && a.effective === draft.effective);
+        if (!draft || dup) continue;
+        const r = saveAgreement(gp, draft, { by: email ?? "" });
+        if (!r.error) { gp = r.gp; switched++; }
+      }
+      setGpPartners(gp);
       const failed = [...docs.failed, ...gpr.failed];
       // The version is recorded only when everything went in; otherwise the next open tries again.
-      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...(prev[SAMPLE_FUND_NAME] ?? {}), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
+      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
       setRecordNotice(failed.length
         ? `Model Fund I sample data: ${failed.length} item${failed.length === 1 ? "" : "s"} couldn't be added (${failed[0].error}); it will try again the next time you open Baywise.`
-        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added. See Tenant Credit; the GP agreements are in Finance → GP Partners to check.`);
+        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
     } catch (e) {
       setRecordNotice(`Model Fund I sample data couldn't be updated (${e.message || e}); it will try again the next time you open Baywise.`);
     } finally {

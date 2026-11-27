@@ -1183,9 +1183,14 @@ sample tenant credit and aged rent, the sample documents (credit report
 PDFs included) and the two sample GP partners with their agreements. It adds
 only what isn't there, keeps your own records, logs the update in the Change
 log, records the version on the fund and shows a notice. If an item fails it
-tries again on the next open. The GP agreements are filed "to check" in
-Finance → GP Partners; nothing is applied to the fund until you save them.
-The Sample data menu still works by hand.
+tries again on the next open. The two GP agreements are **switched on**
+(user, 11/27): each is saved as checked with the terms in the document, and
+Model Fund I's GP parties are rebuilt from them (Fictional Capital Partners:
+40% of the GP capital and 50% of the GP's promote, fund-wide from 1/15/2026;
+Sample Family Office: 50% and 40% on Granite Ave Industrial only, from
+3/1/2026). The firm's share of the GP capital and promote falls by those
+amounts. The Sample data menu still works by hand (its GP agreements stay
+"to check").
 
 Model Fund I has **$100M of total commitments** (LP + GP). It holds your
 deal plus nine illustrative assets, all owned: acquired 1/30/2026 – 11/13/2026:
@@ -4912,7 +4917,7 @@ A correctness and safety patch from the end-to-end code review (user, 11/27).
 - **Saving.** Two people's edits are merged field by field instead of one overwriting the other; settings are no longer re-saved when nothing changed; a save happens within 2 minutes of the first unsaved change; the forward curve anchor no longer races the first load.
 - **Record history.** `supabase/firm_record_versions.sql` keeps every replaced version of a record (§12.7). Run it once.
 - **Other fixes.** Interest-only loans with no amortization; a 0% LTV limit; IRR with no sign change shows "n/a"; risk report loan balance at the report date and floating / swapped / capped / unhedged debt; credit review due dates and month ends; fund income before final close; negative amounts keep their sign in Capital Activity and the Pipeline.
-- **Sample material loads by itself (§7.13)** when an owner opens the firm: tenant credit, aged rent, sample documents with credit reports, and the sample GP partners.
+- **Sample material loads by itself (§7.13)** when an owner opens the firm: tenant credit, aged rent, sample documents with credit reports, and the sample GP partners, whose two agreements are switched on.
 
 ### What's in 1.1.11
 

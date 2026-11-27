@@ -25,7 +25,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
     let body = "[]";
     if (u.includes("/rpc/claim_invites")) body = "0";
     else if (u.includes("/rpc/save_workspace")) { saved = JSON.parse(req.postData()); ws.data = saved.new_data ?? ws.data; body = String(++ws.version); }
-    else if (u.includes("/rpc/save_deal_abstract")) { dealAbs.push(JSON.parse(req.postData())); body = '"abstracted"'; }
+    else if (u.includes("/rpc/save_deal_abstract")) { const b = JSON.parse(req.postData()); dealAbs.push(b); const row = docs.find((d) => d.id === b.doc); if (row) { row.abstract = b.abstract; row.status = "abstracted"; } body = '"abstracted"'; }
     else if (u.includes("/rpc/save_lease_abstract")) { leaseAbs.push(JSON.parse(req.postData())); body = '"abstracted"'; }
     else if (u.includes("/auth/v1/user")) body = JSON.stringify(sess.user);
     else if (u.includes("/workspace_members")) body = JSON.stringify([{ workspace_id: "w1", role: "owner", email: "t@example.com" }]);
@@ -60,7 +60,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const sd = saved?.new_data ?? saved?.data;
   check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 2, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
   const withCredit = (sd?.deals ?? []).filter((d) => (d.inputs?.units ?? []).some((u) => u.credit)).length;
-  check(withCredit >= 5 && sd?.gpPartners?.partners?.length === 2 && gpa.length === 2 && (sd?.gpPartners?.agreements?.length ?? 0) === 0, `tenant credit on ${withCredit} assets; 2 GP partners listed, their 2 agreements filed to check (nothing applied to the fund)`);
+  check(withCredit >= 5 && sd?.gpPartners?.partners?.length === 2 && gpa.length === 2 && (sd?.gpPartners?.agreements ?? []).filter((a) => a.status === "checked").length === 2, `tenant credit on ${withCredit} assets; 2 GP partners, their 2 agreements switched on`);
+  const parties = (sd?.funds?.["Model Fund I"]?.gpParties ?? []).filter((x) => x.partnerId);
+  const fcp = parties.find((x) => /Fictional Capital/.test(x.name)), sfo = parties.find((x) => /Sample Family/.test(x.name));
+  check(fcp?.capitalPct === 40 && sfo?.terms?.[0]?.dealId && sfo.terms[0].capitalPct === 50, `the fund's GP parties match the agreements: Fictional Capital Partners 40% of GP capital fund-wide; Sample Family Office 50% on Granite Ave only (${JSON.stringify(parties.map((x) => [x.name, x.capitalPct]))})`);
   check((sd?.auditLog ?? []).some((e) => /sample data updated automatically/.test(JSON.stringify(e))), "logged in the change log");
   // A second open: already current, so nothing is added.
   const nDocs = docs.length, nUp = uploads.length;
