@@ -250,7 +250,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
           <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Fees & exit</h4>
           <Fact label="Asset management" value={am ? `${fmtPct(am.value)} of equity` : "—"} />
           <Fact label="Property management" value={inp.pmFeePct ? `${fmtPct(inp.pmFeePct)} of ${inp.pmFeeBasis === "value" ? "value" : "NOI"}` : `${fmtPct(inp.managementFeePct)} of EGR`} />
-          <Fact label="Construction management" value={inp.cmFeePct ? `${fmtPct(inp.cmFeePct)} of price / yr` : "—"} />
+          <Fact label="Construction management" value={inp.cmFeePct ? (inp.cmFeeBasis === "spend" ? `${fmtPct(inp.cmFeePct)} of construction spending` : `${fmtPct(inp.cmFeePct)} of price / yr`) : "—"} />
           <Fact label="Exit cap" value={fmtPct(row.exitCap, 2)} sub={`on yr-${hold} NOI ${fmtM(row.exitNOI)}`} />
           <Fact label="Exit value" value={fmtM(returns.exitValue)} sub={`$${fmt(row.exitPSF)}/SF`} />
           <Fact label="Sale costs" value={fmtM(sellingCosts)} sub={fmtPct(returns.sellingCostsPct)} />

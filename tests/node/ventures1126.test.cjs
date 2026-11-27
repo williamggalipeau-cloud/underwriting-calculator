@@ -107,6 +107,14 @@ const add2 = V.sampleVenturesToAdd(have, { baseInputs: DEFAULT_INPUTS, todayISO:
 check(add2.deals.length === 0 && Object.keys(add2.funds).length === 0 && Object.keys(add2.valuations).length === 0 && add2.pipeline.length === 0 && JSON.stringify(add2.gp) === JSON.stringify(add1.gp), "run again, it adds nothing (terms the user changed are not put back)");
 const add3 = V.sampleVenturesToAdd({ ...have, deals: have.deals.filter((d) => d.id !== "sample-jv-2") }, { baseInputs: DEFAULT_INPUTS, todayISO: T, toDeal });
 check(add3.deals.length === 1 && add3.deals[0].id === "sample-jv-2", "a missing asset alone is added back");
+// ── Construction management on construction spending (user, 11/27) ──
+for (const d of v.deals) {
+  const i = d.inputs, cf = underwrite(i).annualCashFlows;
+  const asValue = underwrite({ ...i, cmFeeBasis: "value" }).annualCashFlows;
+  check(i.cmFeeBasis === "spend" && d.quick.cmFeeBasis === "spend" && cf[0].constructionMgmtFee >= 0.015 * i.capexBudget - 1 && cf.every((y) => y.constructionMgmtFee >= 0 && y.constructionMgmtFee <= 0.015 * (i.capexBudget + y.tiAndLeasing) + 1) && cf.reduce((s, y) => s + y.constructionMgmtFee, 0) < 0.1 * asValue.reduce((s, y) => s + y.constructionMgmtFee, 0) && asValue.every((y) => near(y.constructionMgmtFee, 0.015 * i.purchasePrice)), `${i.propertyName}: the fee is 1.5% of the capital budget (year 1) and each year's tenant improvements, not 1.5% of the price every year`);
+}
+const mf1 = buildSampleFund({ todayISO: T }).deals[0].inputs;
+check((mf1.cmFeeBasis ?? "value") === "value" && underwrite(mf1).annualCashFlows.every((y) => near(y.constructionMgmtFee, (mf1.cmFeePct / 100) * mf1.purchasePrice)), "Model Fund I keeps its fee on asset value, as before");
 check(SP.SAMPLE_DATA_VERSION === 11, "the sample data version is 11");
 
 console.log(`ventures1126: ${pass} passed, ${fail} failed`);

@@ -1257,7 +1257,9 @@ assets owned for several years can be tested without typing anything in.
 
 - **Terms (as you set them, 11/27).** Asset management 0.75% a year (joint
   venture) and 1.25% (separate account), charged on invested equity as the
-  portfolio's fee; property management 5.0%; construction management 1.5%.
+  portfolio's fee; property management 5.0%; construction management 1.5%
+  of construction spending (the capital budget and tenant improvements;
+  §7.13 below).
   An 8% preferred return, then 20% of profit to the sponsor side up to a 14%
   IRR and 30% above, with no catch-up. The sponsor co-invests 10%; the
   outside GP partner funds half of that and takes 25% of the promote.
@@ -1266,10 +1268,10 @@ assets owned for several years can be tested without typing anything in.
 
   | Asset | Portfolio | Bought | Units | Price | Story |
   |---|---|---|---|---|---|
-  | Example Gateway Industrial Park, Phoenix | Joint venture | 6/15/2022 | 72 | $49,500,000 | Sold 6/30/2026 for $85,650,000 (Track Record): 21.1% IRR against 17.6% underwritten |
-  | Example Summit Business Center, Las Vegas | Joint venture | 2/28/2023 | 64 | $51,000,000 | On plan: 16.3% against 13.5% underwritten |
-  | Example Foundry Flex Park, Salt Lake City | Joint venture | 11/15/2023 | 78 | $48,000,000 | Behind plan: bought 68% leased to reach about 92%, now 76%; −18.9% against 16.0% underwritten; marked $47,650,000 against a cost of $51,500,000 |
-  | Example Orchard Commerce Center, Denver | Separate account | 6/30/2023 | 68 | $50,500,000 | On plan: 15.5% against 13.0% underwritten |
+  | Example Gateway Industrial Park, Phoenix | Joint venture | 6/15/2022 | 72 | $49,500,000 | Sold 6/30/2026 for $85,650,000 (Track Record): 23.6% IRR against 20.2% underwritten |
+  | Example Summit Business Center, Las Vegas | Joint venture | 2/28/2023 | 64 | $51,000,000 | On plan: 18.8% against 15.9% underwritten |
+  | Example Foundry Flex Park, Salt Lake City | Joint venture | 11/15/2023 | 78 | $48,000,000 | Behind plan: bought 68% leased to reach about 92%, now 76%; −15.4% against 18.4% underwritten; marked $47,650,000 against a cost of $51,500,000 |
+  | Example Orchard Commerce Center, Denver | Separate account | 6/30/2023 | 68 | $50,500,000 | On plan: 18.0% against 15.4% underwritten |
 
 - **How each is built.** First as it was underwritten at purchase, which is
   kept as the asset's underwriting baseline (the closing model). Then what
@@ -4527,7 +4529,8 @@ files hold the same object.
 | `amFeePct` | `deals[].quick.amFeePct` | % of equity / yr | 0 | Asset-level asset management fee (Model Fund I charges its fee at the fund level, §7.20) |
 | `pmFeePct` | `deals[].quick.pmFeePct` | % / yr | 5 | Property management fee |
 | `pmFeeBasis` | `deals[].quick.pmFeeBasis` | `noi` / `value` | noi | PM fee basis: NOI before the fee, or purchase price |
-| `cmFeePct` | `deals[].quick.cmFeePct` | % of price / yr | 1.5 | Construction management fee |
+| `cmFeePct` | `deals[].quick.cmFeePct` | % of `cmFeeBasis` | 1.5 | Construction management fee |
+| `cmFeeBasis` | `deals[].quick.cmFeeBasis` | `value` / `spend` | `value` | 1.1.26: what the fee is charged on: asset value each year, or construction spending (the capital budget) |
 
 ### 11.4 Full-model inputs (`inputs`)
 
@@ -4554,7 +4557,8 @@ Fields set from Underwriter on linked deals are marked **Q**.
 | `noiYear1` **Q** | `deals[].inputs.noiYear1` | $ | | Year-1 NOI before PM (direct NOI) |
 | `noiGrowthPct` **Q** | `deals[].inputs.noiGrowthPct` | % / yr | | NOI growth (direct NOI) |
 | `pmFeePct`, `pmFeeBasis` **Q** | `deals[].inputs.pmFeePct`<br>`deals[].inputs.pmFeeBasis` | %, `noi`/`value` | 5, noi | PM fee in direct-NOI mode |
-| `cmFeePct` **Q** | `deals[].inputs.cmFeePct` | % of price / yr | 1.5 | Construction management, below NOI |
+| `cmFeePct` **Q** | `deals[].inputs.cmFeePct` | % of `cmFeeBasis` | 1.5 | Construction management, below NOI |
+| `cmFeeBasis` **Q** | `deals[].inputs.cmFeeBasis` | `value` / `spend` | `value` | 1.1.26: `value` = % of the purchase price every year; `spend` = % of construction spending (the capital budget in year 1 and each year's tenant improvements; not leasing commissions or free rent) |
 
 **Rent roll and operations** (used when direct NOI is off):
 
@@ -5349,11 +5353,12 @@ The sample joint venture and separate account (§7.13): their terms, four assets
 - **Four assets** of about $50,000,000 and 60 to 80 units, bought in 2022 and 2023: one sold in June 2026 (the first sale on the Track Record), two on plan, and one well behind plan and marked below cost.
 - **Leases signed since purchase** on all four (234 in total), so the Rent Roll and every screen that lists leases show today's tenants. This is the first sample data for the lease history added in 1.1.24.
 - **Each asset keeps its closing model** as the underwriting baseline, so Underwritten vs Actual and the Track Record compare against what was underwritten.
-- **Figures (test copy, as of 11/27/2026).** Firm Economics over the life of both portfolios: fees $17,969,753, promote $1,852,447, co-invest profit $2,531,620, on $5,340,077 of the firm's own capital. The joint venture's promote ($809,103 in total, of which the firm's share is $606,827) is held down by the asset behind plan.
+- **Figures (test copy, as of 11/27/2026).** Firm Economics over the life of both portfolios: fees $6,277,891, promote $3,869,496, co-invest profit $3,101,706, on $5,009,945 of the firm's own capital. The joint venture's promote ($2,697,568 in total, of which the firm's share is $2,023,176) is held down by the asset behind plan.
+- **Construction management fee on construction spending (your decision, 11/27).** An asset's construction management fee can now be charged on construction spending (its capital budget, in the year the model spends it, and each year's tenant improvements) in place of the asset's value every year: asset inputs → Constr. mgmt fee on. The two new portfolios use it at 1.5%. Model Fund I and your own assets stay on asset value until you change them.
 - **Model Fund I: no figure changes.**
 - **Loads by itself** (sample data version 11); only what is missing is added.
 - **Also in the plan:** the Dispositions workflow (25 steps) and the expanded Acquisitions workflow (26 steps) for v1.2.
-- **Tests:** a new node suite (`ventures1126`, 46 checks), a new browser suite (`ventures1126`, 6 checks), and checks in both load tests on what is actually saved.
+- **Tests:** a new node suite (`ventures1126`, 51 checks), a new browser suite (`ventures1126`, 6 checks), and checks in both load tests on what is actually saved.
 - **No database change.**
 
 ### What's in 1.1.25
