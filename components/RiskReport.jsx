@@ -217,7 +217,7 @@ export default function RiskReport({ fundName, terms, deals, values, asOf, curve
       <Ref title="Loan schedule" testId="risk-debt-ref">
       <Sec title="Debt" testId="risk-debt">
         <T head={["Asset", "Loan", "LTV", "Lender", "SOFR +", "Matures", "DSCR", "Test", "Cap strike", "Cap expires", "Provider", "Cap value"]} right={[1, 2, 4, 6, 7, 8, 11]}
-          rows={r.debt.map((d) => [d.name, fmtM(d.loan), pct(d.ltv), d.lender || "—", pct(d.spreadPct, 2), usDate(d.maturity), d.dscr == null ? "—" : <span className={d.dscr < d.minDscr ? "font-semibold text-red-700" : ""}>{d.dscr.toFixed(2)}x</span>, `${d.minDscr.toFixed(2)}x`, d.capped ? pct(d.strike, 2) : "none", d.capped ? usDate(d.capEnd) : "—", d.provider || (d.capped ? <span className="text-amber-700">not entered</span> : "—"), fmtM(d.capValue)])} />
+          rows={r.debt.map((d) => [d.name, fmtM(d.loan), pct(d.ltv), d.lender || "—", pct(d.spreadPct, 2), usDate(d.maturity), d.dscr == null ? "—" : <span className={d.dscr < d.minDscr ? "font-semibold text-red-700" : ""}>{d.dscr.toFixed(2)}x</span>, `${d.minDscr.toFixed(2)}x`, d.capped ? pct(d.strike, 2) : d.rateType === "Fixed" ? "fixed rate" : d.rateType === "Swapped" ? "swapped" : "none", d.capped ? usDate(d.capEnd) : "—", d.provider || (d.capped ? <span className="text-amber-700">not entered</span> : "—"), fmtM(d.capValue)])} />
       </Sec>
       </Ref>
       {r.ti && (

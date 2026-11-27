@@ -30,7 +30,8 @@ const PURCHASE_DATES = CONTRACT_DATES.filter(([k]) => k !== "closingDate");
 const fmtM = (n) => {
   if (n == null || !isFinite(n)) return "—";
   const a = Math.abs(n);
-  return a >= 1e6 ? `$${(a / 1e6).toFixed(2)}M` : `$${Math.round(a).toLocaleString("en-US")}`;
+  const s = a >= 1e6 ? `$${(a / 1e6).toFixed(2)}M` : `$${Math.round(a).toLocaleString("en-US")}`;
+  return n < 0 ? `-${s}` : s; // 1.1.12: a negative amount shows its sign
 };
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "");
 const th = "px-2 py-1.5 font-medium";

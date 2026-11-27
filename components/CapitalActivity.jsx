@@ -7,7 +7,8 @@ import { ACTIVITY_TYPES, PURPOSES, activityFromFile, activityXlsx, newActivityId
 const fmtM = (n) => {
   if (n == null || !isFinite(n)) return "—";
   const a = Math.abs(n);
-  return a >= 1e6 ? `$${(a / 1e6).toFixed(2)}M` : a >= 1e3 ? `$${(a / 1e3).toFixed(0)}k` : `$${a.toFixed(0)}`;
+  const s = a >= 1e6 ? `$${(a / 1e6).toFixed(2)}M` : a >= 1e3 ? `$${(a / 1e3).toFixed(0)}k` : `$${a.toFixed(0)}`;
+  return n < 0 ? `-${s}` : s; // 1.1.12: a negative amount shows its sign
 };
 const total = (rows, type) => rows.filter((a) => a.type === type).reduce((s, a) => s + (Number(a.amount) || 0), 0);
 
