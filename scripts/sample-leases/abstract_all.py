@@ -534,7 +534,19 @@ def build(L, stems):
         add(F("restoration", "Remove trade fixtures, equipment and cabling and repair damage; approved Alterations stay unless Landlord elected removal when approving", "found", rs["n"], [E("Tenant shall remove its trade fixtures, equipment and cabling and repair any damage caused by the"), E("Tenant is not required to remove Landlord-approved Alterations")], label="Restoration", section="obligations"))
     else:
         add(F("restoration", short(rs["text"].rstrip("."), 400), "found", rs["n"], [E(short(rs["text"], 700))], label="Restoration", section="obligations") if rs else F("restoration", "Not addressed", "not_in_lease", label="Restoration", section="obligations"))
-    add(F("amendments", "None in the document provided", "not_in_lease"))
+    # 1.1.13: an amendment that changes no abstracted term (the Model Fund I
+    # leases' notice amendments) is recorded as a document and in "amendments".
+    documents = None
+    if len(stems) > 1:
+        am = L.docs[1]
+        am_title = re.match(r"This (.+?) \(this", am["lead"]).group(1)
+        am_date = re.search(DATE_RE, am["lead"]).group(0)
+        am_q = f'This {am_title} (this "Amendment") is made as of {am_date}'
+        add(F("amendments", f"{am_title} dated {am_date}; it changes the notice address and how insurance certificates are delivered, and no economic term", "found", evidence=[L.ev(am_q, doc=1)]))
+        documents = [{"id": "lease", "title": "Industrial Lease", "date": iso(lead_date), "start_page": L.ranges[0][0], "end_page": L.ranges[0][1]},
+                     {"id": "amend1", "title": am_title, "date": iso(am_date), "start_page": L.ranges[1][0], "end_page": L.ranges[1][1]}]
+    else:
+        add(F("amendments", "None in the document provided", "not_in_lease"))
 
     # Critical dates.
     cds = [
@@ -609,6 +621,8 @@ def build(L, stems):
                + ("Tenant has an early termination right. " if termination else ""))
     lease = {"title": f"{tenant_name} — {asset}, {prem.split(', containing')[0]}", "summary": short(summary, 1100), "property_type": "industrial",
              "fields": fields, "rent_schedule": rent_rows, "critical_dates": cds, "risks": risks}
+    if documents:
+        lease["documents"] = documents
     app = {"tenant_business": tb, "sic_code": code, "files": [f"{s}.pdf" for s in stems], "made_with": "CREparser Lease Abstraction", "template": "Light industrial (Model Fund I)", "version": 1}
     return lease, app
 

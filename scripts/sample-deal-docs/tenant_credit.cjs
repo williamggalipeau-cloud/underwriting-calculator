@@ -4,7 +4,7 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
-const dir = path.join(__dirname, "..", "..", "docs", "sample-deal-docs", "tenant-credit");
+const dir = path.join(__dirname, "..", "..", "tests", "fixtures", "tenant-credit");
 const data = require(path.join(dir, "expected.json"));
 
 const money = (n) => `$${Number(n).toLocaleString("en-US")}`;

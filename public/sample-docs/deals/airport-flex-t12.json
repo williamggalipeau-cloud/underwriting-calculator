@@ -1,7 +1,7 @@
 {
  "doc_type": "t12",
  "title": "Airport Flex Park T-12 (2025)",
- "summary": "Seller's operating statement for 2025: $528,000 revenue, $98,880 expenses, $429,120 NOI.",
+ "summary": "Seller's operating statement for 2025: $528,000 revenue, $90,000 expenses, $438,000 NOI.",
  "fields": [
   {
    "key": "period_end",
@@ -49,22 +49,22 @@
   },
   {
    "key": "real_estate_taxes",
-   "value": "$30,000",
+   "value": "$28,800",
    "status": "found",
    "evidence": [
     {
-     "quote": "Real estate taxes: $30,000.",
+     "quote": "Real estate taxes: $28,800.",
      "page": 1
     }
    ]
   },
   {
    "key": "insurance",
-   "value": "$9,600",
+   "value": "$8,400",
    "status": "found",
    "evidence": [
     {
-     "quote": "Insurance: $9,600.",
+     "quote": "Insurance: $8,400.",
      "page": 1
     }
    ]
@@ -82,11 +82,11 @@
   },
   {
    "key": "repairs_maintenance",
-   "value": "$10,800",
+   "value": "$9,600",
    "status": "found",
    "evidence": [
     {
-     "quote": "Repairs and maintenance: $10,800.",
+     "quote": "Repairs and maintenance: $9,600.",
      "page": 1
     }
    ]
@@ -104,33 +104,33 @@
   },
   {
    "key": "management_fee",
-   "value": "$31,680",
+   "value": "$26,400",
    "status": "found",
    "evidence": [
     {
-     "quote": "Management fee: $31,680.",
+     "quote": "Management fee: $26,400.",
      "page": 1
     }
    ]
   },
   {
    "key": "total_expenses",
-   "value": "$98,880",
+   "value": "$90,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Total operating expenses: $98,880.",
+     "quote": "Total operating expenses: $90,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "noi",
-   "value": "$429,120",
+   "value": "$438,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Net operating income: $429,120.",
+     "quote": "Net operating income: $438,000.",
      "page": 1
     }
    ]

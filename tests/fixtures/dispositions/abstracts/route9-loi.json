@@ -1,0 +1,103 @@
+{
+ "doc_type": "offer_letter",
+ "title": "Route 9 Small Bay LOI from Example Logistics REIT",
+ "summary": "Example Logistics REIT offers $14,400,000 for Route 9 Small Bay with a $300,000 deposit and 30-day due diligence.",
+ "fields": [
+  {
+   "key": "loi_date",
+   "value": "November 6, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This letter of intent is dated November 6, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "buyer",
+   "value": "Example Logistics REIT",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Buyer is Example Logistics REIT.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "seller",
+   "value": "Model Fund I Route 9 LLC",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Seller is Model Fund I Route 9 LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "purchase_price",
+   "value": "$14,400,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Purchase Price is $14,400,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "deposit",
+   "value": "$300,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer will deliver an initial deposit of $300,000 within three business days of a signed purchase agreement.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "dd_days",
+   "value": "30 days",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer shall have a due diligence period of 30 days.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "closing_days",
+   "value": "30 days",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Closing will occur 30 days after the end of the due diligence period.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "financing_contingency",
+   "value": "Buyer's obligations are not contingent on financing.",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Buyer's obligations are not contingent on financing.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "route9-loi.pdf"
+  ]
+ }
+}

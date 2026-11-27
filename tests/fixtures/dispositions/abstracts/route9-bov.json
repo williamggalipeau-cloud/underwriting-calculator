@@ -1,0 +1,125 @@
+{
+ "doc_type": "bov",
+ "title": "Route 9 Small Bay BOV",
+ "summary": "Fictional Industrial Advisors values Route 9 Small Bay at $14,100,000–$15,100,000, most likely $14,600,000, and recommends listing at $14,950,000.",
+ "fields": [
+  {
+   "key": "broker",
+   "value": "Fictional Industrial Advisors",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Prepared by Fictional Industrial Advisors for Model Fund I Route 9 LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "bov_date",
+   "value": "November 2, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This opinion of value is dated November 2, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_low",
+   "value": "$14,100,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We estimate the market value of Route 9 Small Bay at between $14,100,000 and $15,100,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_mid",
+   "value": "$14,600,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Our most likely value is $14,600,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_high",
+   "value": "$15,100,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We estimate the market value of Route 9 Small Bay at between $14,100,000 and $15,100,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "price_psf",
+   "value": "348",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "That value is $348 per square foot.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cap_rate",
+   "value": "5.85%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The most likely value reflects a 5.85% cap rate on in-place net operating income.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "list_price",
+   "value": "$14,950,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We recommend a list price of $14,950,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "listing_fee_pct",
+   "value": "1.25%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Our proposed listing fee is 1.25% of the sale price.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "marketing_timeline",
+   "value": "eight weeks",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "We expect a marketing period of eight weeks from launch to a call for offers.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "route9-bov.pdf"
+  ]
+ }
+}

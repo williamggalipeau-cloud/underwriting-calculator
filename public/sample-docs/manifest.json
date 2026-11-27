@@ -31,14 +31,14 @@
    "title": "Airport Flex Park acquisition settlement statement"
   },
   {
-   "name": "airport-flex-estoppel-desert-aero",
-   "file": "deals/airport-flex-estoppel-desert-aero.pdf",
-   "abstract": "deals/airport-flex-estoppel-desert-aero.json",
+   "name": "airport-flex-estoppel-blue-mesa-fulfillment",
+   "file": "deals/airport-flex-estoppel-blue-mesa-fulfillment.pdf",
+   "abstract": "deals/airport-flex-estoppel-blue-mesa-fulfillment.json",
    "docType": "estoppel",
    "asset": "Airport Flex Park",
    "fund": null,
-   "leaseTenant": "Desert Aero Parts LLC",
-   "title": "Desert Aero Parts estoppel"
+   "leaseTenant": "Blue Mesa Fulfillment",
+   "title": "Blue Mesa Fulfillment estoppel"
   },
   {
    "name": "airport-flex-ic-memo",
@@ -51,14 +51,14 @@
    "title": "Airport Flex Park final IC memo"
   },
   {
-   "name": "airport-flex-insurance-desert-aero",
-   "file": "deals/airport-flex-insurance-desert-aero.pdf",
-   "abstract": "deals/airport-flex-insurance-desert-aero.json",
+   "name": "airport-flex-insurance-blue-mesa-fulfillment",
+   "file": "deals/airport-flex-insurance-blue-mesa-fulfillment.pdf",
+   "abstract": "deals/airport-flex-insurance-blue-mesa-fulfillment.json",
    "docType": "insurance_cert",
    "asset": "Airport Flex Park",
    "fund": null,
-   "leaseTenant": "Desert Aero Parts LLC",
-   "title": "Desert Aero Parts 2026–27"
+   "leaseTenant": "Blue Mesa Fulfillment",
+   "title": "Blue Mesa Fulfillment 2026–27"
   },
   {
    "name": "airport-flex-insurance-owner",
@@ -118,7 +118,7 @@
    "asset": "Airport Flex Park",
    "fund": null,
    "leaseTenant": null,
-   "title": "Airport Flex Park rent roll (excerpt)"
+   "title": "Airport Flex Park rent roll"
   },
   {
    "name": "airport-flex-t12",
@@ -137,7 +137,7 @@
    "docType": "cam",
    "asset": "Lakeshore Service Center",
    "fund": null,
-   "leaseTenant": null,
+   "leaseTenant": "Bayline Auto Parts",
    "title": "Lakeshore 2025 CAM reconciliation"
   },
   {
@@ -161,14 +161,14 @@
    "title": "Model Fund I PPM (excerpt)"
   },
   {
-   "name": "route9-appraisal-2026q2",
-   "file": "deals/route9-appraisal-2026q2.pdf",
-   "abstract": "deals/route9-appraisal-2026q2.json",
+   "name": "route9-appraisal-2026q3",
+   "file": "deals/route9-appraisal-2026q3.pdf",
+   "abstract": "deals/route9-appraisal-2026q3.json",
    "docType": "appraisal",
    "asset": "Route 9 Small Bay",
    "fund": null,
    "leaseTenant": null,
-   "title": "Route 9 Small Bay appraisal June 30, 2026"
+   "title": "Route 9 Small Bay appraisal September 30, 2026"
   },
   {
    "name": "route9-cap-2026",
@@ -179,16 +179,6 @@
    "fund": null,
    "leaseTenant": null,
    "title": "Route 9 Small Bay cap 2026"
-  },
-  {
-   "name": "route9-closing-disp",
-   "file": "deals/route9-closing-disp.pdf",
-   "abstract": "deals/route9-closing-disp.json",
-   "docType": "closing_disp",
-   "asset": "Route 9 Small Bay",
-   "fund": null,
-   "leaseTenant": null,
-   "title": "Route 9 Small Bay sale (test)"
   },
   {
    "name": "route9-loan",
@@ -213,16 +203,6 @@
    "title": "Harbor Light Industrial BOV"
   },
   {
-   "name": "harbor-light-closing-disp",
-   "file": "dispositions/harbor-light-closing-disp.pdf",
-   "abstract": "dispositions/harbor-light-closing-disp.json",
-   "docType": "closing_disp",
-   "asset": "Harbor Light Industrial",
-   "fund": null,
-   "leaseTenant": null,
-   "title": "Harbor Light Industrial closing statement"
-  },
-  {
    "name": "harbor-light-loi",
    "file": "dispositions/harbor-light-loi.pdf",
    "abstract": "dispositions/harbor-light-loi.json",
@@ -231,16 +211,6 @@
    "fund": null,
    "leaseTenant": null,
    "title": "Harbor Light Industrial LOI from Fictional Pacific Industrial Fund II"
-  },
-  {
-   "name": "harbor-light-psa",
-   "file": "dispositions/harbor-light-psa.pdf",
-   "abstract": "dispositions/harbor-light-psa.json",
-   "docType": "psa",
-   "asset": "Harbor Light Industrial",
-   "fund": null,
-   "leaseTenant": null,
-   "title": "Harbor Light Industrial PSA"
   },
   {
    "name": "mill-creek-bov",
@@ -253,16 +223,6 @@
    "title": "Mill Creek Business Park BOV"
   },
   {
-   "name": "mill-creek-closing-disp",
-   "file": "dispositions/mill-creek-closing-disp.pdf",
-   "abstract": "dispositions/mill-creek-closing-disp.json",
-   "docType": "closing_disp",
-   "asset": "Mill Creek Business Park",
-   "fund": null,
-   "leaseTenant": null,
-   "title": "Mill Creek Business Park closing statement"
-  },
-  {
    "name": "mill-creek-loi",
    "file": "dispositions/mill-creek-loi.pdf",
    "abstract": "dispositions/mill-creek-loi.json",
@@ -273,16 +233,6 @@
    "title": "Mill Creek Business Park LOI from Demo Flex Owners LLC"
   },
   {
-   "name": "mill-creek-psa",
-   "file": "dispositions/mill-creek-psa.pdf",
-   "abstract": "dispositions/mill-creek-psa.json",
-   "docType": "psa",
-   "asset": "Mill Creek Business Park",
-   "fund": null,
-   "leaseTenant": null,
-   "title": "Mill Creek Business Park PSA"
-  },
-  {
    "name": "route9-bov",
    "file": "dispositions/route9-bov.pdf",
    "abstract": "dispositions/route9-bov.json",
@@ -291,16 +241,6 @@
    "fund": null,
    "leaseTenant": null,
    "title": "Route 9 Small Bay BOV"
-  },
-  {
-   "name": "route9-closing-disp",
-   "file": "dispositions/route9-closing-disp.pdf",
-   "abstract": "dispositions/route9-closing-disp.json",
-   "docType": "closing_disp",
-   "asset": "Route 9 Small Bay",
-   "fund": null,
-   "leaseTenant": null,
-   "title": "Route 9 Small Bay closing statement"
   },
   {
    "name": "route9-loi",
@@ -326,78 +266,78 @@
  "leases": [
   {
    "asset": "Airport Flex Park",
-   "tenant": "Desert Aero Parts LLC",
+   "tenant": "Blue Mesa Fulfillment",
    "files": [
-    "leases/02-airport-flex-park-desert-aero.pdf"
+    "leases/02-airport-flex-park-blue-mesa-fulfillment.pdf"
    ],
-   "abstract": "leases/02-airport-flex-park-desert-aero.json"
+   "abstract": "leases/02-airport-flex-park-blue-mesa-fulfillment.json"
   },
   {
    "asset": "Route 9 Small Bay",
-   "tenant": "Cascade Cabinet Works Inc.",
+   "tenant": "Sierra Coffee Roasters",
    "files": [
-    "leases/03-route-9-small-bay-cascade-cabinet.pdf"
+    "leases/03-route-9-small-bay-sierra-coffee-roasters.pdf"
    ],
-   "abstract": "leases/03-route-9-small-bay-cascade-cabinet.json"
+   "abstract": "leases/03-route-9-small-bay-sierra-coffee-roasters.json"
   },
   {
    "asset": "Harbor Light Industrial",
-   "tenant": "Portside Marine Electric",
+   "tenant": "Copper Canyon Tile & Stone",
    "files": [
-    "leases/04-harbor-light-portside-marine.pdf",
-    "leases/04a-harbor-light-portside-marine-first-amendment.pdf"
+    "leases/04-harbor-light-industrial-copper-canyon-tile-stone.pdf",
+    "leases/04a-harbor-light-industrial-copper-canyon-tile-stone-first-amendment.pdf"
    ],
-   "abstract": "leases/04-harbor-light-portside-marine.json"
+   "abstract": "leases/04-harbor-light-industrial-copper-canyon-tile-stone.json"
   },
   {
    "asset": "Ridgeway Trade Center",
-   "tenant": "Lone Star HVAC Supply LLC",
+   "tenant": "Riverbend Flooring",
    "files": [
-    "leases/05-ridgeway-lone-star-hvac.pdf"
+    "leases/05-ridgeway-trade-center-riverbend-flooring.pdf"
    ],
-   "abstract": "leases/05-ridgeway-lone-star-hvac.json"
+   "abstract": "leases/05-ridgeway-trade-center-riverbend-flooring.json"
   },
   {
    "asset": "Canal Street Workshops",
-   "tenant": "Bayou Fabrication Studio LLC",
+   "tenant": "Prairie Glass & Glazing",
    "files": [
-    "leases/06-canal-street-bayou-fabrication.pdf"
+    "leases/06-canal-street-workshops-prairie-glass-glazing.pdf"
    ],
-   "abstract": "leases/06-canal-street-bayou-fabrication.json"
+   "abstract": "leases/06-canal-street-workshops-prairie-glass-glazing.json"
   },
   {
    "asset": "Mill Creek Business Park",
-   "tenant": "Snohomish Brewing Equipment Co.",
+   "tenant": "Harbor Precision Machining",
    "files": [
-    "leases/07-mill-creek-snohomish-brewing.pdf",
-    "leases/07a-mill-creek-snohomish-brewing-first-amendment.pdf"
+    "leases/07-mill-creek-business-park-harbor-precision-machining.pdf",
+    "leases/07a-mill-creek-business-park-harbor-precision-machining-first-amendment.pdf"
    ],
-   "abstract": "leases/07-mill-creek-snohomish-brewing.json"
+   "abstract": "leases/07-mill-creek-business-park-harbor-precision-machining.json"
   },
   {
    "asset": "Southpoint Flex",
-   "tenant": "Sunrise Solar Installers LLC",
+   "tenant": "Desert Sky Print Shop",
    "files": [
-    "leases/08-southpoint-sunrise-solar.pdf"
+    "leases/08-southpoint-flex-desert-sky-print-shop.pdf"
    ],
-   "abstract": "leases/08-southpoint-sunrise-solar.json"
+   "abstract": "leases/08-southpoint-flex-desert-sky-print-shop.json"
   },
   {
    "asset": "Granite Ave Industrial",
-   "tenant": "Granite State Signs & Graphics",
+   "tenant": "Granite Courier",
    "files": [
-    "leases/09-granite-ave-granite-state-signs.pdf"
+    "leases/09-granite-ave-industrial-granite-courier.pdf"
    ],
-   "abstract": "leases/09-granite-ave-granite-state-signs.json"
+   "abstract": "leases/09-granite-ave-industrial-granite-courier.json"
   },
   {
    "asset": "Lakeshore Service Center",
-   "tenant": "North Texas Fleet Service LLC",
+   "tenant": "Bayline Auto Parts",
    "files": [
-    "leases/10-lakeshore-north-texas-fleet.pdf",
-    "leases/10a-lakeshore-north-texas-fleet-first-amendment.pdf"
+    "leases/10-lakeshore-service-center-bayline-auto-parts.pdf",
+    "leases/10a-lakeshore-service-center-bayline-auto-parts-first-amendment.pdf"
    ],
-   "abstract": "leases/10-lakeshore-north-texas-fleet.json"
+   "abstract": "leases/10-lakeshore-service-center-bayline-auto-parts.json"
   }
  ],
  "credit": [

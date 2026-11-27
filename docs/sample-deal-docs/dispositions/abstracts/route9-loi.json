@@ -1,7 +1,7 @@
 {
  "doc_type": "offer_letter",
  "title": "Route 9 Small Bay LOI from Example Logistics REIT",
- "summary": "Example Logistics REIT offers $14,400,000 for Route 9 Small Bay with a $300,000 deposit and 30-day due diligence.",
+ "summary": "Example Logistics REIT offers $13,150,000 for Route 9 Small Bay with a $250,000 deposit and 30-day due diligence.",
  "fields": [
   {
    "key": "loi_date",
@@ -27,33 +27,33 @@
   },
   {
    "key": "seller",
-   "value": "Model Fund I Route 9 LLC",
+   "value": "Model Fund I — Valley Freight LLC",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Seller is Model Fund I Route 9 LLC.",
+     "quote": "The Seller is Model Fund I — Valley Freight LLC.",
      "page": 1
     }
    ]
   },
   {
    "key": "purchase_price",
-   "value": "$14,400,000",
+   "value": "$13,150,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Purchase Price is $14,400,000.",
+     "quote": "The Purchase Price is $13,150,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "deposit",
-   "value": "$300,000",
+   "value": "$250,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Buyer will deliver an initial deposit of $300,000 within three business days of a signed purchase agreement.",
+     "quote": "Buyer will deliver an initial deposit of $250,000 within three business days of a signed purchase agreement.",
      "page": 1
     }
    ]

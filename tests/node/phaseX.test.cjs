@@ -1,5 +1,5 @@
 // Phase X: Distribution Analysis (lib/distributions.js) on the fictional
-// fixture and the fictional Yardi cash file (docs/sample-yardi).
+// fixture and the fictional Yardi cash file (tests/fixtures/sample-yardi).
 const R = require("path").resolve(__dirname, "..", "..");
 const fs = require("fs");
 const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
@@ -37,8 +37,8 @@ ok(X.assetDistributable(afp, base, Q3, { balance: 1000 }).distributable === 0, "
 ok(X.assetDistributable(byName("Lakeshore Service Center"), base, Q3).status === "not yet acquired", "bought after the quarter: excluded");
 ok(X.assetDistributable(afp, base, "2032-12-31").status === "sold", "sold before the quarter: excluded");
 
-// ── Yardi cash report (docs/sample-yardi/cash-balances-2026-09.csv) ──
-const csv = fs.readFileSync(R + "/docs/sample-yardi/cash-balances-2026-09.csv", "utf8");
+// ── Yardi cash report (tests/fixtures/sample-yardi/cash-balances-2026-09.csv) ──
+const csv = fs.readFileSync(R + "/tests/fixtures/sample-yardi/cash-balances-2026-09.csv", "utf8");
 const grid = csv.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map((c) => c.replace(/,$/, "").replace(/^"|"$/g, "")));
 const rep = X.parseCashReport(grid, deals, {});
 ok(rep.rows.length === 6 && rep.unmatched.length === 0, `6 balances matched by name, Total row skipped (${rep.rows.length})`);

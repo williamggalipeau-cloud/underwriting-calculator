@@ -1,0 +1,264 @@
+{
+ "properties": [
+  {
+   "code": "mf1-01",
+   "name": "Airport Flex Park"
+  },
+  {
+   "code": "mf1-02",
+   "name": "Route 9 Small Bay"
+  },
+  {
+   "code": "mf1-03",
+   "name": "Harbor Light Industrial"
+  },
+  {
+   "code": "mf1-04",
+   "name": "Ridgeway Trade Center"
+  },
+  {
+   "code": "mf1-05",
+   "name": "Canal Street Workshops"
+  },
+  {
+   "code": "mf1-06",
+   "name": "Mill Creek Business Park"
+  },
+  {
+   "code": "mf1-07",
+   "name": "Southpoint Flex"
+  },
+  {
+   "code": "mf1-08",
+   "name": "Granite Ave Industrial"
+  },
+  {
+   "code": "mf1-09",
+   "name": "Lakeshore Service Center"
+  }
+ ],
+ "scenarios": [
+  {
+   "asset": "Airport Flex Park",
+   "unit": "003",
+   "charge": "rent",
+   "note": "Late in September, caught up in October"
+  },
+  {
+   "asset": "Route 9 Small Bay",
+   "unit": "005",
+   "charge": "rent",
+   "note": "Two months behind"
+  },
+  {
+   "asset": "Harbor Light Industrial",
+   "unit": "002",
+   "charge": "rent",
+   "note": "In default; notice served"
+  },
+  {
+   "asset": "Ridgeway Trade Center",
+   "unit": "004",
+   "charge": "rent",
+   "note": "In legal; reserved"
+  },
+  {
+   "asset": "Canal Street Workshops",
+   "unit": "001",
+   "charge": "rent",
+   "note": "Partial payments"
+  },
+  {
+   "asset": "Mill Creek Business Park",
+   "unit": "003",
+   "charge": "rent",
+   "note": "Prepaid (credit balance)"
+  },
+  {
+   "asset": "Southpoint Flex",
+   "unit": "002",
+   "charge": "cam",
+   "note": "Disputes 2025 CAM reconciliation"
+  },
+  {
+   "asset": "Granite Ave Industrial",
+   "unit": "006",
+   "charge": "rent",
+   "note": "Late in October"
+  },
+  {
+   "asset": "Lakeshore Service Center",
+   "unit": "001",
+   "charge": "rent",
+   "note": "Pays mid-month (current only)"
+  }
+ ],
+ "months": {
+  "2026-08-31": {
+   "rows": 6,
+   "total": 21427.82
+  },
+  "2026-09-30": {
+   "rows": 8,
+   "total": 36196.7
+  },
+  "2026-10-31": {
+   "rows": 8,
+   "total": 39093.36
+  }
+ },
+ "construction": {
+  "asOf": "2026-10-31",
+  "jobs": [
+   {
+    "code": "mf1-01-J01",
+    "asset": "Airport Flex Park",
+    "unit": "001",
+    "category": "Tenant Improvements",
+    "budget": 16000,
+    "revised": 17248,
+    "committed": 17248,
+    "invoiced": 17248,
+    "paid": 17248,
+    "status": "Complete",
+    "overrunPct": 7.8
+   },
+   {
+    "code": "mf1-01-J02",
+    "asset": "Airport Flex Park",
+    "unit": "002",
+    "category": "Tenant Improvements",
+    "budget": 4000,
+    "revised": 4000,
+    "committed": 3800,
+    "invoiced": 3800,
+    "paid": 3800,
+    "status": "Complete",
+    "overrunPct": -5
+   },
+   {
+    "code": "mf1-01-J03",
+    "asset": "Airport Flex Park",
+    "unit": "012",
+    "category": "Tenant Improvements",
+    "budget": 16000,
+    "revised": 16000,
+    "committed": 12000,
+    "invoiced": 6400,
+    "paid": 6400,
+    "status": "In progress",
+    "overrunPct": -60
+   },
+   {
+    "code": "mf1-01-J04",
+    "asset": "Airport Flex Park",
+    "unit": "",
+    "category": "Capital Improvements",
+    "budget": 180000,
+    "revised": 180000,
+    "committed": 176400,
+    "invoiced": 99000,
+    "paid": 66000,
+    "status": "In progress",
+    "overrunPct": -45
+   },
+   {
+    "code": "mf1-02-J05",
+    "asset": "Route 9 Small Bay",
+    "unit": "017",
+    "category": "Tenant Improvements",
+    "budget": 18400,
+    "revised": 18400,
+    "committed": 18400,
+    "invoiced": 18400,
+    "paid": 18400,
+    "status": "Complete",
+    "overrunPct": 0
+   },
+   {
+    "code": "mf1-02-J06",
+    "asset": "Route 9 Small Bay",
+    "unit": "018",
+    "category": "Tenant Improvements",
+    "budget": 23200,
+    "revised": 23200,
+    "committed": 0,
+    "invoiced": 0,
+    "paid": 0,
+    "status": "Not started",
+    "overrunPct": -100
+   },
+   {
+    "code": "mf1-02-J07",
+    "asset": "Route 9 Small Bay",
+    "unit": "001",
+    "category": "Tenant Improvements",
+    "budget": 4600,
+    "revised": 4600,
+    "committed": 4600,
+    "invoiced": 4600,
+    "paid": 4600,
+    "status": "Complete",
+    "overrunPct": 0
+   },
+   {
+    "code": "mf1-03-J08",
+    "asset": "Harbor Light Industrial",
+    "unit": "016",
+    "category": "Tenant Improvements",
+    "budget": 18000,
+    "revised": 18000,
+    "committed": 16200,
+    "invoiced": 10800,
+    "paid": 5400,
+    "status": "In progress",
+    "overrunPct": -40
+   },
+   {
+    "code": "mf1-03-J09",
+    "asset": "Harbor Light Industrial",
+    "unit": "",
+    "category": "Capital Improvements",
+    "budget": 95000,
+    "revised": 95000,
+    "committed": 95000,
+    "invoiced": 95000,
+    "paid": 95000,
+    "status": "Complete",
+    "overrunPct": 0
+   },
+   {
+    "code": "mf1-04-J10",
+    "asset": "Ridgeway Trade Center",
+    "unit": "014",
+    "category": "Tenant Improvements",
+    "budget": 16000,
+    "revised": 21504,
+    "committed": 21504,
+    "invoiced": 21504,
+    "paid": 14340,
+    "status": "Complete",
+    "overrunPct": 34.4
+   },
+   {
+    "code": "mf1-06-J11",
+    "asset": "Mill Creek Business Park",
+    "unit": "021",
+    "category": "Tenant Improvements",
+    "budget": 18000,
+    "revised": 18000,
+    "committed": 10800,
+    "invoiced": 4500,
+    "paid": 4500,
+    "status": "In progress",
+    "overrunPct": -75
+   }
+  ],
+  "totals": {
+   "budget": 409200,
+   "committed": 375952,
+   "invoiced": 281252,
+   "paid": 235688
+  }
+ }
+}

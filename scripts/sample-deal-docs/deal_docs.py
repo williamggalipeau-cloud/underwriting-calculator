@@ -10,6 +10,47 @@ import json
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parents[2] / "docs" / "sample-deal-docs" / "deals"
+# Model Fund I as the app builds it (export_fund.cjs). Every figure a document
+# shares with the app is read from here (AGENTS.md: everything ties out); only
+# facts the app does not hold are written in this file, and lib/sampleFund.js
+# then reads them into the app from the abstracts (make_terms.cjs).
+FUND = json.loads((Path(__file__).resolve().parent / "fund.json").read_text())
+ASSET = {a["name"]: a for a in FUND["assets"]}
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def long(iso):
+    y, m, d = (int(x) for x in iso.split("-"))
+    return f"{MONTHS[m - 1]} {d}, {y}"
+
+
+def add_years(iso, n):
+    y, m, d = (int(x) for x in iso.split("-"))
+    return f"{y + n:04d}-{m:02d}-{d:02d}"
+
+
+def add_days(iso, n):
+    from datetime import date, timedelta
+    return (date.fromisoformat(iso) + timedelta(days=n)).isoformat()
+
+
+AF = ASSET["Airport Flex Park"]
+# The Model Fund I leases as scripts/sample-leases writes them (from the same
+# fund.json): the estoppel, the tenant's certificate and the CAM
+# reconciliation state the lease's own terms.
+LEASES = {l["asset"]: l for l in json.loads((Path(__file__).resolve().parents[2] / "docs" / "sample-leases" / "index.json").read_text()) if l.get("fund")}
+
+
+def slug(x):
+    import re
+    return re.sub(r"[^a-z0-9]+", "-", x.lower()).strip("-")
+
+
+def money2(x):
+    return f"${x:,.2f}"
+
+
+R9 = ASSET["Route 9 Small Bay"]
 (OUT / "html").mkdir(parents=True, exist_ok=True)
 (OUT / "abstracts").mkdir(parents=True, exist_ok=True)
 
@@ -43,79 +84,87 @@ def D(date, label, quote, action="", clause=""):
 
 
 # ── Airport Flex Park: offering memo ───────────────────────────────────────
+_occ = [u for u in AF["units"] if u["status"] == "occupied"]
+_cap = AF["noiYear1Input"] / AF["price"] * 100
 s = {
     "name": "The Property is Airport Flex Park, a multi-tenant flex industrial park.",
-    "addr": "The address is 6230 Runway Vista Drive, Las Vegas, NV 89119.",
-    "sf": "The buildings contain 24,000 rentable square feet in 12 units.",
+    "addr": f"The address is {AF['address']}, {AF['city']}, {AF['state']} {AF['zip']}.",
+    "sf": f"The buildings contain {AF['sf']:,} rentable square feet in {AF['unitCount']} units.",
     "yb": "The Property was built in 1998 and renovated in 2017.",
-    "price": "The Seller is asking $7,500,000 for the Property.",
-    "noi": "In-place net operating income is $486,000.",
-    "cap": "The asking price reflects a 6.48% cap rate on in-place income.",
-    "occ": "The Property is 91.7% leased to 11 tenants.",
+    "price": f"The Seller is asking ${AF['price']:,} for the Property.",
+    "noi": f"Underwritten year-one net operating income is ${AF['noiYear1Input']:,}.",
+    "cap": f"The asking price reflects a {_cap:.2f}% cap rate on that income.",
+    "occ": f"Tenants occupy {len(_occ)} of the {AF['unitCount']} units.",
 }
 build("airport-flex-om", "Airport Flex Park – Offering Memorandum", [
     ("Investment summary", [s["name"], s["addr"], s["sf"], s["yb"]]),
     ("Pricing", [s["price"], s["noi"], s["cap"]]),
     ("Occupancy", [s["occ"], "Tenants are local service, distribution and light industrial businesses."]),
 ], {
-    "doc_type": "om", "title": "Airport Flex Park offering memo", "summary": "Offering memo for Airport Flex Park, a 24,000 SF, 12-unit flex park in Las Vegas, asking $7,500,000 (6.48% cap on $486,000 in-place NOI), 91.7% leased.",
-    "fields": [F("property_name", "Airport Flex Park", s["name"]), F("address", "6230 Runway Vista Drive", s["addr"]), F("city", "Las Vegas", s["addr"]), F("state", "NV", s["addr"]),
-               F("zip", "89119", s["addr"]), F("square_feet", "24,000", s["sf"]), F("units", "12", s["sf"]), F("year_built", "1998", s["yb"]),
-               F("asking_price", "$7,500,000", s["price"]), F("in_place_noi", "$486,000", s["noi"]), F("cap_rate", "6.48%", s["cap"]), F("occupancy", "91.7%", s["occ"])],
+    "doc_type": "om", "title": "Airport Flex Park offering memo", "summary": f"Offering memo for Airport Flex Park, a {AF['sf']:,} SF, {AF['unitCount']}-unit flex park in {AF['city']}, asking ${AF['price']:,} ({_cap:.2f}% cap on ${AF['noiYear1Input']:,} of year-one NOI).",
+    "fields": [F("property_name", "Airport Flex Park", s["name"]), F("address", AF["address"], s["addr"]), F("city", AF["city"], s["addr"]), F("state", AF["state"], s["addr"]),
+               F("zip", AF["zip"], s["addr"]), F("square_feet", f"{AF['sf']:,}", s["sf"]), F("units", str(AF["unitCount"]), s["sf"]), F("year_built", "1998", s["yb"]),
+               F("asking_price", f"${AF['price']:,}", s["price"]), F("in_place_noi", f"${AF['noiYear1Input']:,}", s["noi"]), F("cap_rate", f"{_cap:.2f}%", s["cap"])],
     "critical_dates": [],
 })
 
-# ── Rent roll (4 units shown; one tenant change from the model) ─────────────
-rr = [
-    ("Unit 001: Ironwood Electrical Contractors, 2,000 SF, occupied, NNN, $17.93 per SF, lease from 2024-08-01 to 2026-07-30, 3% escalations, electrical contractor.",
-     {"name": "001", "tenant": "Ironwood Electrical Contractors", "sf": 2000, "status": "occupied", "lease_type": "NNN", "rent_psf": 17.93, "lease_start": "2024-08-01", "lease_end": "2026-07-30", "escalation_pct": 3, "business": "Electrical contractor"}),
-    ("Unit 002: Evergreen Food Distributors, 2,000 SF, occupied, NNN, $18.40 per SF, lease from 2025-02-01 to 2028-01-31, 3% escalations, food distribution.",
-     {"name": "002", "tenant": "Evergreen Food Distributors", "sf": 2000, "status": "occupied", "lease_type": "NNN", "rent_psf": 18.40, "lease_start": "2025-02-01", "lease_end": "2028-01-31", "escalation_pct": 3, "business": "Food distribution"}),
-    ("Unit 104: Desert Aero Parts LLC, 2,000 SF, occupied, MG, $15.50 per SF, lease from 2025-03-01 to 2028-02-29, $0.50 per SF annual increases, aircraft parts distribution.",
-     {"name": "Building B Suite 104", "tenant": "Desert Aero Parts LLC", "sf": 2000, "status": "occupied", "lease_type": "MG", "rent_psf": 15.50, "lease_start": "2025-03-01", "lease_end": "2028-02-29", "escalation_pct": 3.33, "business": "Aircraft parts distribution"}),
-    ("Unit 012: vacant, 2,000 SF.", {"name": "012", "tenant": "", "sf": 2000, "status": "vacant"}),
-]
-build("airport-flex-rent-roll", "Airport Flex Park – Rent Roll as of December 31, 2025", [
-    ("Summary", ["Rent roll as of December 31, 2025.", "Units shown: 4 of 12 (excerpt for testing)."]),
+# ── Rent roll (every unit, as in the app) ───────────────────────────────────
+rr = []
+for u in AF["units"]:
+    if u["status"] == "occupied":
+        rr.append((f"Unit {u['name']}: {u['tenant']}, {u['sf']:,} SF, occupied, {u['leaseType']}, ${u['rentPSF']:.2f} per SF, lease ends {u['leaseEnd']}, {u['escalationPct']:g}% escalations, {u['business'].lower()}.",
+                   {"name": u["name"], "tenant": u["tenant"], "sf": u["sf"], "status": "occupied", "lease_type": u["leaseType"], "rent_psf": u["rentPSF"], "lease_end": u["leaseEnd"], "escalation_pct": u["escalationPct"], "business": u["business"]}))
+    else:
+        rr.append((f"Unit {u['name']}: vacant, {u['sf']:,} SF.", {"name": u["name"], "tenant": "", "sf": u["sf"], "status": "vacant"}))
+_asof = long(AF["acquisitionDate"])
+build("airport-flex-rent-roll", f"Airport Flex Park – Rent Roll as of {_asof}", [
+    ("Summary", [f"Rent roll as of {_asof}.", f"Units shown: {len(rr)} of {AF['unitCount']}."]),
     ("Units", [x[0] for x in rr]),
 ], {
-    "doc_type": "rent_roll", "title": "Airport Flex Park rent roll (excerpt)", "summary": "Excerpt of the seller's rent roll: four units, including Desert Aero Parts in Building B Suite 104.",
-    "fields": [F("as_of", "December 31, 2025", "Rent roll as of December 31, 2025.")],
+    "doc_type": "rent_roll", "title": "Airport Flex Park rent roll", "summary": f"The rent roll at closing: all {AF['unitCount']} units, {len(_occ)} occupied.",
+    "fields": [F("as_of", _asof, f"Rent roll as of {_asof}.")],
     "units": [x[1] for x in rr], "critical_dates": [],
 })
 
 # ── T-12 ────────────────────────────────────────────────────────────────────
+_x = AF["expensesPSF"]
+_rent, _rec = 470000, 52000
+_oth = round(_x["otherIncome"] * AF["sf"])
+_rev = _rent + _oth + _rec
+_tax, _ins, _util, _rm, _jan = (round(_x[k] * AF["sf"]) for k in ("realEstateTax", "insurance", "utilities", "maintenance", "janitorial"))
+_mg = round(_rev * AF["managementFeePct"] / 100)
+_tot = _tax + _ins + _util + _rm + _jan + _mg
 t = {
     "per": "Operating statement for the twelve months ended December 31, 2025.",
-    "rent": "Base rent: $470,000.", "oth": "Other income: $6,000.", "rec": "Expense recoveries: $52,000.",
-    "tax": "Real estate taxes: $30,000.", "ins": "Insurance: $9,600.", "util": "Utilities: $12,000.", "rm": "Repairs and maintenance: $10,800.",
-    "jan": "Janitorial: $4,800.", "mgmt": "Management fee: $31,680.", "tot": "Total operating expenses: $98,880.", "noi": "Net operating income: $429,120.",
+    "rent": f"Base rent: ${_rent:,}.", "oth": f"Other income: ${_oth:,}.", "rec": f"Expense recoveries: ${_rec:,}.",
+    "tax": f"Real estate taxes: ${_tax:,}.", "ins": f"Insurance: ${_ins:,}.", "util": f"Utilities: ${_util:,}.", "rm": f"Repairs and maintenance: ${_rm:,}.",
+    "jan": f"Janitorial: ${_jan:,}.", "mgmt": f"Management fee: ${_mg:,}.", "tot": f"Total operating expenses: ${_tot:,}.", "noi": f"Net operating income: ${_rev - _tot:,}.",
 }
 build("airport-flex-t12", "Airport Flex Park – Trailing Twelve Months", [
     ("Period", [t["per"]]), ("Income", [t["rent"], t["oth"], t["rec"]]),
     ("Expenses", [t["tax"], t["ins"], t["util"], t["rm"], t["jan"], t["mgmt"], t["tot"]]), ("Result", [t["noi"]]),
 ], {
-    "doc_type": "t12", "title": "Airport Flex Park T-12 (2025)", "summary": "Seller's operating statement for 2025: $528,000 revenue, $98,880 expenses, $429,120 NOI.",
-    "fields": [F("period_end", "December 31, 2025", t["per"]), F("gross_rent", "$470,000", t["rent"]), F("other_income", "$6,000", t["oth"]), F("recoveries", "$52,000", t["rec"]),
-               F("real_estate_taxes", "$30,000", t["tax"]), F("insurance", "$9,600", t["ins"]), F("utilities", "$12,000", t["util"]), F("repairs_maintenance", "$10,800", t["rm"]),
-               F("janitorial", "$4,800", t["jan"]), F("management_fee", "$31,680", t["mgmt"]), F("total_expenses", "$98,880", t["tot"]), F("noi", "$429,120", t["noi"])],
+    "doc_type": "t12", "title": "Airport Flex Park T-12 (2025)", "summary": f"Seller's operating statement for 2025: ${_rev:,} revenue, ${_tot:,} expenses, ${_rev - _tot:,} NOI.",
+    "fields": [F("period_end", "December 31, 2025", t["per"]), F("gross_rent", f"${_rent:,}", t["rent"]), F("other_income", f"${_oth:,}", t["oth"]), F("recoveries", f"${_rec:,}", t["rec"]),
+               F("real_estate_taxes", f"${_tax:,}", t["tax"]), F("insurance", f"${_ins:,}", t["ins"]), F("utilities", f"${_util:,}", t["util"]), F("repairs_maintenance", f"${_rm:,}", t["rm"]),
+               F("janitorial", f"${_jan:,}", t["jan"]), F("management_fee", f"${_mg:,}", t["mgmt"]), F("total_expenses", f"${_tot:,}", t["tot"]), F("noi", f"${_rev - _tot:,}", t["noi"])],
     "critical_dates": [],
 })
 
 # ── LOI ─────────────────────────────────────────────────────────────────────
 l = {
     "date": "This letter of intent is dated October 20, 2025.",
-    "parties": "The Buyer is Model Fund I – Airport Flex LLC and the Seller is Runway Vista Holdings LP.",
-    "price": "The purchase price is $7,350,000.", "dep": "Buyer will deposit $150,000 in escrow within three business days of the PSA.",
+    "parties": "The Buyer is Model Fund I — Runway Vista LLC and the Seller is Runway Vista Holdings LP.",
+    "price": f"The purchase price is ${AF['price']:,}.", "dep": "Buyer will deposit $150,000 in escrow within three business days of the PSA.",
     "dd": "Buyer will have a due diligence period of 45 days.", "close": "Closing will occur 30 days after the end of due diligence.",
     "fin": "There is no financing contingency.", "exp": "This letter expires if not countersigned by October 27, 2025.",
 }
 build("airport-flex-loi", "Letter of Intent – Airport Flex Park", [
     ("Terms", [l["date"], l["parties"], l["price"], l["dep"], l["dd"], l["close"], l["fin"]]), ("Expiration", [l["exp"]]),
 ], {
-    "doc_type": "loi", "title": "Airport Flex Park LOI", "summary": "Non-binding LOI at $7,350,000 with a $150,000 deposit, 45 days of due diligence and closing 30 days later, no financing contingency.",
-    "fields": [F("loi_date", "October 20, 2025", l["date"]), F("buyer", "Model Fund I – Airport Flex LLC", l["parties"]), F("seller", "Runway Vista Holdings LP", l["parties"]),
-               F("purchase_price", "$7,350,000", l["price"]), F("deposit", "$150,000", l["dep"]), F("dd_days", "45 days", l["dd"]), F("closing_days", "30 days", l["close"]),
+    "doc_type": "loi", "title": "Airport Flex Park LOI", "summary": f"Non-binding LOI at ${AF['price']:,} with a $150,000 deposit, 45 days of due diligence and closing 30 days later, no financing contingency.",
+    "fields": [F("loi_date", "October 20, 2025", l["date"]), F("buyer", "Model Fund I — Runway Vista LLC", l["parties"]), F("seller", "Runway Vista Holdings LP", l["parties"]),
+               F("purchase_price", f"${AF['price']:,}", l["price"]), F("deposit", "$150,000", l["dep"]), F("dd_days", "45 days", l["dd"]), F("closing_days", "30 days", l["close"]),
                F("financing_contingency", "None", l["fin"])],
     "critical_dates": [D("2025-10-27", "LOI countersignature deadline", l["exp"], "Countersign or the LOI lapses")],
 })
@@ -150,27 +199,28 @@ build("airport-flex-psa", "Purchase and Sale Agreement – Airport Flex Park", [
 })
 
 # ── IC memo ─────────────────────────────────────────────────────────────────
+_m = AF["model"]
 m = {
     "appr": "The Investment Committee approved the acquisition on December 18, 2025.",
     "who": "Approved by the Investment Committee: A. Sample, B. Example and C. Placeholder.",
-    "price": "Approved purchase price: $7,200,000.", "cost": "Total cost including closing costs and capex: $7,788,000.",
-    "loan": "Senior loan: $4,980,000.", "eq": "Equity: $2,900,000.", "noi": "Year-1 NOI: $462,000.",
-    "gic": "Going-in cap rate: 6.42%.", "xc": "Exit cap rate: 6.75%.", "irr": "Projected IRR: 29.5%.", "em": "Projected equity multiple: 2.80x.",
-    "coc": "Year-1 cash-on-cash: 4.0%.", "hold": "Hold period: 4 years.", "capex": "Capex budget: $300,000.",
+    "price": f"Approved purchase price: ${AF['price']:,}.", "cost": f"Total cost including closing costs and capex: ${_m['totalCost']:,}.",
+    "loan": f"Senior loan: ${AF['loan']['amount']:,}.", "eq": f"Equity: ${_m['equity']:,}.", "noi": f"Year-1 NOI: ${_m['noi1']:,}.",
+    "gic": f"Going-in cap rate: {_m['goingInCapPct']:.2f}%.", "xc": f"Exit cap rate: {AF['exitCapPct']:.2f}%.", "irr": f"Projected IRR: {_m['irrPct']:.1f}%.", "em": f"Projected equity multiple: {_m['multiple']:.2f}x.",
+    "hold": f"Hold period: {AF['holdYears']} years.", "capex": f"Capex budget: ${AF['capex']:,}.",
     "c1": "Condition 1: Phase I environmental report with no recognized environmental conditions by January 15, 2026.",
     "c2": "Condition 2: Lender term sheet at 65% LTV or better by January 10, 2026.",
     "c3": "Condition 3: Tenant estoppels from at least 75% of leased square feet by January 20, 2026.",
     "c4": "Condition 4: Asset management plan presented to the Committee by April 30, 2026.",
 }
 build("airport-flex-ic-memo", "Final Investment Committee Memo – Airport Flex Park", [
-    ("Approval", [m["appr"], m["who"]]), ("Approved terms", [m["price"], m["cost"], m["loan"], m["eq"], m["noi"], m["gic"], m["xc"], m["irr"], m["em"], m["coc"], m["hold"], m["capex"]]),
+    ("Approval", [m["appr"], m["who"]]), ("Approved terms", [m["price"], m["cost"], m["loan"], m["eq"], m["noi"], m["gic"], m["xc"], m["irr"], m["em"], m["hold"], m["capex"]]),
     ("Conditions of approval", [m["c1"], m["c2"], m["c3"], m["c4"]]),
 ], {
-    "doc_type": "ic_memo", "title": "Airport Flex Park final IC memo", "summary": "IC approved Airport Flex Park on December 18, 2025 at $7,200,000 (29.5% IRR, 2.80x) subject to four conditions.",
-    "fields": [F("approval_date", "December 18, 2025", m["appr"]), F("approvers", "A. Sample, B. Example and C. Placeholder", m["who"]), F("price", "$7,200,000", m["price"]),
-               F("total_cost", "$7,788,000", m["cost"]), F("loan", "$4,980,000", m["loan"]), F("equity", "$2,900,000", m["eq"]), F("noi1", "$462,000", m["noi"]),
-               F("going_in_cap", "6.42%", m["gic"]), F("exit_cap", "6.75%", m["xc"]), F("irr", "29.5%", m["irr"]), F("multiple", "2.80x", m["em"]), F("coc1", "4.0%", m["coc"]),
-               F("hold_years", "4 years", m["hold"]), F("capex", "$300,000", m["capex"])],
+    "doc_type": "ic_memo", "title": "Airport Flex Park final IC memo", "summary": f"IC approved Airport Flex Park on December 18, 2025 at ${AF['price']:,} ({_m['irrPct']:.1f}% IRR, {_m['multiple']:.2f}x) subject to four conditions.",
+    "fields": [F("approval_date", "December 18, 2025", m["appr"]), F("approvers", "A. Sample, B. Example and C. Placeholder", m["who"]), F("price", f"${AF['price']:,}", m["price"]),
+               F("total_cost", f"${_m['totalCost']:,}", m["cost"]), F("loan", f"${AF['loan']['amount']:,}", m["loan"]), F("equity", f"${_m['equity']:,}", m["eq"]), F("noi1", f"${_m['noi1']:,}", m["noi"]),
+               F("going_in_cap", f"{_m['goingInCapPct']:.2f}%", m["gic"]), F("exit_cap", f"{AF['exitCapPct']:.2f}%", m["xc"]), F("irr", f"{_m['irrPct']:.1f}%", m["irr"]), F("multiple", f"{_m['multiple']:.2f}x", m["em"]),
+               F("hold_years", f"{AF['holdYears']} years", m["hold"]), F("capex", f"${AF['capex']:,}", m["capex"])],
     "conditions": [{"text": "Phase I environmental report with no recognized environmental conditions", "deadline": "2026-01-15"},
                    {"text": "Lender term sheet at 65% LTV or better", "deadline": "2026-01-10"},
                    {"text": "Tenant estoppels from at least 75% of leased square feet", "deadline": "2026-01-20"},
@@ -179,21 +229,24 @@ build("airport-flex-ic-memo", "Final Investment Committee Memo – Airport Flex 
 })
 
 # ── Closing statement (acquisition) ─────────────────────────────────────────
+_cred, _pro, _dep = 45000, 12350, 26400
+_cash = AF["price"] + AF["closingCosts"] - AF["loan"]["amount"] - _cred - _pro - _dep
+_cd = long(AF["acquisitionDate"])
 c = {
-    "date": "Settlement date: January 30, 2026.", "price": "Contract sales price: $7,200,000.", "cred": "Seller credit for roof repairs: $45,000.",
-    "pro": "Rent and tax prorations credited to Buyer: $12,350.", "dep": "Tenant security deposits transferred to Buyer: $26,400.",
-    "cc": "Buyer's closing costs (title, escrow, legal, lender fees): $288,000.", "loan": "New loan proceeds: $4,980,000.", "eq": "Cash from Buyer at closing: $2,424,250.",
+    "date": f"Settlement date: {_cd}.", "price": f"Contract sales price: ${AF['price']:,}.", "cred": f"Seller credit for roof repairs: ${_cred:,}.",
+    "pro": f"Rent and tax prorations credited to Buyer: ${_pro:,}.", "dep": f"Tenant security deposits transferred to Buyer: ${_dep:,}.",
+    "cc": f"Buyer's closing costs (title, escrow, legal, lender fees): ${AF['closingCosts']:,}.", "loan": f"New loan proceeds: ${AF['loan']['amount']:,}.", "eq": f"Cash from Buyer at closing: ${_cash:,}.",
 }
 build("airport-flex-closing-acq", "Settlement Statement – Airport Flex Park (Acquisition)", [("Settlement", list(c.values()))], {
-    "doc_type": "closing_acq", "title": "Airport Flex Park acquisition settlement statement", "summary": "Closed January 30, 2026 at $7,200,000; $288,000 buyer closing costs; $4,980,000 loan; $2,424,250 cash from buyer.",
-    "fields": [F("closing_date", "January 30, 2026", c["date"]), F("contract_price", "$7,200,000", c["price"]), F("seller_credits", "$45,000", c["cred"]), F("prorations", "$12,350", c["pro"]),
-               F("deposits_transferred", "$26,400", c["dep"]), F("closing_costs", "$288,000", c["cc"]), F("loan_proceeds", "$4,980,000", c["loan"]), F("equity_funded", "$2,424,250", c["eq"])],
+    "doc_type": "closing_acq", "title": "Airport Flex Park acquisition settlement statement", "summary": f"Closed {_cd} at ${AF['price']:,}; ${AF['closingCosts']:,} buyer closing costs; ${AF['loan']['amount']:,} loan; ${_cash:,} cash from buyer.",
+    "fields": [F("closing_date", _cd, c["date"]), F("contract_price", f"${AF['price']:,}", c["price"]), F("seller_credits", f"${_cred:,}", c["cred"]), F("prorations", f"${_pro:,}", c["pro"]),
+               F("deposits_transferred", f"${_dep:,}", c["dep"]), F("closing_costs", f"${AF['closingCosts']:,}", c["cc"]), F("loan_proceeds", f"${AF['loan']['amount']:,}", c["loan"]), F("equity_funded", f"${_cash:,}", c["eq"])],
     "critical_dates": [],
 })
 
 # ── Insurance certificates ──────────────────────────────────────────────────
 o = {
-    "ins": "Named insured: Model Fund I – Airport Flex LLC.", "hold": "Certificate holder: Fictional Bank, N.A., its successors and assigns, as mortgagee.",
+    "ins": "Named insured: Model Fund I — Runway Vista LLC.", "hold": f"Certificate holder: {AF['loan']['lender']}, its successors and assigns, as mortgagee.",
     "co": "Insurer: Fictional Mutual Insurance Company, rated A (Excellent).", "date": "Certificate date: January 28, 2026.",
     "prop": "Property (all risk), policy PR-55120: limit $7,800,000, deductible $25,000, effective January 30, 2026, expires January 30, 2027.",
     "gl": "General liability, policy GL-55121: $1,000,000 each occurrence, $2,000,000 aggregate, effective January 15, 2026, expires January 15, 2027.",
@@ -201,7 +254,7 @@ o = {
 }
 build("airport-flex-insurance-owner", "Certificate of Liability and Property Insurance (Owner)", [("Certificate", list(o.values()))], {
     "doc_type": "insurance_cert", "title": "Owner policies 2026", "summary": "Owner's property, general liability and umbrella policies for Airport Flex Park.",
-    "fields": [F("insured", "Model Fund I – Airport Flex LLC", o["ins"]), F("holder", "Fictional Bank, N.A., as mortgagee", o["hold"]), F("insurer", "Fictional Mutual Insurance Company", o["co"]),
+    "fields": [F("insured", "Model Fund I — Runway Vista LLC", o["ins"]), F("holder", f"{AF['loan']['lender']}, as mortgagee", o["hold"]), F("insurer", "Fictional Mutual Insurance Company", o["co"]),
                F("insurer_rating", "A (Excellent)", o["co"]), F("cert_date", "January 28, 2026", o["date"])],
     "policies": [
         {"coverage": "property", "policy_no": "PR-55120", "limit": 7800000, "deductible": 25000, "effective": "2026-01-30", "expiry": "2027-01-30", "evidence": [{"quote": o["prop"]}]},
@@ -210,38 +263,28 @@ build("airport-flex-insurance-owner", "Certificate of Liability and Property Ins
     ],
     "critical_dates": [],
 })
+_tl = LEASES["Airport Flex Park"]
+_tt, _tf = _tl["tenant"], _tl["fund"]
 tn = {
-    "ins": "Named insured: Desert Aero Parts LLC.", "hold": "Certificate holder: Model Fund I – Airport Flex LLC, as landlord and additional insured.",
-    "co": "Insurer: Fictional Casualty Group, rated A- (Excellent).", "date": "Certificate date: March 3, 2026.",
-    "gl": "General liability, policy CG-88410: $1,000,000 each occurrence, $2,000,000 aggregate, landlord is additional insured, waiver of subrogation applies, expires March 1, 2027.",
-    "umb": "Umbrella, policy CU-88411: limit $1,000,000, expires March 1, 2027.",
-    "auto": "Business auto, policy CA-88412: combined single limit $1,000,000, expires March 1, 2027.",
-    "wc": "Workers' compensation, policy WC-88413: statutory limits, expires March 1, 2027.",
+    "ins": f"Named insured: {_tt}.", "hold": f"Certificate holder: {_tf['landlord']}, as landlord and additional insured.",
+    "co": "Insurer: Fictional Casualty Group, rated A- (Excellent).", "date": "Certificate date: May 4, 2026.",
+    "gl": "General liability, policy CG-88410: $1,000,000 each occurrence, $2,000,000 aggregate, landlord is additional insured, waiver of subrogation applies, expires May 1, 2027.",
+    "umb": f"Umbrella, policy CU-88411: limit {_tf['umbrella']}, expires May 1, 2027.",
+    "auto": "Business auto, policy CA-88412: combined single limit $1,000,000, expires May 1, 2027.",
+    "wc": "Workers' compensation, policy WC-88413: statutory limits, expires May 1, 2027.",
 }
-build("airport-flex-insurance-desert-aero", "Certificate of Liability Insurance (Tenant: Desert Aero Parts)", [("Certificate", list(tn.values()))], {
-    "doc_type": "insurance_cert", "title": "Desert Aero Parts 2026–27", "summary": "Tenant certificate for Desert Aero Parts; the umbrella ($1,000,000) is below the lease's $2,000,000.",
-    "fields": [F("insured", "Desert Aero Parts LLC", tn["ins"]), F("holder", "Model Fund I – Airport Flex LLC, as landlord and additional insured", tn["hold"]),
-               F("insurer", "Fictional Casualty Group", tn["co"]), F("insurer_rating", "A- (Excellent)", tn["co"]), F("cert_date", "March 3, 2026", tn["date"])],
+assert _tf["gl_limit"] == "$1,000,000 per occurrence and $2,000,000 in the aggregate" and _tf["auto_limit"].startswith("$1,000,000")
+build(f"airport-flex-insurance-{slug(_tt)}", f"Certificate of Liability Insurance (Tenant: {_tt})", [("Certificate", list(tn.values()))], {
+    "doc_type": "insurance_cert", "title": f"{_tt} 2026–27", "summary": f"Tenant certificate for {_tt}: general liability, umbrella, auto and workers' compensation at the limits its lease requires, to May 1, 2027.",
+    "fields": [F("insured", _tt, tn["ins"]), F("holder", f"{_tf['landlord']}, as landlord and additional insured", tn["hold"]),
+               F("insurer", "Fictional Casualty Group", tn["co"]), F("insurer_rating", "A- (Excellent)", tn["co"]), F("cert_date", "May 4, 2026", tn["date"])],
     "policies": [
-        {"coverage": "cgl", "policy_no": "CG-88410", "per_occurrence": 1000000, "aggregate": 2000000, "expiry": "2027-03-01", "additional_insured": True, "waiver_of_subrogation": True, "evidence": [{"quote": tn["gl"]}]},
-        {"coverage": "umbrella", "policy_no": "CU-88411", "limit": 1000000, "expiry": "2027-03-01", "evidence": [{"quote": tn["umb"]}]},
-        {"coverage": "auto", "policy_no": "CA-88412", "limit": 1000000, "expiry": "2027-03-01", "evidence": [{"quote": tn["auto"]}]},
-        {"coverage": "workers_comp", "policy_no": "WC-88413", "limit": "statutory", "expiry": "2027-03-01", "evidence": [{"quote": tn["wc"]}]},
+        {"coverage": "cgl", "policy_no": "CG-88410", "per_occurrence": 1000000, "aggregate": 2000000, "expiry": "2027-05-01", "additional_insured": True, "waiver_of_subrogation": True, "evidence": [{"quote": tn["gl"]}]},
+        {"coverage": "umbrella", "policy_no": "CU-88411", "limit": int(_tf["umbrella"].replace("$", "").replace(",", "")), "expiry": "2027-05-01", "evidence": [{"quote": tn["umb"]}]},
+        {"coverage": "auto", "policy_no": "CA-88412", "limit": 1000000, "expiry": "2027-05-01", "evidence": [{"quote": tn["auto"]}]},
+        {"coverage": "workers_comp", "policy_no": "WC-88413", "limit": "statutory", "expiry": "2027-05-01", "evidence": [{"quote": tn["wc"]}]},
     ],
-    "critical_dates": [],
-})
-
-# ── Route 9 Small Bay: disposition (test sale) ──────────────────────────────
-dsp = {
-    "date": "Settlement date: October 30, 2026.", "price": "Contract sales price: $14,850,000.", "cred": "Credits to Buyer for prorations and deposits: $61,200.",
-    "sc": "Seller's selling costs (commission, transfer tax, legal): $386,100.", "pay": "Payoff of existing loan including prepayment: $9,212,500.",
-    "net": "Net proceeds to Seller: $5,190,200.",
-}
-build("route9-closing-disp", "Settlement Statement – Route 9 Small Bay (Sale)", [("Settlement", list(dsp.values()))], {
-    "doc_type": "closing_disp", "title": "Route 9 Small Bay sale (test)", "summary": "Fictional test sale of Route 9 Small Bay on October 30, 2026 for $14,850,000.",
-    "fields": [F("closing_date", "October 30, 2026", dsp["date"]), F("sale_price", "$14,850,000", dsp["price"]), F("credits", "$61,200", dsp["cred"]),
-               F("selling_costs", "$386,100", dsp["sc"]), F("loan_payoff", "$9,212,500", dsp["pay"]), F("net_proceeds", "$5,190,200", dsp["net"])],
-    "critical_dates": [],
+    "critical_dates": [], "app": {"lease_tenant": _tt},
 })
 
 # ── Model Fund I LPA and PPM ────────────────────────────────────────────────
@@ -298,53 +341,67 @@ build("model-fund-i-ppm", "Private Placement Memorandum – Model Fund I, L.P. (
     "critical_dates": [],
 })
 # ── Loan agreements and rate cap confirmations (phase F) ────────────────────
-def loan_doc(name, prop, amount, spread, ext_fee, date_long, date_iso, maturity_long, maturity_iso, notice_iso, notice_calc):
+CAP_MAX_STRIKE = 4.00  # the lender's maximum strike on SOFR; both executed caps are under it
+
+
+def loan_doc(name, A):
+    ln = A["loan"]
+    prop, amount, spread, ext_fee, lender = A["name"], ln["amount"], ln["spreadPct"], ln["extensionFee"], ln["lender"]
+    date_iso = A["acquisitionDate"]
+    maturity_iso = add_years(date_iso, ln["termYears"])
+    notice_iso = add_days(maturity_iso, -ln["extensionNoticeDays"])
+    date_long, maturity_long = long(date_iso), long(maturity_iso)
+    yrs = {1: "one year", 2: "two years", 3: "three years", 4: "four years", 5: "five years"}[ln["termYears"]]
+    cnt = {1: "one extension", 2: "two successive extensions"}[ln["extensionCount"]]
     q = {
-        "parties": f"This Loan Agreement is made as of {date_long} between Fictional Bank, N.A. (Lender) and the Borrower, the owner of {prop}.",
+        "parties": f"This Loan Agreement is made as of {date_long} between {lender} (Lender) and the Borrower, the owner of {prop}.",
         "amt": f"The Loan is in the principal amount of ${amount:,}.",
         "rate": f"Interest accrues at Term SOFR plus {spread:.2f}% per year, with Term SOFR not less than 0.50%.",
-        "mat": f"The Initial Maturity Date is {maturity_long}, three years after closing.",
-        "ext": f"Borrower may extend the Maturity Date by two successive extensions of 1 year each, each on payment of an extension fee of ${ext_fee:,}.",
-        "extc": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
-        "io": "Payments are interest only for 4 years, then principal is amortized on a 25-year schedule.",
-        "cap": "Borrower shall maintain an interest rate cap with a strike not greater than 4.00% on Term SOFR, a notional amount not less than the outstanding principal, and a term of at least 1 year.",
+        "mat": f"The Initial Maturity Date is {maturity_long}, {yrs} after closing.",
+        "ext": f"Borrower may extend the Maturity Date by {cnt} of {ln['extensionTermYears']} year each, each on payment of an extension fee of ${ext_fee:,}.",
+        "extc": f"Each extension requires written notice at least {ln['extensionNoticeDays']} days before the then Maturity Date, a debt service coverage ratio of at least {ln['dscrMin']:.2f}x and a replacement rate cap.",
+        "io": f"Payments are interest only for {ln['ioYears']} years, then principal is amortized on a {ln['amortizationYears']}-year schedule.",
+        "cap": f"Borrower shall maintain an interest rate cap with a strike not greater than {CAP_MAX_STRIKE:.2f}% on Term SOFR, a notional amount not less than the outstanding principal, and a term of at least 1 year.",
         "capr": "The cap provider must be rated A or better by S&P, and Borrower shall deliver a replacement cap at least 30 days before the existing cap expires.",
-        "dscr": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
-        "dy": "Borrower shall maintain a debt yield of not less than 8.50%.",
-        "ltv": "The loan-to-value ratio shall not exceed 70%.",
+        "dscr": f"Borrower shall maintain a debt service coverage ratio of not less than {ln['dscrMin']:.2f}x, tested quarterly on the trailing three months annualized.",
         "cure": "Borrower may cure a covenant failure within 10 business days by a principal paydown or a cash collateral deposit.",
         "prep": "The Loan may be prepaid in whole after 12 months; before then a 1% exit fee applies.",
-        "res": "Borrower shall fund monthly tax and insurance escrows and a $50,000 tenant improvement and leasing reserve at closing.",
+        "res": "Borrower shall fund monthly tax and insurance escrows.",
         "rep": "Borrower shall deliver quarterly operating statements within 45 days after each quarter and annual statements within 120 days after each year.",
     }
     build(name, f"Loan Agreement – {prop} (excerpt)", [
         ("1. The loan", [q["parties"], q["amt"], q["rate"]]), ("2. Term", [q["mat"], q["ext"], q["extc"], q["io"]]), ("3. Rate cap", [q["cap"], q["capr"]]),
-        ("4. Financial covenants", [q["dscr"], q["dy"], q["ltv"], q["cure"]]), ("5. Other", [q["prep"], q["res"], q["rep"]]),
+        ("4. Financial covenants", [q["dscr"], q["cure"]]), ("5. Other", [q["prep"], q["res"], q["rep"]]),
     ], {
-        "doc_type": "loan", "title": f"{prop} loan agreement", "summary": f"${amount:,} floating-rate loan from Fictional Bank at Term SOFR + {spread:.2f}% (0.50% floor), maturing {maturity_long} with two 1-year extensions; rate cap, DSCR 1.30x, debt yield 8.50% and 70% LTV covenants.",
-        "fields": [F("lender", "Fictional Bank, N.A.", q["parties"], "1"), F("loan_date", date_long, q["parties"], "1"), F("loan_amount", f"${amount:,}", q["amt"], "1"),
+        "doc_type": "loan", "title": f"{prop} loan agreement", "summary": f"${amount:,} floating-rate loan from {lender} at Term SOFR + {spread:.2f}% (0.50% floor), maturing {maturity_long} with {ln['extensionCount']} {ln['extensionTermYears']}-year extensions; rate cap and a {ln['dscrMin']:.2f}x DSCR covenant.",
+        "fields": [F("lender", lender, q["parties"], "1"), F("loan_date", date_long, q["parties"], "1"), F("loan_amount", f"${amount:,}", q["amt"], "1"),
                    F("index", "Term SOFR", q["rate"], "1"), F("spread_pct", f"{spread:.2f}%", q["rate"], "1"), F("floor_pct", "0.50%", q["rate"], "1"),
-                   F("maturity_date", maturity_long, q["mat"], "2"), F("initial_term_years", "3 years", q["mat"], "2"), F("extension_count", "2", q["ext"], "2"),
-                   F("extension_term_years", "1 year", q["ext"], "2"), F("extension_fee", f"${ext_fee:,}", q["ext"], "2"),
-                   F("extension_conditions", "Notice at least 60 days before maturity, DSCR of at least 1.30x and a replacement rate cap", q["extc"], "2"),
-                   F("io_years", "4 years", q["io"], "2"), F("amortization_years", "25 years", q["io"], "2"),
-                   F("cap_strike_pct", "4.00%", q["cap"], "3"), F("cap_term", "At least 1 year", q["cap"], "3"), F("cap_min_rating", "A", q["capr"], "3"),
-                   F("cap_replacement_days", "30 days", q["capr"], "3"), F("dscr_covenant", "1.30x", q["dscr"], "4"), F("debt_yield_covenant", "8.50%", q["dy"], "4"),
-                   F("ltv_covenant", "70%", q["ltv"], "4"), F("covenant_testing", "Quarterly on the trailing three months annualized", q["dscr"], "4"),
+                   F("maturity_date", maturity_long, q["mat"], "2"), F("initial_term_years", f"{ln['termYears']} years", q["mat"], "2"), F("extension_count", str(ln["extensionCount"]), q["ext"], "2"),
+                   F("extension_term_years", f"{ln['extensionTermYears']} year", q["ext"], "2"), F("extension_fee", f"${ext_fee:,}", q["ext"], "2"),
+                   F("extension_conditions", f"Notice at least {ln['extensionNoticeDays']} days before maturity, DSCR of at least {ln['dscrMin']:.2f}x and a replacement rate cap", q["extc"], "2"),
+                   F("io_years", f"{ln['ioYears']} years", q["io"], "2"), F("amortization_years", f"{ln['amortizationYears']} years", q["io"], "2"),
+                   F("cap_strike_pct", f"{CAP_MAX_STRIKE:.2f}%", q["cap"], "3"), F("cap_term", "At least 1 year", q["cap"], "3"), F("cap_min_rating", "A", q["capr"], "3"),
+                   F("cap_replacement_days", "30 days", q["capr"], "3"), F("dscr_covenant", f"{ln['dscrMin']:.2f}x", q["dscr"], "4"),
+                   F("covenant_testing", "Quarterly on the trailing three months annualized", q["dscr"], "4"),
                    F("cure", "Within 10 business days by a principal paydown or a cash collateral deposit", q["cure"], "4"),
                    F("prepayment", "In whole after 12 months; 1% exit fee before then", q["prep"], "5"),
-                   F("reserves", "Monthly tax and insurance escrows; $50,000 TI and leasing reserve at closing", q["res"], "5"),
+                   F("reserves", "Monthly tax and insurance escrows", q["res"], "5"),
                    F("reporting", "Quarterly within 45 days; annual within 120 days", q["rep"], "5")],
         "critical_dates": [D(maturity_iso, "Initial maturity", q["mat"], "Repay or extend", "2"),
-                           {"date": notice_iso, "kind": "deadline", "label": "First extension notice deadline", "action": "Give written notice to extend", "clause": "2", "status": "calculated", "calculation": notice_calc, "evidence": [{"quote": q["extc"], "page": 1}]}],
+                           {"date": notice_iso, "kind": "deadline", "label": "First extension notice deadline", "action": "Give written notice to extend", "clause": "2", "status": "calculated",
+                            "calculation": f"{maturity_long} − {ln['extensionNoticeDays']} days = {long(notice_iso)}", "evidence": [{"quote": q["extc"], "page": 1}]}],
     })
 
 
-loan_doc("airport-flex-loan", "Airport Flex Park", 4980000, 2.00, 62000, "January 30, 2026", "2026-01-30", "January 30, 2029", "2029-01-30", "2028-12-01", "January 30, 2029 − 60 days = December 1, 2028")
-loan_doc("route9-loan", "Route 9 Small Bay", 9125000, 1.75, 114000, "March 16, 2026", "2026-03-16", "March 16, 2029", "2029-03-16", "2029-01-15", "March 16, 2029 − 60 days = January 15, 2029")
+loan_doc("airport-flex-loan", AF)
+loan_doc("route9-loan", R9)
 
 
-def cap_doc(name, prop, cp, rating, trade_long, eff_long, term_long, notional, strike, premium, ref):
+def cap_doc(name, A, rating, ref):
+    ln = A["loan"]
+    prop, cp, notional, strike, premium = A["name"], ln["capProvider"], ln["amount"], ln["capStrikePct"], ln["capPremium"]
+    eff_iso = A["acquisitionDate"]
+    trade_long, eff_long, term_long = long(add_days(eff_iso, -4)), long(eff_iso), long(add_years(eff_iso, ln["capTermYears"]))
     q = {
         "cp": f"This Confirmation sets out the terms of the interest rate cap entered into between {cp} (Party A) and the owner of {prop} (Party B), reference {ref}.",
         "rt": f"Party A is rated {rating} by S&P.",
@@ -352,7 +409,7 @@ def cap_doc(name, prop, cp, rating, trade_long, eff_long, term_long, notional, s
         "notional": f"Notional Amount: ${notional:,}.", "index": "Floating Rate Option: USD Term SOFR, 1 month.",
         "strike": f"Cap Rate: {strike:.2f}%.", "prem": f"Fixed Amount (premium): ${premium:,}, payable by Party B on the Effective Date.",
         "dc": "Floating Rate Day Count Fraction: Actual/360.", "agent": f"Calculation Agent: {cp}.",
-        "assign": "Party B has collaterally assigned its rights under this Transaction to Fictional Bank, N.A., as Lender.",
+        "assign": f"Party B has collaterally assigned its rights under this Transaction to {ln['lender']}, as Lender.",
     }
     build(name, f"Interest Rate Cap Confirmation – {prop}", [("General terms", [q["cp"], q["rt"], q["trade"], q["eff"], q["term"], q["notional"]]),
                                                             ("Floating amounts", [q["index"], q["strike"], q["dc"]]), ("Premium and other", [q["prem"], q["agent"], q["assign"]])], {
@@ -360,13 +417,13 @@ def cap_doc(name, prop, cp, rating, trade_long, eff_long, term_long, notional, s
         "fields": [F("counterparty", cp, q["cp"]), F("counterparty_rating", rating, q["rt"]), F("trade_date", trade_long, q["trade"]), F("effective_date", eff_long, q["eff"]),
                    F("termination_date", term_long, q["term"]), F("notional", f"${notional:,}", q["notional"]), F("index", "1-month Term SOFR", q["index"]),
                    F("strike_pct", f"{strike:.2f}%", q["strike"]), F("premium", f"${premium:,}", q["prem"]), {**F("payment_date", eff_long, q["prem"]), "evidence": [{"quote": q["prem"], "page": 1}, {"quote": q["eff"], "page": 1}]},
-                   F("day_count", "Actual/360", q["dc"]), F("calculation_agent", cp, q["agent"]), F("assigned_to", "Fictional Bank, N.A.", q["assign"])],
+                   F("day_count", "Actual/360", q["dc"]), F("calculation_agent", cp, q["agent"]), F("assigned_to", ln["lender"], q["assign"])],
         "critical_dates": [],
     })
 
 
-cap_doc("airport-flex-cap-2026", "Airport Flex Park", "Fictional Capital Markets LLC", "A+", "January 26, 2026", "January 30, 2026", "January 30, 2027", 4980000, 3.91, 27858, "FCM-26-0131")
-cap_doc("route9-cap-2026", "Route 9 Small Bay", "Example Derivatives Corp", "BBB+", "March 12, 2026", "March 16, 2026", "March 16, 2027", 9000000, 3.91, 51045, "EDC-26-0316")
+cap_doc("airport-flex-cap-2026", AF, "A+", "ADB-26-0130")
+cap_doc("route9-cap-2026", R9, "A+", "ADB-26-0316")
 print("phase F docs ok")
 # ── Appraisals (phase G) ────────────────────────────────────────────────────
 def appraisal_doc(name, prop, firm, eff_long, rep_long, value, cap, noi, vi, vs, vc):
@@ -390,49 +447,71 @@ def appraisal_doc(name, prop, firm, eff_long, rep_long, value, cap, noi, vi, vs,
     })
 
 
-appraisal_doc("airport-flex-appraisal-2026q3", "Airport Flex Park", "Fictional Valuation Advisors, MAI", "September 30, 2026", "October 20, 2026", 7650000, 6.25, 478000, 7650000, 7700000, 6900000)
-appraisal_doc("route9-appraisal-2026q2", "Route 9 Small Bay", "Example Appraisal Group, MAI", "June 30, 2026", "July 22, 2026", 12800000, 6.00, 768000, 12800000, 12900000, 11800000)
+def appraisal_from_mark(name, A, firm, quarter, rep_long):
+    mk = A["marks"][quarter]
+    v, cap = mk["value"], mk["capRate"]
+    appraisal_doc(name, A["name"], firm, long(quarter), rep_long, v, cap, round(v * cap / 100), v, round(v * 1.01 / 10000) * 10000, round(v * 0.9 / 10000) * 10000)
+
+
+appraisal_from_mark("airport-flex-appraisal-2026q3", AF, "Fictional Valuation Advisors, MAI", "2026-09-30", "October 20, 2026")
+appraisal_from_mark("route9-appraisal-2026q3", R9, "Example Appraisal Group, MAI", "2026-09-30", "October 22, 2026")
 
 # ── Estoppel, CAM reconciliation and billing (phase H) ──────────────────────
+_est_iso = "2026-11-16"
+_row = next(r for r in _tf["schedule"] if r["start"] <= _est_iso <= r["end"])
 e = {
-    "who": "The undersigned, Desert Aero Parts LLC (Tenant), certifies to Model Fund I and its lender as of November 16, 2026 as follows.",
-    "prem": "Tenant leases Building B, Suite 104 at Airport Flex Park containing 2,000 rentable square feet.",
-    "lease": "The Lease is dated January 1, 2025 and has not been amended; there are no amendments.",
-    "com": "The term commenced on March 1, 2025.", "exp": "The term expires on February 28, 2028.",
-    "rent": "Current monthly base rent is $2,583.33.", "paid": "Rent has been paid through November 30, 2026.",
-    "dep": "Tenant has deposited a security deposit of $2,500.00 with Landlord.",
-    "ren": "Tenant has one (1) option to extend the term for three (3) years.",
+    "who": f"The undersigned, {_tt} (Tenant), certifies to {_tf['landlord']} and its lender as of {long(_est_iso)} as follows.",
+    "prem": f"Tenant leases {_tl['suite']} at Airport Flex Park containing {_tl['rsf']:,} rentable square feet.",
+    "lease": f"The Lease is dated {long(_tf['lease_date'])} and has not been amended; there are no amendments.",
+    "com": f"The term commenced on {long(_tl['commencement'])}.", "exp": f"The term expires on {long(_tl['expiration'])}.",
+    "rent": f"Current monthly base rent is {money2(_row['monthly'])}.", "paid": "Rent has been paid through November 30, 2026.",
+    "dep": f"Tenant has deposited a security deposit of {money2(_tf['deposit'])} with Landlord.",
+    "ren": "Tenant has no option to extend the term.",
     "tdef": "Tenant is not in default under the Lease. There are no tenant defaults.",
-    "ldef": "Tenant claims a credit of $1,200 against rent for HVAC repairs Tenant paid in August 2026 that Landlord was required to make.",
+    "ldef": "Landlord is not in default under the Lease, and Tenant has no claim, credit or offset against rent.",
     "pre": "No rent has been paid more than one month in advance; prepaid rent is $0.",
 }
-build("airport-flex-estoppel-desert-aero", "Tenant Estoppel Certificate – Desert Aero Parts LLC", [
+build(f"airport-flex-estoppel-{slug(_tt)}", f"Tenant Estoppel Certificate – {_tt}", [
     ("Certification", [e["who"], e["prem"], e["lease"], e["com"], e["exp"]]), ("Rent and deposit", [e["rent"], e["paid"], e["dep"], e["pre"]]),
     ("Options", [e["ren"]]), ("Defaults and claims", [e["tdef"], e["ldef"]])], {
-    "doc_type": "estoppel", "title": "Desert Aero Parts estoppel", "summary": "Estoppel dated November 16, 2026: expiration stated as February 28, 2028 (the lease says February 29) and a $1,200 HVAC credit claimed against Landlord.",
-    "fields": [F("tenant", "Desert Aero Parts LLC", e["who"]), F("estoppel_date", "November 16, 2026", e["who"]), F("premises", "Building B, Suite 104", e["prem"]),
-               F("lease_date", "January 1, 2025", e["lease"]), F("amendments", "None", e["lease"]), F("commencement_date", "March 1, 2025", e["com"]),
-               F("expiration_date", "February 28, 2028", e["exp"]), F("monthly_rent", "$2,583.33", e["rent"]), F("rent_paid_through", "November 30, 2026", e["paid"]),
-               F("security_deposit", "$2,500.00", e["dep"]), F("renewal_options", "One (1) option of three (3) years", e["ren"]), F("tenant_defaults", "None", e["tdef"]),
-               F("landlord_defaults", "Claims a $1,200 credit for HVAC repairs Landlord was required to make", e["ldef"]), F("prepaid_rent", "$0", e["pre"])],
-    "critical_dates": [],
+    "doc_type": "estoppel", "title": f"{_tt} estoppel", "summary": f"Estoppel dated {long(_est_iso)}: the tenant confirms the lease's dates, rent and deposit, no options, no defaults and no claims.",
+    "fields": [F("tenant", _tt, e["who"]), F("estoppel_date", long(_est_iso), e["who"]), F("premises", _tl["suite"], e["prem"]),
+               F("lease_date", long(_tf["lease_date"]), e["lease"]), F("amendments", "None", e["lease"]), F("commencement_date", long(_tl["commencement"]), e["com"]),
+               F("expiration_date", long(_tl["expiration"]), e["exp"]), F("monthly_rent", money2(_row["monthly"]), e["rent"]), F("rent_paid_through", "November 30, 2026", e["paid"]),
+               F("security_deposit", money2(_tf["deposit"]), e["dep"]), F("renewal_options", "None", e["ren"]), F("tenant_defaults", "None", e["tdef"]),
+               F("landlord_defaults", "None", e["ldef"]), F("prepaid_rent", "$0", e["pre"])],
+    "critical_dates": [], "app": {"lease_tenant": _tt},
 })
 
+# Lakeshore: the seller's 2025 reconciliation, at the model's own expense
+# lines and management fee, with the lease tenant billed at its lease share.
+LS = ASSET["Lakeshore Service Center"]
+_cl = LEASES["Lakeshore Service Center"]
+_ct, _cf = _cl["tenant"], _cl["fund"]
+_cx = LS["expensesPSF"]
+_crev = round(sum(u["sf"] * u["rentPSF"] for u in LS["units"] if u["status"] == "occupied") / 1000) * 1000
+_cfee = round(_crev * LS["managementFeePct"] / 100)
+_cctl = round((_cx["utilities"] + _cx["maintenance"] + _cx["janitorial"]) * LS["sf"])
+_copex = round((_cx["realEstateTax"] + _cx["insurance"]) * LS["sf"]) + _cctl + _cfee
+_o = next(u for u in LS["units"] if u["status"] == "occupied" and u["tenant"] != _ct)
+_oshare = round(_o["sf"] / LS["sf"] * 100, 2)
+_b1, _b2 = round(_cf["share_pct"] / 100 * _copex, 2), round(_oshare / 100 * _copex, 2)
+_p1 = round(_b1 * 0.95, 2)
 c = {
     "yr": "This statement reconciles Operating Expenses at Lakeshore Service Center for calendar year 2025.",
-    "opex": "Total Operating Expenses for 2025 were $180,000.", "ctl": "Controllable Operating Expenses were $96,000.",
-    "fee": "The management fee charged was $10,800 on gross revenues of $240,000.",
-    "t1": "North Texas Fleet Service LLC: share 6.00%, share of expenses $10,800, estimates paid $10,200, balance due $600.",
-    "t2": "Prairie Auto Glass Inc.: share 7.50%, share of expenses $13,500, estimates paid $13,500, balance due $0.",
+    "opex": f"Total Operating Expenses for 2025 were ${_copex:,}.", "ctl": f"Controllable Operating Expenses were ${_cctl:,}.",
+    "fee": f"The management fee charged was ${_cfee:,} on gross revenues of ${_crev:,}.",
+    "t1": f"{_ct}: share {_cf['share_pct']:.2f}%, share of expenses {money2(_b1)}, estimates paid {money2(_p1)}, balance due {money2(round(_b1 - _p1, 2))}.",
+    "t2": f"{_o['tenant']}: share {_oshare:.2f}%, share of expenses {money2(_b2)}, estimates paid {money2(_b2)}, balance due $0.00.",
 }
 build("lakeshore-cam-2025", "2025 Operating Expense Reconciliation – Lakeshore Service Center", [
     ("Summary", [c["yr"], c["opex"], c["ctl"], c["fee"]]), ("Tenant shares", [c["t1"], c["t2"]])], {
-    "doc_type": "cam", "title": "Lakeshore 2025 CAM reconciliation", "summary": "2025 CAM reconciliation: $180,000 of expenses; North Texas Fleet billed at a 6.00% share (lease 5.50%) and a management fee of 4.5% of revenue (lease cap 4%).",
-    "fields": [F("year", "2025", c["yr"]), F("total_opex", "$180,000", c["opex"]), F("controllable_opex", "$96,000", c["ctl"]),
-               F("management_fee", "$10,800", c["fee"]), F("gross_revenue", "$240,000", c["fee"])],
-    "tenants": [{"tenant": "North Texas Fleet Service LLC", "share_pct": 6.0, "billed": 10800, "base_year_amount": 0, "estimates_paid": 10200, "balance_due": 600, "evidence": [{"quote": c["t1"], "page": 1}]},
-                {"tenant": "Prairie Auto Glass Inc.", "share_pct": 7.5, "billed": 13500, "base_year_amount": 0, "estimates_paid": 13500, "balance_due": 0, "evidence": [{"quote": c["t2"], "page": 1}]}],
-    "critical_dates": [],
+    "doc_type": "cam", "title": "Lakeshore 2025 CAM reconciliation", "summary": f"2025 CAM reconciliation: ${_copex:,} of expenses; {_ct} billed at its lease share ({_cf['share_pct']:.2f}%); management fee {LS['managementFeePct']:g}% of revenue (the lease's cap).",
+    "fields": [F("year", "2025", c["yr"]), F("total_opex", f"${_copex:,}", c["opex"]), F("controllable_opex", f"${_cctl:,}", c["ctl"]),
+               F("management_fee", f"${_cfee:,}", c["fee"]), F("gross_revenue", f"${_crev:,}", c["fee"])],
+    "tenants": [{"tenant": _ct, "share_pct": _cf["share_pct"], "billed": _b1, "base_year_amount": 0, "estimates_paid": _p1, "balance_due": round(_b1 - _p1, 2), "evidence": [{"quote": c["t1"], "page": 1}]},
+                {"tenant": _o["tenant"], "share_pct": _oshare, "billed": _b2, "base_year_amount": 0, "estimates_paid": _b2, "balance_due": 0, "evidence": [{"quote": c["t2"], "page": 1}]}],
+    "critical_dates": [], "app": {"lease_tenant": _ct},
 })
 
 b = {

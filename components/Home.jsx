@@ -33,6 +33,8 @@ const KIND = {
   construction: ["Construction", "bg-orange-50 text-orange-800"],
   sale: ["Sale", "bg-emerald-50 text-emerald-800"],
   fund: ["Fund", "bg-blue-50 text-blue-700"],
+  lenderreport: ["Lender report", "bg-violet-50 text-violet-800"],
+  entity: ["Legal entity", "bg-blue-50 text-blue-700"],
 };
 // The asset has its own column: drop "(Asset)" / ", Asset)" from the text.
 const shortText = (a) => (a.asset ? a.text.replace(` (${a.asset})`, "").replace(`, ${a.asset})`, ")") : a.text);
@@ -147,7 +149,7 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
           <h3 className="mb-0.5 text-sm font-semibold">Upcoming Events {calItems.length > 0 && <span className="ml-1 rounded-full bg-gray-100 px-1.5 text-[11px] text-gray-700">{calItems.length}</span>}</h3>
           {pastItems.length > 0 && <button type="button" onClick={() => setShowPast(!showPast)} className="text-[11px] text-blue-700 hover:underline">{showPast ? "Hide the past 12 months" : `Show the past 12 months (${pastItems.length})`}</button>}
         </div>
-        <InfoNote short="Critical dates in the next three months." testId="events-info">Show all: a year ahead; the past 12 months on request. Covers leases (rent roll and abstracts{workspaceId ? "" : ", when signed in"}), debt, appraisals, property management, construction, business plan milestones, purchase and sale contracts, and fund dates. Status: Past Due, Due now (within {ac.urgentDays} days), Upcoming, or Completed (in gray). Owner: the asset&apos;s asset manager or the fund&apos;s portfolio manager, unless the item names one.</InfoNote>
+        <InfoNote short="Critical dates in the next three months." testId="events-info">Show all: a year ahead; the past 12 months on request. Covers leases (rent roll and abstracts{workspaceId ? "" : ", when signed in"}), debt (maturities, caps, extension notices, covenant tests and lender reporting), appraisals, property management, construction, business plan milestones, purchase and sale contracts, fund dates and legal entities\u2019 annual reports. Status: Past Due, Due now (within {ac.urgentDays} days), Upcoming, or Completed (in gray). Owner: the asset&apos;s asset manager or the fund&apos;s portfolio manager, unless the item names one.</InfoNote>
         {calItems.length === 0 && !(yearItems.length > calItems.length) ? <p className="text-xs text-gray-500">Nothing scheduled in the next 12 months.</p> : (
           <div className="space-y-2 text-xs">
             <div className="overflow-x-auto">

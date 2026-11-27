@@ -1,0 +1,53 @@
+{
+ "_note": "By sample data version (lib/samplePortfolio.js SAMPLE_DATA_VERSION): the file names of the Model Fund I sample documents rewritten or retired in that version. The automatic load removes the earlier sample copy of each (lib/sampleDocs.js: supersededSampleDocs for fund and asset documents, supersededSampleSaleDocs for a sale's documents, supersededSampleLeases for leases) before adding the current set. A document is matched ONLY by these file names on a sample asset (or Model Fund I): nothing the user uploaded is touched. Add a list for each later version that rewrites sample documents.",
+ "3": [
+  "airport-flex-appraisal-2026q3.pdf",
+  "airport-flex-cap-2026.pdf",
+  "airport-flex-estoppel-desert-aero.pdf",
+  "airport-flex-ic-memo.pdf",
+  "airport-flex-insurance-desert-aero.pdf",
+  "airport-flex-insurance-owner.pdf",
+  "airport-flex-loan.pdf",
+  "airport-flex-loi.pdf",
+  "airport-flex-om.pdf",
+  "airport-flex-rent-roll.pdf",
+  "airport-flex-t12.pdf",
+  "lakeshore-cam-2025.pdf",
+  "route9-appraisal-2026q2.pdf",
+  "route9-cap-2026.pdf",
+  "route9-closing-disp.pdf",
+  "route9-loan.pdf"
+ ],
+ "sales": {
+  "3": [
+   "harbor-light-bov.pdf",
+   "harbor-light-closing-disp.pdf",
+   "harbor-light-loi.pdf",
+   "harbor-light-psa.pdf",
+   "mill-creek-bov.pdf",
+   "mill-creek-closing-disp.pdf",
+   "mill-creek-loi.pdf",
+   "mill-creek-psa.pdf",
+   "route9-bov.pdf",
+   "route9-closing-disp.pdf",
+   "route9-loi.pdf",
+   "route9-psa.pdf"
+  ]
+ },
+ "leases": {
+  "3": [
+   "02-airport-flex-park-desert-aero.pdf",
+   "03-route-9-small-bay-cascade-cabinet.pdf",
+   "04-harbor-light-portside-marine.pdf",
+   "04a-harbor-light-portside-marine-first-amendment.pdf",
+   "05-ridgeway-lone-star-hvac.pdf",
+   "06-canal-street-bayou-fabrication.pdf",
+   "07-mill-creek-snohomish-brewing.pdf",
+   "07a-mill-creek-snohomish-brewing-first-amendment.pdf",
+   "08-southpoint-sunrise-solar.pdf",
+   "09-granite-ave-granite-state-signs.pdf",
+   "10-lakeshore-north-texas-fleet.pdf",
+   "10a-lakeshore-north-texas-fleet-first-amendment.pdf"
+  ]
+ }
+}

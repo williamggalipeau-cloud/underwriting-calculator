@@ -74,10 +74,10 @@ ok(A.applyDisposition(inputs, meta("psa"), psa, []).inputs === inputs, "nothing 
 ok(A.dispositionRows(inputs, { type: "psa", saleId: "gone" }, psa).error, "a document whose sale was removed says so");
 ok(A.canReview("bov") && A.canReview("offer_letter") && A.canReview("psa") && A.canReview("closing_disp") && !A.canReview("listing_agreement"), "the four document types Claude reads");
 
-// ── The sample documents (docs/sample-deal-docs/dispositions), end to end ──
+// ── The sample documents (tests/fixtures/dispositions), end to end ──
 {
   const fs = require("fs");
-  const dir = R + "/docs/sample-deal-docs/dispositions/abstracts/";
+  const dir = R + "/tests/fixtures/dispositions/abstracts/";
   const T = j(R + "/lib/dealDocTypes.js");
   const files = fs.readdirSync(dir);
   ok(files.length === 12 && files.every((f) => T.checkLocally(JSON.parse(fs.readFileSync(dir + f))).length === 0), "12 sample abstracts (BOV, LOI, PSA, closing for 3 assets) pass the app's local check");

@@ -1,7 +1,7 @@
 {
  "doc_type": "om",
  "title": "Airport Flex Park offering memo",
- "summary": "Offering memo for Airport Flex Park, a 24,000 SF, 12-unit flex park in Las Vegas, asking $7,500,000 (6.48% cap on $486,000 in-place NOI), 91.7% leased.",
+ "summary": "Offering memo for Airport Flex Park, a 24,000 SF, 12-unit flex park in Las Vegas, asking $7,200,000 (6.75% cap on $486,000 of year-one NOI).",
  "fields": [
   {
    "key": "property_name",
@@ -93,11 +93,11 @@
   },
   {
    "key": "asking_price",
-   "value": "$7,500,000",
+   "value": "$7,200,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Seller is asking $7,500,000 for the Property.",
+     "quote": "The Seller is asking $7,200,000 for the Property.",
      "page": 1
     }
    ]
@@ -108,29 +108,18 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "In-place net operating income is $486,000.",
+     "quote": "Underwritten year-one net operating income is $486,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "cap_rate",
-   "value": "6.48%",
+   "value": "6.75%",
    "status": "found",
    "evidence": [
     {
-     "quote": "The asking price reflects a 6.48% cap rate on in-place income.",
-     "page": 1
-    }
-   ]
-  },
-  {
-   "key": "occupancy",
-   "value": "91.7%",
-   "status": "found",
-   "evidence": [
-    {
-     "quote": "The Property is 91.7% leased to 11 tenants.",
+     "quote": "The asking price reflects a 6.75% cap rate on that income.",
      "page": 1
     }
    ]

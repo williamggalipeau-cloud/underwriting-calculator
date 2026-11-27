@@ -48,31 +48,59 @@ def m(x):
     return f"${x:,.0f}"
 
 
-# name, slug, address, SF, broker, buyer, seller entity, list, low, mid, high, cap, LOI price,
-# deposit, DD days, close days, PSA date, add'l deposit, hard date, DD end, close date,
-# sale price, credits, selling costs, loan payoff
+# 1.1.13 (everything ties out): the three sales are IN PROGRESS, because Model
+# Fund I holds no sold asset. Every figure comes from the fund as the app
+# builds it (fund.json, written by export_fund.cjs): the broker's value is
+# the asset's latest mark where it has one, else its year-1 NOI at a cap
+# rate 25 basis points inside the model's going-in cap; the list price, offer and contract price follow from it.
+# Only what the app does not hold is written here (broker, buyer, dates,
+# deposit terms). The sale's entries in the app (lib/sampleDocTerms.json) are
+# produced by reading these abstracts with the app's own apply functions
+# (make_terms.cjs). The earlier set, with closing statements, is kept for
+# the tests in tests/fixtures/dispositions.
+FUND = json.loads((Path(__file__).resolve().parent / "fund.json").read_text())
+_A = {a["name"]: a for a in FUND["assets"]}
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def long(iso):
+    y, mo, d = (int(x) for x in iso.split("-"))
+    return f"{MONTHS[mo - 1]} {d}, {y}"
+
+
+def r50(x):
+    return int(round(x / 50_000) * 50_000)
+
+
+def sale(name, slug, company, broker, buyer, fee, weeks, loi_date, dd, cl, fin, psa=None):
+    A = _A[name]
+    marks = A.get("marks") or {}
+    if marks:
+        q = sorted(marks)[-1]
+        mid, cap = int(marks[q]["value"]), float(marks[q]["capRate"])
+    else:
+        # No mark yet: year-1 NOI at a cap rate 25 basis points inside the going-in cap.
+        mid = r50(A["model"]["noi1"] / ((A["model"]["goingInCapPct"] - 0.25) / 100))
+        cap = round(A["model"]["noi1"] / mid * 100, 2)
+    offer = r50(mid * 0.99)
+    d = dict(name=name, slug=slug, addr=f"{A['address']}, {A['city']}, {A['state']} {A['zip']}", sf=A["sf"], broker=broker, buyer=buyer,
+             seller=f"Model Fund I — {company} LLC", low=r50(mid * 0.97), mid=mid, high=r50(mid * 1.03), cap=f"{cap:.2f}%", list_=r50(mid * 1.03),
+             fee=fee, weeks=weeks, loi_date=(long(loi_date), loi_date), loi=offer, dep=r50(offer * 0.02) or 50_000, dd=dd, cl=cl, fin=fin, psa=None)
+    if psa:
+        d["psa"] = dict(date=(long(psa["date"]), psa["date"]), price=offer, add_dep=d["dep"], hard=(long(psa["dd_end"]), psa["dd_end"]),
+                        dd_end=(long(psa["dd_end"]), psa["dd_end"]), close=(long(psa["close"]), psa["close"]))
+    return d
+
+
 ASSETS = [
-    dict(name="Route 9 Small Bay", slug="route9", addr="21800 Valley Freight Way, Kent, WA 98032", sf=42000,
-         broker="Fictional Industrial Advisors", buyer="Example Logistics REIT", seller="Model Fund I Route 9 LLC",
-         low=14_100_000, mid=14_600_000, high=15_100_000, cap="5.85%", list_=14_950_000, fee="1.25%", weeks="eight weeks",
-         loi_date=("November 6, 2026", "2026-11-06"), loi=14_400_000, dep=300_000, dd=30, cl=30, fin=False,
-         psa_date=("December 1, 2026", "2026-12-01"), psa_price=14_500_000, add_dep=200_000,
-         hard=("December 31, 2026", "2026-12-31"), dd_end=("December 31, 2026", "2026-12-31"), close=("January 29, 2027", "2027-01-29"),
-         sale=14_500_000, credits=45_000, costs=315_000, payoff=9_400_000),
-    dict(name="Harbor Light Industrial", slug="harbor-light", addr="2715 Pier Junction Avenue, Long Beach, CA 90810", sf=36000,
-         broker="Sample Coastal Brokerage", buyer="Fictional Pacific Industrial Fund II", seller="Model Fund I Harbor Light LLC",
-         low=11_300_000, mid=11_700_000, high=12_100_000, cap="5.60%", list_=11_950_000, fee="1.00%", weeks="ten weeks",
-         loi_date=("November 12, 2026", "2026-11-12"), loi=11_500_000, dep=250_000, dd=45, cl=30, fin=True,
-         psa_date=("December 8, 2026", "2026-12-08"), psa_price=11_600_000, add_dep=150_000,
-         hard=("January 22, 2027", "2027-01-22"), dd_end=("January 22, 2027", "2027-01-22"), close=("February 22, 2027", "2027-02-22"),
-         sale=11_550_000, credits=60_000, costs=255_000, payoff=7_300_000),
-    dict(name="Mill Creek Business Park", slug="mill-creek", addr="11500 Mill Creek Loop, Everett, WA 98204", sf=50000,
-         broker="Example Northwest Capital Markets", buyer="Demo Flex Owners LLC", seller="Model Fund I Mill Creek LLC",
-         low=17_200_000, mid=17_800_000, high=18_300_000, cap="5.75%", list_=18_200_000, fee="1.10%", weeks="eight weeks",
-         loi_date=("November 18, 2026", "2026-11-18"), loi=17_600_000, dep=400_000, dd=30, cl=45, fin=False,
-         psa_date=("December 14, 2026", "2026-12-14"), psa_price=17_650_000, add_dep=250_000,
-         hard=("January 13, 2027", "2027-01-13"), dd_end=("January 13, 2027", "2027-01-13"), close=("February 27, 2027", "2027-02-27"),
-         sale=17_650_000, credits=70_000, costs=380_000, payoff=11_100_000),
+    # Under contract.
+    sale("Route 9 Small Bay", "route9", "Valley Freight", "Fictional Industrial Advisors", "Example Logistics REIT", "1.25%", "eight weeks",
+         "2026-11-06", 30, 30, False, psa=dict(date="2026-11-20", dd_end="2026-12-21", close="2027-01-20")),
+    # Offers in hand.
+    sale("Harbor Light Industrial", "harbor-light", "Pier Junction", "Sample Coastal Brokerage", "Fictional Pacific Industrial Fund II", "1.00%", "ten weeks",
+         "2026-11-12", 45, 30, True),
+    sale("Mill Creek Business Park", "mill-creek", "Mill Creek", "Example Northwest Capital Markets", "Demo Flex Owners LLC", "1.10%", "eight weeks",
+         "2026-11-18", 30, 45, False),
 ]
 
 for a in ASSETS:
@@ -81,7 +109,7 @@ for a in ASSETS:
     # ── BOV ──
     q = {
         "broker": f"Prepared by {a['broker']} for {a['seller']}.",
-        "date": f"This opinion of value is dated {a['loi_date'][0].split(' ')[0]} 2, 2026.",
+        "date": "This opinion of value is dated November 2, 2026.",
         "range": f"We estimate the market value of {n} at between {m(a['low'])} and {m(a['high'])}.",
         "mid": f"Our most likely value is {m(a['mid'])}.",
         "psf": f"That value is ${a['mid'] / a['sf']:,.0f} per square foot.",
@@ -124,46 +152,32 @@ for a in ASSETS:
                    F("closing_days", f"{a['cl']} days", q["cl"]), F("financing_contingency", fin, q["fin"])],
         "critical_dates": []})
 
-    # ── PSA ──
+    # ── PSA (only the sale under contract) ──
+    if not a["psa"]:
+        continue
+    P = a["psa"]
     q = {
-        "date": f"This Purchase and Sale Agreement is effective {a['psa_date'][0]}.",
-        "price": f"The Purchase Price for the Property is {m(a['psa_price'])}.",
+        "date": f"This Purchase and Sale Agreement is effective {P['date'][0]}.",
+        "price": f"The Purchase Price for the Property is {m(P['price'])}.",
         "dep1": f"Buyer shall deposit {m(a['dep'])} with Escrow Agent as the Initial Deposit.",
-        "dep2": f"Buyer shall deposit an additional {m(a['add_dep'])} as the Additional Deposit at the end of the Due Diligence Period.",
-        "hard": f"The Deposits become non-refundable on {a['hard'][0]}.",
-        "dd": f"The Due Diligence Period expires on {a['dd_end'][0]}.",
-        "close": f"Closing shall occur on {a['close'][0]}.",
+        "dep2": f"Buyer shall deposit an additional {m(P['add_dep'])} as the Additional Deposit at the end of the Due Diligence Period.",
+        "hard": f"The Deposits become non-refundable on {P['hard'][0]}.",
+        "dd": f"The Due Diligence Period expires on {P['dd_end'][0]}.",
+        "close": f"Closing shall occur on {P['close'][0]}.",
         "ext": "Seller may extend Closing once by up to 15 days.",
     }
     build(f"{slug}-psa", f"{n} – Purchase and Sale Agreement", [
         ("1. Parties and property", [q["date"], f"The Seller is {a['seller']} and the Buyer is {a['buyer']}.", f"The Property is {n} at {a['addr']}."]),
         ("2. Price and deposits", [q["price"], q["dep1"], q["dep2"], q["hard"]]),
         ("3. Due diligence and closing", [q["dd"], q["close"], q["ext"]]),
-    ], {"doc_type": "psa", "title": f"{n} PSA", "summary": f"PSA with {a['buyer']} at {m(a['psa_price'])}; deposits {m(a['dep'] + a['add_dep'])}; closing {a['close'][0]}.",
-        "fields": [F("psa_date", a["psa_date"][0], q["date"], "1"), F("purchase_price", m(a["psa_price"]), q["price"], "2"),
-                   F("initial_deposit", m(a["dep"]), q["dep1"], "2"), F("additional_deposit", m(a["add_dep"]), q["dep2"], "2"),
-                   F("deposit_hard_date", a["hard"][0], q["hard"], "2"), F("dd_expiry", a["dd_end"][0], q["dd"], "3"),
-                   F("closing_date", a["close"][0], q["close"], "3"), F("extension", "Seller may extend Closing once by up to 15 days", q["ext"], "3")],
-        "critical_dates": [D(a["hard"][1], "Deposits go hard", q["hard"], "Deposits become non-refundable"),
-                           D(a["dd_end"][1], "Due diligence expires", q["dd"], "Buyer's termination right ends"),
-                           D(a["close"][1], "Closing", q["close"], "Close the sale")]})
+    ], {"doc_type": "psa", "title": f"{n} PSA", "summary": f"PSA with {a['buyer']} at {m(P['price'])}; deposits {m(a['dep'] + P['add_dep'])}; closing {P['close'][0]}.",
+        "fields": [F("psa_date", P["date"][0], q["date"], "1"), F("purchase_price", m(P["price"]), q["price"], "2"),
+                   F("initial_deposit", m(a["dep"]), q["dep1"], "2"), F("additional_deposit", m(P["add_dep"]), q["dep2"], "2"),
+                   F("deposit_hard_date", P["hard"][0], q["hard"], "2"), F("dd_expiry", P["dd_end"][0], q["dd"], "3"),
+                   F("closing_date", P["close"][0], q["close"], "3"), F("extension", "Seller may extend Closing once by up to 15 days", q["ext"], "3")],
+        "critical_dates": [D(P["hard"][1], "Deposits go hard", q["hard"], "Deposits become non-refundable"),
+                           D(P["dd_end"][1], "Due diligence expires", q["dd"], "Buyer's termination right ends"),
+                           D(P["close"][1], "Closing", q["close"], "Close the sale")]})
 
-    # ── Closing statement (sale) ──
-    net = a["sale"] - a["credits"] - a["costs"] - a["payoff"]
-    q = {
-        "date": f"Closing date: {a['close'][0]}.",
-        "price": f"Sale price: {m(a['sale'])}.",
-        "credits": f"Credits to Buyer (rent prorations and repairs): {m(a['credits'])}.",
-        "costs": f"Seller's closing costs, including brokerage commission, title and transfer tax: {m(a['costs'])}.",
-        "payoff": f"Payoff of the existing loan, including interest to the closing date: {m(a['payoff'])}.",
-        "net": f"Net proceeds due to Seller: {m(net)}.",
-    }
-    build(f"{slug}-closing-disp", f"{n} – Seller's Closing Statement", [
-        ("Transaction", [f"Seller: {a['seller']}. Buyer: {a['buyer']}.", f"Property: {n}, {a['addr']}.", q["date"]]),
-        ("Seller's statement", [q["price"], q["credits"], q["costs"], q["payoff"], q["net"]]),
-    ], {"doc_type": "closing_disp", "title": f"{n} closing statement", "summary": f"{n} sold to {a['buyer']} for {m(a['sale'])}; net proceeds {m(net)}.",
-        "fields": [F("closing_date", a["close"][0], q["date"]), F("sale_price", m(a["sale"]), q["price"]), F("credits", m(a["credits"]), q["credits"]),
-                   F("selling_costs", m(a["costs"]), q["costs"]), F("loan_payoff", m(a["payoff"]), q["payoff"]), F("net_proceeds", m(net), q["net"])],
-        "critical_dates": []})
 
-print(f"{len(ASSETS) * 4} documents written to {OUT}")
+print("sale documents written to", OUT)

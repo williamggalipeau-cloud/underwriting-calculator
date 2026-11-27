@@ -1,15 +1,15 @@
 {
  "doc_type": "loan",
  "title": "Route 9 Small Bay loan agreement",
- "summary": "$9,125,000 floating-rate loan from Fictional Bank at Term SOFR + 1.75% (0.50% floor), maturing March 16, 2029 with two 1-year extensions; rate cap, DSCR 1.30x, debt yield 8.50% and 70% LTV covenants.",
+ "summary": "$9,125,000 floating-rate loan from Cascade Commercial Bank at Term SOFR + 1.75% (0.50% floor), maturing March 16, 2029 with 2 1-year extensions; rate cap and a 1.25x DSCR covenant.",
  "fields": [
   {
    "key": "lender",
-   "value": "Fictional Bank, N.A.",
+   "value": "Cascade Commercial Bank",
    "status": "found",
    "evidence": [
     {
-     "quote": "This Loan Agreement is made as of March 16, 2026 between Fictional Bank, N.A. (Lender) and the Borrower, the owner of Route 9 Small Bay.",
+     "quote": "This Loan Agreement is made as of March 16, 2026 between Cascade Commercial Bank (Lender) and the Borrower, the owner of Route 9 Small Bay.",
      "page": 1
     }
    ],
@@ -21,7 +21,7 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "This Loan Agreement is made as of March 16, 2026 between Fictional Bank, N.A. (Lender) and the Borrower, the owner of Route 9 Small Bay.",
+     "quote": "This Loan Agreement is made as of March 16, 2026 between Cascade Commercial Bank (Lender) and the Borrower, the owner of Route 9 Small Bay.",
      "page": 1
     }
    ],
@@ -137,11 +137,11 @@
   },
   {
    "key": "extension_conditions",
-   "value": "Notice at least 60 days before maturity, DSCR of at least 1.30x and a replacement rate cap",
+   "value": "Notice at least 90 days before maturity, DSCR of at least 1.25x and a replacement rate cap",
    "status": "found",
    "evidence": [
     {
-     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
+     "quote": "Each extension requires written notice at least 90 days before the then Maturity Date, a debt service coverage ratio of at least 1.25x and a replacement rate cap.",
      "page": 1
     }
    ],
@@ -221,35 +221,11 @@
   },
   {
    "key": "dscr_covenant",
-   "value": "1.30x",
+   "value": "1.25x",
    "status": "found",
    "evidence": [
     {
-     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
-     "page": 1
-    }
-   ],
-   "clause": "4"
-  },
-  {
-   "key": "debt_yield_covenant",
-   "value": "8.50%",
-   "status": "found",
-   "evidence": [
-    {
-     "quote": "Borrower shall maintain a debt yield of not less than 8.50%.",
-     "page": 1
-    }
-   ],
-   "clause": "4"
-  },
-  {
-   "key": "ltv_covenant",
-   "value": "70%",
-   "status": "found",
-   "evidence": [
-    {
-     "quote": "The loan-to-value ratio shall not exceed 70%.",
+     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.25x, tested quarterly on the trailing three months annualized.",
      "page": 1
     }
    ],
@@ -261,7 +237,7 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
+     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.25x, tested quarterly on the trailing three months annualized.",
      "page": 1
     }
    ],
@@ -293,11 +269,11 @@
   },
   {
    "key": "reserves",
-   "value": "Monthly tax and insurance escrows; $50,000 TI and leasing reserve at closing",
+   "value": "Monthly tax and insurance escrows",
    "status": "found",
    "evidence": [
     {
-     "quote": "Borrower shall fund monthly tax and insurance escrows and a $50,000 tenant improvement and leasing reserve at closing.",
+     "quote": "Borrower shall fund monthly tax and insurance escrows.",
      "page": 1
     }
    ],
@@ -332,16 +308,16 @@
    ]
   },
   {
-   "date": "2029-01-15",
+   "date": "2028-12-16",
    "kind": "deadline",
    "label": "First extension notice deadline",
    "action": "Give written notice to extend",
    "clause": "2",
    "status": "calculated",
-   "calculation": "March 16, 2029 − 60 days = January 15, 2029",
+   "calculation": "March 16, 2029 − 90 days = December 16, 2028",
    "evidence": [
     {
-     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
+     "quote": "Each extension requires written notice at least 90 days before the then Maturity Date, a debt service coverage ratio of at least 1.25x and a replacement rate cap.",
      "page": 1
     }
    ]

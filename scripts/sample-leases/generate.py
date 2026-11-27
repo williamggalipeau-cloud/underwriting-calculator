@@ -81,7 +81,7 @@ def tenant_share(L):
 def basic_info(L, A, start, end, rows):
     st = STATE_NAMES[A["state"]]
     first_paying = next(r for r in rows if r[3] > 0)
-    deposit = round(first_paying[3] * L["deposit_months"], 2)
+    deposit = L["deposit_amount"] if L.get("deposit_amount") is not None else round(first_paying[3] * L["deposit_months"], 2)
     type_label = {"NNN": "Triple net (NNN)", "MG": f"Modified gross, Base Year {L.get('base_year')}", "Gross": "Gross (Landlord pays Operating Expenses)"}[L["lease_type"]]
     items = [
         ("Landlord", f"{L['landlord']}, a Delaware limited liability company"),
@@ -361,6 +361,15 @@ def main():
                      suite=L["suite"], rsf=L["rsf"], tenant=L["tenant"].split(",")[0], lease_type=L["lease_type"],
                      commencement=start.isoformat(), expiration=end.isoformat(), rate=rows[0][2],
                      files=[f"{L['file']}.pdf"])
+        if L.get("fund_unit"):
+            # 1.1.13: what the estoppel, tenant certificate and CAM reconciliation
+            # (scripts/sample-deal-docs/deal_docs.py) need from this lease.
+            first_paying = next(r for r in rows if r[3] > 0)
+            entry["fund"] = dict(unit=L["fund_unit"]["name"], lease_date=(start - relativedelta(months=2)).isoformat(), landlord=L["landlord"],
+                                 deposit=L["deposit_amount"] if L.get("deposit_amount") is not None else round(first_paying[3] * L["deposit_months"], 2),
+                                 share_pct=round(tenant_share(L), 2), mgmt_fee_cap=L["mgmt_fee_cap"], gl_limit=L["gl_limit"], umbrella=L["umbrella"], auto_limit=L["auto_limit"],
+                                 schedule=[dict(start=r[0].isoformat(), end=r[1].isoformat(), rate=r[2], monthly=r[3]) for r in rows],
+                                 amendments=1 if L.get("amendment") else 0)
         if L.get("amendment"):
             with open(os.path.join(OUT, f"{L['amendment']['file']}.html"), "w") as f:
                 f.write(amendment_html(L))

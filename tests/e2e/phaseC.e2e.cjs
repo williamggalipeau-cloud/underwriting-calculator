@@ -6,7 +6,7 @@ const S = FX.outDir();
 const R = FX.R;
 const data = FX.workspaceData();
 data.activeDealId = "sample-deal-1"; // Airport Flex Park (no rent roll)
-const abs = (p) => JSON.parse(fs.readFileSync(`${R}/docs/sample-leases/abstracts/${fs.readdirSync(R + "/docs/sample-leases/abstracts").find((f) => f.startsWith(p))}`));
+const abs = (p) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/sample-leases/abstracts/${fs.readdirSync(R + "/tests/fixtures/sample-leases/abstracts").find((f) => f.startsWith(p))}`));
 const smallBay = data.deals.find((d) => d.id === "test-active");
 smallBay.inputs.fundName = data.deals.find((d) => d.id === "sample-deal-1").inputs.fundName;
 const unit001 = smallBay.inputs.units[0];

@@ -5,8 +5,12 @@ const c = j(R + "/lib/calculations.js"); const sp = j(R + "/lib/samplePortfolio.
 let fail = 0; const ok = (cnd, m) => { console.log((cnd ? "PASS " : "FAIL ") + m); if (!cnd) fail++; };
 const D = R + "/docs/sample-deal-docs/deals";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
-const doc = (n) => ({ id: "doc-" + n, doc_type: "appraisal", deal_id: "D", title: abs(n).title, abstract: abs(n), applied_fields: {} });
-for (const n of ["airport-flex-appraisal-2026q3", "route9-appraisal-2026q2"]) {
+// 1.1.13: `abs` is the sample document as generated (it ties to Model Fund I: sampleTieOut.test.cjs)
+// and is used for the check against the PDF. The compare / apply tests below need documents that
+// differ from the model, so `doc` reads the test-only copies in tests/fixtures/deal-docs.
+const fx = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/deal-docs/abstracts/${n}.json`));
+const doc = (n) => ({ id: "doc-" + n, doc_type: "appraisal", deal_id: "D", title: fx(n).title, abstract: fx(n), applied_fields: {} });
+for (const n of ["airport-flex-appraisal-2026q3", "route9-appraisal-2026q3"]) {
   const probs = T.checkLocally(abs(n), execFileSync("pdftotext", ["-layout", `${D}/${n}.pdf`, "-"]).toString());
   ok(probs.length === 0, `${n}: quotes in the PDF${probs.length ? " — " + probs[0] : ""}`);
 }

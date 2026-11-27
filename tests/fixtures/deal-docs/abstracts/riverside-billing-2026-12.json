@@ -1,0 +1,54 @@
+{
+ "doc_type": "billing",
+ "title": "Riverside billing Nov–Dec 2026",
+ "summary": "November and December 2026 invoices for Citrus Belt Logistics; December still bills the Lease Year 3 rent.",
+ "fields": [
+  {
+   "key": "period",
+   "value": "November and December 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Tenant invoices for November and December 2026 at Riverside Commerce Park.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "charges": [
+  {
+   "tenant": "Citrus Belt Logistics, LLC",
+   "month": "2026-11",
+   "base_rent": 4713.33,
+   "cam_estimate": 1250,
+   "total": 5963.33,
+   "evidence": [
+    {
+     "quote": "Citrus Belt Logistics, LLC, November 2026: base rent $4,713.33, CAM estimate $1,250.00, total $5,963.33.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "tenant": "Citrus Belt Logistics, LLC",
+   "month": "2026-12",
+   "base_rent": 4713.33,
+   "cam_estimate": 1250,
+   "total": 5963.33,
+   "evidence": [
+    {
+     "quote": "Citrus Belt Logistics, LLC, December 2026: base rent $4,713.33, CAM estimate $1,250.00, total $5,963.33.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "riverside-billing-2026-12.pdf"
+  ]
+ }
+}

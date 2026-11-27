@@ -25,6 +25,9 @@ import { addSamplePlans } from "@/lib/samplePlans";
 import { addSampleLeasing } from "@/lib/sampleLeasing";
 import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit } from "@/lib/sampleCredit";
+import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
+import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
+import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale } from "@/lib/sampleDocTerms";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -273,157 +276,6 @@ function fmtISODate(iso) {
   return `${m}/${d}/${y}`;
 }
 
-const DEFAULT_INPUTS = {
-  propertyName: "Small Bay Industrial",
-  fundName: "",
-  squareFootage: 60000,
-  purchasePrice: 9000000,
-  closingCosts: {
-    titleInsuranceOwner:  27000,
-    titleInsuranceLender: 11700,
-    transferTax:          45000,
-    loanOrigination:      58500,
-    acquisitionFee:       90000,
-    legalFees:            15000,
-    environmentalReport:  3500,
-    appraisal:            7500,
-    surveyAndPCA:         5000,
-    miscClosingCosts:     2500,
-  },
-
-  unitCount: 20,
-  avgLeaseTerm: 2,
-  renewalProbabilityPct: 60,
-  downtimeBetweenLeases: 2,
-
-  leaseType: "NNN",
-
-  rentPerSF: 14.0,
-  annualRentEscalationPct: 3.0,
-  vacancyPct: 10,
-  creditLossPct: 1.0,
-  otherIncomePSF: 0.25,
-
-  realEstateTaxPSF: 1.20,
-  insurancePSF: 0.35,
-  utilitiesPSF: 0.50,
-  maintenancePSF: 0.40,
-  janitorialPSF: 0.20,
-
-  managementFeePct: 5,
-  cmFeePct: 1.5, // construction management, % of purchase price per year
-  leasingFeesPSF: 0.10,
-  capitalReservesPSF: 0.30,
-
-  constructionCosts: {
-    demolition:           0.25,
-    partitionWalls:       0.75,
-    electrical:           1.50,
-    plumbing:             0.50,
-    hvac:                 1.25,
-    flooring:             0.75,
-    painting:             0.30,
-    lighting:             0.60,
-    doorsHardware:        0.35,
-    overheadDoors:        0.50,
-    landscaping:          0.15,
-    roofing:              0.50,
-    signage:              0.10,
-    miscConstruction:     0.25,
-    generalConditionsPct: 10,
-    overheadProfitPct:    10,
-    contingencyPct:        5,
-  },
-  tiPerSFNew: 8.0,
-  tiPerSFRenewal: 2.0,
-  leasingCommissionNewPct: 6.0,
-  leasingCommissionRenewalPct: 2.0,
-
-  loanCovenants: {
-    dscrEnabled:      true,
-    dscrMin:          1.25,
-    debtYieldEnabled: false,
-    debtYieldMin:     8.0,
-    ltvEnabled:       false,
-    ltvMax:           75,
-    occupancyEnabled: false,
-    occupancyMin:     85,
-  },
-
-  lenderName: "",
-
-  loanSizingConstraints: {
-    minDSCREnabled:     true,
-    minDSCR:            1.25,
-    maxLTCEnabled:      true,
-    maxLTCPct:          75,
-    minDebtYieldEnabled: true,
-    minDebtYieldPct:    8.0,
-  },
-
-  tiReserve: {
-    enabled:        false,
-    reservePSF:     8.0,
-    minDrawDSCR:    1.10,
-  },
-
-  ltvPct: 65,
-  interestRatePct: 7.50,
-  amortizationYears: 25,
-  loanTermYears: 3,
-  extensionCount: 2,
-  extensionTermYears: 1,
-  extensionFeePct: 0.25,
-  ioPeriodYears: 0,
-
-  floatingRate: true,
-  indexRatePct: 5.25,
-  spreadPct: 2.50,
-  sofrForwardCurve: [],   // [] = use flat indexRatePct; populated = per-year SOFR
-
-  hedgingType: "cap",
-  capStrikeRatePct: 9.50,
-  capTermYears: 3,
-  capPremiumPct: 1.00,
-  swapFixedRatePct: 7.75,
-  swapTermYears: 3,
-
-  holdPeriodYears: 4,
-  exitCapRatePct: 6.75,
-  sellingCostsPct: 2.0,
-  sellingCosts: {
-    brokerCommissionPct:  2.00,
-    transferTaxPct:       0.50,
-    titleInsurancePct:    0.20,
-    legalFees:            15000,
-    miscDispositionCosts: 5000,
-  },
-
-  freeRentMonthsNew: 1,
-  freeRentMonthsRenewal: 0,
-  tiConcessionPSFNew: 0,
-  tiConcessionPSFRenewal: 0,
-
-  amFeeItems: [],
-  customRolloverItems: [],
-  customIncomeItems: [],
-  customExpenseItems: [],
-  customDispositionItems: [],
-
-  waterfallEnabled: true,
-  waterfall: {
-    lpEquityPct: 90,
-    preferredReturnPct: 9.0,
-    catchUpGpPct: 100,
-    tiers: [
-      { irrThreshold: 12,   lpSplit: 80, gpSplit: 20 },
-      { irrThreshold: 18,   lpSplit: 70, gpSplit: 30 },
-      { irrThreshold: null, lpSplit: 60, gpSplit: 40 },
-    ],
-  },
-
-  units: [],
-};
 
 
 // A blank working deal (not in a fund) for when no deals are left open,
@@ -1659,24 +1511,19 @@ export default function Home() {
     // plans and actuals and the sample leasing pipeline, so the Watch List,
     // Active Leasing and Vacant Units have data in one click.
     const todayISO = new Date().toISOString().slice(0, 10);
-    let built = buildSampleDeals(DEFAULT_INPUTS);
-    const plans = addSamplePlans(built, { todayISO });
-    built = built.map((d) => (plans.updates[d.id] ? { ...d, inputs: { ...d.inputs, businessPlan: plans.updates[d.id] } } : d));
-    const leasing = addSampleLeasing(built, { todayISO });
-    built = built.map((d) => (leasing.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...leasing.updates[d.id] } } : d));
-    // 1.1.8: sample tenant credit (records, a credit-change flag, prospect
-    // screenings) and a sample aged receivables report on the fund.
-    const credit = addSampleCredit(built, { todayISO, funds, fundName: SAMPLE_FUND_NAME });
-    built = built.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d));
-    // 1.1.5: sample submarkets (each asset tagged) and marks.
-    const mkt = addSampleMarketAndMarks({ market: comps?.market, valuations, deals: built, todayISO });
-    built = built.map((d) => (mkt.tags[d.id] ? { ...d, inputs: { ...d.inputs, submarketId: mkt.tags[d.id] } } : d));
-    setComps((c) => ({ ...c, market: mkt.market }));
-    setValuations((prev) => ({ ...prev, ...Object.fromEntries(Object.keys(mkt.valuations).filter((id) => id.startsWith("sample-deal-")).map((id) => [id, mkt.valuations[id]])) }));
-    // 1.1.6 (user, 11/25): the complete test fund: construction test data
-    // (TI and capital jobs with invoices) on the rebuilt assets too.
-    const cons = importConstruction(built, { jobs: parseJobs(parseCSV(SAMPLE_CONSTRUCTION_JOBS_CSV)), invoices: parseInvoices(parseCSV(SAMPLE_CONSTRUCTION_INVOICES_CSV)), asOf: SAMPLE_CONSTRUCTION_AS_OF, source: "sample" });
-    built = built.map((d) => (cons.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: cons.updates[d.id] } } : d));
+    // 1.1.13: built in lib/sampleFund.js (plans, leasing, tenant credit,
+    // submarkets and marks, construction data, and the terms that exist only
+    // in the sample documents), so tests build the same fund.
+    const sf = buildSampleFund({ todayISO, funds, market: comps?.market, valuations });
+    // A rebuilt asset's sample sale keeps the id of the sample sale the asset
+    // had, so the sale documents already filed on it stay attached.
+    const built = sf.deals.map((d) => {
+      const was = (deals.find((x) => x.id === d.id)?.inputs?.dispositions ?? []).find((s) => s.startedFrom === "Sample sale (fictional)" && !["closed", "withdrawn"].includes(s.stage));
+      return was && (d.inputs.dispositions ?? []).length ? { ...d, inputs: { ...d.inputs, dispositions: d.inputs.dispositions.map((s, i) => (i === 0 ? { ...s, id: was.id } : s)) } } : d;
+    });
+    const credit = sf.credit;
+    setComps((c) => ({ ...c, market: sf.market }));
+    setValuations((prev) => ({ ...prev, ...Object.fromEntries(Object.keys(sf.valuations).filter((id) => id.startsWith("sample-deal-")).map((id) => [id, sf.valuations[id]])) }));
     // The sample pipeline deals come pre-screened: each gets its model, so
     // it opens straight into the Deal Screener (rows already screened keep
     // theirs).
@@ -1696,7 +1543,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...sampleFundTermsPatch(terms), ...((terms.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
     });
     // The fictional pipeline deals load with the sample fund too (1.1, user
     // 11/25); ones already there are kept as they are.
@@ -1814,9 +1661,29 @@ export default function Home() {
     setSampleDocMsg("Updating the Model Fund I sample data…");
     try {
       const credit = addSampleCredit(cur.deals, { todayISO, funds: cur.funds, fundName: SAMPLE_FUND_NAME });
-      const built = cur.deals.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d));
-      noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents, GP partners)");
-      setDeals((prev) => prev.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d)));
+      // 1.1.13: what the sample documents say that the app didn't hold yet
+      // (contract dates, lender terms, executed caps, the IC approval…), and
+      // a property manager. Only empty fields are filled: nothing the user
+      // entered is replaced.
+      const fromVersion = terms.sampleDataVersion ?? 0;
+      const withDocs = (d) => {
+        if (!d.id.startsWith("sample-deal-")) return d;
+        let inp = credit.updates[d.id] ? { ...d.inputs, ...credit.updates[d.id] } : d.inputs;
+        inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
+        if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
+        return inp === d.inputs ? d : { ...d, inputs: inp };
+      };
+      const built = cur.deals.map(withDocs);
+      noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents and the terms they state, property managers, legal entities, GP partners)");
+      setDeals((prev) => prev.map(withDocs));
+      // The marks an appraisal stands behind carry its source and appraiser (values unchanged).
+      setValuations((prev) => {
+        const next = applySampleDocMarks(prev);
+        for (const id of Object.keys(next)) for (const q of Object.keys(next[id] ?? {})) if (prev[id]?.[q] && prev[id][q].source !== "internal") next[id] = { ...next[id], [q]: prev[id][q] };
+        return next;
+      });
+      const { removeSupersededSampleDocs } = await import("@/lib/sampleDocs");
+      const replaced = (await removeSupersededSampleDocs(l.id, { fromVersion, fundName: SAMPLE_FUND_NAME })).total; // earlier sample documents, sale documents and leases, by their file names
       const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
       const docs = await addSampleDocuments({
         workspaceId: l.id, email, deals: built,
@@ -1841,11 +1708,11 @@ export default function Home() {
       setGpPartners(gp);
       const failed = [...docs.failed, ...gpr.failed];
       // The version is recorded only when everything went in; otherwise the next open tries again.
-      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
+      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...sampleFundTermsPatch(prev[SAMPLE_FUND_NAME] ?? {}, { keepExisting: true }), ...((prev[SAMPLE_FUND_NAME]?.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
       setRecordNotice(failed.length
         ? `Model Fund I sample data: ${failed.length} item${failed.length === 1 ? "" : "s"} couldn't be added (${failed[0].error}); it will try again the next time you open Baywise.`
-        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
+        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${replaced ? `, ${replaced} earlier sample document${replaced === 1 ? "" : "s"} and lease${replaced === 1 ? "" : "s"} replaced` : ""}${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
     } catch (e) {
       setRecordNotice(`Model Fund I sample data couldn't be updated (${e.message || e}); it will try again the next time you open Baywise.`);
     } finally {
@@ -2313,6 +2180,7 @@ export default function Home() {
                 inputs={inputs}
                 onChange={setInputs}
                 fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
+                fundTerms={funds[resolveFund(inputs.fundName)] ?? null}
               />
             </div>
           </aside>

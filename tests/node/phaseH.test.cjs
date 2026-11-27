@@ -7,7 +7,7 @@ let fail = 0; const ok = (cnd, m) => { console.log((cnd ? "PASS " : "FAIL ") + m
 const near = (a, b, t = 0.01) => Math.abs(a - b) <= t;
 const r2 = (n) => Math.round(n * 100) / 100;
 // ── Delinquency (mock Yardi aged receivables) ──
-const Y = R + "/docs/sample-yardi"; const exp = JSON.parse(fs.readFileSync(Y + "/expected.json"));
+const Y = R + "/tests/fixtures/sample-yardi"; const exp = JSON.parse(fs.readFileSync(Y + "/expected.json"));
 const deals = sp.buildSampleDeals(TEST_INPUTS).map((d, i) => ({ id: d.id ?? "D" + i, inputs: d.inputs }));
 const months = {};
 let mapping = {};
@@ -39,13 +39,13 @@ const coll = Q.collections(parseCSV(fs.readFileSync(Y + "/tenant-ledger.csv", "u
 const c9 = coll.find((c) => c.asset === "Route 9 Small Bay"), cc = coll.find((c) => c.asset === "Canal Street Workshops"), ca = coll.find((c) => c.asset === "Airport Flex Park");
 ok(coll.length === 3 && near(c9.collectedPct, 200 / 3) && c9.belowAssumption && near(cc.collectedPct, 250 / 3) && near(ca.collectedPct, 100) && !ca.belowAssumption, `collections: Route 9 ${c9?.collectedPct?.toFixed(1)}%, Canal ${cc?.collectedPct?.toFixed(1)}%, Airport ${ca?.collectedPct?.toFixed(1)}%`);
 // ── Estoppel, CAM, billing ──
-const D = R + "/docs/sample-deal-docs/deals";
+const D = R + "/tests/fixtures/deal-docs"; // the pre-1.1.13 copies: they differ from the model on purpose
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 for (const n of ["airport-flex-estoppel-desert-aero", "lakeshore-cam-2025", "riverside-billing-2026-12"]) {
   const probs = T.checkLocally(abs(n), execFileSync("pdftotext", ["-layout", `${D}/${n}.pdf`, "-"]).toString());
   ok(probs.length === 0, `${n}: quotes in the PDF${probs.length ? " — " + probs[0] : ""}`);
 }
-const L = R + "/docs/sample-leases/abstracts";
+const L = R + "/tests/fixtures/sample-leases/abstracts";
 const lease = (f, id, deal, tenant) => ({ id, deal_id: deal, tenant, abstract: JSON.parse(fs.readFileSync(`${L}/${f}.json`)), unit_ids: [] });
 const leases = [lease("02-airport-flex-park-desert-aero", "L-da", "AF", "Desert Aero Parts LLC"), lease("10-lakeshore-north-texas-fleet", "L-nt", "LS", "North Texas Fleet Service LLC"),
   lease("14-riverside-citrus-belt-logistics", "L-cb", "RV", "Citrus Belt Logistics, LLC")];

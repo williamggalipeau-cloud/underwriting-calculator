@@ -2,19 +2,19 @@
 SAMPLE – FICTIONAL – FOR TESTING ONLY
 
 Property,Tenant Code,Tenant,Date,Type,Charge Code,Description,Amount
-mf1-01,t0001003,Desert Sky Fitness Studio,2026-08-01,Charge,rent,Base rent,3145
-mf1-01,t0001003,Desert Sky Fitness Studio,2026-08-05,Payment,rent,Payment received,-3145
-mf1-01,t0001003,Desert Sky Fitness Studio,2026-09-01,Charge,rent,Base rent,3145
-mf1-01,t0001003,Desert Sky Fitness Studio,2026-10-01,Charge,rent,Base rent,3145
-mf1-01,t0001003,Desert Sky Fitness Studio,2026-10-20,Payment,rent,Payment received,-6290
-mf1-05,t0005001,Lone Pine Builders,2026-08-01,Charge,rent,Base rent,3006.67
-mf1-05,t0005001,Lone Pine Builders,2026-08-05,Payment,rent,Payment received,-3006.67
-mf1-05,t0005001,Lone Pine Builders,2026-09-01,Charge,rent,Base rent,3006.67
-mf1-05,t0005001,Lone Pine Builders,2026-09-20,Payment,rent,Payment received,-1503.33
-mf1-05,t0005001,Lone Pine Builders,2026-10-01,Charge,rent,Base rent,3006.67
-mf1-05,t0005001,Lone Pine Builders,2026-10-20,Payment,rent,Payment received,-3006.67
-mf1-02,t0002005,Sierra Coffee Roasters,2026-08-01,Charge,rent,Base rent,3310.08
-mf1-02,t0002005,Sierra Coffee Roasters,2026-09-01,Charge,rent,Base rent,3310.08
-mf1-02,t0002005,Sierra Coffee Roasters,2026-09-20,Payment,rent,Payment received,-3310.08
-mf1-02,t0002005,Sierra Coffee Roasters,2026-10-01,Charge,rent,Base rent,3310.08
-mf1-02,t0002005,Sierra Coffee Roasters,2026-10-20,Payment,rent,Payment received,-3310.08
+mf1-01,t0001003,Desert Sky Fitness Studio,2026-08-01,Charge,rent,Base rent,3111.67
+mf1-01,t0001003,Desert Sky Fitness Studio,2026-08-05,Payment,rent,Payment received,-3111.67
+mf1-01,t0001003,Desert Sky Fitness Studio,2026-09-01,Charge,rent,Base rent,3111.67
+mf1-01,t0001003,Desert Sky Fitness Studio,2026-10-01,Charge,rent,Base rent,3111.67
+mf1-01,t0001003,Desert Sky Fitness Studio,2026-10-20,Payment,rent,Payment received,-6223.34
+mf1-05,t0005001,Lone Pine Builders,2026-08-01,Charge,rent,Base rent,2975
+mf1-05,t0005001,Lone Pine Builders,2026-08-05,Payment,rent,Payment received,-2975
+mf1-05,t0005001,Lone Pine Builders,2026-09-01,Charge,rent,Base rent,2975
+mf1-05,t0005001,Lone Pine Builders,2026-09-20,Payment,rent,Payment received,-1487.5
+mf1-05,t0005001,Lone Pine Builders,2026-10-01,Charge,rent,Base rent,2975
+mf1-05,t0005001,Lone Pine Builders,2026-10-20,Payment,rent,Payment received,-2975
+mf1-02,t0002005,Sierra Coffee Roasters,2026-08-01,Charge,rent,Base rent,3275.58
+mf1-02,t0002005,Sierra Coffee Roasters,2026-09-01,Charge,rent,Base rent,3275.58
+mf1-02,t0002005,Sierra Coffee Roasters,2026-09-20,Payment,rent,Payment received,-3275.58
+mf1-02,t0002005,Sierra Coffee Roasters,2026-10-01,Charge,rent,Base rent,3275.58
+mf1-02,t0002005,Sierra Coffee Roasters,2026-10-20,Payment,rent,Payment received,-3275.58

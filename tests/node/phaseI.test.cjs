@@ -40,7 +40,7 @@ const pd = B.planDates([{ id: "D1", inputs: { ...af, businessPlan: withMs } }], 
 const cd = LV.criticalDates([], { milestones: pd, asOf: "2026-11-23" });
 ok(pd.length === 2 && cd.length === 2 && cd[0].kindLabel === "Business plan milestone" && cd[0].status === "past", "open milestones on Critical dates (late one red)");
 // Actuals from the sample income statement
-const parsed = B.parseIncomeStatement(parseCSV(fs.readFileSync(R + "/docs/sample-yardi/income-statement-2026.csv", "utf8")));
+const parsed = B.parseIncomeStatement(parseCSV(fs.readFileSync(R + "/tests/fixtures/sample-yardi/income-statement-2026.csv", "utf8")));
 const map = B.matchProperties(parsed, deals.map((d, i) => ({ id: d.id ?? "D" + i, inputs: d.inputs })));
 ok(Object.keys(parsed.properties).length === 8 && !parsed.properties["mf1-09"] && Object.values(map).every(Boolean) && parsed.warnings.length === 0, "income statement: 8 properties held by October (Lakeshore acquired later), all matched, lines tie to NOI");
 ok(Object.keys(parsed.properties["mf1-02"].months)[0] === "2026-03" && Object.keys(parsed.properties["mf1-01"].months).length === 10, "months from each acquisition (Route 9 from March; Airport Flex Jan–Oct)");

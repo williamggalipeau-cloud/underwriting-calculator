@@ -11,9 +11,12 @@ const built = sp.buildSampleDeals(TEST_INPUTS);
 data.deals = data.deals.map((d) => { const b = built.find((x) => x.id === d.id); return b ? { ...d, inputs: { ...b.inputs, fundName: d.inputs.fundName } } : d; });
 data.activeDealId = "sample-deal-1";
 data.funds = { ...data.funds, "Model Fund II": { ...(data.funds?.["Model Fund I"] ?? {}) } };
-const D = R + "/docs/sample-deal-docs/deals";
+// 1.1.13: these flows read, compare and apply documents that differ from the model, so they use the
+// test-only copies (tests/fixtures/deal-docs). The documents the app loads tie to Model Fund I and are
+// checked in tests/node/sampleTieOut.test.cjs and tests/e2e/sampleSync.e2e.cjs.
+const D = R + "/tests/fixtures/deal-docs";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
-const L = (f) => JSON.parse(fs.readFileSync(`${R}/docs/sample-leases/abstracts/${f}.json`));
+const L = (f) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/sample-leases/abstracts/${f}.json`));
 const af = data.deals.find((d) => d.id === "sample-deal-1").inputs;
 const u104 = af.units.find((u) => /Desert Aero/i.test(u.tenantName ?? "")) ?? af.units[2];
 const LEASE = (n) => `00000000-0000-0000-0000-0000000000a${n}`;
@@ -68,7 +71,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   await p.waitForTimeout(1200);
   const dq = main.getByTestId("delinquency");
   for (const m of ["08", "09", "10"]) {
-    await dq.getByLabel("Upload aged receivables").setInputFiles(`${R}/docs/sample-yardi/aged-receivables-2026-${m}.csv`);
+    await dq.getByLabel("Upload aged receivables").setInputFiles(`${R}/tests/fixtures/sample-yardi/aged-receivables-2026-${m}.csv`);
     await p.waitForTimeout(600);
     const dr = main.getByTestId("delinquency-draft");
     if (m === "08") console.log("  DRAFT:", (await dr.innerText()).slice(0, 400).replace(/\s+/g, " "));
@@ -82,7 +85,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await dq.getByTestId("delinquency-trend").innerText()).includes("Sep"), "trend shows the three months");
   const tt = await dq.getByTestId("delinquency-tenants").innerText();
   check(tt.includes("Desert Sky Tool") && /Harbor Light/.test(dqt), "tenant table lists Ridgeway's and Harbor Light's tenants");
-  await dq.getByLabel("Upload tenant ledger").setInputFiles(`${R}/docs/sample-yardi/tenant-ledger.csv`);
+  await dq.getByLabel("Upload tenant ledger").setInputFiles(`${R}/tests/fixtures/sample-yardi/tenant-ledger.csv`);
   await p.waitForTimeout(800);
   const col = await dq.getByTestId("collections").innerText().catch(() => "");
   check(col.includes("Route 9") && col.includes("66.7"), "collections from the tenant ledger (Route 9 66.7%)");

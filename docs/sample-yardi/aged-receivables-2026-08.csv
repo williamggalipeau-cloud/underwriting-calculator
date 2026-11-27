@@ -2,9 +2,9 @@ Aged Receivables Report as of 8/31/2026
 "SAMPLE – FICTIONAL – FOR TESTING ONLY (generic layout, not a Yardi template)"
 
 Property,Property Name,Tenant Code,Tenant,Unit,Charge Code,Current,0-30,31-60,61-90,91-180,Over 180,Prepayments,Total
-mf1-02,Route 9 Small Bay,t0002005,Sierra Coffee Roasters,005,rent,0,3310.08,0,0,0,0,0,3310.08
-mf1-03,Harbor Light Industrial,t0003002,Summit Equipment Rental,002,rent,0,3303.75,3303.75,0,0,0,0,6607.5
-mf1-04,Ridgeway Trade Center,t0004004,Desert Sky Tool & Die,004,rent,0,0,0,0,8364.99,2788.33,0,11153.32
-mf1-06,Mill Creek Business Park,t0006003,Summit Signs & Graphics,003,rent,0,0,0,0,0,0,-3230.63,-3230.63
-mf1-07,Southpoint Flex,t0007002,Cedar Ridge Plumbing Supply,002,cam,0,718.38,0,0,0,0,0,718.38
-mf1-09,Lakeshore Service Center,t0009001,Blue Mesa Collision Center,001,rent,2869.17,0,0,0,0,0,0,2869.17
+mf1-02,Route 9 Small Bay,t0002005,Sierra Coffee Roasters,005,rent,0,3275.58,0,0,0,0,0,3275.58
+mf1-03,Harbor Light Industrial,t0003002,Summit Equipment Rental,002,rent,0,3270,3270,0,0,0,0,6540
+mf1-04,Ridgeway Trade Center,t0004004,Desert Sky Tool & Die,004,rent,0,0,0,0,8280,2760,0,11040
+mf1-06,Mill Creek Business Park,t0006003,Summit Signs & Graphics,003,rent,0,0,0,0,0,0,-3196.88,-3196.88
+mf1-07,Southpoint Flex,t0007002,Cedar Ridge Plumbing Supply,002,cam,0,710.94,0,0,0,0,0,710.94
+mf1-09,Lakeshore Service Center,t0009001,Blue Mesa Collision Center,001,rent,2838,0,0,0,0,0,0,2838

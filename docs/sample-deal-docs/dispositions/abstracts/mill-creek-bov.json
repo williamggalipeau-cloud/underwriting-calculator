@@ -1,7 +1,7 @@
 {
  "doc_type": "bov",
  "title": "Mill Creek Business Park BOV",
- "summary": "Example Northwest Capital Markets values Mill Creek Business Park at $17,200,000–$18,300,000, most likely $17,800,000, and recommends listing at $18,200,000.",
+ "summary": "Example Northwest Capital Markets values Mill Creek Business Park at $14,950,000–$15,850,000, most likely $15,400,000, and recommends listing at $15,850,000.",
  "fields": [
   {
    "key": "broker",
@@ -9,7 +9,7 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "Prepared by Example Northwest Capital Markets for Model Fund I Mill Creek LLC.",
+     "quote": "Prepared by Example Northwest Capital Markets for Model Fund I — Mill Creek LLC.",
      "page": 1
     }
    ]
@@ -27,66 +27,66 @@
   },
   {
    "key": "value_low",
-   "value": "$17,200,000",
+   "value": "$14,950,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Mill Creek Business Park at between $17,200,000 and $18,300,000.",
+     "quote": "We estimate the market value of Mill Creek Business Park at between $14,950,000 and $15,850,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_mid",
-   "value": "$17,800,000",
+   "value": "$15,400,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Our most likely value is $17,800,000.",
+     "quote": "Our most likely value is $15,400,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_high",
-   "value": "$18,300,000",
+   "value": "$15,850,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Mill Creek Business Park at between $17,200,000 and $18,300,000.",
+     "quote": "We estimate the market value of Mill Creek Business Park at between $14,950,000 and $15,850,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "price_psf",
-   "value": "356",
+   "value": "308",
    "status": "found",
    "evidence": [
     {
-     "quote": "That value is $356 per square foot.",
+     "quote": "That value is $308 per square foot.",
      "page": 1
     }
    ]
   },
   {
    "key": "cap_rate",
-   "value": "5.75%",
+   "value": "5.95%",
    "status": "found",
    "evidence": [
     {
-     "quote": "The most likely value reflects a 5.75% cap rate on in-place net operating income.",
+     "quote": "The most likely value reflects a 5.95% cap rate on in-place net operating income.",
      "page": 1
     }
    ]
   },
   {
    "key": "list_price",
-   "value": "$18,200,000",
+   "value": "$15,850,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We recommend a list price of $18,200,000.",
+     "quote": "We recommend a list price of $15,850,000.",
      "page": 1
     }
    ]

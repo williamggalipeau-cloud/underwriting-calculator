@@ -2,11 +2,11 @@ Aged Receivables Report as of 10/31/2026
 "SAMPLE – FICTIONAL – FOR TESTING ONLY (generic layout, not a Yardi template)"
 
 Property,Property Name,Tenant Code,Tenant,Unit,Charge Code,Current,0-30,31-60,61-90,91-180,Over 180,Prepayments,Total
-mf1-02,Route 9 Small Bay,t0002005,Sierra Coffee Roasters,005,rent,0,3310.08,3310.08,0,0,0,0,6620.16
-mf1-03,Harbor Light Industrial,t0003002,Summit Equipment Rental,002,rent,0,3303.75,3303.75,3303.75,3303.75,0,0,13215
-mf1-04,Ridgeway Trade Center,t0004004,Desert Sky Tool & Die,004,rent,0,0,0,0,8364.99,8364.99,0,16729.98
-mf1-05,Canal Street Workshops,t0005001,Lone Pine Builders,001,rent,0,1503.34,0,0,0,0,0,1503.34
-mf1-06,Mill Creek Business Park,t0006003,Summit Signs & Graphics,003,rent,0,0,0,0,0,0,-6461.26,-6461.26
-mf1-07,Southpoint Flex,t0007002,Cedar Ridge Plumbing Supply,002,cam,0,0,718.38,718.38,0,0,0,1436.76
-mf1-08,Granite Ave Industrial,t0008006,Prairie Woodworks,006,rent,0,3180.21,0,0,0,0,0,3180.21
-mf1-09,Lakeshore Service Center,t0009001,Blue Mesa Collision Center,001,rent,2869.17,0,0,0,0,0,0,2869.17
+mf1-02,Route 9 Small Bay,t0002005,Sierra Coffee Roasters,005,rent,0,3275.58,3275.58,0,0,0,0,6551.16
+mf1-03,Harbor Light Industrial,t0003002,Summit Equipment Rental,002,rent,0,3270,3270,3270,3270,0,0,13080
+mf1-04,Ridgeway Trade Center,t0004004,Desert Sky Tool & Die,004,rent,0,0,0,0,8280,8280,0,16560
+mf1-05,Canal Street Workshops,t0005001,Lone Pine Builders,001,rent,0,1487.5,0,0,0,0,0,1487.5
+mf1-06,Mill Creek Business Park,t0006003,Summit Signs & Graphics,003,rent,0,0,0,0,0,0,-6393.76,-6393.76
+mf1-07,Southpoint Flex,t0007002,Cedar Ridge Plumbing Supply,002,cam,0,0,710.94,710.94,0,0,0,1421.88
+mf1-08,Granite Ave Industrial,t0008006,Prairie Woodworks,006,rent,0,3146.17,0,0,0,0,0,3146.17
+mf1-09,Lakeshore Service Center,t0009001,Blue Mesa Collision Center,001,rent,2838,0,0,0,0,0,0,2838

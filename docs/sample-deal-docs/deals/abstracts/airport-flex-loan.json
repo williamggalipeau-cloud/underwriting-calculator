@@ -1,15 +1,15 @@
 {
  "doc_type": "loan",
  "title": "Airport Flex Park loan agreement",
- "summary": "$4,980,000 floating-rate loan from Fictional Bank at Term SOFR + 2.00% (0.50% floor), maturing January 30, 2029 with two 1-year extensions; rate cap, DSCR 1.30x, debt yield 8.50% and 70% LTV covenants.",
+ "summary": "$4,980,000 floating-rate loan from Desert Mountain Bank at Term SOFR + 2.00% (0.50% floor), maturing January 30, 2029 with 2 1-year extensions; rate cap and a 1.25x DSCR covenant.",
  "fields": [
   {
    "key": "lender",
-   "value": "Fictional Bank, N.A.",
+   "value": "Desert Mountain Bank",
    "status": "found",
    "evidence": [
     {
-     "quote": "This Loan Agreement is made as of January 30, 2026 between Fictional Bank, N.A. (Lender) and the Borrower, the owner of Airport Flex Park.",
+     "quote": "This Loan Agreement is made as of January 30, 2026 between Desert Mountain Bank (Lender) and the Borrower, the owner of Airport Flex Park.",
      "page": 1
     }
    ],
@@ -21,7 +21,7 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "This Loan Agreement is made as of January 30, 2026 between Fictional Bank, N.A. (Lender) and the Borrower, the owner of Airport Flex Park.",
+     "quote": "This Loan Agreement is made as of January 30, 2026 between Desert Mountain Bank (Lender) and the Borrower, the owner of Airport Flex Park.",
      "page": 1
     }
    ],
@@ -137,11 +137,11 @@
   },
   {
    "key": "extension_conditions",
-   "value": "Notice at least 60 days before maturity, DSCR of at least 1.30x and a replacement rate cap",
+   "value": "Notice at least 60 days before maturity, DSCR of at least 1.25x and a replacement rate cap",
    "status": "found",
    "evidence": [
     {
-     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
+     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.25x and a replacement rate cap.",
      "page": 1
     }
    ],
@@ -221,35 +221,11 @@
   },
   {
    "key": "dscr_covenant",
-   "value": "1.30x",
+   "value": "1.25x",
    "status": "found",
    "evidence": [
     {
-     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
-     "page": 1
-    }
-   ],
-   "clause": "4"
-  },
-  {
-   "key": "debt_yield_covenant",
-   "value": "8.50%",
-   "status": "found",
-   "evidence": [
-    {
-     "quote": "Borrower shall maintain a debt yield of not less than 8.50%.",
-     "page": 1
-    }
-   ],
-   "clause": "4"
-  },
-  {
-   "key": "ltv_covenant",
-   "value": "70%",
-   "status": "found",
-   "evidence": [
-    {
-     "quote": "The loan-to-value ratio shall not exceed 70%.",
+     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.25x, tested quarterly on the trailing three months annualized.",
      "page": 1
     }
    ],
@@ -261,7 +237,7 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.30x, tested quarterly on the trailing three months annualized.",
+     "quote": "Borrower shall maintain a debt service coverage ratio of not less than 1.25x, tested quarterly on the trailing three months annualized.",
      "page": 1
     }
    ],
@@ -293,11 +269,11 @@
   },
   {
    "key": "reserves",
-   "value": "Monthly tax and insurance escrows; $50,000 TI and leasing reserve at closing",
+   "value": "Monthly tax and insurance escrows",
    "status": "found",
    "evidence": [
     {
-     "quote": "Borrower shall fund monthly tax and insurance escrows and a $50,000 tenant improvement and leasing reserve at closing.",
+     "quote": "Borrower shall fund monthly tax and insurance escrows.",
      "page": 1
     }
    ],
@@ -341,7 +317,7 @@
    "calculation": "January 30, 2029 − 60 days = December 1, 2028",
    "evidence": [
     {
-     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.30x and a replacement rate cap.",
+     "quote": "Each extension requires written notice at least 60 days before the then Maturity Date, a debt service coverage ratio of at least 1.25x and a replacement rate cap.",
      "page": 1
     }
    ]

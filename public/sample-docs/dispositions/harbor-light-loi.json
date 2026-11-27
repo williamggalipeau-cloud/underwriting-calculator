@@ -1,7 +1,7 @@
 {
  "doc_type": "offer_letter",
  "title": "Harbor Light Industrial LOI from Fictional Pacific Industrial Fund II",
- "summary": "Fictional Pacific Industrial Fund II offers $11,500,000 for Harbor Light Industrial with a $250,000 deposit and 45-day due diligence.",
+ "summary": "Fictional Pacific Industrial Fund II offers $10,050,000 for Harbor Light Industrial with a $200,000 deposit and 45-day due diligence.",
  "fields": [
   {
    "key": "loi_date",
@@ -27,33 +27,33 @@
   },
   {
    "key": "seller",
-   "value": "Model Fund I Harbor Light LLC",
+   "value": "Model Fund I — Pier Junction LLC",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Seller is Model Fund I Harbor Light LLC.",
+     "quote": "The Seller is Model Fund I — Pier Junction LLC.",
      "page": 1
     }
    ]
   },
   {
    "key": "purchase_price",
-   "value": "$11,500,000",
+   "value": "$10,050,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Purchase Price is $11,500,000.",
+     "quote": "The Purchase Price is $10,050,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "deposit",
-   "value": "$250,000",
+   "value": "$200,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Buyer will deliver an initial deposit of $250,000 within three business days of a signed purchase agreement.",
+     "quote": "Buyer will deliver an initial deposit of $200,000 within three business days of a signed purchase agreement.",
      "page": 1
     }
    ]

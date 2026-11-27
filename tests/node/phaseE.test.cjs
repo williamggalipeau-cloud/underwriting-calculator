@@ -3,9 +3,13 @@ const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const T = j(R + "/lib/dealDocTypes.js"); const A = j(R + "/lib/dealDocApply.js"); const V = j(R + "/lib/leaseViews.js");
 const c = j(R + "/lib/calculations.js"); const sp = j(R + "/lib/samplePortfolio.js"); const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
 let fail = 0; const ok = (cnd, m) => { console.log((cnd ? "PASS " : "FAIL ") + m); if (!cnd) fail++; };
-const D = R + "/docs/sample-deal-docs/deals";
+const D = R + "/tests/fixtures/deal-docs"; // the pre-1.1.13 copies: they differ from the model on purpose
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
-const doc = (n, extra = {}) => { const a = abs(n); return { id: "doc-" + n, doc_type: a.doc_type, deal_id: "D", fund_name: "Model Fund I", title: a.title, abstract: a, applied_fields: {}, ...extra }; };
+// 1.1.13: `abs` is the sample document as generated (it ties to Model Fund I: sampleTieOut.test.cjs)
+// and is used for the check against the PDF. The compare / apply tests below need documents that
+// differ from the model, so `doc` reads the test-only copies in tests/fixtures/deal-docs.
+const fx = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/deal-docs/abstracts/${n}.json`));
+const doc = (n, extra = {}) => { const a = fx(n); return { id: "doc-" + n, doc_type: a.doc_type, deal_id: "D", fund_name: "Model Fund I", title: a.title, abstract: a, applied_fields: {}, ...extra }; };
 const asOf = "2026-11-22";
 
 // Local check against the PDF text, for every sample
@@ -69,16 +73,16 @@ ok(c.underwrite(r9).returns.exitValue !== 14850000, "without a realized sale the
 
 // Rent roll
 const mk = (name, sf) => ({ id: "new-" + name, name, squareFeet: sf, leaseStatus: "occupied", currentRentPSF: 0, monthsRemaining: 12, newLeaseTerm: 24, renewalProbabilityPct: 60, leaseType: "NNN" });
-const rd = A.rentRollDiff(abs("airport-flex-rent-roll"), af.units, af, mk);
+const rd = A.rentRollDiff(fx("airport-flex-rent-roll"), af.units, af, mk);
 ok(rd.added.length === 1 && rd.added[0].tenantName === "Desert Aero Parts LLC" && rd.added[0].sicCode, `rent roll: Desert Aero is new (SIC ${rd.added[0].sicCode})`);
 ok(rd.changed.length >= 1 && rd.removed.length === af.units.length - 3, `changed ${rd.changed.length}, not in document ${rd.removed.length}`);
-const merge = A.applyRentRoll(abs("airport-flex-rent-roll"), af.units, af, mk, "merge");
-const repl = A.applyRentRoll(abs("airport-flex-rent-roll"), af.units, af, mk, "replace");
+const merge = A.applyRentRoll(fx("airport-flex-rent-roll"), af.units, af, mk, "merge");
+const repl = A.applyRentRoll(fx("airport-flex-rent-roll"), af.units, af, mk, "replace");
 ok(merge.units.length === af.units.length + 1 && repl.units.length === 4, `merge keeps the rest (${merge.units.length}); replace leaves the document's 4`);
 ok(repl.entries.some((e) => e.field === "Unit removed") && merge.entries.every((e) => e.field !== "Unit removed"), "change-log entries per unit");
 
 // Insurance
-const lease02 = JSON.parse(fs.readFileSync(R + "/docs/sample-leases/abstracts/02-airport-flex-park-desert-aero.json"));
+const lease02 = JSON.parse(fs.readFileSync(R + "/tests/fixtures/sample-leases/abstracts/02-airport-flex-park-desert-aero.json"));
 const req = A.leaseInsuranceRequirements(lease02);
 ok(req.cglOccurrence === 1000000 && req.cglAggregate === 2000000 && req.umbrella === 2000000 && req.auto === 1000000 && req.workersComp && req.waiver, "lease insurance requirements parsed");
 const tg = A.insuranceGaps(abs("airport-flex-insurance-desert-aero"), { leaseAbs: lease02, asOf });

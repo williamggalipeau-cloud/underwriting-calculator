@@ -1,0 +1,800 @@
+{
+ "asOf": "2026-11-27",
+ "deals": {
+  "sample-deal-1": [
+   [
+    "loanCovenants.dscr",
+    1.25
+   ],
+   [
+    "loanCovenants.testing",
+    "Quarterly on the trailing three months annualized"
+   ],
+   [
+    "loanCovenants.cure",
+    "Within 10 business days by a principal paydown or a cash collateral deposit"
+   ],
+   [
+    "yearBuilt",
+    1998
+   ],
+   [
+    "dealTerms.deposit",
+    150000
+   ],
+   [
+    "dealTerms.ddDays",
+    45
+   ],
+   [
+    "dealTerms.closingDays",
+    30
+   ],
+   [
+    "dealTerms.financingContingency",
+    "None"
+   ],
+   [
+    "dealTerms.loiDate",
+    "2025-10-20"
+   ],
+   [
+    "dealTerms.additionalDeposit",
+    100000
+   ],
+   [
+    "dealTerms.depositHardDate",
+    "2025-12-29"
+   ],
+   [
+    "dealTerms.ddExpiry",
+    "2025-12-29"
+   ],
+   [
+    "dealTerms.closingDate",
+    "2026-01-30"
+   ],
+   [
+    "dealTerms.repsSurvivalMonths",
+    9
+   ],
+   [
+    "dealTerms.repsCap",
+    216000
+   ],
+   [
+    "dealTerms.psaDate",
+    "2025-11-14"
+   ],
+   [
+    "actualBasis.loanProceeds",
+    4980000
+   ],
+   [
+    "actualBasis.equityFunded",
+    2424250
+   ],
+   [
+    "actualBasis.sellerCredits",
+    45000
+   ],
+   [
+    "actualBasis.prorations",
+    12350
+   ],
+   [
+    "actualBasis.depositsTransferred",
+    26400
+   ],
+   [
+    "loanAmountActual",
+    4980000
+   ],
+   [
+    "loanTerms.floorPct",
+    0.5
+   ],
+   [
+    "loanTerms.maturityDate",
+    "2029-01-30"
+   ],
+   [
+    "loanTerms.lender",
+    "Desert Mountain Bank"
+   ],
+   [
+    "loanTerms.capMaxStrikePct",
+    4
+   ],
+   [
+    "loanTerms.capMinRating",
+    "A"
+   ],
+   [
+    "loanTerms.capReplacementDays",
+    30
+   ],
+   [
+    "loanTerms.prepayment",
+    "In whole after 12 months; 1% exit fee before then"
+   ],
+   [
+    "loanTerms.reserves",
+    "Monthly tax and insurance escrows"
+   ],
+   [
+    "loanTerms.reporting",
+    "Quarterly within 45 days; annual within 120 days"
+   ],
+   [
+    "executedCaps",
+    [
+     {
+      "holdYear": 1,
+      "provider": "Atlas Derivatives Bank",
+      "rating": "A+",
+      "strikePct": 3.91,
+      "effective": "2026-01-30",
+      "termination": "2027-01-30",
+      "notional": 4980000,
+      "premium": 27858,
+      "index": "1-month Term SOFR",
+      "tradeDate": "2026-01-26"
+     }
+    ]
+   ],
+   [
+    "icApproved.doc",
+    "Airport Flex Park final IC memo"
+   ],
+   [
+    "icApproved.approval_date",
+    "2025-12-18"
+   ],
+   [
+    "icApproved.approvers",
+    "A. Sample, B. Example and C. Placeholder"
+   ],
+   [
+    "icApproved.price",
+    7200000
+   ],
+   [
+    "icApproved.total_cost",
+    7788000
+   ],
+   [
+    "icApproved.loan",
+    4980000
+   ],
+   [
+    "icApproved.equity",
+    2835858
+   ],
+   [
+    "icApproved.noi1",
+    462176
+   ],
+   [
+    "icApproved.going_in_cap",
+    6.42
+   ],
+   [
+    "icApproved.exit_cap",
+    6.75
+   ],
+   [
+    "icApproved.irr",
+    31
+   ],
+   [
+    "icApproved.multiple",
+    2.91
+   ],
+   [
+    "icApproved.hold_years",
+    4
+   ],
+   [
+    "icApproved.capex",
+    300000
+   ],
+   [
+    "icConditions",
+    [
+     {
+      "id": "c1",
+      "text": "Phase I environmental report with no recognized environmental conditions",
+      "deadline": "2026-01-15",
+      "done": false
+     },
+     {
+      "id": "c2",
+      "text": "Lender term sheet at 65% LTV or better",
+      "deadline": "2026-01-10",
+      "done": false
+     },
+     {
+      "id": "c3",
+      "text": "Tenant estoppels from at least 75% of leased square feet",
+      "deadline": "2026-01-20",
+      "done": false
+     },
+     {
+      "id": "c4",
+      "text": "Asset management plan presented to the Committee",
+      "deadline": "2026-04-30",
+      "done": false
+     }
+    ]
+   ]
+  ],
+  "sample-deal-2": [
+   [
+    "loanCovenants.dscr",
+    1.25
+   ],
+   [
+    "loanCovenants.testing",
+    "Quarterly on the trailing three months annualized"
+   ],
+   [
+    "loanCovenants.cure",
+    "Within 10 business days by a principal paydown or a cash collateral deposit"
+   ],
+   [
+    "loanAmountActual",
+    9125000
+   ],
+   [
+    "loanTerms.floorPct",
+    0.5
+   ],
+   [
+    "loanTerms.maturityDate",
+    "2029-03-16"
+   ],
+   [
+    "loanTerms.lender",
+    "Cascade Commercial Bank"
+   ],
+   [
+    "loanTerms.capMaxStrikePct",
+    4
+   ],
+   [
+    "loanTerms.capMinRating",
+    "A"
+   ],
+   [
+    "loanTerms.capReplacementDays",
+    30
+   ],
+   [
+    "loanTerms.prepayment",
+    "In whole after 12 months; 1% exit fee before then"
+   ],
+   [
+    "loanTerms.reserves",
+    "Monthly tax and insurance escrows"
+   ],
+   [
+    "loanTerms.reporting",
+    "Quarterly within 45 days; annual within 120 days"
+   ],
+   [
+    "executedCaps",
+    [
+     {
+      "holdYear": 1,
+      "provider": "Atlas Derivatives Bank",
+      "rating": "A+",
+      "strikePct": 3.91,
+      "effective": "2026-03-16",
+      "termination": "2027-03-16",
+      "notional": 9125000,
+      "premium": 51045,
+      "index": "1-month Term SOFR",
+      "tradeDate": "2026-03-12"
+     }
+    ]
+   ],
+   [
+    "dispositions",
+    [
+     {
+      "id": "sample-sale-2",
+      "scope": "whole",
+      "unitIds": [],
+      "reason": "plan_complete",
+      "targetPrice": 13700000,
+      "targetCapPct": null,
+      "targetClose": "",
+      "stage": "contract",
+      "withdrawnReason": "",
+      "bovs": [
+       {
+        "id": "sample-bov-2-1",
+        "broker": "Fictional Industrial Advisors",
+        "price": 13280000,
+        "capPct": 6.02,
+        "feePct": 1.25,
+        "notes": "Value range $12,900,000–$13,700,000; list $13,700,000; $316/SF; eight weeks; BOV dated 2026-11-02",
+        "docId": null
+       }
+      ],
+      "brokerChosen": "",
+      "listing": {
+       "feePct": null,
+       "termMonths": null,
+       "exclusions": ""
+      },
+      "marketing": {
+       "casSigned": 0,
+       "tours": 0,
+       "callForOffers": ""
+      },
+      "contract": {
+       "psaDate": "2026-11-20",
+       "deposit": 500000,
+       "depositDue": "",
+       "hardDate": "2026-12-21",
+       "ddStart": "",
+       "ddDeadline": "2026-12-21",
+       "loanClosing": "",
+       "closingDate": "2027-01-20",
+       "priceLog": [],
+       "docId": null
+      },
+      "closing": null,
+      "offers": [
+       {
+        "id": "sample-offer-2-1",
+        "buyer": "Example Logistics REIT",
+        "buyerType": "Private investor",
+        "broker": "",
+        "date": "2026-11-06",
+        "round": "initial",
+        "price": 13150000,
+        "deposit": 250000,
+        "ddDays": 30,
+        "closingDays": 30,
+        "financingContingency": false,
+        "notes": "",
+        "selected": true,
+        "docId": null,
+        "history": []
+       }
+      ],
+      "startedFrom": "Sample sale (fictional)",
+      "createdAt": "2026-11-27T12:00:00.000Z"
+     }
+    ]
+   ]
+  ],
+  "sample-deal-3": [
+   [
+    "dispositions",
+    [
+     {
+      "id": "sample-sale-3",
+      "scope": "whole",
+      "unitIds": [],
+      "reason": "plan_complete",
+      "targetPrice": 10450000,
+      "targetCapPct": null,
+      "targetClose": "",
+      "stage": "offers",
+      "withdrawnReason": "",
+      "bovs": [
+       {
+        "id": "sample-bov-3-1",
+        "broker": "Sample Coastal Brokerage",
+        "price": 10150000,
+        "capPct": 6.43,
+        "feePct": 1,
+        "notes": "Value range $9,850,000–$10,450,000; list $10,450,000; $282/SF; ten weeks; BOV dated 2026-11-02",
+        "docId": null
+       }
+      ],
+      "brokerChosen": "",
+      "listing": {
+       "feePct": null,
+       "termMonths": null,
+       "exclusions": ""
+      },
+      "marketing": {
+       "casSigned": 0,
+       "tours": 0,
+       "callForOffers": ""
+      },
+      "contract": {
+       "psaDate": "",
+       "deposit": null,
+       "depositDue": "",
+       "hardDate": "",
+       "ddStart": "",
+       "ddDeadline": "",
+       "loanClosing": "",
+       "closingDate": "",
+       "priceLog": []
+      },
+      "closing": null,
+      "offers": [
+       {
+        "id": "sample-offer-3-1",
+        "buyer": "Fictional Pacific Industrial Fund II",
+        "buyerType": "Private investor",
+        "broker": "",
+        "date": "2026-11-12",
+        "round": "initial",
+        "price": 10050000,
+        "deposit": 200000,
+        "ddDays": 45,
+        "closingDays": 30,
+        "financingContingency": true,
+        "notes": "",
+        "selected": false,
+        "docId": null,
+        "history": []
+       }
+      ],
+      "startedFrom": "Sample sale (fictional)",
+      "createdAt": "2026-11-27T12:00:00.000Z"
+     }
+    ]
+   ]
+  ],
+  "sample-deal-6": [
+   [
+    "dispositions",
+    [
+     {
+      "id": "sample-sale-6",
+      "scope": "whole",
+      "unitIds": [],
+      "reason": "plan_complete",
+      "targetPrice": 15850000,
+      "targetCapPct": null,
+      "targetClose": "",
+      "stage": "offers",
+      "withdrawnReason": "",
+      "bovs": [
+       {
+        "id": "sample-bov-6-1",
+        "broker": "Example Northwest Capital Markets",
+        "price": 15400000,
+        "capPct": 5.95,
+        "feePct": 1.1,
+        "notes": "Value range $14,950,000–$15,850,000; list $15,850,000; $308/SF; eight weeks; BOV dated 2026-11-02",
+        "docId": null
+       }
+      ],
+      "brokerChosen": "",
+      "listing": {
+       "feePct": null,
+       "termMonths": null,
+       "exclusions": ""
+      },
+      "marketing": {
+       "casSigned": 0,
+       "tours": 0,
+       "callForOffers": ""
+      },
+      "contract": {
+       "psaDate": "",
+       "deposit": null,
+       "depositDue": "",
+       "hardDate": "",
+       "ddStart": "",
+       "ddDeadline": "",
+       "loanClosing": "",
+       "closingDate": "",
+       "priceLog": []
+      },
+      "closing": null,
+      "offers": [
+       {
+        "id": "sample-offer-6-1",
+        "buyer": "Demo Flex Owners LLC",
+        "buyerType": "Private investor",
+        "broker": "",
+        "date": "2026-11-18",
+        "round": "initial",
+        "price": 15250000,
+        "deposit": 300000,
+        "ddDays": 30,
+        "closingDays": 45,
+        "financingContingency": false,
+        "notes": "",
+        "selected": false,
+        "docId": null,
+        "history": []
+       }
+      ],
+      "startedFrom": "Sample sale (fictional)",
+      "createdAt": "2026-11-27T12:00:00.000Z"
+     }
+    ]
+   ]
+  ]
+ },
+ "units": {
+  "sample-deal-1": {
+   "005": {
+    "tenant": "Blue Mesa Fulfillment",
+    "set": {
+     "leaseStart": "2022-05-01",
+     "securityDeposit": 2990,
+     "recoveries": "Triple net (NNN); tenant's share 8.33%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-2": {
+   "005": {
+    "tenant": "Sierra Coffee Roasters",
+    "set": {
+     "leaseStart": "2022-03-17",
+     "securityDeposit": 2997.67,
+     "recoveries": "Triple net (NNN); tenant's share 5.48%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-3": {
+   "005": {
+    "tenant": "Copper Canyon Tile & Stone",
+    "set": {
+     "leaseStart": "2022-05-31",
+     "recoveries": "Triple net (NNN); tenant's share 6.25%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-4": {
+   "005": {
+    "tenant": "Riverbend Flooring",
+    "set": {
+     "leaseStart": "2022-08-16",
+     "securityDeposit": 2586.67,
+     "recoveries": "Triple net (NNN); tenant's share 7.14%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-5": {
+   "005": {
+    "tenant": "Prairie Glass & Glazing",
+    "set": {
+     "leaseStart": "2023-03-16",
+     "securityDeposit": 3010,
+     "recoveries": "Triple net (NNN); tenant's share 11.11%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-6": {
+   "005": {
+    "tenant": "Harbor Precision Machining",
+    "set": {
+     "leaseStart": "2022-07-15",
+     "securityDeposit": 2981.25,
+     "recoveries": "Triple net (NNN); tenant's share 4.50%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-7": {
+   "005": {
+    "tenant": "Desert Sky Print Shop",
+    "set": {
+     "leaseStart": "2024-10-31",
+     "recoveries": "Triple net (NNN); tenant's share 6.56%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-8": {
+   "005": {
+    "tenant": "Granite Courier",
+    "set": {
+     "leaseStart": "2023-01-16",
+     "securityDeposit": 3182,
+     "recoveries": "Triple net (NNN); tenant's share 8.27%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-9": {
+   "005": {
+    "tenant": "Bayline Auto Parts",
+    "set": {
+     "leaseStart": "2022-11-14",
+     "securityDeposit": 2871,
+     "recoveries": "Triple net (NNN); tenant's share 5.50%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  }
+ },
+ "fund": [
+  [
+   "limits",
+   [
+    {
+     "key": "single_asset_pct",
+     "label": "Single investment, % of commitments",
+     "limit": 20,
+     "unit": "%",
+     "basis": "",
+     "clause": "6.2(a)",
+     "evidence": [
+      {
+       "quote": "Section 6.2(a): No single Investment may exceed 20% of Aggregate Commitments.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.2(a): No single Investment may exceed 20% of Aggregate Commitments."
+    },
+    {
+     "key": "single_tenant_pct",
+     "label": "Single tenant, % of base rent",
+     "limit": 10,
+     "unit": "%",
+     "basis": "",
+     "clause": "6.2(b)",
+     "evidence": [
+      {
+       "quote": "Section 6.2(b): No single tenant may account for more than 10% of the Partnership's aggregate base rent.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.2(b): No single tenant may account for more than 10% of the Partnership's aggregate base rent."
+    },
+    {
+     "key": "state_pct",
+     "label": "Single state, % of gross asset value",
+     "limit": 35,
+     "unit": "%",
+     "basis": "",
+     "clause": "6.2(c)",
+     "evidence": [
+      {
+       "quote": "Section 6.2(c): Investments in any one state may not exceed 35% of aggregate gross asset value.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.2(c): Investments in any one state may not exceed 35% of aggregate gross asset value."
+    },
+    {
+     "key": "metro_pct",
+     "label": "Single metro, % of gross asset value",
+     "limit": 25,
+     "unit": "%",
+     "basis": "",
+     "clause": "6.2(d)",
+     "evidence": [
+      {
+       "quote": "Section 6.2(d): Investments in any one metropolitan area may not exceed 25% of aggregate gross asset value.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.2(d): Investments in any one metropolitan area may not exceed 25% of aggregate gross asset value."
+    },
+    {
+     "key": "property_type",
+     "label": "Permitted property types",
+     "limit": "Industrial and flex",
+     "unit": "text",
+     "basis": "",
+     "clause": "6.2(e)",
+     "evidence": [
+      {
+       "quote": "Section 6.2(e): The Partnership invests only in industrial and flex properties.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.2(e): The Partnership invests only in industrial and flex properties."
+    },
+    {
+     "key": "non_core_pct",
+     "label": "Development / non-core, % of commitments",
+     "limit": 15,
+     "unit": "%",
+     "basis": "",
+     "clause": "6.2(f)",
+     "evidence": [
+      {
+       "quote": "Section 6.2(f): Development and other non-core Investments may not exceed 15% of Aggregate Commitments.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.2(f): Development and other non-core Investments may not exceed 15% of Aggregate Commitments."
+    },
+    {
+     "key": "fund_ltv_pct",
+     "label": "Aggregate leverage, % of gross asset value",
+     "limit": 65,
+     "unit": "%",
+     "basis": "",
+     "clause": "6.3(a)",
+     "evidence": [
+      {
+       "quote": "Section 6.3(a): Aggregate leverage may not exceed 65% of aggregate gross asset value.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.3(a): Aggregate leverage may not exceed 65% of aggregate gross asset value."
+    },
+    {
+     "key": "asset_ltv_pct",
+     "label": "Single-investment leverage",
+     "limit": 75,
+     "unit": "%",
+     "basis": "",
+     "clause": "6.3(b)",
+     "evidence": [
+      {
+       "quote": "Section 6.3(b): Leverage on any single Investment may not exceed 75% of its value.",
+       "page": 1
+      }
+     ],
+     "quote": "Section 6.3(b): Leverage on any single Investment may not exceed 75% of its value."
+    }
+   ]
+  ]
+ ],
+ "marks": {
+  "sample-deal-1": {
+   "2026-09-30": {
+    "source": "appraisal",
+    "appraiser": "Fictional Valuation Advisors, MAI",
+    "notes": "From appraisal (Airport Flex Park appraisal September 30, 2026), effective 2026-09-30"
+   }
+  },
+  "sample-deal-2": {
+   "2026-09-30": {
+    "source": "appraisal",
+    "appraiser": "Example Appraisal Group, MAI",
+    "notes": "From appraisal (Route 9 Small Bay appraisal September 30, 2026), effective 2026-09-30"
+   }
+  }
+ }
+}

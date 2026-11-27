@@ -1,7 +1,7 @@
 {
  "doc_type": "loi",
  "title": "Airport Flex Park LOI",
- "summary": "Non-binding LOI at $7,350,000 with a $150,000 deposit, 45 days of due diligence and closing 30 days later, no financing contingency.",
+ "summary": "Non-binding LOI at $7,200,000 with a $150,000 deposit, 45 days of due diligence and closing 30 days later, no financing contingency.",
  "fields": [
   {
    "key": "loi_date",
@@ -16,11 +16,11 @@
   },
   {
    "key": "buyer",
-   "value": "Model Fund I – Airport Flex LLC",
+   "value": "Model Fund I — Runway Vista LLC",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Buyer is Model Fund I – Airport Flex LLC and the Seller is Runway Vista Holdings LP.",
+     "quote": "The Buyer is Model Fund I — Runway Vista LLC and the Seller is Runway Vista Holdings LP.",
      "page": 1
     }
    ]
@@ -31,18 +31,18 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "The Buyer is Model Fund I – Airport Flex LLC and the Seller is Runway Vista Holdings LP.",
+     "quote": "The Buyer is Model Fund I — Runway Vista LLC and the Seller is Runway Vista Holdings LP.",
      "page": 1
     }
    ]
   },
   {
    "key": "purchase_price",
-   "value": "$7,350,000",
+   "value": "$7,200,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The purchase price is $7,350,000.",
+     "quote": "The purchase price is $7,200,000.",
      "page": 1
     }
    ]

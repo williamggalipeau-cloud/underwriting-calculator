@@ -11,9 +11,12 @@ const built = sp.buildSampleDeals(TEST_INPUTS);
 data.deals = data.deals.map((d) => { const b = built.find((x) => x.id === d.id); return b ? { ...d, inputs: { ...b.inputs, fundName: d.inputs.fundName } } : d; });
 data.activeDealId = "sample-deal-1";
 data.funds = { ...data.funds, "Model Fund II": { ...(data.funds?.["Model Fund I"] ?? {}) } };
-const D = R + "/docs/sample-deal-docs/deals";
+// 1.1.13: these flows read, compare and apply documents that differ from the model, so they use the
+// test-only copies (tests/fixtures/deal-docs). The documents the app loads tie to Model Fund I and are
+// checked in tests/node/sampleTieOut.test.cjs and tests/e2e/sampleSync.e2e.cjs.
+const D = R + "/tests/fixtures/deal-docs";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
-const L = (f) => JSON.parse(fs.readFileSync(`${R}/docs/sample-leases/abstracts/${f}.json`));
+const L = (f) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/sample-leases/abstracts/${f}.json`));
 const af = data.deals.find((d) => d.id === "sample-deal-1").inputs;
 const u104 = af.units.find((u) => /Desert Aero/i.test(u.tenantName ?? "")) ?? af.units[2];
 const LEASE = (n) => `00000000-0000-0000-0000-0000000000a${n}`;
@@ -106,7 +109,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await bpEl.innerText()).includes("Revision 1 of 2") && !(await bpEl.innerText()).includes("Infill flex"), "revision 1 is unchanged");
   await bpEl.getByLabel("Revision").selectOption("2");
   // Import actuals for the whole fund
-  await bpEl.getByLabel("Import actuals").setInputFiles(`${R}/docs/sample-yardi/income-statement-2026.csv`);
+  await bpEl.getByLabel("Import actuals").setInputFiles(`${R}/tests/fixtures/sample-yardi/income-statement-2026.csv`);
   await p.waitForTimeout(1000);
   check(/8 assets matched/.test(await bpEl.getByTestId("plan-msg").innerText()), "income statement imported: 8 assets matched");
   const util = bpEl.locator('[data-testid="variance-row"][data-line="utilities"]');

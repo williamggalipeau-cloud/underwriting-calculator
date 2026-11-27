@@ -1,7 +1,7 @@
 {
  "doc_type": "appraisal",
  "title": "Airport Flex Park appraisal September 30, 2026",
- "summary": "Fictional Valuation Advisors, MAI: as-is market value $7,650,000 as of September 30, 2026 at a 6.25% cap on $478,000 NOI.",
+ "summary": "Fictional Valuation Advisors, MAI: as-is market value $7,600,000 as of September 30, 2026 at a 6.39% cap on $485,640 NOI.",
  "fields": [
   {
    "key": "appraiser",
@@ -49,66 +49,66 @@
   },
   {
    "key": "value",
-   "value": "$7,650,000",
+   "value": "$7,600,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The market value of the leased fee interest, as is, is $7,650,000.",
+     "quote": "The market value of the leased fee interest, as is, is $7,600,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "cap_rate",
-   "value": "6.25%",
+   "value": "6.39%",
    "status": "found",
    "evidence": [
     {
-     "quote": "A direct capitalization rate of 6.25% was applied to stabilized net operating income of $478,000.",
+     "quote": "A direct capitalization rate of 6.39% was applied to stabilized net operating income of $485,640.",
      "page": 1
     }
    ]
   },
   {
    "key": "noi",
-   "value": "$478,000",
+   "value": "$485,640",
    "status": "found",
    "evidence": [
     {
-     "quote": "A direct capitalization rate of 6.25% was applied to stabilized net operating income of $478,000.",
+     "quote": "A direct capitalization rate of 6.39% was applied to stabilized net operating income of $485,640.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_income",
-   "value": "$7,650,000",
+   "value": "$7,600,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Income capitalization approach: $7,650,000.",
+     "quote": "Income capitalization approach: $7,600,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_sales",
-   "value": "$7,700,000",
+   "value": "$7,680,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Sales comparison approach: $7,700,000.",
+     "quote": "Sales comparison approach: $7,680,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_cost",
-   "value": "$6,900,000",
+   "value": "$6,840,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Cost approach: $6,900,000.",
+     "quote": "Cost approach: $6,840,000.",
      "page": 1
     }
    ]

@@ -1,7 +1,7 @@
 {
  "doc_type": "bov",
  "title": "Route 9 Small Bay BOV",
- "summary": "Fictional Industrial Advisors values Route 9 Small Bay at $14,100,000–$15,100,000, most likely $14,600,000, and recommends listing at $14,950,000.",
+ "summary": "Fictional Industrial Advisors values Route 9 Small Bay at $12,900,000–$13,700,000, most likely $13,280,000, and recommends listing at $13,700,000.",
  "fields": [
   {
    "key": "broker",
@@ -9,7 +9,7 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "Prepared by Fictional Industrial Advisors for Model Fund I Route 9 LLC.",
+     "quote": "Prepared by Fictional Industrial Advisors for Model Fund I — Valley Freight LLC.",
      "page": 1
     }
    ]
@@ -27,66 +27,66 @@
   },
   {
    "key": "value_low",
-   "value": "$14,100,000",
+   "value": "$12,900,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Route 9 Small Bay at between $14,100,000 and $15,100,000.",
+     "quote": "We estimate the market value of Route 9 Small Bay at between $12,900,000 and $13,700,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_mid",
-   "value": "$14,600,000",
+   "value": "$13,280,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Our most likely value is $14,600,000.",
+     "quote": "Our most likely value is $13,280,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_high",
-   "value": "$15,100,000",
+   "value": "$13,700,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Route 9 Small Bay at between $14,100,000 and $15,100,000.",
+     "quote": "We estimate the market value of Route 9 Small Bay at between $12,900,000 and $13,700,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "price_psf",
-   "value": "348",
+   "value": "316",
    "status": "found",
    "evidence": [
     {
-     "quote": "That value is $348 per square foot.",
+     "quote": "That value is $316 per square foot.",
      "page": 1
     }
    ]
   },
   {
    "key": "cap_rate",
-   "value": "5.85%",
+   "value": "6.02%",
    "status": "found",
    "evidence": [
     {
-     "quote": "The most likely value reflects a 5.85% cap rate on in-place net operating income.",
+     "quote": "The most likely value reflects a 6.02% cap rate on in-place net operating income.",
      "page": 1
     }
    ]
   },
   {
    "key": "list_price",
-   "value": "$14,950,000",
+   "value": "$13,700,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We recommend a list price of $14,950,000.",
+     "quote": "We recommend a list price of $13,700,000.",
      "page": 1
     }
    ]
