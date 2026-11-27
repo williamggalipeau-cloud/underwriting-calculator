@@ -52,6 +52,7 @@ function LeasesCell({ info }) {
 // [key, header, render(row), sortValue(row), group]
 const COLUMNS = [
   ["location", "Location", (r) => r.location || <span className="text-gray-500">—</span>, (r) => r.location || "~", "Asset"],
+  ["pm", "Property manager", (r) => (r.propertyManager ? <span title={r.pmFeeMismatch || undefined} className={r.pmFeeMismatch ? "text-amber-700" : ""} data-testid="cell-property-manager">{r.propertyManager}{r.pmFeeMismatch ? " ⚠" : ""}</span> : <span className="text-gray-500">—</span>), (r) => r.propertyManager || "~", "Asset"],
   ["status", "Status", (r) => <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${STATUS[r.status]}`}>{r.status}</span>, (r) => r.status, "Asset"],
   ["acq", "Acquired", (r) => (r.acqAssumed ? <span className="text-amber-700" title="No acquisition date entered: the fund's final close is assumed">{fmtDate(r.acq)}*</span> : fmtDate(r.acq)), (r) => r.acq, "Asset"],
   ["exit", "Exit", (r) => fmtDate(r.exit), (r) => r.exit, "Asset"],

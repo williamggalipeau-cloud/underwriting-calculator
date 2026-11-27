@@ -8,7 +8,7 @@ const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 // 1.1.13: `abs` is the sample document as generated (it ties to Model Fund I: sampleTieOut.test.cjs)
 // and is used for the check against the PDF. The compare / apply tests below need documents that
 // differ from the model, so `doc` reads the test-only copies in tests/fixtures/deal-docs.
-const fx = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/deal-docs/${n}.json`));
+const fx = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/deal-docs/abstracts/${n}.json`));
 const doc = (n, extra = {}) => { const a = fx(n); return { id: "doc-" + n, doc_type: a.doc_type, deal_id: "D", fund_name: "Model Fund I", title: a.title, abstract: a, applied_fields: {}, ...extra }; };
 const asOf = "2026-11-22";
 

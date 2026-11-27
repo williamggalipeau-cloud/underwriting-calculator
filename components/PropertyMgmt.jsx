@@ -3,6 +3,7 @@
 // Phase T: the four Property Management tabs from one component.
 // tab: "taxes" | "insurance" | "condition" | "contracts". One asset (editable)
 // or the whole fund (read-only, by asset). onUpdate(dealId, fn) edits inputs.
+import { propertyManagerLabel } from "@/lib/propertyManager";
 import { useEffect, useRef, useState } from "react";
 import { PM_TABS, addToCapitalPlan, blankRow, pmDates, pmXlsx, rowsOf, setSection, taxSummary, insuranceSummary, conditionSummary, contractsSummary } from "@/lib/propertyMgmt";
 import { addRevision } from "@/lib/businessPlan";
@@ -76,7 +77,7 @@ export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, o
   return (
     <div className="space-y-4 text-gray-900" data-testid={`pm-${tab}`}>
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <div><h2 className="text-lg font-bold">{T.label}</h2><p className="text-xs text-gray-500">{scope === "fund" ? `Every asset${scopeName ? ` in ${scopeName}` : ""}` : deal.inputs.propertyName}. Dates within 60 days appear on Home.</p></div>
+        <div><h2 className="text-lg font-bold">{T.label}</h2>{scope === "asset" && propertyManagerLabel(deal.inputs) && <p className="text-xs text-gray-700" data-testid="pm-manager">Property manager: {propertyManagerLabel(deal.inputs)} <span className="text-gray-500">(set in the asset&apos;s inputs)</span></p>}<p className="text-xs text-gray-500">{scope === "fund" ? `Every asset${scopeName ? ` in ${scopeName}` : ""}` : deal.inputs.propertyName}. Dates within 60 days appear on Home.</p></div>
         <div className="flex items-center gap-2 text-xs">
           {tab === "taxes" && <label className="flex items-center gap-1">Tax year <input aria-label="Tax year" type="number" value={year} onChange={(e) => setYear(e.target.value)} className={`${inp} w-16`} /></label>}
           <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">

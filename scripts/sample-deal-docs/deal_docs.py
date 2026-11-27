@@ -139,7 +139,7 @@ build("airport-flex-t12", "Airport Flex Park – Trailing Twelve Months", [
 # ── LOI ─────────────────────────────────────────────────────────────────────
 l = {
     "date": "This letter of intent is dated October 20, 2025.",
-    "parties": "The Buyer is Model Fund I – Airport Flex LLC and the Seller is Runway Vista Holdings LP.",
+    "parties": "The Buyer is Model Fund I — Runway Vista LLC and the Seller is Runway Vista Holdings LP.",
     "price": f"The purchase price is ${AF['price']:,}.", "dep": "Buyer will deposit $150,000 in escrow within three business days of the PSA.",
     "dd": "Buyer will have a due diligence period of 45 days.", "close": "Closing will occur 30 days after the end of due diligence.",
     "fin": "There is no financing contingency.", "exp": "This letter expires if not countersigned by October 27, 2025.",
@@ -148,7 +148,7 @@ build("airport-flex-loi", "Letter of Intent – Airport Flex Park", [
     ("Terms", [l["date"], l["parties"], l["price"], l["dep"], l["dd"], l["close"], l["fin"]]), ("Expiration", [l["exp"]]),
 ], {
     "doc_type": "loi", "title": "Airport Flex Park LOI", "summary": f"Non-binding LOI at ${AF['price']:,} with a $150,000 deposit, 45 days of due diligence and closing 30 days later, no financing contingency.",
-    "fields": [F("loi_date", "October 20, 2025", l["date"]), F("buyer", "Model Fund I – Airport Flex LLC", l["parties"]), F("seller", "Runway Vista Holdings LP", l["parties"]),
+    "fields": [F("loi_date", "October 20, 2025", l["date"]), F("buyer", "Model Fund I — Runway Vista LLC", l["parties"]), F("seller", "Runway Vista Holdings LP", l["parties"]),
                F("purchase_price", f"${AF['price']:,}", l["price"]), F("deposit", "$150,000", l["dep"]), F("dd_days", "45 days", l["dd"]), F("closing_days", "30 days", l["close"]),
                F("financing_contingency", "None", l["fin"])],
     "critical_dates": [D("2025-10-27", "LOI countersignature deadline", l["exp"], "Countersign or the LOI lapses")],
@@ -231,7 +231,7 @@ build("airport-flex-closing-acq", "Settlement Statement – Airport Flex Park (A
 
 # ── Insurance certificates ──────────────────────────────────────────────────
 o = {
-    "ins": "Named insured: Model Fund I – Airport Flex LLC.", "hold": f"Certificate holder: {AF['loan']['lender']}, its successors and assigns, as mortgagee.",
+    "ins": "Named insured: Model Fund I — Runway Vista LLC.", "hold": f"Certificate holder: {AF['loan']['lender']}, its successors and assigns, as mortgagee.",
     "co": "Insurer: Fictional Mutual Insurance Company, rated A (Excellent).", "date": "Certificate date: January 28, 2026.",
     "prop": "Property (all risk), policy PR-55120: limit $7,800,000, deductible $25,000, effective January 30, 2026, expires January 30, 2027.",
     "gl": "General liability, policy GL-55121: $1,000,000 each occurrence, $2,000,000 aggregate, effective January 15, 2026, expires January 15, 2027.",
@@ -239,7 +239,7 @@ o = {
 }
 build("airport-flex-insurance-owner", "Certificate of Liability and Property Insurance (Owner)", [("Certificate", list(o.values()))], {
     "doc_type": "insurance_cert", "title": "Owner policies 2026", "summary": "Owner's property, general liability and umbrella policies for Airport Flex Park.",
-    "fields": [F("insured", "Model Fund I – Airport Flex LLC", o["ins"]), F("holder", f"{AF['loan']['lender']}, as mortgagee", o["hold"]), F("insurer", "Fictional Mutual Insurance Company", o["co"]),
+    "fields": [F("insured", "Model Fund I — Runway Vista LLC", o["ins"]), F("holder", f"{AF['loan']['lender']}, as mortgagee", o["hold"]), F("insurer", "Fictional Mutual Insurance Company", o["co"]),
                F("insurer_rating", "A (Excellent)", o["co"]), F("cert_date", "January 28, 2026", o["date"])],
     "policies": [
         {"coverage": "property", "policy_no": "PR-55120", "limit": 7800000, "deductible": 25000, "effective": "2026-01-30", "expiry": "2027-01-30", "evidence": [{"quote": o["prop"]}]},
@@ -249,7 +249,7 @@ build("airport-flex-insurance-owner", "Certificate of Liability and Property Ins
     "critical_dates": [],
 })
 tn = {
-    "ins": "Named insured: Desert Aero Parts LLC.", "hold": "Certificate holder: Model Fund I – Airport Flex LLC, as landlord and additional insured.",
+    "ins": "Named insured: Desert Aero Parts LLC.", "hold": "Certificate holder: Model Fund I — Runway Vista LLC, as landlord and additional insured.",
     "co": "Insurer: Fictional Casualty Group, rated A- (Excellent).", "date": "Certificate date: March 3, 2026.",
     "gl": "General liability, policy CG-88410: $1,000,000 each occurrence, $2,000,000 aggregate, landlord is additional insured, waiver of subrogation applies, expires March 1, 2027.",
     "umb": "Umbrella, policy CU-88411: limit $1,000,000, expires March 1, 2027.",
@@ -258,7 +258,7 @@ tn = {
 }
 build("airport-flex-insurance-desert-aero", "Certificate of Liability Insurance (Tenant: Desert Aero Parts)", [("Certificate", list(tn.values()))], {
     "doc_type": "insurance_cert", "title": "Desert Aero Parts 2026–27", "summary": "Tenant certificate for Desert Aero Parts; the umbrella ($1,000,000) is below the lease's $2,000,000.",
-    "fields": [F("insured", "Desert Aero Parts LLC", tn["ins"]), F("holder", "Model Fund I – Airport Flex LLC, as landlord and additional insured", tn["hold"]),
+    "fields": [F("insured", "Desert Aero Parts LLC", tn["ins"]), F("holder", "Model Fund I — Runway Vista LLC, as landlord and additional insured", tn["hold"]),
                F("insurer", "Fictional Casualty Group", tn["co"]), F("insurer_rating", "A- (Excellent)", tn["co"]), F("cert_date", "March 3, 2026", tn["date"])],
     "policies": [
         {"coverage": "cgl", "policy_no": "CG-88410", "per_occurrence": 1000000, "aggregate": 2000000, "expiry": "2027-03-01", "additional_insured": True, "waiver_of_subrogation": True, "evidence": [{"quote": tn["gl"]}]},

@@ -8,7 +8,7 @@ const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 // 1.1.13: `abs` is the sample document as generated (it ties to Model Fund I: sampleTieOut.test.cjs)
 // and is used for the check against the PDF. The compare / apply tests below need documents that
 // differ from the model, so `doc` reads the test-only copies in tests/fixtures/deal-docs.
-const fx = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/deal-docs/${n}.json`));
+const fx = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/deal-docs/abstracts/${n}.json`));
 const doc = (n) => ({ id: "doc-" + n, doc_type: "appraisal", deal_id: "D", title: fx(n).title, abstract: fx(n), applied_fields: {} });
 for (const n of ["airport-flex-appraisal-2026q3", "route9-appraisal-2026q3"]) {
   const probs = T.checkLocally(abs(n), execFileSync("pdftotext", ["-layout", `${D}/${n}.pdf`, "-"]).toString());

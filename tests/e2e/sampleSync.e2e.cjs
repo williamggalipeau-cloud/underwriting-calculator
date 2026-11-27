@@ -14,6 +14,14 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
 const docs = [], leases = [], uploads = [], dealAbs = [], leaseAbs = [];
 let saved = null, fails = 0;
 const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
+// 1.1.13: documents from an earlier sample version are in the store. The two
+// earlier sample copies (one rewritten, one retired) are replaced; the user's
+// own documents on the same assets are never touched, even one that shares a
+// sample file name.
+const old = (id, deal, name, extra = {}) => ({ id, workspace_id: "w1", deal_id: deal, fund_name: "Model Fund I", doc_type: "other", title: name, files: [{ name, path: `w1/${deal}/${id}/${name}` }], status: "abstracted", abstract: { app: { made_with: "Sample (fictional)" } }, created_at: "2026-11-25T00:00:00Z", ...extra });
+docs.push(old("old-om", "sample-deal-1", "airport-flex-om.pdf"), old("old-r9sale", "sample-deal-2", "route9-closing-disp.pdf"),
+  old("mine-1", "sample-deal-1", "my-own-inspection.pdf"), old("mine-2", "sample-deal-1", "airport-flex-loi.pdf", { abstract: { app: { made_with: "CREparser Deal Review", validated: true } } }));
+const removed = [];
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1600, height: 1100 } });
@@ -32,6 +40,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
     else if (u.includes("/storage/v1/object/")) { if (req.method() === "POST" || req.method() === "PUT") uploads.push(u); body = JSON.stringify({ Key: "x" }); }
     else if (u.includes("/deal_documents")) {
       if (req.method() === "POST") { const row = { created_at: new Date().toISOString(), status: "uploaded", abstract: null, ...JSON.parse(req.postData()) }; docs.push(row); body = one(row); }
+      else if (req.method() === "DELETE") { const id = decodeURIComponent(u).match(/id=eq\.([^&]+)/)?.[1]; const i = docs.findIndex((d) => d.id === id); if (i >= 0) removed.push(...docs.splice(i, 1)); }
       else body = JSON.stringify(docs);
     } else if (u.includes("/lease_documents")) {
       if (req.method() === "POST") { const row = { created_at: new Date().toISOString(), status: "uploaded", abstract: null, ...JSON.parse(req.postData()) }; leases.push(row); body = one(row); }
@@ -51,19 +60,26 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const notice = () => p.getByText(/Model Fund I sample data updated:/).first();
   for (let i = 0; i < 120 && !(await notice().isVisible().catch(() => false)); i++) await p.waitForTimeout(500);
   const msg = (await notice().innerText().catch(() => "")) || "";
-  check(/tenant credit and aged rent, 49 sample documents and \d+ GP agreements? added/.test(msg), `the update ran by itself: ${msg.slice(0, 200)}`);
+  check(/tenant credit and aged rent, 48 sample documents and \d+ GP agreements? added, 2 rewritten documents replaced/.test(msg), `the update ran by itself: ${msg.slice(0, 200)}`);
   check(leases.length === 9 && leaseAbs.length === 9, `9 leases with abstracts (${leases.length}, ${leaseAbs.length})`);
   const gpa = docs.filter((d) => /^\[gp-agreement:/.test(d.title ?? ""));
   const credit = docs.filter((d) => /^\[leasing:tenant:/.test(d.title ?? ""));
-  check(credit.length === 8 && gpa.length >= 1 && docs.length === 40 + gpa.length, `8 credit reports and ${gpa.length} GP agreement(s) among ${docs.length} documents`);
+  check(credit.length === 8 && gpa.length >= 1 && docs.length === 39 + gpa.length + 2, `8 credit reports and ${gpa.length} GP agreement(s) among ${docs.length} documents`);
+  const names = (d) => (d.files ?? []).map((f) => f.name);
+  check(removed.map((d) => d.id).sort().join() === "old-om,old-r9sale" && docs.some((d) => d.id === "mine-1") && docs.some((d) => d.id === "mine-2"), `the two earlier sample copies were removed; the user's own documents were kept (removed: ${removed.map((d) => d.id).join(", ")})`);
+  check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 2, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 3, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
   const withCredit = (sd?.deals ?? []).filter((d) => (d.inputs?.units ?? []).some((u) => u.credit)).length;
   check(withCredit >= 5 && sd?.gpPartners?.partners?.length === 2 && gpa.length === 2 && (sd?.gpPartners?.agreements ?? []).filter((a) => a.status === "checked").length === 2, `tenant credit on ${withCredit} assets; 2 GP partners, their 2 agreements switched on`);
   const parties = (sd?.funds?.["Model Fund I"]?.gpParties ?? []).filter((x) => x.partnerId);
   const fcp = parties.find((x) => /Fictional Capital/.test(x.name)), sfo = parties.find((x) => /Sample Family/.test(x.name));
   check(fcp?.capitalPct === 40 && sfo?.terms?.[0]?.dealId && sfo.terms[0].capitalPct === 50, `the fund's GP parties match the agreements: Fictional Capital Partners 40% of GP capital fund-wide; Sample Family Office 50% on Granite Ave only (${JSON.stringify(parties.map((x) => [x.name, x.capitalPct]))})`);
+  const d1 = sd?.deals?.find((d) => d.id === "sample-deal-1")?.inputs, mf = sd?.funds?.["Model Fund I"];
+  check(d1?.loanTerms?.lender === "Desert Mountain Bank" && d1?.dealTerms?.psaDate === "2025-11-14" && d1?.executedCaps?.[0]?.provider === "Atlas Derivatives Bank" && d1?.icApproved?.approval_date === "2025-12-18", "the terms the documents state are on the asset (lender, contract dates, executed cap, IC approval)");
+  check((sd?.deals ?? []).filter((d) => d.id.startsWith("sample-deal-")).every((d) => d.inputs.propertyManager && d.inputs.propertyManagementFirm?.type === "sponsor"), "every sample asset has a property manager");
+  check((mf?.entities ?? []).length === 11 && mf.entities.some((e) => e.name === "Model Fund I, L.P.") && (mf?.limits ?? []).length === 8, `Model Fund I has its legal entities and the LPA's limits (${mf?.entities?.length} entities, ${mf?.limits?.length} limits)`);
   check((sd?.auditLog ?? []).some((e) => /sample data updated automatically/.test(JSON.stringify(e))), "logged in the change log");
   // A second open: already current, so nothing is added.
   const nDocs = docs.length, nUp = uploads.length;

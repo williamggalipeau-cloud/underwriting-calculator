@@ -26,7 +26,7 @@ import { addSampleLeasing } from "@/lib/sampleLeasing";
 import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
-import { buildSampleFund } from "@/lib/sampleFund";
+import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
 import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch } from "@/lib/sampleDocTerms";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
@@ -1537,7 +1537,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...sampleFundTermsPatch(terms), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...sampleFundTermsPatch(terms), ...((terms.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
     });
     // The fictional pipeline deals load with the sample fund too (1.1, user
     // 11/25); ones already there are kept as they are.
@@ -1655,9 +1655,29 @@ export default function Home() {
     setSampleDocMsg("Updating the Model Fund I sample data…");
     try {
       const credit = addSampleCredit(cur.deals, { todayISO, funds: cur.funds, fundName: SAMPLE_FUND_NAME });
-      const built = cur.deals.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d));
-      noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents, GP partners)");
-      setDeals((prev) => prev.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d)));
+      // 1.1.13: what the sample documents say that the app didn't hold yet
+      // (contract dates, lender terms, executed caps, the IC approval…), and
+      // a property manager. Only empty fields are filled: nothing the user
+      // entered is replaced.
+      const fromVersion = terms.sampleDataVersion ?? 0;
+      const withDocs = (d) => {
+        if (!d.id.startsWith("sample-deal-")) return d;
+        let inp = credit.updates[d.id] ? { ...d.inputs, ...credit.updates[d.id] } : d.inputs;
+        inp = applySampleDocTerms(inp, d.id, { keepExisting: true });
+        if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
+        return inp === d.inputs ? d : { ...d, inputs: inp };
+      };
+      const built = cur.deals.map(withDocs);
+      noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents and the terms they state, property managers, legal entities, GP partners)");
+      setDeals((prev) => prev.map(withDocs));
+      // The marks an appraisal stands behind carry its source and appraiser (values unchanged).
+      setValuations((prev) => {
+        const next = applySampleDocMarks(prev);
+        for (const id of Object.keys(next)) for (const q of Object.keys(next[id] ?? {})) if (prev[id]?.[q] && prev[id][q].source !== "internal") next[id] = { ...next[id], [q]: prev[id][q] };
+        return next;
+      });
+      const { removeSupersededSampleDocs } = await import("@/lib/sampleDocs");
+      const replaced = await removeSupersededSampleDocs(l.id, { fromVersion, fundName: SAMPLE_FUND_NAME });
       const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
       const docs = await addSampleDocuments({
         workspaceId: l.id, email, deals: built,
@@ -1682,11 +1702,11 @@ export default function Home() {
       setGpPartners(gp);
       const failed = [...docs.failed, ...gpr.failed];
       // The version is recorded only when everything went in; otherwise the next open tries again.
-      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
+      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...sampleFundTermsPatch(prev[SAMPLE_FUND_NAME] ?? {}, { keepExisting: true }), ...((prev[SAMPLE_FUND_NAME]?.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
       setRecordNotice(failed.length
         ? `Model Fund I sample data: ${failed.length} item${failed.length === 1 ? "" : "s"} couldn't be added (${failed[0].error}); it will try again the next time you open Baywise.`
-        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
+        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${replaced ? `, ${replaced} rewritten document${replaced === 1 ? "" : "s"} replaced` : ""}${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
     } catch (e) {
       setRecordNotice(`Model Fund I sample data couldn't be updated (${e.message || e}); it will try again the next time you open Baywise.`);
     } finally {
@@ -2154,6 +2174,7 @@ export default function Home() {
                 inputs={inputs}
                 onChange={setInputs}
                 fundNames={[...new Set([...Object.keys(funds), ...fundDeals.map((d) => d.inputs.fundName?.trim()).filter(Boolean)])]}
+                fundTerms={funds[resolveFund(inputs.fundName)] ?? null}
               />
             </div>
           </aside>

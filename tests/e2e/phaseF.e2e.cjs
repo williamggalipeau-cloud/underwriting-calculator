@@ -6,7 +6,10 @@ const S = FX.outDir();
 const R = FX.R;
 const data = FX.workspaceData();
 data.activeDealId = "sample-deal-1";
-const D = R + "/docs/sample-deal-docs/deals";
+// 1.1.13: these flows read, compare and apply documents that differ from the model, so they use the
+// test-only copies (tests/fixtures/deal-docs). The documents the app loads tie to Model Fund I and are
+// checked in tests/node/sampleTieOut.test.cjs and tests/e2e/sampleSync.e2e.cjs.
+const D = R + "/tests/fixtures/deal-docs";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 const lease02 = JSON.parse(fs.readFileSync(R + "/docs/sample-leases/abstracts/02-airport-flex-park-desert-aero.json"));
 const LEASE_ID = "00000000-0000-0000-0000-0000000000aa";

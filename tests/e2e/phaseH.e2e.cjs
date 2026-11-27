@@ -11,7 +11,10 @@ const built = sp.buildSampleDeals(TEST_INPUTS);
 data.deals = data.deals.map((d) => { const b = built.find((x) => x.id === d.id); return b ? { ...d, inputs: { ...b.inputs, fundName: d.inputs.fundName } } : d; });
 data.activeDealId = "sample-deal-1";
 data.funds = { ...data.funds, "Model Fund II": { ...(data.funds?.["Model Fund I"] ?? {}) } };
-const D = R + "/docs/sample-deal-docs/deals";
+// 1.1.13: these flows read, compare and apply documents that differ from the model, so they use the
+// test-only copies (tests/fixtures/deal-docs). The documents the app loads tie to Model Fund I and are
+// checked in tests/node/sampleTieOut.test.cjs and tests/e2e/sampleSync.e2e.cjs.
+const D = R + "/tests/fixtures/deal-docs";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 const L = (f) => JSON.parse(fs.readFileSync(`${R}/docs/sample-leases/abstracts/${f}.json`));
 const af = data.deals.find((d) => d.id === "sample-deal-1").inputs;

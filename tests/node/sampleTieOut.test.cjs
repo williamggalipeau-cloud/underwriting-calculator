@@ -24,6 +24,7 @@ const G = j(R + "/lib/gpEconomics.js");
 const GP = j(R + "/lib/gpPartners.js");
 const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
 const { sampleFundTermsPatch } = j(R + "/lib/sampleDocTerms.js");
+const PMGR = j(R + "/lib/propertyManager.js");
 const { SAMPLE_CONSTRUCTION_JOBS_CSV, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_AS_OF } = j(R + "/lib/sampleConstruction.js");
 const CON = j(R + "/lib/construction.js");
 const { parseCSV } = j(R + "/lib/fundTerms.js");
@@ -123,6 +124,25 @@ ok(man.deals.length === names.length && man.deals.every((d) => fs.readFileSync(`
   });
   ok(good, `GP agreements: each partner's share of the GP capital and promote, its date and its asset are the agreement's (${man.gpAgreements.length} agreements)`);
 }
+
+// 5b. Legal entities: the documents name the entities the app holds.
+{
+  const ents = fund.termsPatch.entities ?? [];
+  const company = (asset) => ents.find((x) => x.dealId === dealOf(asset)?.id)?.name;
+  const fundEnt = ents.find((x) => x.role === "fund")?.name, gpEnt = ents.find((x) => x.role === "gp")?.name;
+  ok(ents.length === 2 + fund.deals.length && fund.deals.every((d) => ents.filter((x) => x.dealId === d.id && x.role === "asset").length === 1), `Model Fund I holds its fund, GP and one property company per asset (${ents.length} entities)`);
+  const fv = (n, k) => DA.docField(docOf(n).abstract, k)?.value;
+  ok(fv("model-fund-i-lpa", "fund_name") === fundEnt && fv("model-fund-i-ppm", "fund_name") === fundEnt, `the LPA and PPM name the fund entity (${fundEnt})`);
+  ok(fv("airport-flex-loi", "buyer") === company("Airport Flex Park") && fv("airport-flex-insurance-owner", "insured") === company("Airport Flex Park"), `the LOI's buyer and the owner's insurance certificate name the asset's property company (${company("Airport Flex Park")})`);
+  const landlords = man.leases.map((l) => [l.asset, String(JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${l.abstract}`, "utf8")).fields.find((f) => f.key === "landlord")?.value ?? "")]);
+  const offL = landlords.filter(([asset, v]) => !v.startsWith(company(asset) ?? "\u0000"));
+  ok(offL.length === 0, `each lease's landlord is its asset's property company${offL.length ? " — " + offL.map(([a, v]) => `${a}: ${v}`).join("; ") : ""}`);
+  const gpText = man.gpAgreements.map((a) => JSON.stringify(JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${a.abstract}`, "utf8")).quotes));
+  ok(gpText.every((t) => t.includes(gpEnt)), `the GP partner agreements are made with the fund's GP (${gpEnt})`);
+}
+
+// 5c. Property managers: every asset has one, in line with who the fund pays the property management fee to.
+ok(fund.deals.every((d) => String(d.inputs.propertyManager ?? "").trim() && PMGR.pmFeeMismatch(d.inputs, termsWithDocs) === ""), "every asset has a property manager, and the firm agrees with the fund's property management fee payee");
 
 // 6. Other sample sets name assets and units that exist.
 {

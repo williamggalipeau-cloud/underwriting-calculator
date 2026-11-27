@@ -4,6 +4,7 @@ import { US_STATES } from "@/lib/assetLocations";
 import { useState } from "react";
 import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
 import { fetchSofrCurve } from "@/lib/sofr";
+import { PM_FIRM_TYPES, pmFeeMismatch, pmFirmOf } from "@/lib/propertyManager";
 
 
 function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
@@ -707,8 +708,9 @@ function fmtK(n) {
   return `$${n.toFixed(0)}`;
 }
 
-export default function DealInputsPanel({ inputs, onChange, fundNames = [], linked = false }) {
+export default function DealInputsPanel({ inputs, onChange, fundNames = [], linked = false, fundTerms = null }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
+  const pmFeeNote = fundTerms ? pmFeeMismatch(inputs, fundTerms) : "";
   const [curveLoading, setCurveLoading] = useState(false);
   const [curveError, setCurveError] = useState(null);
 
@@ -752,6 +754,18 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           <Field label="Property Name" value={inputs.propertyName} field="propertyName" onChange={set} />
           <Field label="Asset Manager" value={inputs.assetManager ?? ""} field="assetManager" onChange={set} />
           <Field label="Leasing Manager" value={inputs.leasingManager ?? ""} field="leasingManager" onChange={set} />
+          {/* 1.1.13 (user, 11/27): who manages the property, set here at asset setup. */}
+          <Field label="Property Manager" value={inputs.propertyManager ?? ""} field="propertyManager" onChange={set} />
+          <div className="flex flex-col gap-1" data-testid="pm-firm">
+            <label htmlFor="pm-firm-type" className="text-xs font-medium text-gray-500 uppercase tracking-wide">Property Management Firm</label>
+            <select id="pm-firm-type" value={pmFirmOf(inputs).type} onChange={(e) => set("propertyManagementFirm", { type: e.target.value, name: e.target.value === "third" ? inputs.propertyManagementFirm?.name ?? "" : "" })} className="rounded-md border border-gray-300 px-3 py-2 text-sm">
+              {PM_FIRM_TYPES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+            {pmFirmOf(inputs).type === "third" && (
+              <input aria-label="Property management firm name" placeholder="Firm name" value={inputs.propertyManagementFirm?.name ?? ""} onChange={(e) => set("propertyManagementFirm", { type: "third", name: e.target.value })} className="rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            )}
+            {pmFeeNote && <p className="text-xs text-amber-700" data-testid="pm-fee-mismatch">{pmFeeNote}</p>}
+          </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Portfolio (fund, JV or SMA)</label>
             <div className="flex items-center border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden">

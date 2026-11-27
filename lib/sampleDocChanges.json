@@ -1,0 +1,19 @@
+{
+ "_note": "By sample data version (lib/samplePortfolio.js SAMPLE_DATA_VERSION): the file names of the Model Fund I fund and asset documents rewritten or retired in that version. The automatic load removes the earlier sample copy of each (lib/sampleDocs.js supersededSampleDocs) before adding the current set. Add a list for each later version that rewrites sample documents.",
+ "3": [
+  "airport-flex-appraisal-2026q3.pdf",
+  "airport-flex-cap-2026.pdf",
+  "airport-flex-ic-memo.pdf",
+  "airport-flex-insurance-desert-aero.pdf",
+  "airport-flex-insurance-owner.pdf",
+  "airport-flex-loan.pdf",
+  "airport-flex-loi.pdf",
+  "airport-flex-om.pdf",
+  "airport-flex-rent-roll.pdf",
+  "airport-flex-t12.pdf",
+  "route9-appraisal-2026q2.pdf",
+  "route9-cap-2026.pdf",
+  "route9-closing-disp.pdf",
+  "route9-loan.pdf"
+ ]
+}
