@@ -75,18 +75,29 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "The General Partner catch-up is 100% until it has received 20% of distributions.",
+     "quote": "The General Partner catch-up is 100% until it has received 20% of the profits distributed.",
      "page": 1
     }
    ]
   },
   {
    "key": "promote",
-   "value": "80/20 above 12% IRR; 70/30 above 18%; 60/40 thereafter",
+   "value": "80/20 to a 12% IRR; 70/30 to an 18% IRR; 60/40 thereafter",
    "status": "found",
    "evidence": [
     {
-     "quote": "Above a 12% IRR distributions are split 80% to the Limited Partners and 20% to the General Partner; above 18%, 70% and 30%; thereafter 60% and 40%.",
+     "quote": "After the catch-up, distributions are split 80% to the Limited Partners and 20% to the General Partner until the Limited Partners have achieved a 12% IRR; then 70% and 30% until they have achieved an 18% IRR; and thereafter 60% and 40%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tier_method",
+   "value": "Marginal",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Each split applies only to the distributions made within its tier, and no split applies retroactively to distributions already made.",
      "page": 1
     }
    ]

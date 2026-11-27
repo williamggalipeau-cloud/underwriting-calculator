@@ -249,8 +249,9 @@ lp = {
     "fund": "This Limited Partnership Agreement governs Model Fund I, L.P.",
     "cmt": "Aggregate Commitments: $100,000,000.", "gp": "The General Partner commits 5% of Aggregate Commitments.",
     "fee": "The Management Fee is 1.5% per year of Commitments during the Investment Period and of Invested Capital thereafter.",
-    "pref": "Limited Partners receive a Preferred Return of 9% per year.", "cu": "The General Partner catch-up is 100% until it has received 20% of distributions.",
-    "promote": "Above a 12% IRR distributions are split 80% to the Limited Partners and 20% to the General Partner; above 18%, 70% and 30%; thereafter 60% and 40%.",
+    "pref": "Limited Partners receive a Preferred Return of 9% per year.", "cu": "The General Partner catch-up is 100% until it has received 20% of the profits distributed.",
+    "promote": "After the catch-up, distributions are split 80% to the Limited Partners and 20% to the General Partner until the Limited Partners have achieved a 12% IRR; then 70% and 30% until they have achieved an 18% IRR; and thereafter 60% and 40%.",
+    "tm": "Each split applies only to the distributions made within its tier, and no split applies retroactively to distributions already made.",
     "ip": "The Investment Period is 2 years from the Final Closing.", "term": "The Partnership's term is 5 years from the Final Closing.",
     "ext": "The General Partner may extend the term by up to 2 extensions of 1 year each.", "sub": "Borrowings under a subscription facility may not exceed 80% of unfunded Commitments.",
     "l1": "Section 6.2(a): No single Investment may exceed 20% of Aggregate Commitments.",
@@ -269,13 +270,13 @@ def L(key, label, limit, unit, quote, clause):
 
 
 build("model-fund-i-lpa", "Limited Partnership Agreement – Model Fund I, L.P. (excerpt)", [
-    ("Article 1", [lp["fund"], lp["cmt"], lp["gp"]]), ("Article 4. Fees and distributions", [lp["fee"], lp["pref"], lp["cu"], lp["promote"]]),
+    ("Article 1", [lp["fund"], lp["cmt"], lp["gp"]]), ("Article 4. Fees and distributions", [lp["fee"], lp["pref"], lp["cu"], lp["promote"], lp["tm"]]),
     ("Article 5. Term", [lp["ip"], lp["term"], lp["ext"], lp["sub"]]), ("Article 6. Investment limitations", [lp[f"l{i}"] for i in range(1, 9)]),
 ], {
     "doc_type": "lpa", "title": "Model Fund I LPA (excerpt)", "summary": "Model Fund I: $100M commitments, 1.5% fee, 9% pref, 100% catch-up, 2-year investment period, 5-year term plus two 1-year extensions, and eight investment limits.",
     "fields": [F("fund_name", "Model Fund I, L.P.", lp["fund"]), F("commitments", "$100,000,000", lp["cmt"]), F("gp_commit_pct", "5%", lp["gp"]), F("mgmt_fee_pct", "1.5%", lp["fee"]),
                F("mgmt_fee_basis", "Commitments during the Investment Period, then Invested Capital", lp["fee"]), F("pref_pct", "9%", lp["pref"]), F("catch_up_pct", "100%", lp["cu"]),
-               F("promote", "80/20 above 12% IRR; 70/30 above 18%; 60/40 thereafter", lp["promote"]), F("investment_period_years", "2 years", lp["ip"]),
+               F("promote", "80/20 to a 12% IRR; 70/30 to an 18% IRR; 60/40 thereafter", lp["promote"]), F("tier_method", "Marginal", lp["tm"]), F("investment_period_years", "2 years", lp["ip"]),
                F("term_years", "5 years", lp["term"]), F("extension_count", "2", lp["ext"]), F("extension_years", "1 year", lp["ext"]), F("sub_line_pct", "80%", lp["sub"])],
     "limits": [L("single_asset_pct", "Single investment, % of commitments", 20, "%", lp["l1"], "6.2(a)"), L("single_tenant_pct", "Single tenant, % of base rent", 10, "%", lp["l2"], "6.2(b)"),
                L("state_pct", "Single state, % of gross asset value", 35, "%", lp["l3"], "6.2(c)"), L("metro_pct", "Single metro, % of gross asset value", 25, "%", lp["l4"], "6.2(d)"),

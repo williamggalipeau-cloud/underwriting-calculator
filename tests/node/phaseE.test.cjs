@@ -87,8 +87,11 @@ const og = A.insuranceGaps(abs("airport-flex-insurance-owner"), { asOf });
 ok(og.length === 2 && og.every((g) => /expires 2027-01-15/.test(g.text)), `owner policies expiring within 60 days: ${og.length}`);
 
 // LPA → fund terms and limits
-const terms = { targetEquity: 100000000, gpCommitPct: 5, mgmtFeePct: 1.5, prefPct: 9, catchUpGpPct: 100, investmentPeriodYears: 2, termYears: 5, extensionCount: 2, extensionYears: 1, subLineSizePct: 80, limits: [] };
+const terms = { targetEquity: 100000000, gpCommitPct: 5, mgmtFeePct: 1.5, prefPct: 9, catchUpGpPct: 100, investmentPeriodYears: 2, termYears: 5, extensionCount: 2, extensionYears: 1, subLineSizePct: 80, limits: [],
+  // 1.1.12: the promote tiers and their method are read from the LPA too.
+  tierMethod: "marginal", tiers: [{ irrThreshold: 12, lpSplit: 80, gpSplit: 20 }, { irrThreshold: 18, lpSplit: 70, gpSplit: 30 }, { irrThreshold: null, lpSplit: 60, gpSplit: 40 }] };
 const lr = A.compareDoc(doc("model-fund-i-lpa", { deal_id: null }), { terms });
+ok(lr.some((r) => r.target === "tiers" && /80\/20 to a 12% IRR/.test(r.docValue)) && lr.some((r) => r.target === "tierMethod" && /^Marginal/.test(r.docValue)) && A.compareDoc(doc("model-fund-i-lpa", { deal_id: null }), { terms: { ...terms, tierMethod: "cliff", tiers: [{ irrThreshold: null, lpSplit: 80, gpSplit: 20 }] } }).filter((r) => ["tiers", "tierMethod"].includes(r.target)).every((r) => r.differs), "1.1.12: the LPA's promote tiers and tier method are offered for the fund's terms");
 ok(lr.filter((r) => !r.key.startsWith("limit:")).every((r) => !r.differs), "LPA fund terms match Model Fund I's");
 ok(lr.filter((r) => r.key.startsWith("limit:")).length === 8 && lr.filter((r) => r.key.startsWith("limit:")).every((r) => r.differs), "8 investment limits to apply");
 const la = A.applyDoc(doc("model-fund-i-lpa", { deal_id: null }), ["limit:state_pct", "limit:fund_ltv_pct"], { terms });
