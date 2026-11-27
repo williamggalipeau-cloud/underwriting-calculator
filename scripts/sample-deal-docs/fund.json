@@ -303,6 +303,71 @@
      }
     ]
    },
+   "research": [
+    {
+     "id": "srs-1-market",
+     "type": "market",
+     "title": "Las Vegas Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "airport-flex-market-report-2026q3.pdf",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $38.49/SF; vacancy 9.5%; cap rate 6.6%; small-bay rent growth 2.7% over the year",
+     "summary": "Las Vegas, NV: 8,420,000 SF of inventory, 450,000 SF under construction, net absorption 5,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-01-30T12:00:00.000Z"
+    },
+    {
+     "id": "srs-1-rent",
+     "type": "rent_survey",
+     "title": "Airport Flex Park rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-10",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $41.15/SF, median $42.45/SF, range $37.02 to $42.97/SF; net effective $38.26/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-01-30T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-las-vegas",
+     "name": "Las Vegas Small Bay (fictional)",
+     "metro": "Las Vegas, NV",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-las-vegas-2026-Q3",
+     "submarketId": "sample-sm-las-vegas",
+     "quarter": "2026-Q3",
+     "inventorySF": 8420000,
+     "vacancyPct": 9.5,
+     "availabilityPct": 11.6,
+     "netAbsorptionSF": 5000,
+     "askingRentPSF": 33.87,
+     "askingRentSmallBayPSF": 38.49,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 32000000,
+     "capRatePct": 6.6,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
+   },
    "marks": {
     "2026-09-30": {
      "value": 7600000,
@@ -773,6 +838,71 @@
       "yardiContract": ""
      }
     ]
+   },
+   "research": [
+    {
+     "id": "srs-2-market",
+     "type": "market",
+     "title": "Kent Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "route9-market-report-2026q3.pdf",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $37.33/SF; vacancy 9.4%; cap rate 6.3%; small-bay rent growth 2.7% over the year",
+     "summary": "Kent, WA: 9,420,000 SF of inventory, 450,000 SF under construction, net absorption 110,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-03-16T12:00:00.000Z"
+    },
+    {
+     "id": "srs-2-rent",
+     "type": "rent_survey",
+     "title": "Route 9 Small Bay rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-23",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $41.04/SF, median $42.09/SF, range $38.84 to $43.39/SF; net effective $38.82/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-03-16T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-kent",
+     "name": "Kent Small Bay (fictional)",
+     "metro": "Kent, WA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-kent-2026-Q3",
+     "submarketId": "sample-sm-kent",
+     "quarter": "2026-Q3",
+     "inventorySF": 9420000,
+     "vacancyPct": 9.4,
+     "availabilityPct": 11.5,
+     "netAbsorptionSF": 110000,
+     "askingRentPSF": 32.85,
+     "askingRentSmallBayPSF": 37.33,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 38000000,
+     "capRatePct": 6.3,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
    },
    "marks": {
     "2026-09-30": {
@@ -1341,6 +1471,71 @@
      }
     ]
    },
+   "research": [
+    {
+     "id": "srs-3-market",
+     "type": "market",
+     "title": "Long Beach Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "harbor-light-market-report-2026q3.pdf",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $32.17/SF; vacancy 9.6%; cap rate 7.85%; small-bay rent growth 3.2% over the year",
+     "summary": "Long Beach, CA: 10,420,000 SF of inventory, 450,000 SF under construction, net absorption 80,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+     "id": "srs-3-rent",
+     "type": "rent_survey",
+     "title": "Harbor Light Industrial rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-08",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $33.98/SF, median $34.31/SF, range $32.57 to $35.66/SF; net effective $31.87/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-04-30T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-long-beach",
+     "name": "Long Beach Small Bay (fictional)",
+     "metro": "Long Beach, CA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-long-beach-2026-Q3",
+     "submarketId": "sample-sm-long-beach",
+     "quarter": "2026-Q3",
+     "inventorySF": 10420000,
+     "vacancyPct": 9.6,
+     "availabilityPct": 11.7,
+     "netAbsorptionSF": 80000,
+     "askingRentPSF": 28.31,
+     "askingRentSmallBayPSF": 32.17,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 44000000,
+     "capRatePct": 7.85,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 3.2
+   },
    "marks": {},
    "units": [
     {
@@ -1846,6 +2041,71 @@
      }
     ]
    },
+   "research": [
+    {
+     "id": "srs-4-market",
+     "type": "market",
+     "title": "Fort Worth Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $48.76/SF; vacancy 10.6%; cap rate 6.4%; small-bay rent growth 2.8% over the year",
+     "summary": "Fort Worth, TX: 11,420,000 SF of inventory, 450,000 SF under construction, net absorption 50,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-06-15T12:00:00.000Z"
+    },
+    {
+     "id": "srs-4-rent",
+     "type": "rent_survey",
+     "title": "Ridgeway Trade Center rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $49.68/SF, median $49.63/SF, range $47.65 to $50.38/SF; net effective $47.26/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-06-15T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-fort-worth",
+     "name": "Fort Worth Small Bay (fictional)",
+     "metro": "Fort Worth, TX",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-fort-worth-2026-Q3",
+     "submarketId": "sample-sm-fort-worth",
+     "quarter": "2026-Q3",
+     "inventorySF": 11420000,
+     "vacancyPct": 10.6,
+     "availabilityPct": 12.7,
+     "netAbsorptionSF": 50000,
+     "askingRentPSF": 42.91,
+     "askingRentSmallBayPSF": 48.76,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 20000000,
+     "capRatePct": 6.4,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.8
+   },
    "marks": {},
    "units": [
     {
@@ -2323,6 +2583,71 @@
      }
     ]
    },
+   "research": [
+    {
+     "id": "srs-5-market",
+     "type": "market",
+     "title": "Houston Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $35.66/SF; vacancy 9.5%; cap rate 6.6%; small-bay rent growth 2.7% over the year",
+     "summary": "Houston, TX: 12,420,000 SF of inventory, 450,000 SF under construction, net absorption 20,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-07-15T12:00:00.000Z"
+    },
+    {
+     "id": "srs-5-rent",
+     "type": "rent_survey",
+     "title": "Canal Street Workshops rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-27",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $36.15/SF, median $36.08/SF, range $33.86 to $38.19/SF; net effective $32.90/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-07-15T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-houston",
+     "name": "Houston Small Bay (fictional)",
+     "metro": "Houston, TX",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-houston-2026-Q3",
+     "submarketId": "sample-sm-houston",
+     "quarter": "2026-Q3",
+     "inventorySF": 12420000,
+     "vacancyPct": 9.5,
+     "availabilityPct": 11.6,
+     "netAbsorptionSF": 20000,
+     "askingRentPSF": 31.38,
+     "askingRentSmallBayPSF": 35.66,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 26000000,
+     "capRatePct": 6.6,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
+   },
    "marks": {},
    "units": [
     {
@@ -2741,6 +3066,71 @@
       "yardiContract": ""
      }
     ]
+   },
+   "research": [
+    {
+     "id": "srs-6-market",
+     "type": "market",
+     "title": "Everett Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $41.82/SF; vacancy 10.4%; cap rate 6.6%; small-bay rent growth 3.2% over the year",
+     "summary": "Everett, WA: 13,420,000 SF of inventory, 450,000 SF under construction, net absorption -10,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-08-14T12:00:00.000Z"
+    },
+    {
+     "id": "srs-6-rent",
+     "type": "rent_survey",
+     "title": "Mill Creek Business Park rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-17",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $42.47/SF, median $42.16/SF, range $40.08 to $44.50/SF; net effective $38.82/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-08-14T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-everett",
+     "name": "Everett Small Bay (fictional)",
+     "metro": "Everett, WA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-everett-2026-Q3",
+     "submarketId": "sample-sm-everett",
+     "quarter": "2026-Q3",
+     "inventorySF": 13420000,
+     "vacancyPct": 10.4,
+     "availabilityPct": 12.5,
+     "netAbsorptionSF": -10000,
+     "askingRentPSF": 36.8,
+     "askingRentSmallBayPSF": 41.82,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 32000000,
+     "capRatePct": 6.6,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 3.2
    },
    "marks": {},
    "units": [
@@ -3331,6 +3721,71 @@
      }
     ]
    },
+   "research": [
+    {
+     "id": "srs-7-market",
+     "type": "market",
+     "title": "Henderson Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $44.00/SF; vacancy 9.2%; cap rate 6.05%; small-bay rent growth 2.6% over the year",
+     "summary": "Henderson, NV: 14,420,000 SF of inventory, 450,000 SF under construction, net absorption 95,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "id": "srs-7-rent",
+     "type": "rent_survey",
+     "title": "Southpoint Flex rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $44.77/SF, median $44.50/SF, range $42.31 to $47.12/SF; net effective $41.78/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-09-30T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-henderson",
+     "name": "Henderson Small Bay (fictional)",
+     "metro": "Henderson, NV",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-henderson-2026-Q3",
+     "submarketId": "sample-sm-henderson",
+     "quarter": "2026-Q3",
+     "inventorySF": 14420000,
+     "vacancyPct": 9.2,
+     "availabilityPct": 11.3,
+     "netAbsorptionSF": 95000,
+     "askingRentPSF": 38.72,
+     "askingRentSmallBayPSF": 44,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 38000000,
+     "capRatePct": 6.05,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.6
+   },
    "marks": {},
    "units": [
     {
@@ -3822,6 +4277,71 @@
      }
     ]
    },
+   "research": [
+    {
+     "id": "srs-8-market",
+     "type": "market",
+     "title": "Fontana Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $39.37/SF; vacancy 10.6%; cap rate 6.9%; small-bay rent growth 2.8% over the year",
+     "summary": "Fontana, CA: 15,420,000 SF of inventory, 450,000 SF under construction, net absorption 65,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-10-15T12:00:00.000Z"
+    },
+    {
+     "id": "srs-8-rent",
+     "type": "rent_survey",
+     "title": "Granite Ave Industrial rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-28",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $38.10/SF, median $38.44/SF, range $35.45 to $39.75/SF; net effective $34.81/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-10-15T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-fontana",
+     "name": "Fontana Small Bay (fictional)",
+     "metro": "Fontana, CA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-fontana-2026-Q3",
+     "submarketId": "sample-sm-fontana",
+     "quarter": "2026-Q3",
+     "inventorySF": 15420000,
+     "vacancyPct": 10.6,
+     "availabilityPct": 12.7,
+     "netAbsorptionSF": 65000,
+     "askingRentPSF": 34.65,
+     "askingRentSmallBayPSF": 39.37,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 44000000,
+     "capRatePct": 6.9,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.8
+   },
    "marks": {},
    "units": [
     {
@@ -4270,6 +4790,71 @@
       "yardiContract": ""
      }
     ]
+   },
+   "research": [
+    {
+     "id": "srs-9-market",
+     "type": "market",
+     "title": "Dallas Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $40.85/SF; vacancy 9.5%; cap rate 6.85%; small-bay rent growth 2.7% over the year",
+     "summary": "Dallas, TX: 16,420,000 SF of inventory, 450,000 SF under construction, net absorption 35,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-11-13T12:00:00.000Z"
+    },
+    {
+     "id": "srs-9-rent",
+     "type": "rent_survey",
+     "title": "Lakeshore Service Center rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-04",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $41.55/SF, median $41.84/SF, range $39.82 to $43.80/SF; net effective $38.92/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-11-13T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-dallas",
+     "name": "Dallas Small Bay (fictional)",
+     "metro": "Dallas, TX",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-dallas-2026-Q3",
+     "submarketId": "sample-sm-dallas",
+     "quarter": "2026-Q3",
+     "inventorySF": 16420000,
+     "vacancyPct": 9.5,
+     "availabilityPct": 11.6,
+     "netAbsorptionSF": 35000,
+     "askingRentPSF": 35.95,
+     "askingRentSmallBayPSF": 40.85,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 20000000,
+     "capRatePct": 6.85,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
    },
    "marks": {},
    "units": [

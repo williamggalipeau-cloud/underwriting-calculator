@@ -73,6 +73,14 @@ for (const d of JSON.parse(fs.readFileSync(path.join(pmDir, "index.json"), "utf8
   copy(path.join(pmDir, "abstracts", `${d.name}.json`), path.join(OUT, "property-mgmt", `${d.name}.json`));
   manifest.propertyMgmt.push({ name: d.name, kind: d.kind, section: d.section, asset: d.asset, file: `property-mgmt/${d.file}`, abstract: `property-mgmt/${d.name}.json`, title: d.title });
 }
+// 1.1.21: the market reports behind three assets' third-party research items.
+const rsDir = path.join(R, "docs", "sample-deal-docs", "research");
+manifest.research = [];
+for (const d of JSON.parse(fs.readFileSync(path.join(rsDir, "index.json"), "utf8"))) {
+  copy(path.join(rsDir, d.file), path.join(OUT, "research", d.file));
+  copy(path.join(rsDir, "abstracts", `${d.name}.json`), path.join(OUT, "research", `${d.name}.json`));
+  manifest.research.push({ name: d.name, kind: d.kind, researchId: d.researchId, asset: d.asset, file: `research/${d.file}`, abstract: `research/${d.name}.json`, title: d.title });
+}
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1));
 fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases, and the sample credit reports) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
 console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}, credit ${manifest.credit.length}, GP agreements ${manifest.gpAgreements.length}`);

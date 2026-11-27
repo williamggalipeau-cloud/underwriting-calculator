@@ -11,6 +11,7 @@ const R = path.resolve(__dirname, "..", "..");
 const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const { buildSampleFund, samplePropertyCompany } = j(R + "/lib/sampleFund.js");
 const { underwrite } = j(R + "/lib/calculations.js");
+const { sampleMarketStat } = j(R + "/lib/sampleResearch.js");
 const SP = j(R + "/lib/samplePortfolio.js");
 const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
 
@@ -42,7 +43,7 @@ function fundJson() {
       },
       propertyCompany: samplePropertyCompany(Number(d.id.replace("sample-deal-", "")) - 1),
       building: a.building ?? {}, site: a.site ?? {}, sndaRule: a.loanTerms?.sndaRule ?? "none", /* 1.1.17 */
-      propertyMgmt: a.propertyMgmt ?? {}, /* 1.1.21 */
+      propertyMgmt: a.propertyMgmt ?? {}, research: a.research ?? [], marketReport: sampleMarketStat(a, f.market), /* 1.1.21 */
       marks: Object.fromEntries(Object.entries(f.valuations[d.id] ?? {}).map(([q, m]) => [q, { value: m.value, capRate: m.capRate, source: m.source }])),
       units: (a.units ?? []).map((u) => ({
         name: u.name, tenant: u.tenantName ?? "", sf: u.squareFeet, status: u.leaseStatus, leaseType: u.leaseType, rentPSF: u.currentRentPSF, leaseEnd: u.leaseEnd ?? "",

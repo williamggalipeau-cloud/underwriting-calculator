@@ -27,6 +27,7 @@ import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit, mergeCreditUpdate } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
+import { withSampleResearch } from "@/lib/sampleResearch";
 import { withSamplePropertyMgmt } from "@/lib/samplePropertyMgmt";
 import { withSampleAssetFacts, withSampleSnda } from "@/lib/sampleAssetFacts";
 import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale, withSampleSaleComps } from "@/lib/sampleDocTerms";
@@ -1674,6 +1675,7 @@ export default function Home() {
         inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
         inp = withSampleSaleComps(inp); // 1.1.16: each sample sale's comps, copied from the asset's acquisition comps
         inp = withSampleSnda(withSampleAssetFacts(inp, d.id), d.id, { repair: fromVersion === 6 }); // 1.1.17: building and site facts, and SNDA statuses (only where none is set; 1.1.18 repairs a version-6 load that lost them)
+        inp = withSampleResearch(inp, d.id, latestData.current?.comps?.market ?? cur.comps?.market); // 1.1.21: third-party research, only where the asset has none
         inp = withSamplePropertyMgmt(inp, d.id); // 1.1.21: Property Management rows, only in the sections the asset has none in
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         return inp === d.inputs ? d : { ...d, inputs: inp };

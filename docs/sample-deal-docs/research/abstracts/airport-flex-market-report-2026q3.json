@@ -1,0 +1,35 @@
+{
+ "doc_type": "market_report",
+ "title": "Las Vegas Small Bay industrial market report, Q3 2026",
+ "asset": "Airport Flex Park",
+ "provider": "Fictional Market Research Group",
+ "submarket": "Las Vegas Small Bay (fictional)",
+ "quarter": "2026-Q3",
+ "report_date": "2026-09-30",
+ "inventory_sf": 8420000,
+ "vacancy_pct": 9.5,
+ "availability_pct": 11.6,
+ "net_absorption_sf": 5000,
+ "asking_rent_psf": 33.87,
+ "small_bay_rent_psf": 38.49,
+ "small_bay_rent_growth_pct": 2.7,
+ "under_construction_sf": 450000,
+ "deliveries_sf": 0,
+ "sales_volume": 32000000,
+ "cap_rate_pct": 6.6,
+ "quotes": {
+  "submarket": "This report covers the Las Vegas Small Bay industrial submarket of Las Vegas, NV for Q3 2026. (§1.1)",
+  "inventory_sf": "Inventory stood at 8,420,000 square feet at the end of the quarter. (§2.1)",
+  "vacancy_pct": "The vacancy rate was 9.5% and the availability rate 11.6%. (§2.2)",
+  "net_absorption_sf": "Net absorption was 5,000 square feet in the quarter. (§2.3)",
+  "under_construction_sf": "450,000 square feet were under construction and 0 square feet were delivered in the quarter. (§2.4)",
+  "asking_rent_psf": "Average asking rent was $33.87 per square foot per year across all sizes. (§3.1)",
+  "small_bay_rent_psf": "Small-bay space asked $38.49 per square foot per year. (§3.2)",
+  "cap_rate_pct": "Sales totalled $32,000,000 in the quarter at an average cap rate of 6.6%. (§4.1)",
+  "small_bay_rent_growth_pct": "Small-bay asking rent rose 2.7% over the year. (§3.3)"
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

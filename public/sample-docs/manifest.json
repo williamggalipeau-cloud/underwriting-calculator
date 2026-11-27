@@ -826,5 +826,34 @@
    "abstract": "property-mgmt/harbor-light-service-contract.json",
    "title": "Harbor Light Industrial HVAC service agreement"
   }
+ ],
+ "research": [
+  {
+   "name": "airport-flex-market-report-2026q3",
+   "kind": "market_report",
+   "researchId": "srs-1-market",
+   "asset": "Airport Flex Park",
+   "file": "research/airport-flex-market-report-2026q3.pdf",
+   "abstract": "research/airport-flex-market-report-2026q3.json",
+   "title": "Las Vegas Small Bay industrial market report, Q3 2026"
+  },
+  {
+   "name": "route9-market-report-2026q3",
+   "kind": "market_report",
+   "researchId": "srs-2-market",
+   "asset": "Route 9 Small Bay",
+   "file": "research/route9-market-report-2026q3.pdf",
+   "abstract": "research/route9-market-report-2026q3.json",
+   "title": "Kent Small Bay industrial market report, Q3 2026"
+  },
+  {
+   "name": "harbor-light-market-report-2026q3",
+   "kind": "market_report",
+   "researchId": "srs-3-market",
+   "asset": "Harbor Light Industrial",
+   "file": "research/harbor-light-market-report-2026q3.pdf",
+   "abstract": "research/harbor-light-market-report-2026q3.json",
+   "title": "Long Beach Small Bay industrial market report, Q3 2026"
+  }
  ]
 }

@@ -146,7 +146,7 @@ function ThirdParty({ deal, deals, canEdit, onUpdate, workspaceId, email, scopeN
                     <td className="px-2.5 py-2 max-w-md">{r.keyFigures && <p className="font-medium">{r.keyFigures}</p>}{r.summary && <p className="text-gray-600 whitespace-pre-line">{r.summary}</p>}</td>
                     <td className="px-2.5 py-2 whitespace-nowrap">
                       {link && <a href={link} target="_blank" rel="noopener noreferrer" className="block text-blue-700 hover:underline">Open link ↗</a>}
-                      {r.docId && (workspaceId ? <button type="button" onClick={() => openFile(r)} className="block text-blue-700 hover:underline">{r.fileName || "PDF"}</button> : <span className="block text-gray-500">{r.fileName || "PDF"}</span>)}
+                      {(r.docId || fileDoc(r)) && (workspaceId ? <button type="button" onClick={() => openFile(r)} className="block text-blue-700 hover:underline">{r.fileName || "PDF"}</button> : <span className="block text-gray-500">{r.fileName || "PDF"}</span>)}
                     </td>
                     {canEdit && scope === "asset" && (
                       <td className="px-2.5 py-2 whitespace-nowrap">
