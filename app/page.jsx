@@ -27,7 +27,7 @@ import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
-import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale } from "@/lib/sampleDocTerms";
+import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale, withSampleSaleComps } from "@/lib/sampleDocTerms";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -1670,6 +1670,7 @@ export default function Home() {
         if (!d.id.startsWith("sample-deal-")) return d;
         let inp = credit.updates[d.id] ? { ...d.inputs, ...credit.updates[d.id] } : d.inputs;
         inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
+        inp = withSampleSaleComps(inp); // 1.1.16: each sample sale's comps, copied from the asset's acquisition comps
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         return inp === d.inputs ? d : { ...d, inputs: inp };
       };
@@ -2521,6 +2522,7 @@ export default function Home() {
                         linked={!!activeDeal.linked}
                         onLinkChange={passed ? () => {} : setLinked}
                         onCurveImport={handleCurveImport}
+                        asset={activeDeal.inputs}
                       />
                     </fieldset>
                   )}
@@ -2742,6 +2744,7 @@ export default function Home() {
               <DispositionCandidates
                 deals={fundDeals}
                 funds={viewFunds}
+                valuations={valuations}
                 scopeName={scope ? scopeLabel(scope, funds) : ""}
                 onOpenSellHold={(id) => { setActiveDealId(id); setActiveTab("sellhold"); }}
                 onOpenSale={(id) => { setActiveDealId(id); setActiveTab("forsale"); }}

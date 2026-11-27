@@ -16,6 +16,8 @@ import { DocViewer, ReviewPanel } from "@/components/Documents";
 import { DEFAULT_FUND_TERMS } from "@/lib/fundTerms";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
+import SaleComps from "@/components/SaleComps";
+import { saleCompsXlsx } from "@/lib/assetMetrics";
 
 const money = (v) => (v == null || !Number.isFinite(Number(v)) ? "—" : `$${Math.round(Number(v)).toLocaleString("en-US")}`);
 const pct = (v, d = 1) => (v == null || !Number.isFinite(v) ? "—" : `${v.toFixed(d)}%`);
@@ -169,6 +171,9 @@ function SaleCard({ x, sales, canEdit, onUpdateSale, onClose, todayISO, docs = [
         </div>
       </div>
 
+      {/* 1.1.16: this sale's comps (the disposition set) */}
+      <SaleComps inputs={x.inputs} sale={s} canEdit={canEdit} onUpdateSale={onUpdateSale} todayISO={todayISO} />
+
       {/* Offers on this sale */}
       <div>
         <p className="mb-1 font-semibold">Offers ({offers.length}) · best net proceeds first</p>
@@ -271,7 +276,7 @@ export default function Dispositions({ view = "forsale", deals = [], valuations 
   const sales = useMemo(() => allSales(deals), [deals]);
   const owned = deals.filter((d) => d.inputs.fundName && d.inputs.acquisitionDate && d.inputs.acquisitionDate <= todayISO && !(d.inputs.realizedSaleDate && d.inputs.realizedSaleDate <= todayISO));
   const updateSale = (dealId, saleId) => (fn) => onUpdate(dealId, (inp) => ({ ...inp, dispositions: (inp.dispositions ?? []).map((s) => (s.id === saleId ? fn(s) : s)) }));
-  const exportX = async (rows, name, kind) => downloadBlob(await writeXlsx(kind === "track" ? trackXlsx(rows) : salesXlsx(rows, { todayISO }), { sheetName: name }), `${name.toLowerCase().replace(/\s+/g, "-")}-${todayISO}.xlsx`);
+  const exportX = async (rows, name, kind) => downloadBlob(await writeXlsx(kind === "track" ? trackXlsx(rows) : [...salesXlsx(rows, { todayISO }), [], ...saleCompsXlsx(rows, { todayISO })], { sheetName: name }), `${name.toLowerCase().replace(/\s+/g, "-")}-${todayISO}.xlsx`);
 
   if (view === "dispdocs") {
     const saleName = new Map(sales.map((x) => [x.sale.id, `${x.asset}${x.sale.scope === "partial" ? " (part)" : ""} · ${stageLabel(x.sale.stage)}`]));
