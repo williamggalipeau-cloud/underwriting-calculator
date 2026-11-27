@@ -260,3 +260,97 @@ LEASES = [
         audit_days=90,
     ),
 ]
+
+
+# ── Model Fund I leases, written from the fund (1.1.13: everything ties out) ──
+# One lease per Model Fund I asset, for a tenant and unit that IS on that
+# asset's rent roll as the app builds it (scripts/sample-deal-docs/fund.json,
+# written by export_fund.cjs from lib/sampleFund.js). The tenant, premises,
+# SF, lease type, expiration, rent and escalation are read from the unit; the
+# commencement is the expiration less a whole number of years, chosen so the
+# rent step in force on the acquisition date is the unit's rent. Only what
+# the app does not hold is written here (the landlord company is the app's
+# property company; deposit, insurance and the other clauses are the BASE).
+# The earlier leases (tenants that were not on the rent rolls) are kept as
+# test fixtures in tests/fixtures/sample-leases.
+import json as _json
+import re as _re
+from datetime import date as _date, timedelta as _timedelta
+from pathlib import Path as _Path
+
+FUND = _json.loads((_Path(__file__).resolve().parents[1] / "sample-deal-docs" / "fund.json").read_text())
+_ASSET = {a["name"]: a for a in FUND["assets"]}
+_ENTITY = {"WA": "a Washington limited liability company", "NV": "a Nevada limited liability company", "CA": "a California limited liability company", "TX": "a Texas limited liability company"}
+
+
+def _slug(s):
+    return _re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+
+def _minus_years(d, n):
+    try:
+        return d.replace(year=d.year - n)
+    except ValueError:  # February 29
+        return d.replace(year=d.year - n, day=28)
+
+
+def fund_lease(no, asset, tenant, company, years=(5, 3, 7, 4, 6, 2, 1), amendment=None, **extra):
+    A = _ASSET[asset]
+    u = next(x for x in A["units"] if x["tenant"] == tenant)
+    assert u["status"] == "occupied" and u["leaseType"] in ("NNN", "MG", "Gross"), (asset, tenant)
+    acq = _date.fromisoformat(A["acquisitionDate"])
+    end = _date.fromisoformat(u["leaseEnd"])
+    esc = u["escalationPct"]
+    for T in years:
+        start = _minus_years(end + _timedelta(days=1), T)
+        if start > acq:
+            continue
+        k = (acq.year - start.year) - (1 if (acq.month, acq.day) < (start.month, start.day) else 0)  # full lease years before the acquisition
+        rate = round(u["rentPSF"] / (1 + esc / 100) ** k, 2)
+        if round(rate * (1 + esc / 100) ** k, 2) == u["rentPSF"]:
+            break
+    else:
+        raise AssertionError(f"no term reproduces {tenant}'s rent")
+    business = u["business"]
+    L = dict(
+        asset=asset, file=f"{no:02d}-{_slug(asset)}-{_slug(tenant)}", landlord=f"Model Fund I — {company} LLC",
+        tenant=f"{tenant}, {_ENTITY[A['state']]}", suite=f"Unit {u['name']}", rsf=u["sf"], building_rsf=A["sf"],
+        lease_type=u["leaseType"], commencement=start.isoformat(), term_months=T * 12, rate=rate, escalation=esc,
+        permitted_use=f"{business[0].lower()}{business[1:]}, with related office use",
+        mgmt_fee_cap=f"{A['managementFeePct']:g}% of gross revenues of the Project",
+        fund_unit=dict(name=u["name"], tenant=tenant, business=business, sic=u["sic"], rent=u["rentPSF"], lease_end=u["leaseEnd"]),
+    )
+    if amendment:
+        L["amendment"] = dict(file=f"{no:02d}a-{_slug(asset)}-{_slug(tenant)}-first-amendment", **amendment)
+    L.update(extra)
+    return L
+
+
+def _notice_amendment(date, addr):
+    # An amendment that changes no economic term: the abstract's terms stay the lease's (and the app's).
+    return dict(date=date, title="First Amendment to Lease (Notices and Certificates)",
+                recital="Tenant has moved its headquarters and the parties wish to update the notice provisions of the Lease.",
+                changes=[
+                    ("Tenant's Notice Address", f"Tenant's address for notices under the Lease is changed to {addr}, with a copy to the Premises."),
+                    ("Insurance Certificates", "Tenant shall deliver each certificate of insurance required by the Lease by email to Landlord's property manager at least ten (10) days before the policy it replaces expires."),
+                    ("No Other Changes", "This Amendment does not change the Term, the Base Rent, the Premises or any option or other economic term of the Lease."),
+                ])
+
+
+_FUND_LEASES = [
+    fund_lease(2, "Airport Flex Park", "Blue Mesa Fulfillment", "Runway Vista"),
+    fund_lease(3, "Route 9 Small Bay", "Sierra Coffee Roasters", "Valley Freight"),
+    fund_lease(4, "Harbor Light Industrial", "Copper Canyon Tile & Stone", "Pier Junction",
+               amendment=_notice_amendment("2026-06-15", "4100 Fictional Quarry Road, Carson, California 90745")),
+    fund_lease(5, "Ridgeway Trade Center", "Riverbend Flooring", "Ridgeway Commerce"),
+    fund_lease(6, "Canal Street Workshops", "Prairie Glass & Glazing", "Canal Street"),
+    fund_lease(7, "Mill Creek Business Park", "Harbor Precision Machining", "Mill Creek",
+               amendment=_notice_amendment("2026-09-10", "900 Sample Industrial Way, Marysville, Washington 98270")),
+    fund_lease(8, "Southpoint Flex", "Desert Sky Print Shop", "Southpoint"),
+    fund_lease(9, "Granite Ave Industrial", "Granite Courier", "Granite Avenue"),
+    fund_lease(10, "Lakeshore Service Center", "Bayline Auto Parts", "Lakeshore Service",
+               amendment=_notice_amendment("2026-12-01", "2500 Example Parts Parkway, Garland, Texas 75041")),
+]
+_FUND_ASSETS = {L["asset"] for L in _FUND_LEASES}
+# The three leases on assets outside Model Fund I stay as they were.
+LEASES = _FUND_LEASES + [L for L in LEASES if L["asset"] not in _FUND_ASSETS]
