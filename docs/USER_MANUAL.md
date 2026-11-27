@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.12** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.13** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -322,7 +322,7 @@ Management, where it was "Sales Comps") and its **Third-Party** research
 it leads to Start sale); Asset Summary is the first Asset Management tab;
 **Unit Roll** is now **Rent Roll** and **Leasing** is now **Active
 Leasing**; the Fund Plan tab is now **Plan vs. actual** on Portfolio Summary. New
-fields: **Asset Manager** (Edit asset) and **Portfolio manager** (Edit fund)
+fields: **Asset Manager** and, since 1.1.13, **Property manager** (Edit asset) and **Portfolio manager** (Edit fund)
 name the Owner on the dashboard; **Ext. Notice** (Debt) and **Sub line
 maturity** (Edit fund) feed Upcoming Events; sale contracts and pipeline
 deals carry P&S, deposit, hard money, due diligence, loan closing and
@@ -1176,9 +1176,37 @@ tomorrow onward.
 
 ### 7.13 Sample portfolio (`lib/samplePortfolio.js`)
 
+**Everything ties out (1.1.13).** Model Fund I is built in one place
+(`lib/sampleFund.js`), and every sample document, lease, sale document,
+Yardi file and construction job is written from it, so a document and the
+app never disagree. `tests/node/sampleTieOut.test.cjs` (111 checks) runs with
+every test run and fails on any difference; it has no exceptions list. The
+steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
+- **What the fund now also holds:** the facts that used to exist only in the
+  documents (lender, covenants and reporting, executed rate caps, contract
+  dates and deposits, the IC approval and its conditions, closing figures,
+  the LPA's investment limits, each lease's start date and deposit), read
+  from the documents with the app's own apply functions
+  (`lib/sampleDocTerms.json`). None of them changes a modelled number: the
+  fund's returns are the same with and without them, and the test checks it.
+- **Sales:** three sales in progress (Route 9 Small Bay under contract;
+  Harbor Light Industrial and Mill Creek Business Park with an offer), each
+  with its broker opinion of value and offers. No asset is sold, so there is
+  no sample sale closing statement.
+- **Legal entities:** the fund, the GP and nine property companies, with an
+  ownership chart on Portfolio Summary; the documents use the same names.
+- **Property managers:** every sample asset has one, at the sponsor.
+- **Version 3 of the automatic load (1.1.13):** on an owner's open it fills
+  those document terms where empty, adds the entities, limits and property
+  managers, and replaces the earlier sample documents and leases with the
+  rewritten set. It finds the earlier ones only by their old sample file
+  names (`lib/sampleDocChanges.json`) and never removes a document you
+  uploaded, a lease with tenant credit documents, or a sale you have worked
+  on.
+
 **Sample material loads by itself (1.1.12).** When an owner opens a firm
 that has Model Fund I and its sample material is older than the app's
-(`SAMPLE_DATA_VERSION`, now 2), Baywise adds what is missing with no clicks:
+(`SAMPLE_DATA_VERSION`, 2 in 1.1.12 and 3 in 1.1.13), Baywise adds what is missing with no clicks:
 sample tenant credit and aged rent, the sample documents (credit report
 PDFs included) and the two sample GP partners with their agreements. It adds
 only what isn't there, keeps your own records, logs the update in the Change
@@ -2619,6 +2647,20 @@ On the **Change log** tab (working log or the database's verified log):
 
 ### 7.42 Dashboard (`lib/home.js`, `components/Home.jsx`, phase Z)
 
+**Added in 1.1.13:**
+- **Upcoming Events** also lists **lender reporting deadlines** (from each
+  loan's reporting terms) and **legal entity annual reports** (from the
+  fund's entities on Portfolio Summary).
+- **Property manager (asset setup).** The Property section of the asset
+  inputs (New asset / Edit asset…) has, under Leasing Manager, **Property
+  manager** (the person) and **Property management firm**: this firm (the
+  sponsor) or a third-party servicer with its name. They are set there and
+  only shown elsewhere: Asset Summary and its Excel, the Property Management
+  tabs with their Excel and PDF, the asset quarterly report and the business
+  plan PDF. The property manager is the owner of property tax, insurance and
+  contract items in Upcoming Events. An asset is flagged when its firm type
+  disagrees with who the fund's property management fee is paid to.
+
 The app opens on the **Dashboard**, the landing page. It shows the
 portfolio chosen in **Select Portfolio** (was Working on) (§7.40) and is computed from data already
 loaded; the only thing it saves is which actions were marked done.
@@ -3516,13 +3558,17 @@ Fund I documents bundled with the site (`public/sample-docs`, copied from
 `docs/` by `scripts/sample-deal-docs/copy_public.cjs`) into the firm's
 document store, each with its abstract already saved:
 - **Fund documents:** the LPA and PPM, on Model Fund I.
-- **Asset documents:** 18 for Airport Flex Park, Route 9 Small Bay and
+- **Asset documents:** for Airport Flex Park, Route 9 Small Bay and
   Lakeshore Service Center. The tenant's insurance certificate and estoppel
   are linked to its lease.
-- **Sale documents:** a BOV, LOI, PSA and closing statement for each of Route
-  9, Harbor Light and Mill Creek. They're filed on the asset's active sale, or
-  on a new fictional sample sale.
-- **Leases:** the 9 sample leases (with amendments).
+- **Sale documents (1.1.13):** 7 for the three sales in progress: a broker
+  opinion of value and an offer for each of Route 9, Harbor Light and Mill
+  Creek, and the contract for Route 9. They're filed on the fund's sample
+  sale for that asset.
+- **Leases:** 9, one per asset, each for a tenant on that asset's rent roll
+  (three with an amendment that changes no economic term).
+- **Since 1.1.13 every one of these is written from Model Fund I's own
+  data** (§7.13).
 - **No doubles:** anything already uploaded is skipped (same asset or fund
   and file name, or a lease for the same tenant), so it can be clicked again
   safely.
@@ -4891,17 +4937,18 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; planned patches **1.1.14** (Dispositions comps with separate acquisition and disposition sets, price per SF, break-even occupancy) and **1.1.15** (twelve industrial asset characteristics, SNDAs) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
 | **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
 | **1.6** | Treasury Management (fund and asset bank accounts): cash position, unrestricted vs. restricted; bank concentration (flag above 25% at one bank); cash above FDIC limits (per entity, per bank); the interest rate cash earns and its cash drag against the fund's target and actual IRR; accounts a loan requires at the lender; **Lender Cash Sweep** (accounts swept after a covenant failure, and how much); a quarterly forecast for a rolling year against minimum cash of one quarter of planned expenses. Imports from manual entry, CSV, BAI2, CAMT.053 / MT940 and Yardi, built so treasury systems such as Kyriba can connect later. New **Treasury**, **Bank Accounts** and **Cash Forecast** tabs at the front of **Finance**; Distribution Analysis reads its balances from Treasury; the Dashboard alerts on Lender Cash Sweeps | Planned (added 11/25) |
 | **1.x** | **Side letters and REIT tests** (user, 11/27; release number set at scoping): side letter terms and obligations by investor; REIT income and asset tests where a fund uses that structure. **Placeholder for a later patch:** how side letters change the waterfall and fees, including most-favoured-nation (MFN) clauses that pass one investor's terms to others | Planned, to scope |
-| **2.0** | **Access control** (ideas for scoping, user 11/27; nothing coded): sign-in through SSO (Microsoft, Google, Okta or another method the firm chooses) and roles for what each person may see and do (by fund, function or asset). First, because every later step depends on who may see what | Idea, to scope |
-| **2.1** | **Data sources**: fund administrator integration (import the quarterly NAV package, capital accounts and capital activity and tie them out against Baywise: NAV, called capital, distributions, fees, accrued promote; each fund marked self-administered or administered) and further back-end sources, one adapter each. Candidates by kind (user, 11/27; which come first is decided at scoping): **property accounting and management** Yardi (1.4), MRI, RealPage, Entrata, AppFolio, Sage 300 Construction and Real Estate; **valuation and cash flow** Argus Enterprise; **general ledger and finance** PeopleSoft, Microsoft Dynamics 365, NetSuite, SAP, Oracle, Workday; **treasury and banking** Kyriba (first source for 1.6 Treasury, user 11/27); **direct bank connections** for a sponsor with no treasury platform (user, 11/27): balances and transactions straight from the banks, through a bank data aggregator (for example Plaid or Finicity), the banks' own corporate APIs, or scheduled bank files (BAI2, CAMT.053); read-only, never payments; **investment management and investor relations (read-only; scoped at version 2, user 11/27)** Juniper Square, DealCloud, Dynamo, Salesforce, Allvue, Investran; **lease administration** VTS, Visual Lease, CoStar Real Estate Manager; **debt** Chatham (hedging and debt valuation), loan servicer reports; **construction** Procore; **market data** CoStar, MSCI Real Capital Analytics, Green Street, Moody's CRE; **budgeting** Anaplan, Adaptive | Idea, to scope |
+| **2.0** | **Access control and client onboarding** (ideas for scoping, user 11/27; nothing coded): once Baywise serves more than one firm, tools to set up a new client firm and load its existing data (guided imports, name and account matching, a tie-out report before go-live); sign-in through SSO (Microsoft, Google, Okta or another method the firm chooses) and roles for what each person may see and do (by fund, function or asset). First, because every later step depends on who may see what | Idea, to scope |
+| **2.1** | **Data sources**: fund administrator integration (import the quarterly NAV package, capital accounts and capital activity and tie them out against Baywise: NAV, called capital, distributions, fees, accrued promote; each fund marked self-administered or administered) and further back-end sources, one adapter each. Candidates by kind (user, 11/27; which come first is decided at scoping): **property accounting and management** Yardi (1.4), MRI, RealPage, Entrata, AppFolio, Sage 300 Construction and Real Estate; **valuation and cash flow** Argus Enterprise; **general ledger and finance** PeopleSoft, Microsoft Dynamics 365, NetSuite, SAP, Oracle, Workday; **treasury and banking** Kyriba (first source for 1.6 Treasury, user 11/27); **direct bank connections** for a sponsor with no treasury platform (user, 11/27): balances and transactions straight from the banks, through a bank data aggregator (for example Plaid or Finicity), the banks' own corporate APIs, or scheduled bank files (BAI2, CAMT.053); read-only, never payments; **investment management and investor relations (read-only; scoped at version 2, user 11/27)** Juniper Square, DealCloud, Dynamo, Salesforce, Allvue, Investran; **lease administration** VTS, Visual Lease, CoStar Real Estate Manager; **debt** Chatham (hedging and debt valuation), loan servicer reports; **construction** Procore; **market data** CoStar, MSCI Real Capital Analytics, Green Street, Moody's CRE; **budgeting** Anaplan, Adaptive; **document repositories** (link to and import documents: SharePoint / OneDrive, Box, Dropbox, Google Drive, Egnyte, deal data rooms; user 11/27: uploads are by hand until then) | Idea, to scope |
 | **2.2** | **Saved results and outside analytics**: Baywise saves its calculated results (IRR, NAV, waterfalls) to the database so Power BI, Tableau and similar tools read the same figures the screens show, never their own math | Idea, to scope |
 | **2.3** | **Baywise on the firm's own data warehouse** (was 3.0): where a firm has one, Baywise reads from it instead of keeping its own copies; firms without one keep using the Baywise database | Idea, to scope |
+| **3.0** | **More asset types** (user, 11/27; future scoping): industrial, single family, multi-family, retail and office. The type is chosen at asset setup and the asset's characteristics, rent roll, underwriting inputs, comps and reports differ by type | Idea, to scope |
 
 **How releases work:**
 - **One live version.** The site runs one release at a time.
@@ -4909,6 +4956,19 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.13
+
+Sample data that ties out (user, 11/27: "all data and all functions in the app need to tie").
+
+- **Sample documents rewritten from Model Fund I (§7.13, §7.58).** Every fund and asset document, lease, sale document, Yardi file and construction job now states the fund's own tenants, rents, prices, loans and dates. Model Fund I's returns did not change.
+- **A tie-out test** runs with every test run and fails on any difference between a sample document and the app.
+- **Sales in progress.** Three sample sales with broker opinions, offers and one contract. The closing statements were removed because no asset has been sold.
+- **Model Fund I legal entities** and ownership chart; the fund's LPA limits, loan terms, executed caps, contract dates and IC approval are now in the app.
+- **Property manager and property management firm** in asset setup (§7.42).
+- **Home calendar:** lender reporting deadlines and legal entity annual reports.
+- **Prospect screening reports:** every screened prospect now gets its report (only the first of a given name did).
+- **Automatic load, version 3:** replaces the earlier sample documents and leases with the rewritten set and adds the new terms, with no clicks.
 
 ### What's in 1.1.12
 
