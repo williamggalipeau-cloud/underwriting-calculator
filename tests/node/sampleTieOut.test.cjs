@@ -283,8 +283,8 @@ for (const l of leaseIndex) {
   ok(SD.supersededSampleLeases(ls, CH, { withCreditDocs: new Set(["5"]) }).map((l) => l.id).join() === "1,2", "earlier sample leases are replaced; a user's lease, a lease on another asset, a lease with tenant credit documents and the current sample lease are kept");
   const current = new Set([...man.deals, ...man.dispositions].map((x) => x.file.split("/").pop()).concat(man.leases.flatMap((l) => l.files.map((f) => f.split("/").pop()))));
   const listed = new Set([...CH["3"], ...CH.sales["3"], ...CH.leases["3"]]);
-  const before = require("child_process").execFileSync("git", ["-C", R, "show", "a5c6af8:public/sample-docs/manifest.json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
-  const was = JSON.parse(before); const wasNames = [...was.deals, ...was.dispositions].map((x) => x.file.split("/").pop()).concat(was.leases.flatMap((l) => l.files.map((f) => f.split("/").pop())));
+  // The previous release's manifest, frozen as a fixture (a test must not depend on git history: CI checks out one commit).
+  const was = require(R + "/tests/fixtures/sample-manifest-1.1.12.json"); const wasNames = [...was.deals, ...was.dispositions].map((x) => x.file.split("/").pop()).concat(was.leases.flatMap((l) => l.files.map((f) => f.split("/").pop())));
   const unlisted = wasNames.filter((n) => !current.has(n) && !listed.has(n));
   ok(unlisted.length === 0, `every sample file of the previous release that is no longer loaded is on the replace list${unlisted.length ? " — missing: " + unlisted.join(", ") : ""}`);
 }
