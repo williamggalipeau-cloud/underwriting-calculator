@@ -77,6 +77,7 @@ import { isPipeline } from "@/lib/fundImpact";
 import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { TAB_GROUPS, TABS, TAB_COUNT_TITLES, DEAL_TABS } from "@/lib/tabs";
+import { sampleFundData, samplePipelineCandidate, withSampleBenchmarks, SAMPLE_IMPACT_PIPELINE_ID } from "@/lib/sampleFundData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
@@ -1473,12 +1474,18 @@ export default function Home() {
       ...built,
       ...screened.map(([, d]) => d),
     ]);
+    const sampleBm = withSampleBenchmarks(comps?.benchmarks, { todayISO });
+    if (sampleBm !== comps?.benchmarks) setComps((c) => ({ ...c, benchmarks: withSampleBenchmarks(c?.benchmarks, { todayISO }) }));
     // Make sure the fund has terms (a workspace saved before the rename
     // keeps the terms it had under the old name) and $100M of commitments
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...sampleFundTermsPatch(terms), ...((terms.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
+      const next = { ...terms, ...sampleFundTermsPatch(terms), ...((terms.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL };
+      // 1.1.22: the fund-level sample records, only where the fund has none.
+      let records = {};
+      try { records = sampleFundData(built, next, { todayISO, valuations: sf.valuations, curve: effectiveCurve(baseCurveRef.current, anchorToLive, live), candidates: screenedBy.get(SAMPLE_IMPACT_PIPELINE_ID) ? [screenedBy.get(SAMPLE_IMPACT_PIPELINE_ID)] : [samplePipelineCandidate(deals, plRows)].filter(Boolean), benchmarks: sampleBm }); } catch { /* the fund loads without them */ }
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...next, ...records } };
     });
     // The fictional pipeline deals load with the sample fund too (1.1, user
     // 11/25); ones already there are kept as they are.
@@ -1660,7 +1667,21 @@ export default function Home() {
       // so applying it twice changes nothing more.
       setDeals((prev) => prev.map(withDocs));
       // The version is recorded only when everything went in; otherwise the next open tries again.
-      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...sampleFundTermsPatch(prev[SAMPLE_FUND_NAME] ?? {}, { keepExisting: true }), ...((prev[SAMPLE_FUND_NAME]?.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
+      // 1.1.22: the fund-level sample records (capital activity, the original
+      // plan and its targets, sell / hold decisions, an impact scenario, an
+      // issued report) and the firm's sample benchmark series. Each is made
+      // by the function its tab calls, from the assets as they are now, and
+      // only where the fund has none.
+      const now = latestData.current ?? cur;
+      const dealsNow = (now.deals ?? cur.deals).map(withDocs);
+      const benchmarksNow = withSampleBenchmarks(now.comps?.benchmarks, { todayISO });
+      if (benchmarksNow !== now.comps?.benchmarks) setComps((c) => ({ ...c, benchmarks: withSampleBenchmarks(c?.benchmarks, { todayISO }) }));
+      const cand = samplePipelineCandidate(dealsNow, now.pipeline?.deals);
+      const fundRecords = (t) => { try { return sampleFundData(dealsNow, t, { todayISO, valuations: applySampleDocMarks(now.valuations ?? {}), curve: effectiveCurve(baseCurveRef.current, anchorToLive, live), candidates: cand ? [cand] : [], benchmarks: benchmarksNow }); } catch { return {}; } };
+      setFunds((prev) => {
+        const t = { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...sampleFundTermsPatch(prev[SAMPLE_FUND_NAME] ?? {}, { keepExisting: true }), ...((prev[SAMPLE_FUND_NAME]?.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}) };
+        return { ...prev, [SAMPLE_FUND_NAME]: { ...t, ...fundRecords(t), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } };
+      });
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
       setRecordNotice(failed.length
         ? `Model Fund I sample data: ${failed.length} item${failed.length === 1 ? "" : "s"} couldn't be added (${failed[0].error}); it will try again the next time you open Baywise.`

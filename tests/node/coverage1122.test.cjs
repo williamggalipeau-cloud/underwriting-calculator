@@ -28,8 +28,20 @@ let pass = 0, fail = 0;
 const check = (ok, msg) => { if (ok) pass++; else { fail++; console.log("FAIL", msg); } };
 const T = "2026-11-27";
 const f = buildSampleFund({ todayISO: T });
-const terms = { ...SAMPLE_FUND_FEE_TERMS, ...f.termsPatch, ...(f.credit?.fundPatch ?? {}) };
+const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
+const SFD = j(R + "/lib/sampleFundData.js");
+const { SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } = j(R + "/lib/samplePortfolio.js");
+const { toQuickInputs } = j(R + "/lib/pipeline.js");
+const { QUICK_DEFAULTS, toMainInputs } = j(R + "/lib/quickUnderwrite.js");
+const { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js");
 const pipeline = samplePipelineDeals(T);
+// The sample pipeline deal under contract, screened as Load Model Fund I screens it (app/page.jsx pipelineToDeal).
+const pl = pipeline.find((r) => r.id === SFD.SAMPLE_IMPACT_PIPELINE_ID);
+const quick = { ...QUICK_DEFAULTS, ...toQuickInputs(pl), acquisitionDate: pl.expectedClose };
+const candidate = { id: "pl-sample-1", linked: true, quick, pipelineId: pl.id, inputs: toMainInputs(quick, { ...DEFAULT_INPUTS, propertyName: pl.name, address: pl.address, city: pl.city, state: pl.state, squareFootage: pl.sf, fundName: "", units: [] }) };
+const benchmarks = SFD.withSampleBenchmarks(undefined, { todayISO: T });
+const terms0 = { ...DEFAULT_FUND_TERMS, ...SAMPLE_FUND_FEE_TERMS, name: SAMPLE_FUND_NAME, targetEquity: SAMPLE_FUND_COMMITMENTS, ...f.termsPatch, delinquency: f.credit.delinquency };
+const terms = { ...terms0, ...SFD.sampleFundData(f.deals, terms0, { todayISO: T, valuations: f.valuations, candidates: [candidate], benchmarks }) };
 const { withSampleComps } = j(R + "/lib/sampleComps.js");
 const deals = f.deals.map((d) => withSampleComps(d, T)), any = (fn) => deals.some((d) => fn(d.inputs)), all = (fn) => deals.every((d) => fn(d.inputs));
 const n = (x) => (Array.isArray(x) ? x.length : x && typeof x === "object" ? Object.keys(x).length : 0);
@@ -71,7 +83,7 @@ const DATA = [
   ["funddebt", "asset loans", any((a) => Number(a.ltvPct) > 0)],
   ["distributions", "distribution proposals", n(terms.distributions?.proposals) > 0],
   ["stress", "assets to stress", deals.length > 0],
-  ["benchmark", "benchmark series", n(f.benchmarks) > 0],
+  ["benchmark", "benchmark series", ["index", "vintage", "monthly"].every((k) => n(benchmarks?.[k]) > 0)],
   ["gpecon", "fee terms", Number(terms.mgmtFeePct) > 0],
   ["sponsorecon", "fee terms", Number(terms.mgmtFeePct) > 0],
   ["firmecon", "fee terms", Number(terms.mgmtFeePct) > 0],
@@ -82,14 +94,9 @@ const DATA = [
 ];
 // Still missing, with the patch that adds it.
 const PENDING_DATA = {
-  "impact / saved scenarios": "1.1.22",
-  "sellhold / sell / hold decisions": "1.1.22",
-  "trackrecord / sold assets": "1.1.23 (the sample joint venture's sold asset)",
-  "fund / capital activity": "1.1.22",
-  "fund / fund plan versions": "1.1.22",
-  "distributions / distribution proposals": "1.1.22",
-  "benchmark / benchmark series": "1.1.22",
-  "reports / issued reports": "1.1.22",
+  "trackrecord / sold assets": "1.1.24 (the sample joint venture's sold asset)",
+  // Model Fund I bought its assets in 2026 on the subscription line: no capital is called and nothing is distributable yet.
+  "distributions / distribution proposals": "1.1.24 (the sample joint venture and separate account, set up in 2022 and 2023)",
 };
 for (const t of TABS) check(DATA.some(([tab]) => tab === t.id), `tab "${t.label}" (${t.id}) has no sample data set listed in this test`);
 for (const [tab, name, has] of DATA) {
@@ -119,14 +126,17 @@ const LISTS = {
   research: RESEARCH_TYPES.map(([k]) => k).filter((k) => k !== "other"),
   "property management": PM.PM_TAB_IDS.flatMap((tab) => PM.PM_TABS[tab].sections.map((s) => s.key)),
 };
+// Still missing, with the patch that adds it. 1.1.23 is the sample documents patch
+// (several of these are a document the fund already has under another list:
+// the property condition report, Phase I, survey, SNDA, appraisal and BOV).
 const PENDING_DOCS = {
-  library: { billing: "1.1.22", closing_disp: "1.1.23 (the sold asset)", jva: "1.1.23", sma: "1.1.23" },
-  acquisition: {},
-  disposition: {},
-  leasing: {},
-  fact: {},
-  research: {},
-  "property management": {},
+  "library": { billing: "1.1.23", closing_disp: "1.1.24 (the sold asset)", jva: "1.1.24 (the sample joint venture)", sma: "1.1.24 (the sample separate account)" },
+  "acquisition": { current_leases: "1.1.23", listing_agreement: "1.1.23", broker_model: "1.1.23", site_plan: "1.1.23", title_survey: "1.1.23", phase1_esa: "1.1.23", pca: "1.1.23", zoning: "1.1.23", lender_appraisal: "1.1.23", snda: "1.1.23", ic_presentation: "1.1.23", loan_term_sheet: "1.1.23", deed_title: "1.1.23" },
+  "disposition": { listing_agreement: "1.1.23", marketing: "1.1.23", estoppel: "1.1.23", closing_disp: "1.1.24 (the sold asset)", post_closing: "1.1.24 (the sold asset)", distribution_notice: "1.1.24 (the sold asset)" },
+  "leasing": { proposal: "1.1.23", loi: "1.1.23", lease_draft: "1.1.23", approval_memo: "1.1.23", broker_report: "1.1.23", comps: "1.1.23" },
+  "fact": { phase2: "1.1.23" },
+  "research": { appraisal: "1.1.23", bov: "1.1.23", rent_survey: "1.1.23", environmental: "1.1.23", pca: "1.1.23", credit: "1.1.23", zoning: "1.1.23" },
+  "property management": { parcels: "1.1.23", appeals: "1.1.23", claims: "1.1.23", items: "1.1.23" },
 };
 for (const [list, ids] of Object.entries(LISTS)) {
   for (const id of ids) {
