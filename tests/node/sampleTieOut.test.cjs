@@ -170,12 +170,12 @@ for (const l of leaseIndex) {
   if (!u) { ok(false, `${l.tenant} is not on ${l.asset}'s rent roll`); continue; }
   leaseRows.push({ id: `L-${d.id}`, deal_id: d.id, tenant: l.tenant, abstract: abs });
   const rows = LA.compareWithUnit(abs, u, d.inputs), key = LA.leaseMismatches(abs, u, d.inputs);
-  const other = rows.filter((r) => r.differs && r.key !== "rentSteps");
+  const other = rows.filter((r) => r.differs); // 1.1.21: rent steps included
   ok(key.length === 0 && other.length === 0, `${l.files[0].replace(/\.pdf$/, "")}: ${l.tenant}, unit ${u.name}: ${rows.length - 1} lease terms, all as on the rent roll (tenant, SF, type, start, end, rent, escalation, deposit, options…)${other.length ? " — " + other.map((r) => `${r.label}: unit ${JSON.stringify(r.unitValue)} / lease ${JSON.stringify(r.abstractValue)}`).join("; ") : ""}`);
-  // The lease's rent schedule is not copied to the unit (the model escalates the unit's rent itself); it must agree with the unit instead.
+  // 1.1.21: the lease's rent schedule is on the unit (the model pays the step in force); it must also agree with the unit's rent, escalation and end.
   const steps = LA.abstractUnitValues(abs, d.inputs).values.rentSteps ?? [], now = LA.stepOn(steps, d.inputs.acquisitionDate);
   const growth = steps.slice(1).every((x, i) => Math.abs((x.rentPSF / steps[i].rentPSF - 1) * 100 - u.annualEscalationPct) <= 0.06);
-  ok(!u.rentSteps && now && near(now.rentPSF, u.currentRentPSF, 0.005) && growth && steps.at(-1).end === u.leaseEnd, `${l.tenant}: the lease's rent schedule gives the unit's rent on the acquisition date ($${u.currentRentPSF}/SF), grows at the unit's ${u.annualEscalationPct}% and ends on the unit's lease end`);
+  ok(JSON.stringify(u.rentSteps) === JSON.stringify(steps) && now && near(now.rentPSF, u.currentRentPSF, 0.005) && growth && steps.at(-1).end === u.leaseEnd, `${l.tenant}: the unit holds the lease's rent schedule, which gives the unit's rent on the acquisition date ($${u.currentRentPSF}/SF), grows at the unit's ${u.annualEscalationPct}% and ends on the unit's lease end`);
   ok(fs.readFileSync(`${R}/public/sample-docs/leases/${l.files[0]}`).equals(fs.readFileSync(`${leaseDir}/${l.files[0]}`)) && abs.app.made_with === "Sample (fictional)" && abs.app.validated === false, `${l.tenant}: the bundled lease is the generated one, marked as a sample abstract`);
 }
 

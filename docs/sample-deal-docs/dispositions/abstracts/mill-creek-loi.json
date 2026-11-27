@@ -1,7 +1,7 @@
 {
  "doc_type": "offer_letter",
  "title": "Mill Creek Business Park LOI from Demo Flex Owners LLC",
- "summary": "Demo Flex Owners LLC offers $15,250,000 for Mill Creek Business Park with a $300,000 deposit and 30-day due diligence.",
+ "summary": "Demo Flex Owners LLC offers $15,300,000 for Mill Creek Business Park with a $300,000 deposit and 30-day due diligence.",
  "fields": [
   {
    "key": "loi_date",
@@ -38,11 +38,11 @@
   },
   {
    "key": "purchase_price",
-   "value": "$15,250,000",
+   "value": "$15,300,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Purchase Price is $15,250,000.",
+     "quote": "The Purchase Price is $15,300,000.",
      "page": 1
     }
    ]

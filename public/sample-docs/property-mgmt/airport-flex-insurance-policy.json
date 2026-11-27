@@ -1,0 +1,51 @@
+{
+ "doc_type": "insurance_policy",
+ "title": "Airport Flex Park owner's insurance declarations",
+ "asset": "Airport Flex Park",
+ "insured": "Model Fund I — Runway Vista LLC",
+ "insurer": "Fictional Mutual Insurance Company",
+ "broker": "Sample Risk Advisors",
+ "total_premium": 8400,
+ "policies": [
+  {
+   "coverage": "Property",
+   "policy_no": "PR-55120",
+   "limit": 7800000,
+   "deductible": 25000,
+   "premium": 5880,
+   "effective": "2026-01-30",
+   "expiry": "2027-01-30"
+  },
+  {
+   "coverage": "General liability",
+   "policy_no": "GL-55121",
+   "limit": 1000000,
+   "deductible": 0,
+   "premium": 1680,
+   "effective": "2026-01-15",
+   "expiry": "2027-01-15"
+  },
+  {
+   "coverage": "Umbrella",
+   "policy_no": "UM-55122",
+   "limit": 5000000,
+   "deductible": 0,
+   "premium": 840,
+   "effective": "2026-01-15",
+   "expiry": "2027-01-15"
+  }
+ ],
+ "quotes": {
+  "insured": "Named insured: Model Fund I — Runway Vista LLC. (§1.1)",
+  "insurer": "Insurer: Fictional Mutual Insurance Company. (§1.2)",
+  "broker": "Producer: Sample Risk Advisors. (§1.3)",
+  "total_premium": "Total annual premium: $8,400. (§3.1)",
+  "PR-55120": "Property, policy PR-55120: limit $7,800,000, deductible $25,000, annual premium $5,880, effective January 30, 2026, expires January 30, 2027. (§2.1)",
+  "GL-55121": "General liability, policy GL-55121: limit $1,000,000, annual premium $1,680, effective January 15, 2026, expires January 15, 2027. (§2.2)",
+  "UM-55122": "Umbrella, policy UM-55122: limit $5,000,000, annual premium $840, effective January 15, 2026, expires January 15, 2027. (§2.3)"
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "doc_type": "service_contract",
+ "title": "Route 9 Small Bay HVAC service agreement",
+ "asset": "Route 9 Small Bay",
+ "owner": "Model Fund I — Valley Freight LLC",
+ "vendor": "Sample Mechanical Services",
+ "service": "HVAC",
+ "start": "2026-03-16",
+ "end": "2027-03-15",
+ "annual_cost": 5292,
+ "auto_renew": true,
+ "notice_days": 60,
+ "quotes": {
+  "vendor": "This Service Agreement is made as of March 16, 2026 between Model Fund I — Valley Freight LLC (\"Owner\") and Sample Mechanical Services (\"Contractor\"). (p.1)",
+  "service": "Contractor shall provide quarterly preventive maintenance of the rooftop heating, ventilation and air-conditioning units at Route 9 Small Bay. (§1.1)",
+  "start": "The term begins on March 16, 2026 and ends on March 15, 2027. (§2.1)",
+  "end": "The term begins on March 16, 2026 and ends on March 15, 2027. (§2.1)",
+  "auto_renew": "This Agreement renews for successive one-year terms unless either party gives 60 days' written notice before the end of the term. (§2.2)",
+  "notice_days": "This Agreement renews for successive one-year terms unless either party gives 60 days' written notice before the end of the term. (§2.2)",
+  "annual_cost": "Owner shall pay $5,292 per year, in equal quarterly installments. (§3.1)"
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

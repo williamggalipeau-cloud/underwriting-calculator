@@ -743,5 +743,117 @@
    "abstract": "asset-facts/harbor-light-roof-warranty.json",
    "title": "Harbor Light Industrial roof warranty"
   }
+ ],
+ "propertyMgmt": [
+  {
+   "name": "airport-flex-tax-bill",
+   "kind": "tax_bill",
+   "section": "bills",
+   "asset": "Airport Flex Park",
+   "file": "property-mgmt/airport-flex-tax-bill.pdf",
+   "abstract": "property-mgmt/airport-flex-tax-bill.json",
+   "title": "Airport Flex Park 2027 property tax statement"
+  },
+  {
+   "name": "airport-flex-insurance-policy",
+   "kind": "insurance_policy",
+   "section": "policies",
+   "asset": "Airport Flex Park",
+   "file": "property-mgmt/airport-flex-insurance-policy.pdf",
+   "abstract": "property-mgmt/airport-flex-insurance-policy.json",
+   "title": "Airport Flex Park owner's insurance declarations"
+  },
+  {
+   "name": "airport-flex-service-contract",
+   "kind": "service_contract",
+   "section": "contracts",
+   "asset": "Airport Flex Park",
+   "file": "property-mgmt/airport-flex-service-contract.pdf",
+   "abstract": "property-mgmt/airport-flex-service-contract.json",
+   "title": "Airport Flex Park HVAC service agreement"
+  },
+  {
+   "name": "route9-tax-bill",
+   "kind": "tax_bill",
+   "section": "bills",
+   "asset": "Route 9 Small Bay",
+   "file": "property-mgmt/route9-tax-bill.pdf",
+   "abstract": "property-mgmt/route9-tax-bill.json",
+   "title": "Route 9 Small Bay 2027 property tax statement"
+  },
+  {
+   "name": "route9-insurance-policy",
+   "kind": "insurance_policy",
+   "section": "policies",
+   "asset": "Route 9 Small Bay",
+   "file": "property-mgmt/route9-insurance-policy.pdf",
+   "abstract": "property-mgmt/route9-insurance-policy.json",
+   "title": "Route 9 Small Bay owner's insurance declarations"
+  },
+  {
+   "name": "route9-service-contract",
+   "kind": "service_contract",
+   "section": "contracts",
+   "asset": "Route 9 Small Bay",
+   "file": "property-mgmt/route9-service-contract.pdf",
+   "abstract": "property-mgmt/route9-service-contract.json",
+   "title": "Route 9 Small Bay HVAC service agreement"
+  },
+  {
+   "name": "harbor-light-tax-bill",
+   "kind": "tax_bill",
+   "section": "bills",
+   "asset": "Harbor Light Industrial",
+   "file": "property-mgmt/harbor-light-tax-bill.pdf",
+   "abstract": "property-mgmt/harbor-light-tax-bill.json",
+   "title": "Harbor Light Industrial 2027 property tax statement"
+  },
+  {
+   "name": "harbor-light-insurance-policy",
+   "kind": "insurance_policy",
+   "section": "policies",
+   "asset": "Harbor Light Industrial",
+   "file": "property-mgmt/harbor-light-insurance-policy.pdf",
+   "abstract": "property-mgmt/harbor-light-insurance-policy.json",
+   "title": "Harbor Light Industrial owner's insurance declarations"
+  },
+  {
+   "name": "harbor-light-service-contract",
+   "kind": "service_contract",
+   "section": "contracts",
+   "asset": "Harbor Light Industrial",
+   "file": "property-mgmt/harbor-light-service-contract.pdf",
+   "abstract": "property-mgmt/harbor-light-service-contract.json",
+   "title": "Harbor Light Industrial HVAC service agreement"
+  }
+ ],
+ "research": [
+  {
+   "name": "airport-flex-market-report-2026q3",
+   "kind": "market_report",
+   "researchId": "srs-1-market",
+   "asset": "Airport Flex Park",
+   "file": "research/airport-flex-market-report-2026q3.pdf",
+   "abstract": "research/airport-flex-market-report-2026q3.json",
+   "title": "Las Vegas Small Bay industrial market report, Q3 2026"
+  },
+  {
+   "name": "route9-market-report-2026q3",
+   "kind": "market_report",
+   "researchId": "srs-2-market",
+   "asset": "Route 9 Small Bay",
+   "file": "research/route9-market-report-2026q3.pdf",
+   "abstract": "research/route9-market-report-2026q3.json",
+   "title": "Kent Small Bay industrial market report, Q3 2026"
+  },
+  {
+   "name": "harbor-light-market-report-2026q3",
+   "kind": "market_report",
+   "researchId": "srs-3-market",
+   "asset": "Harbor Light Industrial",
+   "file": "research/harbor-light-market-report-2026q3.pdf",
+   "abstract": "research/harbor-light-market-report-2026q3.json",
+   "title": "Long Beach Small Bay industrial market report, Q3 2026"
+  }
  ]
 }

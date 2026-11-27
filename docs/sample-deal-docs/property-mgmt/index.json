@@ -1,0 +1,83 @@
+[
+ {
+  "name": "airport-flex-tax-bill",
+  "kind": "tax_bill",
+  "section": "bills",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-tax-bill.pdf",
+  "title": "Airport Flex Park 2027 property tax statement"
+ },
+ {
+  "name": "airport-flex-insurance-policy",
+  "kind": "insurance_policy",
+  "section": "policies",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-insurance-policy.pdf",
+  "title": "Airport Flex Park owner's insurance declarations"
+ },
+ {
+  "name": "airport-flex-service-contract",
+  "kind": "service_contract",
+  "section": "contracts",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-service-contract.pdf",
+  "title": "Airport Flex Park HVAC service agreement"
+ },
+ {
+  "name": "route9-tax-bill",
+  "kind": "tax_bill",
+  "section": "bills",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "file": "route9-tax-bill.pdf",
+  "title": "Route 9 Small Bay 2027 property tax statement"
+ },
+ {
+  "name": "route9-insurance-policy",
+  "kind": "insurance_policy",
+  "section": "policies",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "file": "route9-insurance-policy.pdf",
+  "title": "Route 9 Small Bay owner's insurance declarations"
+ },
+ {
+  "name": "route9-service-contract",
+  "kind": "service_contract",
+  "section": "contracts",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "file": "route9-service-contract.pdf",
+  "title": "Route 9 Small Bay HVAC service agreement"
+ },
+ {
+  "name": "harbor-light-tax-bill",
+  "kind": "tax_bill",
+  "section": "bills",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-tax-bill.pdf",
+  "title": "Harbor Light Industrial 2027 property tax statement"
+ },
+ {
+  "name": "harbor-light-insurance-policy",
+  "kind": "insurance_policy",
+  "section": "policies",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-insurance-policy.pdf",
+  "title": "Harbor Light Industrial owner's insurance declarations"
+ },
+ {
+  "name": "harbor-light-service-contract",
+  "kind": "service_contract",
+  "section": "contracts",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-service-contract.pdf",
+  "title": "Harbor Light Industrial HVAC service agreement"
+ }
+]

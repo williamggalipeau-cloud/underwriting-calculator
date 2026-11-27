@@ -1,0 +1,51 @@
+{
+ "doc_type": "insurance_policy",
+ "title": "Route 9 Small Bay owner's insurance declarations",
+ "asset": "Route 9 Small Bay",
+ "insured": "Model Fund I — Valley Freight LLC",
+ "insurer": "Fictional Mutual Insurance Company",
+ "broker": "Sample Risk Advisors",
+ "total_premium": 14700,
+ "policies": [
+  {
+   "coverage": "Property",
+   "policy_no": "PR-55130",
+   "limit": 13500000,
+   "deductible": 25000,
+   "premium": 10290,
+   "effective": "2026-03-16",
+   "expiry": "2027-03-16"
+  },
+  {
+   "coverage": "General liability",
+   "policy_no": "GL-55131",
+   "limit": 1000000,
+   "deductible": 0,
+   "premium": 2940,
+   "effective": "2026-03-01",
+   "expiry": "2027-03-01"
+  },
+  {
+   "coverage": "Umbrella",
+   "policy_no": "UM-55132",
+   "limit": 5000000,
+   "deductible": 0,
+   "premium": 1470,
+   "effective": "2026-03-01",
+   "expiry": "2027-03-01"
+  }
+ ],
+ "quotes": {
+  "insured": "Named insured: Model Fund I — Valley Freight LLC. (§1.1)",
+  "insurer": "Insurer: Fictional Mutual Insurance Company. (§1.2)",
+  "broker": "Producer: Sample Risk Advisors. (§1.3)",
+  "total_premium": "Total annual premium: $14,700. (§3.1)",
+  "PR-55130": "Property, policy PR-55130: limit $13,500,000, deductible $25,000, annual premium $10,290, effective March 16, 2026, expires March 16, 2027. (§2.1)",
+  "GL-55131": "General liability, policy GL-55131: limit $1,000,000, annual premium $2,940, effective March 1, 2026, expires March 1, 2027. (§2.2)",
+  "UM-55132": "Umbrella, policy UM-55132: limit $5,000,000, annual premium $1,470, effective March 1, 2026, expires March 1, 2027. (§2.3)"
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

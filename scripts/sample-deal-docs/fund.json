@@ -72,7 +72,7 @@
    },
    "model": {
     "equity": 2835858,
-    "noi1": 462176,
+    "noi1": 462412,
     "goingInCapPct": 6.42,
     "irrPct": 31,
     "multiple": 2.91,
@@ -131,6 +131,243 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "all",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-1-p1",
+      "apn": "101-021-001",
+      "address": "6230 Runway Vista Drive, Las Vegas, NV",
+      "assessedValue": 7200000,
+      "taxRatePct": 0.4,
+      "assessmentYear": 2026,
+      "notes": "Clark County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-1-b1",
+      "parcel": "101-021-001",
+      "year": 2026,
+      "installment": "12 months owned (prorated at closing)",
+      "amount": 28800,
+      "dueDate": "2026-01-30",
+      "paidDate": "2026-01-30"
+     },
+     {
+      "id": "spm-1-b2",
+      "parcel": "101-021-001",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 14400,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-1-b3",
+      "parcel": "101-021-001",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 14400,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-1-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55120",
+      "limit": 7800000,
+      "deductible": 25000,
+      "premium": 5880,
+      "effective": "2026-01-30",
+      "renewalDate": "2027-01-30",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-1-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55121",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 1680,
+      "effective": "2026-01-15",
+      "renewalDate": "2027-01-15",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-1-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55122",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 840,
+      "effective": "2026-01-15",
+      "renewalDate": "2027-01-15",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-1-f1",
+      "source": "PCA",
+      "reportDate": "2025-12-26",
+      "system": "Roof",
+      "finding": "TPO installed 2018; about 12 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 10800,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-1-f2",
+      "source": "PCA",
+      "reportDate": "2025-12-26",
+      "system": "Paving / parking",
+      "finding": "Asphalt from 2016; about 5 years of its 15-year life left; resurface the truck court and parking",
+      "cost": 36000,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-1-f3",
+      "source": "PCA",
+      "reportDate": "2025-12-26",
+      "system": "Fire / life safety",
+      "finding": "Wet pipe sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 2400,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-1-f4",
+      "source": "Phase I",
+      "reportDate": "2025-12-05",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-1-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-01-30",
+      "end": "2027-01-29",
+      "annualCost": 3456,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-1-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-01-30",
+      "end": "2027-01-29",
+      "annualCost": 3024,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-1-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-01-30",
+      "end": "2027-01-29",
+      "annualCost": 1728,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-1-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-01-30",
+      "end": "2027-01-29",
+      "annualCost": 2592,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-1-market",
+     "type": "market",
+     "title": "Las Vegas Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "airport-flex-market-report-2026q3.pdf",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $38.49/SF; vacancy 9.5%; cap rate 6.6%; small-bay rent growth 2.7% over the year",
+     "summary": "Las Vegas, NV: 8,420,000 SF of inventory, 450,000 SF under construction, net absorption 5,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-01-30T12:00:00.000Z"
+    },
+    {
+     "id": "srs-1-rent",
+     "type": "rent_survey",
+     "title": "Airport Flex Park rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-10",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $41.15/SF, median $42.45/SF, range $37.02 to $42.97/SF; net effective $38.26/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-01-30T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-las-vegas",
+     "name": "Las Vegas Small Bay (fictional)",
+     "metro": "Las Vegas, NV",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-las-vegas-2026-Q3",
+     "submarketId": "sample-sm-las-vegas",
+     "quarter": "2026-Q3",
+     "inventorySF": 8420000,
+     "vacancyPct": 9.5,
+     "availabilityPct": 11.6,
+     "netAbsorptionSF": 5000,
+     "askingRentPSF": 33.87,
+     "askingRentSmallBayPSF": 38.49,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 32000000,
+     "capRatePct": 6.6,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
+   },
    "marks": {
     "2026-09-30": {
      "value": 7600000,
@@ -371,7 +608,7 @@
    },
    "model": {
     "equity": 4926045,
-    "noi1": 763248,
+    "noi1": 763753,
     "goingInCapPct": 6.11,
     "irrPct": 35.1,
     "multiple": 3.3,
@@ -430,6 +667,243 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "all",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-2-p1",
+      "apn": "102-022-002",
+      "address": "21800 Valley Freight Way, Kent, WA",
+      "assessedValue": 12500000,
+      "taxRatePct": 0.4032,
+      "assessmentYear": 2026,
+      "notes": "King County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-2-b1",
+      "parcel": "102-022-002",
+      "year": 2026,
+      "installment": "10 months owned (prorated at closing)",
+      "amount": 42000,
+      "dueDate": "2026-03-16",
+      "paidDate": "2026-03-16"
+     },
+     {
+      "id": "spm-2-b2",
+      "parcel": "102-022-002",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 25200,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-2-b3",
+      "parcel": "102-022-002",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 25200,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-2-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55130",
+      "limit": 13500000,
+      "deductible": 25000,
+      "premium": 10290,
+      "effective": "2026-03-16",
+      "renewalDate": "2027-03-16",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-2-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55131",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 2940,
+      "effective": "2026-03-01",
+      "renewalDate": "2027-03-01",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-2-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55132",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 1470,
+      "effective": "2026-03-01",
+      "renewalDate": "2027-03-01",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-2-f1",
+      "source": "PCA",
+      "reportDate": "2026-02-09",
+      "system": "Roof",
+      "finding": "TPO installed 2019; about 13 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 18900,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-2-f2",
+      "source": "PCA",
+      "reportDate": "2026-02-09",
+      "system": "Paving / parking",
+      "finding": "Asphalt from 2014; about 3 years of its 15-year life left; resurface the truck court and parking",
+      "cost": 63000,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-2-f3",
+      "source": "PCA",
+      "reportDate": "2026-02-09",
+      "system": "Fire / life safety",
+      "finding": "Wet pipe sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 4200,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-2-f4",
+      "source": "Phase I",
+      "reportDate": "2026-02-10",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-2-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-03-16",
+      "end": "2027-03-15",
+      "annualCost": 6048,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-2-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-03-16",
+      "end": "2027-03-15",
+      "annualCost": 5292,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-2-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-03-16",
+      "end": "2027-03-15",
+      "annualCost": 3024,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-2-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-03-16",
+      "end": "2027-03-15",
+      "annualCost": 4536,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-2-market",
+     "type": "market",
+     "title": "Kent Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "route9-market-report-2026q3.pdf",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $37.33/SF; vacancy 9.4%; cap rate 6.3%; small-bay rent growth 2.7% over the year",
+     "summary": "Kent, WA: 9,420,000 SF of inventory, 450,000 SF under construction, net absorption 110,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-03-16T12:00:00.000Z"
+    },
+    {
+     "id": "srs-2-rent",
+     "type": "rent_survey",
+     "title": "Route 9 Small Bay rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-23",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $41.04/SF, median $42.09/SF, range $38.84 to $43.39/SF; net effective $38.82/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-03-16T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-kent",
+     "name": "Kent Small Bay (fictional)",
+     "metro": "Kent, WA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-kent-2026-Q3",
+     "submarketId": "sample-sm-kent",
+     "quarter": "2026-Q3",
+     "inventorySF": 9420000,
+     "vacancyPct": 9.4,
+     "availabilityPct": 11.5,
+     "netAbsorptionSF": 110000,
+     "askingRentPSF": 32.85,
+     "askingRentSmallBayPSF": 37.33,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 38000000,
+     "capRatePct": 6.3,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
+   },
    "marks": {
     "2026-09-30": {
      "value": 13280000,
@@ -754,7 +1228,7 @@
    },
    "model": {
     "equity": 3859871,
-    "noi1": 652212,
+    "noi1": 652674,
     "goingInCapPct": 6.66,
     "irrPct": 23.6,
     "multiple": 2.32,
@@ -813,6 +1287,255 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "none",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-3-p1",
+      "apn": "103-023-003",
+      "address": "2715 Pier Junction Avenue, Long Beach, CA",
+      "assessedValue": 9800000,
+      "taxRatePct": 0.4408,
+      "assessmentYear": 2026,
+      "notes": "Los Angeles County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-3-b1",
+      "parcel": "103-023-003",
+      "year": 2026,
+      "installment": "9 months owned (prorated at closing)",
+      "amount": 32400,
+      "dueDate": "2026-04-30",
+      "paidDate": "2026-04-30"
+     },
+     {
+      "id": "spm-3-b2",
+      "parcel": "103-023-003",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 21600,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-3-b3",
+      "parcel": "103-023-003",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 21600,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-3-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55140",
+      "limit": 10600000,
+      "deductible": 25000,
+      "premium": 8820,
+      "effective": "2026-04-30",
+      "renewalDate": "2027-04-30",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-3-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55141",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 2520,
+      "effective": "2026-04-15",
+      "renewalDate": "2027-04-15",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-3-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55142",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 1260,
+      "effective": "2026-04-15",
+      "renewalDate": "2027-04-15",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "claims": [
+     {
+      "id": "spm-3-c1",
+      "date": "2026-06-29",
+      "cause": "Wind damage to a roll-up door",
+      "policy": "PR-55140",
+      "amount": 38500,
+      "status": "Closed",
+      "recovery": 13500,
+      "notes": "Paid net of the $25,000 deductible"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-3-f1",
+      "source": "PCA",
+      "reportDate": "2026-03-26",
+      "system": "Roof",
+      "finding": "EPDM installed 2015; about 9 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 16200,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-3-f2",
+      "source": "PCA",
+      "reportDate": "2026-03-26",
+      "system": "Paving / parking",
+      "finding": "Asphalt and concrete from 2018; about 7 years of its 15-year life left; crack seal and restripe",
+      "cost": 10800,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-3-f3",
+      "source": "PCA",
+      "reportDate": "2026-03-26",
+      "system": "Fire / life safety",
+      "finding": "ESFR sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 3600,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-3-f4",
+      "source": "Phase I",
+      "reportDate": "2026-03-20",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-3-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-04-30",
+      "end": "2027-04-29",
+      "annualCost": 5184,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-3-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-04-30",
+      "end": "2027-04-29",
+      "annualCost": 4536,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-3-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-04-30",
+      "end": "2027-04-29",
+      "annualCost": 2592,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-3-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-04-30",
+      "end": "2027-04-29",
+      "annualCost": 3888,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-3-market",
+     "type": "market",
+     "title": "Long Beach Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "harbor-light-market-report-2026q3.pdf",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $32.17/SF; vacancy 9.6%; cap rate 7.85%; small-bay rent growth 3.2% over the year",
+     "summary": "Long Beach, CA: 10,420,000 SF of inventory, 450,000 SF under construction, net absorption 80,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+     "id": "srs-3-rent",
+     "type": "rent_survey",
+     "title": "Harbor Light Industrial rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-08",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $33.98/SF, median $34.31/SF, range $32.57 to $35.66/SF; net effective $31.87/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-04-30T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-long-beach",
+     "name": "Long Beach Small Bay (fictional)",
+     "metro": "Long Beach, CA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-long-beach-2026-Q3",
+     "submarketId": "sample-sm-long-beach",
+     "quarter": "2026-Q3",
+     "inventorySF": 10420000,
+     "vacancyPct": 9.6,
+     "availabilityPct": 11.7,
+     "netAbsorptionSF": 80000,
+     "askingRentPSF": 28.31,
+     "askingRentSmallBayPSF": 32.17,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 44000000,
+     "capRatePct": 7.85,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 3.2
+   },
    "marks": {},
    "units": [
     {
@@ -1087,8 +1810,8 @@
    },
    "model": {
     "equity": 3309899,
-    "noi1": 500117,
-    "goingInCapPct": 5.95,
+    "noi1": 500400,
+    "goingInCapPct": 5.96,
     "irrPct": 42.2,
     "multiple": 4.05,
     "coc1Pct": -3.1,
@@ -1146,6 +1869,243 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "none",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-4-p1",
+      "apn": "104-024-004",
+      "address": "9400 Ridgeway Commerce Blvd, Fort Worth, TX",
+      "assessedValue": 8400000,
+      "taxRatePct": 0.4,
+      "assessmentYear": 2026,
+      "notes": "Tarrant County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-4-b1",
+      "parcel": "104-024-004",
+      "year": 2026,
+      "installment": "7 months owned (prorated at closing)",
+      "amount": 19600,
+      "dueDate": "2026-06-15",
+      "paidDate": "2026-06-15"
+     },
+     {
+      "id": "spm-4-b2",
+      "parcel": "104-024-004",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 16800,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-4-b3",
+      "parcel": "104-024-004",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 16800,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-4-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55150",
+      "limit": 9100000,
+      "deductible": 25000,
+      "premium": 6860,
+      "effective": "2026-06-15",
+      "renewalDate": "2027-06-15",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-4-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55151",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 1960,
+      "effective": "2026-05-31",
+      "renewalDate": "2027-05-31",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-4-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55152",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 980,
+      "effective": "2026-05-31",
+      "renewalDate": "2027-05-31",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-4-f1",
+      "source": "PCA",
+      "reportDate": "2026-05-11",
+      "system": "Roof",
+      "finding": "TPO installed 2020; about 14 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 12600,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-4-f2",
+      "source": "PCA",
+      "reportDate": "2026-05-11",
+      "system": "Paving / parking",
+      "finding": "Asphalt from 2017; about 6 years of its 15-year life left; crack seal and restripe",
+      "cost": 8400,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-4-f3",
+      "source": "PCA",
+      "reportDate": "2026-05-11",
+      "system": "Fire / life safety",
+      "finding": "Wet pipe sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 2800,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-4-f4",
+      "source": "Phase I",
+      "reportDate": "2026-05-08",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-4-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-06-15",
+      "end": "2027-06-14",
+      "annualCost": 4032,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-4-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-06-15",
+      "end": "2027-06-14",
+      "annualCost": 3528,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-4-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-06-15",
+      "end": "2027-06-14",
+      "annualCost": 2016,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-4-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-06-15",
+      "end": "2027-06-14",
+      "annualCost": 3024,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-4-market",
+     "type": "market",
+     "title": "Fort Worth Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $48.76/SF; vacancy 10.6%; cap rate 6.4%; small-bay rent growth 2.8% over the year",
+     "summary": "Fort Worth, TX: 11,420,000 SF of inventory, 450,000 SF under construction, net absorption 50,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-06-15T12:00:00.000Z"
+    },
+    {
+     "id": "srs-4-rent",
+     "type": "rent_survey",
+     "title": "Ridgeway Trade Center rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $49.68/SF, median $49.63/SF, range $47.65 to $50.38/SF; net effective $47.26/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-06-15T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-fort-worth",
+     "name": "Fort Worth Small Bay (fictional)",
+     "metro": "Fort Worth, TX",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-fort-worth-2026-Q3",
+     "submarketId": "sample-sm-fort-worth",
+     "quarter": "2026-Q3",
+     "inventorySF": 11420000,
+     "vacancyPct": 10.6,
+     "availabilityPct": 12.7,
+     "netAbsorptionSF": 50000,
+     "askingRentPSF": 42.91,
+     "askingRentSmallBayPSF": 48.76,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 20000000,
+     "capRatePct": 6.4,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.8
+   },
    "marks": {},
    "units": [
     {
@@ -1392,7 +2352,7 @@
    },
    "model": {
     "equity": 2127033,
-    "noi1": 347316,
+    "noi1": 347090,
     "goingInCapPct": 6.43,
     "irrPct": 26,
     "multiple": 2.51,
@@ -1451,6 +2411,243 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "none",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-5-p1",
+      "apn": "105-025-005",
+      "address": "3120 Canal Street, Houston, TX",
+      "assessedValue": 5400000,
+      "taxRatePct": 0.4,
+      "assessmentYear": 2026,
+      "notes": "Tarrant County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-5-b1",
+      "parcel": "105-025-005",
+      "year": 2026,
+      "installment": "6 months owned (prorated at closing)",
+      "amount": 10800,
+      "dueDate": "2026-07-15",
+      "paidDate": "2026-07-15"
+     },
+     {
+      "id": "spm-5-b2",
+      "parcel": "105-025-005",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 10800,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-5-b3",
+      "parcel": "105-025-005",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 10800,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-5-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55160",
+      "limit": 5900000,
+      "deductible": 25000,
+      "premium": 4410,
+      "effective": "2026-07-15",
+      "renewalDate": "2027-07-15",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-5-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55161",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 1260,
+      "effective": "2026-06-30",
+      "renewalDate": "2027-06-30",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-5-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55162",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 630,
+      "effective": "2026-06-30",
+      "renewalDate": "2027-06-30",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-5-f1",
+      "source": "PCA",
+      "reportDate": "2026-06-10",
+      "system": "Roof",
+      "finding": "Built-up installed 2012; about 6 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 8100,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-5-f2",
+      "source": "PCA",
+      "reportDate": "2026-06-10",
+      "system": "Paving / parking",
+      "finding": "Asphalt from 2013; about 2 years of its 15-year life left; resurface the truck court and parking",
+      "cost": 27000,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-5-f3",
+      "source": "PCA",
+      "reportDate": "2026-06-10",
+      "system": "Fire / life safety",
+      "finding": "Wet pipe sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 1800,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-5-f4",
+      "source": "Phase I",
+      "reportDate": "2026-06-12",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-5-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-07-15",
+      "end": "2027-07-14",
+      "annualCost": 2592,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-5-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-07-15",
+      "end": "2027-07-14",
+      "annualCost": 2268,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-5-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-07-15",
+      "end": "2027-07-14",
+      "annualCost": 1296,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-5-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-07-15",
+      "end": "2027-07-14",
+      "annualCost": 1944,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-5-market",
+     "type": "market",
+     "title": "Houston Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $35.66/SF; vacancy 9.5%; cap rate 6.6%; small-bay rent growth 2.7% over the year",
+     "summary": "Houston, TX: 12,420,000 SF of inventory, 450,000 SF under construction, net absorption 20,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-07-15T12:00:00.000Z"
+    },
+    {
+     "id": "srs-5-rent",
+     "type": "rent_survey",
+     "title": "Canal Street Workshops rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-27",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $36.15/SF, median $36.08/SF, range $33.86 to $38.19/SF; net effective $32.90/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-07-15T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-houston",
+     "name": "Houston Small Bay (fictional)",
+     "metro": "Houston, TX",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-houston-2026-Q3",
+     "submarketId": "sample-sm-houston",
+     "quarter": "2026-Q3",
+     "inventorySF": 12420000,
+     "vacancyPct": 9.5,
+     "availabilityPct": 11.6,
+     "netAbsorptionSF": 20000,
+     "askingRentPSF": 31.38,
+     "askingRentSmallBayPSF": 35.66,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 26000000,
+     "capRatePct": 6.6,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
+   },
    "marks": {},
    "units": [
     {
@@ -1627,8 +2824,8 @@
    },
    "model": {
     "equity": 5832527,
-    "noi1": 915746,
-    "goingInCapPct": 6.19,
+    "noi1": 915314,
+    "goingInCapPct": 6.18,
     "irrPct": 33.2,
     "multiple": 3.12,
     "coc1Pct": -2.8,
@@ -1686,6 +2883,255 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "none",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-6-p1",
+      "apn": "106-026-006",
+      "address": "11500 Mill Creek Loop, Everett, WA",
+      "assessedValue": 14800000,
+      "taxRatePct": 0.4054,
+      "assessmentYear": 2026,
+      "notes": "King County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-6-b1",
+      "parcel": "106-026-006",
+      "year": 2026,
+      "installment": "5 months owned (prorated at closing)",
+      "amount": 25000,
+      "dueDate": "2026-08-14",
+      "paidDate": "2026-08-14"
+     },
+     {
+      "id": "spm-6-b2",
+      "parcel": "106-026-006",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 30000,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-6-b3",
+      "parcel": "106-026-006",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 30000,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "appeals": [
+     {
+      "id": "spm-6-a1",
+      "parcel": "106-026-006",
+      "year": 2027,
+      "filedDate": "2026-09-28",
+      "hearingDate": "2027-01-20",
+      "outcome": "Pending",
+      "savings": null,
+      "consultant": "Fictional Property Tax Advisors"
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-6-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55170",
+      "limit": 16000000,
+      "deductible": 25000,
+      "premium": 12250,
+      "effective": "2026-08-14",
+      "renewalDate": "2027-08-14",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-6-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55171",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 3500,
+      "effective": "2026-07-30",
+      "renewalDate": "2027-07-30",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-6-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55172",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 1750,
+      "effective": "2026-07-30",
+      "renewalDate": "2027-07-30",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-6-f1",
+      "source": "PCA",
+      "reportDate": "2026-07-10",
+      "system": "Roof",
+      "finding": "TPO installed 2021; about 15 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 22500,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-6-f2",
+      "source": "PCA",
+      "reportDate": "2026-07-10",
+      "system": "Paving / parking",
+      "finding": "Asphalt and concrete from 2019; about 8 years of its 15-year life left; crack seal and restripe",
+      "cost": 15000,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-6-f3",
+      "source": "PCA",
+      "reportDate": "2026-07-10",
+      "system": "Fire / life safety",
+      "finding": "ESFR sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 5000,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-6-f4",
+      "source": "Phase I",
+      "reportDate": "2026-07-10",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-6-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-08-14",
+      "end": "2027-08-13",
+      "annualCost": 7200,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-6-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-08-14",
+      "end": "2027-08-13",
+      "annualCost": 6300,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-6-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-08-14",
+      "end": "2027-08-13",
+      "annualCost": 3600,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-6-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-08-14",
+      "end": "2027-08-13",
+      "annualCost": 5400,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-6-market",
+     "type": "market",
+     "title": "Everett Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $41.82/SF; vacancy 10.4%; cap rate 6.6%; small-bay rent growth 3.2% over the year",
+     "summary": "Everett, WA: 13,420,000 SF of inventory, 450,000 SF under construction, net absorption -10,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-08-14T12:00:00.000Z"
+    },
+    {
+     "id": "srs-6-rent",
+     "type": "rent_survey",
+     "title": "Mill Creek Business Park rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-17",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $42.47/SF, median $42.16/SF, range $40.08 to $44.50/SF; net effective $38.82/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-08-14T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-everett",
+     "name": "Everett Small Bay (fictional)",
+     "metro": "Everett, WA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-everett-2026-Q3",
+     "submarketId": "sample-sm-everett",
+     "quarter": "2026-Q3",
+     "inventorySF": 13420000,
+     "vacancyPct": 10.4,
+     "availabilityPct": 12.5,
+     "netAbsorptionSF": -10000,
+     "askingRentPSF": 36.8,
+     "askingRentSmallBayPSF": 41.82,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 32000000,
+     "capRatePct": 6.6,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 3.2
+   },
    "marks": {},
    "units": [
     {
@@ -2044,8 +3490,8 @@
    },
    "model": {
     "equity": 3586004,
-    "noi1": 580918,
-    "goingInCapPct": 6.38,
+    "noi1": 581301,
+    "goingInCapPct": 6.39,
     "irrPct": 43.8,
     "multiple": 4.21,
     "coc1Pct": -2.6,
@@ -2103,6 +3549,243 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "none",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-7-p1",
+      "apn": "107-027-007",
+      "address": "855 Southpoint Parkway, Henderson, NV",
+      "assessedValue": 9100000,
+      "taxRatePct": 0.422,
+      "assessmentYear": 2026,
+      "notes": "Clark County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-7-b1",
+      "parcel": "107-027-007",
+      "year": 2026,
+      "installment": "4 months owned (prorated at closing)",
+      "amount": 12800,
+      "dueDate": "2026-09-30",
+      "paidDate": "2026-09-30"
+     },
+     {
+      "id": "spm-7-b2",
+      "parcel": "107-027-007",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 19200,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-7-b3",
+      "parcel": "107-027-007",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 19200,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-7-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55180",
+      "limit": 9900000,
+      "deductible": 25000,
+      "premium": 7840,
+      "effective": "2026-09-30",
+      "renewalDate": "2027-09-30",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-7-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55181",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 2240,
+      "effective": "2026-09-15",
+      "renewalDate": "2027-09-15",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-7-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55182",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 1120,
+      "effective": "2026-09-15",
+      "renewalDate": "2027-09-15",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-7-f1",
+      "source": "PCA",
+      "reportDate": "2026-08-26",
+      "system": "Roof",
+      "finding": "TPO installed 2017; about 11 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 14400,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-7-f2",
+      "source": "PCA",
+      "reportDate": "2026-08-26",
+      "system": "Paving / parking",
+      "finding": "Asphalt from 2015; about 4 years of its 15-year life left; resurface the truck court and parking",
+      "cost": 48000,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-7-f3",
+      "source": "PCA",
+      "reportDate": "2026-08-26",
+      "system": "Fire / life safety",
+      "finding": "Wet pipe sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 3200,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-7-f4",
+      "source": "Phase I",
+      "reportDate": "2026-08-25",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-7-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-09-30",
+      "end": "2027-09-29",
+      "annualCost": 4608,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-7-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-09-30",
+      "end": "2027-09-29",
+      "annualCost": 4032,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-7-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-09-30",
+      "end": "2027-09-29",
+      "annualCost": 2304,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-7-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-09-30",
+      "end": "2027-09-29",
+      "annualCost": 3456,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-7-market",
+     "type": "market",
+     "title": "Henderson Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $44.00/SF; vacancy 9.2%; cap rate 6.05%; small-bay rent growth 2.6% over the year",
+     "summary": "Henderson, NV: 14,420,000 SF of inventory, 450,000 SF under construction, net absorption 95,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "id": "srs-7-rent",
+     "type": "rent_survey",
+     "title": "Southpoint Flex rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $44.77/SF, median $44.50/SF, range $42.31 to $47.12/SF; net effective $41.78/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-09-30T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-henderson",
+     "name": "Henderson Small Bay (fictional)",
+     "metro": "Henderson, NV",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-henderson-2026-Q3",
+     "submarketId": "sample-sm-henderson",
+     "quarter": "2026-Q3",
+     "inventorySF": 14420000,
+     "vacancyPct": 9.2,
+     "availabilityPct": 11.3,
+     "netAbsorptionSF": 95000,
+     "askingRentPSF": 38.72,
+     "askingRentSmallBayPSF": 44,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 38000000,
+     "capRatePct": 6.05,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.6
+   },
    "marks": {},
    "units": [
     {
@@ -2363,7 +4046,7 @@
    },
    "model": {
     "equity": 2993592,
-    "noi1": 494597,
+    "noi1": 494842,
     "goingInCapPct": 6.51,
     "irrPct": 30.1,
     "multiple": 2.83,
@@ -2422,6 +4105,243 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "none",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-8-p1",
+      "apn": "108-028-008",
+      "address": "15020 Granite Avenue, Fontana, CA",
+      "assessedValue": 7600000,
+      "taxRatePct": 0.4105,
+      "assessmentYear": 2026,
+      "notes": "Los Angeles County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-8-b1",
+      "parcel": "108-028-008",
+      "year": 2026,
+      "installment": "3 months owned (prorated at closing)",
+      "amount": 7800,
+      "dueDate": "2026-10-15",
+      "paidDate": "2026-10-15"
+     },
+     {
+      "id": "spm-8-b2",
+      "parcel": "108-028-008",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 15600,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-8-b3",
+      "parcel": "108-028-008",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 15600,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-8-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55190",
+      "limit": 8200000,
+      "deductible": 25000,
+      "premium": 6370,
+      "effective": "2026-10-15",
+      "renewalDate": "2027-10-15",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-8-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55191",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 1820,
+      "effective": "2026-09-30",
+      "renewalDate": "2027-09-30",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-8-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55192",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 910,
+      "effective": "2026-09-30",
+      "renewalDate": "2027-09-30",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-8-f1",
+      "source": "PCA",
+      "reportDate": "2026-09-10",
+      "system": "Roof",
+      "finding": "PVC installed 2019; about 13 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 11700,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-8-f2",
+      "source": "PCA",
+      "reportDate": "2026-09-10",
+      "system": "Paving / parking",
+      "finding": "Concrete from 2011; about 15 years of its 30-year life left; crack seal and restripe",
+      "cost": 7800,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-8-f3",
+      "source": "PCA",
+      "reportDate": "2026-09-10",
+      "system": "Fire / life safety",
+      "finding": "ESFR sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 2600,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-8-f4",
+      "source": "Phase I",
+      "reportDate": "2026-09-11",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-8-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-10-15",
+      "end": "2027-10-14",
+      "annualCost": 3744,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-8-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-10-15",
+      "end": "2027-10-14",
+      "annualCost": 3276,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-8-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-10-15",
+      "end": "2027-10-14",
+      "annualCost": 1872,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-8-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-10-15",
+      "end": "2027-10-14",
+      "annualCost": 2808,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-8-market",
+     "type": "market",
+     "title": "Fontana Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $39.37/SF; vacancy 10.6%; cap rate 6.9%; small-bay rent growth 2.8% over the year",
+     "summary": "Fontana, CA: 15,420,000 SF of inventory, 450,000 SF under construction, net absorption 65,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-10-15T12:00:00.000Z"
+    },
+    {
+     "id": "srs-8-rent",
+     "type": "rent_survey",
+     "title": "Granite Ave Industrial rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-28",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $38.10/SF, median $38.44/SF, range $35.45 to $39.75/SF; net effective $34.81/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-10-15T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-fontana",
+     "name": "Fontana Small Bay (fictional)",
+     "metro": "Fontana, CA",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-fontana-2026-Q3",
+     "submarketId": "sample-sm-fontana",
+     "quarter": "2026-Q3",
+     "inventorySF": 15420000,
+     "vacancyPct": 10.6,
+     "availabilityPct": 12.7,
+     "netAbsorptionSF": 65000,
+     "askingRentPSF": 34.65,
+     "askingRentSmallBayPSF": 39.37,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 44000000,
+     "capRatePct": 6.9,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.8
+   },
    "marks": {},
    "units": [
     {
@@ -2640,7 +4560,7 @@
    },
    "model": {
     "equity": 4571213,
-    "noi1": 724561,
+    "noi1": 725063,
     "goingInCapPct": 6.25,
     "irrPct": 32.2,
     "multiple": 3.05,
@@ -2699,6 +4619,243 @@
     "freewayNoResidential": "yes"
    },
    "sndaRule": "none",
+   "propertyMgmt": {
+    "parcels": [
+     {
+      "id": "spm-9-p1",
+      "apn": "109-029-009",
+      "address": "7300 Lakeshore Service Road, Dallas, TX",
+      "assessedValue": 11600000,
+      "taxRatePct": 0.4138,
+      "assessmentYear": 2026,
+      "notes": "Tarrant County assessor; reassessed at the 2026 purchase"
+     }
+    ],
+    "bills": [
+     {
+      "id": "spm-9-b1",
+      "parcel": "109-029-009",
+      "year": 2026,
+      "installment": "2 months owned (prorated at closing)",
+      "amount": 8000,
+      "dueDate": "2026-11-13",
+      "paidDate": "2026-11-13"
+     },
+     {
+      "id": "spm-9-b2",
+      "parcel": "109-029-009",
+      "year": 2027,
+      "installment": "1st half",
+      "amount": 24000,
+      "dueDate": "2027-01-15",
+      "paidDate": ""
+     },
+     {
+      "id": "spm-9-b3",
+      "parcel": "109-029-009",
+      "year": 2027,
+      "installment": "2nd half",
+      "amount": 24000,
+      "dueDate": "2027-07-15",
+      "paidDate": ""
+     }
+    ],
+    "policies": [
+     {
+      "id": "spm-9-i1",
+      "type": "Property",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "PR-55200",
+      "limit": 12600000,
+      "deductible": 25000,
+      "premium": 9800,
+      "effective": "2026-11-13",
+      "renewalDate": "2027-11-13",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-9-i2",
+      "type": "General liability",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "GL-55201",
+      "limit": 1000000,
+      "deductible": 0,
+      "premium": 2800,
+      "effective": "2026-10-29",
+      "renewalDate": "2027-10-29",
+      "broker": "Sample Risk Advisors"
+     },
+     {
+      "id": "spm-9-i3",
+      "type": "Umbrella",
+      "carrier": "Fictional Mutual Insurance Company",
+      "policyNo": "UM-55202",
+      "limit": 5000000,
+      "deductible": 0,
+      "premium": 1400,
+      "effective": "2026-10-29",
+      "renewalDate": "2027-10-29",
+      "broker": "Sample Risk Advisors"
+     }
+    ],
+    "items": [
+     {
+      "id": "spm-9-f1",
+      "source": "PCA",
+      "reportDate": "2026-10-09",
+      "system": "Roof",
+      "finding": "TPO installed 2016; about 10 years of its 20-year life left; seam and flashing repairs now",
+      "cost": 18000,
+      "urgency": "Within 1 year",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-9-f2",
+      "source": "PCA",
+      "reportDate": "2026-10-09",
+      "system": "Paving / parking",
+      "finding": "Asphalt from 2015; about 4 years of its 15-year life left; resurface the truck court and parking",
+      "cost": 60000,
+      "urgency": "1–5 years",
+      "status": "Open",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-9-f3",
+      "source": "PCA",
+      "reportDate": "2026-10-09",
+      "system": "Fire / life safety",
+      "finding": "Wet pipe sprinkler system: five-year internal inspection completed, tags current",
+      "cost": 4000,
+      "urgency": "Within 1 year",
+      "status": "Done",
+      "yardiJob": ""
+     },
+     {
+      "id": "spm-9-f4",
+      "source": "Phase I",
+      "reportDate": "2026-10-09",
+      "system": "Environmental",
+      "finding": "No recognized environmental conditions; Phase II not needed",
+      "cost": 0,
+      "urgency": "5+ years",
+      "status": "Done",
+      "yardiJob": ""
+     }
+    ],
+    "contracts": [
+     {
+      "id": "spm-9-s1",
+      "vendor": "Fictional Grounds Co.",
+      "service": "Landscaping",
+      "start": "2026-11-13",
+      "end": "2027-11-12",
+      "annualCost": 5760,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-9-s2",
+      "vendor": "Sample Mechanical Services",
+      "service": "HVAC",
+      "start": "2026-11-13",
+      "end": "2027-11-12",
+      "annualCost": 5040,
+      "autoRenew": true,
+      "noticeDays": 60,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-9-s3",
+      "vendor": "Example Fire Protection",
+      "service": "Fire / life safety",
+      "start": "2026-11-13",
+      "end": "2027-11-12",
+      "annualCost": 2880,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     },
+     {
+      "id": "spm-9-s4",
+      "vendor": "Demo Waste & Recycling",
+      "service": "Waste",
+      "start": "2026-11-13",
+      "end": "2027-11-12",
+      "annualCost": 4320,
+      "autoRenew": false,
+      "noticeDays": 30,
+      "yardiContract": ""
+     }
+    ]
+   },
+   "research": [
+    {
+     "id": "srs-9-market",
+     "type": "market",
+     "title": "Dallas Small Bay industrial market report, Q3 2026",
+     "provider": "Fictional Market Research Group",
+     "date": "2026-09-30",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent",
+      "rentGrowth",
+      "vacancy",
+      "exitCap"
+     ],
+     "keyFigures": "Small-bay asking rent $40.85/SF; vacancy 9.5%; cap rate 6.85%; small-bay rent growth 2.7% over the year",
+     "summary": "Dallas, TX: 16,420,000 SF of inventory, 450,000 SF under construction, net absorption 35,000 SF in the quarter. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-11-13T12:00:00.000Z"
+    },
+    {
+     "id": "srs-9-rent",
+     "type": "rent_survey",
+     "title": "Lakeshore Service Center rent survey (6 leases)",
+     "provider": "Sample Brokerage Research",
+     "date": "2026-10-04",
+     "url": "",
+     "docId": null,
+     "fileName": "",
+     "assumptions": [
+      "marketRent"
+     ],
+     "keyFigures": "6 comparable leases: average $41.55/SF, median $41.84/SF, range $39.82 to $43.80/SF; net effective $38.92/SF",
+     "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-11-13T12:00:00.000Z"
+    }
+   ],
+   "marketReport": {
+    "sub": {
+     "id": "sample-sm-dallas",
+     "name": "Dallas Small Bay (fictional)",
+     "metro": "Dallas, TX",
+     "propertyType": "Industrial"
+    },
+    "stat": {
+     "id": "sample-ms-dallas-2026-Q3",
+     "submarketId": "sample-sm-dallas",
+     "quarter": "2026-Q3",
+     "inventorySF": 16420000,
+     "vacancyPct": 9.5,
+     "availabilityPct": 11.6,
+     "netAbsorptionSF": 35000,
+     "askingRentPSF": 35.95,
+     "askingRentSmallBayPSF": 40.85,
+     "deliveriesSF": 0,
+     "underConstructionSF": 450000,
+     "salesVolume": 20000000,
+     "capRatePct": 6.85,
+     "source": "Sample (fictional)",
+     "sourceDate": "2026-09-30"
+    },
+    "growthPct": 2.7
+   },
    "marks": {},
    "units": [
     {

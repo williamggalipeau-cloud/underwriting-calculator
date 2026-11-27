@@ -1,0 +1,29 @@
+[
+ {
+  "name": "airport-flex-market-report-2026q3",
+  "kind": "market_report",
+  "researchId": "srs-1-market",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-market-report-2026q3.pdf",
+  "title": "Las Vegas Small Bay industrial market report, Q3 2026"
+ },
+ {
+  "name": "route9-market-report-2026q3",
+  "kind": "market_report",
+  "researchId": "srs-2-market",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "file": "route9-market-report-2026q3.pdf",
+  "title": "Kent Small Bay industrial market report, Q3 2026"
+ },
+ {
+  "name": "harbor-light-market-report-2026q3",
+  "kind": "market_report",
+  "researchId": "srs-3-market",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-market-report-2026q3.pdf",
+  "title": "Long Beach Small Bay industrial market report, Q3 2026"
+ }
+]

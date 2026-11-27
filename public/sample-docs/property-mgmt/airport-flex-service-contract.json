@@ -1,0 +1,26 @@
+{
+ "doc_type": "service_contract",
+ "title": "Airport Flex Park HVAC service agreement",
+ "asset": "Airport Flex Park",
+ "owner": "Model Fund I — Runway Vista LLC",
+ "vendor": "Sample Mechanical Services",
+ "service": "HVAC",
+ "start": "2026-01-30",
+ "end": "2027-01-29",
+ "annual_cost": 3024,
+ "auto_renew": true,
+ "notice_days": 60,
+ "quotes": {
+  "vendor": "This Service Agreement is made as of January 30, 2026 between Model Fund I — Runway Vista LLC (\"Owner\") and Sample Mechanical Services (\"Contractor\"). (p.1)",
+  "service": "Contractor shall provide quarterly preventive maintenance of the rooftop heating, ventilation and air-conditioning units at Airport Flex Park. (§1.1)",
+  "start": "The term begins on January 30, 2026 and ends on January 29, 2027. (§2.1)",
+  "end": "The term begins on January 30, 2026 and ends on January 29, 2027. (§2.1)",
+  "auto_renew": "This Agreement renews for successive one-year terms unless either party gives 60 days' written notice before the end of the term. (§2.2)",
+  "notice_days": "This Agreement renews for successive one-year terms unless either party gives 60 days' written notice before the end of the term. (§2.2)",
+  "annual_cost": "Owner shall pay $3,024 per year, in equal quarterly installments. (§3.1)"
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}
