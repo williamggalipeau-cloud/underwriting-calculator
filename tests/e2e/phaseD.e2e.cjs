@@ -7,14 +7,14 @@ const R = FX.R;
 const role = process.env.ROLE || "owner";
 const data = FX.workspaceData();
 data.activeDealId = "sample-deal-1";
-const dir = R + "/docs/sample-leases/abstracts";
+const dir = R + "/tests/fixtures/sample-leases/abstracts";
 const DEAL = { "02": "sample-deal-1", "03": "sample-deal-2", "04": "sample-deal-3", "05": "sample-deal-4", "06": "sample-deal-5", "07": "sample-deal-6", "08": "sample-deal-7", "09": "sample-deal-8", "10": "sample-deal-9", "12": FX.SAVED_IDS[0], "13": FX.SAVED_IDS[1], "14": FX.SAVED_IDS[2] };
 const leases = fs.readdirSync(dir).sort().map((f, i) => {
   const a = JSON.parse(fs.readFileSync(`${dir}/${f}`));
   return { id: `00000000-0000-0000-0000-0000000000${String(10 + i)}`, workspace_id: "w1", deal_id: DEAL[f.slice(0, 2)], unit_ids: [], tenant: a.fields.find((x) => x.key === "tenant").value.split(",")[0], title: "", files: [{ path: `w1/${DEAL[f.slice(0, 2)]}/L${i}/a.pdf`, name: f.replace(".json", ".pdf"), size: 9000, kind: "lease" }], status: "abstracted", abstract: a, created_at: "2026-11-22T00:00:00Z", abstracted_at: "2026-11-22T00:00:00Z" };
 });
 const credit = [];
-const exp = JSON.parse(fs.readFileSync(R + "/docs/sample-deal-docs/tenant-credit/expected.json"));
+const exp = JSON.parse(fs.readFileSync(R + "/tests/fixtures/tenant-credit/expected.json"));
 const now = Math.floor(Date.now() / 1000);
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com", role: "authenticated", exp: now + 3600, aud: "authenticated" })}.sig`;
@@ -132,7 +132,7 @@ let creditReads = 0;
     await tcp.getByLabel("Source").fill(d.source);
     if (d.kind === "credit_report") await tcp.getByLabel("Report date").fill(d.report_date);
     else await tcp.getByLabel("Period end").fill(d.period_end);
-    await tcp.getByLabel("Credit document PDF").setInputFiles(R + "/docs/sample-deal-docs/tenant-credit/" + d.file);
+    await tcp.getByLabel("Credit document PDF").setInputFiles(R + "/tests/fixtures/tenant-credit/" + d.file);
     for (const [k, v] of Object.entries(d.figures)) {
       const label = { score: "Credit score", rating: "Rating", revenue: "Revenue", netIncome: "Net income", ebitda: "EBITDA", currentAssets: "Current assets", currentLiabilities: "Current liabilities", totalDebt: "Total debt", equity: "Equity" }[k];
       await tcp.getByLabel(label, { exact: true }).fill(String(v));

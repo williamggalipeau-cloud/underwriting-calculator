@@ -2,7 +2,7 @@ const R = require("path").resolve(__dirname, "..", ".."); const fs = require("fs
 const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const lv = j(R + "/lib/leaseViews.js"); const tc = j(R + "/lib/tenantCredit.js");
 let fail = 0; const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail++; };
-const dir = R + "/docs/sample-leases/abstracts";
+const dir = R + "/tests/fixtures/sample-leases/abstracts";
 const abs = (p) => JSON.parse(fs.readFileSync(`${dir}/${fs.readdirSync(dir).find((f) => f.startsWith(p))}`));
 const files = fs.readdirSync(dir).sort();
 const leases = files.map((f, i) => ({ id: "L" + i, deal_id: "D" + f.slice(0, 2), tenant: f.slice(3, -5), status: i === 0 ? "applied" : "abstracted", abstract: JSON.parse(fs.readFileSync(`${dir}/${f}`)) }));
@@ -42,7 +42,7 @@ ok(s3.leases === 1 && s3.abstracted === 1 && s3.next.date === "2026-11-30", `per
 ok(sm.get("D02").applied === 1 && sm.get("D02").risks === leases[0].abstract.risks.length, "applied and risk counts");
 
 // Tenant credit
-const exp = JSON.parse(fs.readFileSync(R + "/docs/sample-deal-docs/tenant-credit/expected.json"));
+const exp = JSON.parse(fs.readFileSync(R + "/tests/fixtures/tenant-credit/expected.json"));
 const docs = exp.documents.filter((d) => d.lease.startsWith("02")).map((d, i) => ({ id: "c" + i, lease_id: "L0", kind: d.kind, subject: d.subject, source: d.source, period_end: d.period_end ?? null, report_date: d.report_date ?? null, figures: d.figures }));
 const fl = tc.creditFlags(docs, { abs: abs("02"), asOf });
 const kinds = fl.map((f) => f.kind);

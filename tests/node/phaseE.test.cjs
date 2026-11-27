@@ -82,7 +82,7 @@ ok(merge.units.length === af.units.length + 1 && repl.units.length === 4, `merge
 ok(repl.entries.some((e) => e.field === "Unit removed") && merge.entries.every((e) => e.field !== "Unit removed"), "change-log entries per unit");
 
 // Insurance
-const lease02 = JSON.parse(fs.readFileSync(R + "/docs/sample-leases/abstracts/02-airport-flex-park-desert-aero.json"));
+const lease02 = JSON.parse(fs.readFileSync(R + "/tests/fixtures/sample-leases/abstracts/02-airport-flex-park-desert-aero.json"));
 const req = A.leaseInsuranceRequirements(lease02);
 ok(req.cglOccurrence === 1000000 && req.cglAggregate === 2000000 && req.umbrella === 2000000 && req.auto === 1000000 && req.workersComp && req.waiver, "lease insurance requirements parsed");
 const tg = A.insuranceGaps(abs("airport-flex-insurance-desert-aero"), { leaseAbs: lease02, asOf });

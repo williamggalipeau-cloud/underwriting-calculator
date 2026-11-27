@@ -11,7 +11,7 @@ data.activeDealId = "sample-deal-1";
 // checked in tests/node/sampleTieOut.test.cjs and tests/e2e/sampleSync.e2e.cjs.
 const D = R + "/tests/fixtures/deal-docs";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
-const lease02 = JSON.parse(fs.readFileSync(R + "/docs/sample-leases/abstracts/02-airport-flex-park-desert-aero.json"));
+const lease02 = JSON.parse(fs.readFileSync(R + "/tests/fixtures/sample-leases/abstracts/02-airport-flex-park-desert-aero.json"));
 const LEASE_ID = "00000000-0000-0000-0000-0000000000aa";
 const leases = [{ id: LEASE_ID, workspace_id: "w1", deal_id: "sample-deal-1", unit_ids: [], tenant: "Desert Aero Parts LLC", title: "", files: [{ path: "w1/x/a.pdf", name: "02.pdf", size: 9, kind: "lease" }], status: "abstracted", abstract: lease02, created_at: "2026-11-22T00:00:00Z" }];
 let seq = 0;

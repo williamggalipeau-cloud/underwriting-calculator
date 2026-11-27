@@ -16,7 +16,7 @@ data.funds = { ...data.funds, "Model Fund II": { ...(data.funds?.["Model Fund I"
 // checked in tests/node/sampleTieOut.test.cjs and tests/e2e/sampleSync.e2e.cjs.
 const D = R + "/tests/fixtures/deal-docs";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
-const L = (f) => JSON.parse(fs.readFileSync(`${R}/docs/sample-leases/abstracts/${f}.json`));
+const L = (f) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/sample-leases/abstracts/${f}.json`));
 const af = data.deals.find((d) => d.id === "sample-deal-1").inputs;
 const u104 = af.units.find((u) => /Desert Aero/i.test(u.tenantName ?? "")) ?? af.units[2];
 const LEASE = (n) => `00000000-0000-0000-0000-0000000000a${n}`;

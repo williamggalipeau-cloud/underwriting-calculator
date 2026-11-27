@@ -39,7 +39,7 @@ ok(c.simulateUnit({...opt,renewalRentBasis:"fixed $10.00"},inputs,5).reduce((a,y
 const s6=c.simulateUnit({...opt,monthsRemaining:6,renewalOptionYears:1},inputs,5);
 ok(s6.reduce((a,y)=>a+y.vacancyLoss,0)>0,"after the last option, the usual renewal applies");
 // ─ leaseApply ─
-const abs=(n)=>JSON.parse(fs.readFileSync(R+"/docs/sample-leases/abstracts/"+fs.readdirSync(R+"/docs/sample-leases/abstracts").find(f=>f.startsWith(n))));
+const abs=(n)=>JSON.parse(fs.readFileSync(R+"/tests/fixtures/sample-leases/abstracts/"+fs.readdirSync(R+"/tests/fixtures/sample-leases/abstracts").find(f=>f.startsWith(n))));
 const inp={...inputs,acquisitionDate:"2026-11-22"};
 const a2=abs("02");const {values:v2}=la.abstractUnitValues(a2,inp);
 ok(v2.tenantName==="Desert Aero Parts LLC"&&v2.squareFeet===2000&&v2.leaseType==="MG"&&v2.leaseEnd==="2028-02-29"&&v2.currentRentPSF===15.5,"Airport Flex: tenant, SF, MG, end date, current step rent");

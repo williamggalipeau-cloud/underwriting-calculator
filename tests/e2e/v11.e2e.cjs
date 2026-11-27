@@ -25,7 +25,7 @@ const sale = {
 };
 data.deals = data.deals.map((d) => (d.id === "sample-deal-2" ? { ...d, inputs: { ...d.inputs, submarketId: sm.id, dispositions: [sale] } } : d));
 data.activeDealId = "sample-deal-2";
-const ab = (n) => JSON.parse(fs.readFileSync(`${R}/docs/sample-deal-docs/dispositions/abstracts/${n}.json`, "utf8"));
+const ab = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/dispositions/abstracts/${n}.json`, "utf8"));
 const docs = [
   { id: "doc-loi", deal_id: "sample-deal-2", doc_type: "other", title: "[sale:sale-r9/offer:offer-r9] Offer letter / LOI: route9-loi.pdf", status: "abstracted", abstract: ab("route9-loi"), files: [{ path: "w1/sample-deal-2/doc-loi/route9-loi.pdf", name: "route9-loi.pdf" }], created_at: "2026-11-20T00:00:00Z" },
   { id: "doc-psa", deal_id: "sample-deal-2", doc_type: "psa", title: "[sale:sale-r9] PSA / amendment: route9-psa.pdf", status: "abstracted", abstract: ab("route9-psa"), files: [{ path: "w1/sample-deal-2/doc-psa/route9-psa.pdf", name: "route9-psa.pdf" }], created_at: "2026-12-01T00:00:00Z" },

@@ -45,7 +45,7 @@ for (const n of ["airport-flex-estoppel-desert-aero", "lakeshore-cam-2025", "riv
   const probs = T.checkLocally(abs(n), execFileSync("pdftotext", ["-layout", `${D}/${n}.pdf`, "-"]).toString());
   ok(probs.length === 0, `${n}: quotes in the PDF${probs.length ? " — " + probs[0] : ""}`);
 }
-const L = R + "/docs/sample-leases/abstracts";
+const L = R + "/tests/fixtures/sample-leases/abstracts";
 const lease = (f, id, deal, tenant) => ({ id, deal_id: deal, tenant, abstract: JSON.parse(fs.readFileSync(`${L}/${f}.json`)), unit_ids: [] });
 const leases = [lease("02-airport-flex-park-desert-aero", "L-da", "AF", "Desert Aero Parts LLC"), lease("10-lakeshore-north-texas-fleet", "L-nt", "LS", "North Texas Fleet Service LLC"),
   lease("14-riverside-citrus-belt-logistics", "L-cb", "RV", "Citrus Belt Logistics, LLC")];
