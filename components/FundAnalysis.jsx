@@ -149,7 +149,7 @@ function FundWaterfall({ wf, yearTotals, terms, lineBalanceAt }) {
       <div className="flex items-center justify-between">
         <h3 className="scroll-mt-16 text-sm font-semibold text-gray-700" data-index="Waterfall">LP / GP Waterfall</h3>
         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-          Active tier: {wf.activeTier.irrThreshold != null ? `≤${wf.activeTier.irrThreshold}% IRR` : "Top tier"} · {wf.activeTier.lpSplit}/{wf.activeTier.gpSplit} split
+          {wf.tierMethod === "cliff" ? "Active tier" : "Highest tier reached"}: {wf.activeTier.irrThreshold != null ? `≤${wf.activeTier.irrThreshold}% IRR` : "Top tier"} · {wf.activeTier.lpSplit}/{wf.activeTier.gpSplit} split · {wf.tierMethod === "cliff" ? "cliff" : "marginal tiers"}
         </span>
       </div>
 

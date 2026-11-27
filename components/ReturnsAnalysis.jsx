@@ -61,12 +61,13 @@ function WaterfallSection({ wf }) {
 
       {/* Active tier callout */}
       <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800">
-        <span className="font-semibold">Active promote tier: </span>
+        <span className="font-semibold">{wf.tierMethod === "cliff" ? "Active promote tier: " : "Highest promote tier reached: "}</span>
         Project IRR {fmtPct(wf.projectIRR)} →{" "}
         LP {wf.activeTier?.lpSplit ?? "—"}% / GP {wf.activeTier?.gpSplit ?? "—"}%
         {wf.activeTier?.irrThreshold
-          ? ` (below ${wf.activeTier.irrThreshold}% IRR hurdle)`
-          : " (above all thresholds)"}
+          ? ` (to the ${wf.activeTier.irrThreshold}% IRR hurdle)`
+          : " (above all hurdles)"}
+        {wf.tierMethod === "cliff" ? " · cliff: this split applies to all profit after the pref" : " · marginal: each split applies only within its IRR band"}
       </div>
 
       {/* KPI grid */}

@@ -69,7 +69,7 @@ import { ALL_FUNDS, workingOnOptions, validWorkingOn, scopeDeals, scopeFunds, sc
 import { isPipeline } from "@/lib/fundImpact";
 import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
-import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
+import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob, parseCSV } from "@/lib/fundTerms";
@@ -103,7 +103,7 @@ import MarketCheck from "@/components/MarketCheck";
 import { flagsOf, marketCheck } from "@/lib/marketCheck";
 import { clearLegacyBrowserData, clearLegacyExtras, isWorkspace } from "@/lib/workspace";
 import { FIGURE_DEFS, firmSummary, fmtAum } from "@/lib/enterprise";
-import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, recId, recordItems, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
+import { applyRecord, dataFromRecords, loadFirm, loadLegacyJson, loadRecord, loadRecords, mergeData, recId, recordItems, sameData, savableRecords, saveRecords, subscribeRecords } from "@/lib/records";
 
 // The firm's data is saved record by record (phase Q) this many seconds after
 // the last change: every 2 minutes (user, 11/25, 1.1.6; it was about 1 second).
@@ -537,7 +537,9 @@ export default function Home() {
   const [pipeline, setPipelineRaw] = useState(EMPTY_PIPELINE);
   const [gpPartners, setGpPartnersRaw] = useState(EMPTY_GP_PARTNERS); // 1.1.10: Finance → GP Partners
   const prIndexRef = useRef(null);
-  const [navOpen, setNavOpen] = useState(false); // 1.1.11: the phone Menu // 1.1.11: Portfolio Return's "On this page" index
+  const firstUnsavedAt = useRef(null); // 1.1.12: when the oldest unsaved edit was made
+  const [navOpen, setNavOpen] = useState(false); // 1.1.11: the phone Menu
+  const [leaveAsk, setLeaveAsk] = useState(null); // 1.1.12: { where, resolve } while the unsaved-changes dialog is open // 1.1.11: Portfolio Return's "On this page" index
   // "Working on" fund picker (11/23): a filter; "" = All funds. Remembered on
   // the person's sign-in (or this browser when signed out).
   const [workingOn, setWorkingOnRaw] = useState(ALL_FUNDS);
@@ -631,6 +633,8 @@ export default function Home() {
   // When anchoring is on and live rates are in, deals use the curve shifted
   // in parallel so it starts at today's NY Fed 30-day average SOFR.
   const [baseCurve, setBaseCurveRaw] = useState(DEFAULT_CURVE);
+  const baseCurveRef = useRef(DEFAULT_CURVE);
+  baseCurveRef.current = baseCurve;
   const [anchorToLive, setAnchorToLiveRaw] = useState(true);
   // Sign-in required to change data (lib/cloud REQUIRE_SIGN_IN): every data
   // edit goes through these guarded setters, which do nothing while the app
@@ -737,7 +741,9 @@ export default function Home() {
         if (cancelled) return;
         setLive(r);
         setLiveStatus("ok");
-        if (r.avg30) applyCurveToDeals(anchorCurveToLive(DEFAULT_CURVE, r.avg30.rate).curve);
+        // 1.1.12 (code review): anchor the firm's own curve if it has loaded by
+        // now, not the built-in one (which was then saved over it for everyone).
+        if (r.avg30) applyCurveToDeals(anchorCurveToLive(baseCurveRef.current ?? DEFAULT_CURVE, r.avg30.rate).curve);
       })
       .catch(() => !cancelled && setLiveStatus("error"));
     return () => {
@@ -910,9 +916,13 @@ export default function Home() {
       }
       latestData.current = { v: 1, app: "industrial-uw", deals, savedDeals, funds, baseCurve, anchorToLive, activeDealId, comps, pipeline, gpPartners, valuations, auditLog: log };
       if (schedule) {
+        // 1.1.12 (code review): the wait is counted from the first unsaved
+        // edit, so continuous editing can't put the save off for ever.
+        firstUnsavedAt.current ??= Date.now();
+        const wait = (dbLinkRef.current?.mode === "records" ? RECORD_SAVE_SECONDS : DB_SAVE_SECONDS) * 1000;
         clearTimeout(dbTimer.current);
-        dbTimer.current = setTimeout(() => saveRef.current?.(), (dbLinkRef.current?.mode === "records" ? RECORD_SAVE_SECONDS : DB_SAVE_SECONDS) * 1000);
-      }
+        dbTimer.current = setTimeout(() => saveRef.current?.(), Math.max(1000, Math.min(wait, firstUnsavedAt.current + wait - Date.now())));
+      } else firstUnsavedAt.current = null;
     }, dbLinkRef.current?.mode === "records" ? 150 : 400);
     return () => clearTimeout(t);
     // auditLog/auditUser are read through refs/closure; changes to them alone don't need a save.
@@ -1054,7 +1064,7 @@ export default function Home() {
       // An unsaved edit here to the same record wins locally; its save then
       // meets the conflict and reloads that record.
       const mine = savableRecords(cur).find((r) => r.kind === row.kind && r.key === row.key);
-      if (mine && JSON.stringify(mine.data) !== JSON.stringify(base.data)) return;
+      if (mine && !sameData(mine.data, base.data)) return;
     }
     recBase.current.set(id, { ...row });
     putRecord(row);
@@ -1066,16 +1076,29 @@ export default function Home() {
       : kind === "fund" ? `Fund terms of ${key}` : kind === "valuation" ? "Valuation marks" : "Settings";
 
   // A save met a newer version: reload that record and keep everything else.
+  // 1.1.12 (code review): the two versions are merged field by field (lib/
+  // records.js mergeData), so neither person's work is replaced; where both
+  // changed the same field, this browser's edit is kept and named.
   async function reloadConflict(l, c) {
     const row = await loadRecord(l.id, c.kind, c.key);
     const label = recordLabel(c.kind, c.key);
-    if (row) {
-      recBase.current.set(recId(c.kind, c.key), row);
+    const id = recId(c.kind, c.key);
+    const who = row?.updated_by_email || "someone else";
+    if (row && !row.deleted) {
+      const base = recBase.current.get(id);
+      const mine = savableRecords(latestData.current ?? workspaceData()).find((r) => r.kind === c.kind && r.key === c.key);
+      const m = mine && base ? mergeData(base.data, mine.data, row.data) : { data: row.data, conflicts: [] };
+      recBase.current.set(id, row); // the retry saves the merged record on top of their version
+      putRecord({ ...row, data: m.data });
+      const both = [...new Set(m.conflicts.map((p) => p.split(".").slice(-1)[0].replace(/\[.*$/, "")))].slice(0, 4);
+      setRecordNotice(`${label} was also changed by ${who}. Both sets of changes were merged${both.length ? `; where you both changed the same field (${both.join(", ")}), yours was kept` : ""}.`);
+    } else if (row) {
+      recBase.current.set(id, row);
       putRecord(row);
+      setRecordNotice(`${label} was removed by ${who}.`);
     } else {
-      recBase.current.delete(recId(c.kind, c.key));
+      recBase.current.delete(id);
     }
-    setRecordNotice(`${label} was changed by ${row?.updated_by_email || "someone else"}; reloaded. Your other changes are kept.`);
   }
 
   // One-time import of what the old app saved after the move (owners).
@@ -1161,7 +1184,7 @@ export default function Home() {
       if (e.conflict?.kind && attempt < 3) {
         dbSaving.current = false;
         await reloadConflict(l, e.conflict);
-        return saveRecordsNow(l, latestData.current ?? data, auditSnapshot(latestData.current ?? data), [], attempt + 1);
+        return saveRecordsNow(l, latestData.current ?? data, auditSnapshot(latestData.current ?? data), changes, attempt + 1); // keep the change-log rows through the retry
       }
       setDbLink((x) => (x ? { ...x, error: e.message } : x));
       throw e;
@@ -1773,6 +1796,72 @@ export default function Home() {
     setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: r.updates[d.id] } } : d)));
   }
 
+  // 1.1.12 (user, 11/27): no manual loading. When an owner opens a firm that
+  // has Model Fund I and its sample material is behind SAMPLE_DATA_VERSION,
+  // add what's missing with the owner's own session: sample tenant credit and
+  // aged rent, the sample documents (credit report PDFs included) and the
+  // sample GP partners. Each step adds only what isn't there and keeps the
+  // user's own records; the fund's terms then record the version, so it runs
+  // once per release that adds sample material. Logged in the change log.
+  const sampleSyncRan = useRef(false);
+  async function syncSampleData() {
+    const cur = latestData.current, l = dbLinkRef.current;
+    if (!cur || !l?.id || l.role !== "owner" || lockedRef.current) return;
+    const terms = cur.funds?.[SAMPLE_FUND_NAME];
+    if (!terms || (terms.sampleDataVersion ?? 0) >= SAMPLE_DATA_VERSION || !cur.deals.some((d) => d.id.startsWith("sample-deal-"))) return;
+    const todayISO = new Date().toISOString().slice(0, 10);
+    const email = session?.user?.email ?? null;
+    setSampleDocMsg("Updating the Model Fund I sample data…");
+    try {
+      const credit = addSampleCredit(cur.deals, { todayISO, funds: cur.funds, fundName: SAMPLE_FUND_NAME });
+      const built = cur.deals.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d));
+      noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents, GP partners)");
+      setDeals((prev) => prev.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d)));
+      const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
+      const docs = await addSampleDocuments({
+        workspaceId: l.id, email, deals: built,
+        onSale: (dealId, sale) => updateDealInputs(dealId, (inp) => ({ ...inp, dispositions: [...(inp.dispositions ?? []), sale] })),
+        onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`),
+      });
+      const gpr = await addSampleGpPartners({ workspaceId: l.id, email, gp: cur.gpPartners, onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`) });
+      // The agreements are switched on (user, 11/27): each one Claude's
+      // abstract gives complete terms for is saved as checked, and the
+      // fund's GP parties are rebuilt from them.
+      const { agreementFromAbstract } = await import("@/lib/gpPartners");
+      const { listDealDocs } = await import("@/lib/dealDocs");
+      let gp = gpr.gp, switched = 0;
+      for (const d of (await listDealDocs(l.id)).filter((x) => x.abstract?.doc_type === "gp_agreement")) {
+        if ((gp.agreements ?? []).some((a) => a.docId === d.id)) continue;
+        const draft = agreementFromAbstract(d.abstract, { gp, funds: cur.funds, deals: built, docId: d.id, fileName: d.files?.[0]?.name ?? "" });
+        const dup = draft && (gp.agreements ?? []).some((a) => a.partnerId === draft.partnerId && a.portfolio === draft.portfolio && (a.dealId || null) === (draft.dealId || null) && a.effective === draft.effective);
+        if (!draft || dup) continue;
+        const r = saveAgreement(gp, draft, { by: email ?? "" });
+        if (!r.error) { gp = r.gp; switched++; }
+      }
+      setGpPartners(gp);
+      const failed = [...docs.failed, ...gpr.failed];
+      // The version is recorded only when everything went in; otherwise the next open tries again.
+      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
+      setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
+      setRecordNotice(failed.length
+        ? `Model Fund I sample data: ${failed.length} item${failed.length === 1 ? "" : "s"} couldn't be added (${failed[0].error}); it will try again the next time you open Baywise.`
+        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
+    } catch (e) {
+      setRecordNotice(`Model Fund I sample data couldn't be updated (${e.message || e}); it will try again the next time you open Baywise.`);
+    } finally {
+      setSampleDocMsg("");
+    }
+  }
+  const sampleSyncKey = session && dbLink?.id && dbLink.role === "owner" ? dbLink.id : null;
+  useEffect(() => {
+    if (!sampleSyncKey || sampleSyncRan.current) return;
+    // Automated browser tests opt in (window.__baywiseSampleSync), so the other suites keep their fixtures.
+    if (typeof navigator !== "undefined" && navigator.webdriver && !window.__baywiseSampleSync) return;
+    const t = setTimeout(() => { if (!sampleSyncRan.current) { sampleSyncRan.current = true; syncSampleData(); } }, 2500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sampleSyncKey]);
+
   // Sample data → Add sample GP partners (1.1.10): the fictional partners and
   // their agreement PDFs with Claude's abstracts, to check in GP Partners.
   async function handleAddSampleGpPartners() {
@@ -1979,7 +2068,24 @@ export default function Home() {
     for (let i = 0; i < 100 && dbSaving.current; i++) await new Promise((r) => setTimeout(r, 100));
     const l = dbLinkRef.current;
     if (!(l && session && l.role !== "viewer" && (l.dirty || dbSaving.current))) return true;
-    if (!window.confirm(`You have unsaved changes. Save them before you leave ${where}?\n\nOK saves and continues. Cancel stays here.`)) return false;
+    // 1.1.12 (user, 11/27): three choices, so you're never stuck: save and
+    // go on, discard the unsaved changes and go on, or stay. (Automated
+    // browser tests keep the plain OK / Cancel prompt unless they ask for this one.)
+    const useModal = !(typeof navigator !== "undefined" && navigator.webdriver) || (typeof window !== "undefined" && window.__baywiseLeaveModal);
+    const choice = useModal
+      ? await new Promise((resolve) => setLeaveAsk({ where, resolve }))
+      : window.confirm(`You have unsaved changes. Save them before you leave ${where}?\n\nOK saves and continues. Cancel stays here.`) ? "save" : "stay";
+    setLeaveAsk(null);
+    if (choice === "stay") return false;
+    if (choice === "discard") {
+      try {
+        // Reload what is saved: the unsaved edits are dropped.
+        if (l.mode === "records") await openFirm(l); else await openDbWorkspace(l);
+        return true;
+      } catch (e) {
+        return window.confirm(`Couldn't reload the saved data (${e.message || e}). Leave anyway? Your unsaved changes stay in this window.`);
+      }
+    }
     try { await saveToDbNow(true); } catch { /* checked below */ }
     const after = dbLinkRef.current;
     if (after?.dirty || after?.conflict || after?.error) {
@@ -2937,6 +3043,20 @@ export default function Home() {
                 }}
                 onSetExitCap={handleSetExitCap}
               />
+            )}
+            {leaveAsk && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="leave-title" data-testid="leave-dialog">
+                <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+                  <h2 id="leave-title" className="text-base font-bold text-gray-900">You have unsaved changes</h2>
+                  <p className="mt-1 text-sm text-gray-600">Save them before you leave {leaveAsk.where}?</p>
+                  <div className="mt-4 flex flex-wrap justify-end gap-2">
+                    <button type="button" onClick={() => leaveAsk.resolve("stay")} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Stay here</button>
+                    <button type="button" onClick={() => leaveAsk.resolve("discard")} className="rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50">Discard changes</button>
+                    <button type="button" autoFocus onClick={() => leaveAsk.resolve("save")} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">Save and continue</button>
+                  </div>
+                  <p className="mt-3 text-[11.5px] text-gray-500">Discard drops only what hasn&apos;t been saved yet and reloads the saved data.</p>
+                </div>
+              </div>
             )}
             {fundEditor && (
               <FundTermsEditor

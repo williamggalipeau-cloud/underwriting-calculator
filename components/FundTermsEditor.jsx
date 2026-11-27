@@ -448,6 +448,14 @@ export default function FundTermsEditor({ mode = "new", initial, existingNames =
               <Num label="GP commitment" suffix="% of equity" step={0.5} value={t.gpCommitPct} onChange={set("gpCommitPct")} />
               <Num label="Preferred return" suffix="%/yr" step={0.25} value={t.prefPct} onChange={set("prefPct")} />
               <Num label="GP catch-up" suffix="%" step={5} value={t.catchUpGpPct} onChange={set("catchUpGpPct")} />
+              {/* 1.1.12 (user, 11/27): marginal by default; read from the LPA where it says. */}
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500">Promote tier method</span>
+                <select aria-label="Promote tier method" value={t.tierMethod === "cliff" ? "cliff" : "marginal"} onChange={(e) => set("tierMethod")(e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900" title="Marginal: each tier's split applies only to the distributions that take the LPs' IRR from one hurdle to the next (the usual LPA waterfall). Cliff: the tier the portfolio's IRR lands in applies to every dollar after the pref.">
+                  <option value="marginal">Marginal (each split within its IRR band)</option>
+                  <option value="cliff">Cliff (one split on all profit)</option>
+                </select>
+              </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution policy</span>
                 <select

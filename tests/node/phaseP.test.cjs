@@ -105,7 +105,8 @@ ok(listed.length === 1 && listed[0].asset === "Airport Flex Park" && listed[0].t
   const fd = data.deals.filter((d) => d.inputs.fundName === "Model Fund I").map((d) => snapshotDeal(d.inputs, d.id));
   const terms = { ...DEFAULT_FUND_TERMS, ...data.funds["Model Fund I"], name: "Model Fund I" };
   const early = D.saleDistribution(fd, terms, "sample-deal-1", { date: "2026-11-20", net: 4e6 });
-  ok(early && close(early.lp + early.gp + early.held, 4e6) && early.gp === 0, "an early sale's proceeds go to the LPs (return of capital first)");
+  // 1.1.12: GP capital is paid pro rata (its 5% commitment), with no carry until the LPs have their pref and capital back.
+  ok(early && close(early.lp + early.gp + early.held, 4e6) && early.carry === 0 && early.gp > 0 && early.gp <= 0.05 * 4e6 * 1.5, `an early sale: no carry yet; the GP capital gets its pro-rata share (${Math.round(early.gp)})`);
   const big = D.saleDistribution(fd, terms, "sample-deal-1", { date: "2029-11-20", net: 9e7 });
   ok(big.gp > 0 && big.lp > big.gp && close(big.lp + big.gp + big.held, 9e7), "a large later sale reaches the promote: LP / GP split by the fund's waterfall");
   ok(D.saleDistribution(fd, terms, "x", null) === null, "no closing, no split");

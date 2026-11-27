@@ -53,7 +53,7 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
         conflictOnce = null;
         const row = findRow(c.kind, c.key);
         row.version += 1;
-        row.data = { ...row.data, inputs: { ...row.data.inputs, propertyName: "Renamed by a colleague" } };
+        row.data = { ...row.data, inputs: { ...row.data.inputs, propertyName: "Renamed by a colleague", city: "Colleague City" } };
         row.updated_by_email = "colleague@example.com";
         status = 400;
         body = JSON.stringify({ code: "40001", message: `conflict: ${c.kind}/${c.key} is at version ${row.version}`, details: null, hint: null });
@@ -125,8 +125,12 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   await nameInput.fill("My second rename");
   await p.waitForTimeout(3500);
   const notice = await p.getByTestId("record-notice").innerText().catch(() => "");
-  check(/changed by colleague@example\.com; reloaded/.test(notice), `conflict notice: "${notice.slice(0, 90)}"`);
-  check((await nameInput.inputValue()) === "Renamed by a colleague", "the newer version is on screen (never overwritten)");
+  // 1.1.12: both sets of changes are merged; on the same field, mine is kept.
+  check(/also changed by colleague@example\.com\. Both sets of changes were merged; where you both changed the same field \(propertyName\), yours was kept/.test(notice), `conflict notice: "${notice.slice(0, 160)}"`);
+  check((await nameInput.inputValue()) === "My second rename", "my change to the same field is kept");
+  await p.waitForTimeout(2500);
+  const merged = saves.slice().reverse().find((x) => x.items.some((i) => i.kind === "deal" && i.key === "sample-deal-1"))?.items.find((i) => i.key === "sample-deal-1");
+  check(merged?.data?.inputs?.propertyName === "My second rename" && merged?.data?.inputs?.city === "Colleague City", `the merged record is saved: my name, the colleague's other change (${merged?.data?.inputs?.propertyName} / ${merged?.data?.inputs?.city})`);
 
   // Realtime: a colleague's change to another deal appears and isn't saved back.
   const before = saves.length;

@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.11** (2026-11-26). The version shows next to the Baywise
+Version: **1.1.12** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -222,9 +222,16 @@ automatically.
   still runs in the background as a safety net. The header save label is
   gone; **Database and people…** is under **⋯ More**.
 - **Leaving with unsaved changes:** moving to another tab, Home, or another
-  portfolio in **Select Portfolio** asks first: **OK** saves and continues,
-  **Cancel** stays put. If the save doesn't go through it asks whether to
-  leave anyway. Closing the browser tab also asks.
+  portfolio in **Select Portfolio** asks first (see the three buttons below). If the save doesn't go through it
+  asks whether to leave anyway. Closing the browser tab also asks.
+- **Unsaved changes when you move (1.1.12):** the box has three buttons:
+  **Stay here**, **Discard changes** (reloads the firm's saved data and
+  moves on) and **Save and continue**.
+- **Two people editing (1.1.12):** if someone else saved while you were
+  editing, your changes and theirs are merged field by field. Where you both
+  changed the same field, yours is kept and the notice lists those fields.
+- **Longest wait (1.1.12):** if you keep typing, it still saves within about
+  2 minutes of the first unsaved change.
 - **Two people editing the same thing:** nothing is overwritten. If someone
   saved that deal (or fund, or setting) after you opened it, your save of it
   is refused. The app reloads their version and shows "*Name* was changed by
@@ -956,18 +963,9 @@ the modelled selling costs.
 
 ### 7.8 Deal-level waterfall (Asset Return tab)
 
-Annual, on the deal's IRR flows. The LP share = LP equity %. Positive flows
-are paid in this order:
-
-1. **LP pref:** compounds annually on outstanding LP capital.
-2. **Return of capital:** LP first, then GP.
-3. **GP catch-up:** at the catch-up % (100%) until the GP has its tier share
-   of total profit.
-4. **Split** by the tier.
-
-The tier is chosen once, from the deal's overall IRR (the first tier whose
-hurdle ≥ project IRR). It is not a running IRR hurdle. Negative flows are
-called pro rata.
+Since 1.1.12 this is the same engine as the fund waterfall (§7.10), run on
+the deal's annual IRR flows a year apart, with all income treated like
+sale proceeds. Negative flows are called pro rata.
 
 ### 7.9 Fund timeline and quarterly distributions (`lib/fundTimeline.js`)
 
@@ -1010,13 +1008,39 @@ same date.
   2. Return capital, LP then GP.
   3. Anything left is held and added to the next capital event.
   - Promote is never paid from income.
-- **Capital events** (sales):
+- **GP capital is paid pro rata (1.1.12).** The GP's capital takes its
+  share (5%) of every distribution, with no pref and no promote on it. The
+  steps below run on the LPs' share only. Before 1.1.12 the GP's capital
+  came back after the LPs' and the catch-up counted its profit, which
+  overpaid the promote.
+- **Capital events** (sales), on the LPs' share:
   1. Pref.
-  2. Return of capital (LP, then GP).
-  3. GP catch-up (100%) to its tier share of total profit.
-  4. Split by the active tier.
-- **Tiers:** 80/20 to 12% IRR, 70/30 to 18%, 60/40 above. The tier is picked
-  once from the fund's overall project XIRR.
+  2. Return of LP capital.
+  3. **GP catch-up:** the GP takes the catch-up % (100%) of each dollar
+     until its promote equals the first tier's GP share (20%) of the LPs'
+     profit plus the promote. With a catch-up below 100% the LPs get the
+     rest of each dollar.
+  4. **Tier splits.**
+- **Tiers (1.1.12): marginal by default.** 80/20 until the LPs reach a 12%
+  IRR, 70/30 from there to an 18% IRR, 60/40 above. Each split applies only
+  to the dollars inside its tier, so more proceeds never pay the LPs less.
+  The engine keeps a balance per hurdle that grows at the hurdle rate, rises
+  with LP contributions and falls with LP distributions; a tier ends when
+  its balance reaches zero.
+  - **Fund terms → Promote tier method** can be set to **Cliff** (the method
+    before 1.1.12): one tier, chosen from the whole project's IRR, applies to
+    all of the profit above the pref.
+  - When Claude reads an LPA, the tiers and the tier method are read from it
+    and offered as fund terms. The sample Model Fund I LPA states marginal
+    tiers.
+- **The promote** shown everywhere (GP Economics, Firm Economics, sale
+  distributions) is the carry from steps 3 and 4 only. The GP's return on
+  its own capital is shown separately.
+- **Worked example** (in `tests/node/waterfall.test.cjs`): $100 in ($90 LP,
+  $10 GP), $200 back a year later, 8% pref, 100% catch-up, 80/20. GP capital
+  gets $20. Of the LPs' $180: pref $7.20, capital $90, catch-up $1.80, then
+  $81 split 80/20. Promote $18 (20% of the $90 profit on the LPs' side); LP
+  profit $72; GP profit $28.
 - **Fund expenses:** the management fee and sub line costs are fund-level
   expenses, paid from fund cash, then the line, before income is
   distributed (§7.20). Capital for them is assumed called only when both are
@@ -1151,6 +1175,22 @@ tomorrow onward.
 - **Not modeled:** recycling of returned capital.
 
 ### 7.13 Sample portfolio (`lib/samplePortfolio.js`)
+
+**Sample material loads by itself (1.1.12).** When an owner opens a firm
+that has Model Fund I and its sample material is older than the app's
+(`SAMPLE_DATA_VERSION`, now 2), Baywise adds what is missing with no clicks:
+sample tenant credit and aged rent, the sample documents (credit report
+PDFs included) and the two sample GP partners with their agreements. It adds
+only what isn't there, keeps your own records, logs the update in the Change
+log, records the version on the fund and shows a notice. If an item fails it
+tries again on the next open. The two GP agreements are **switched on**
+(user, 11/27): each is saved as checked with the terms in the document, and
+Model Fund I's GP parties are rebuilt from them (Fictional Capital Partners:
+40% of the GP capital and 50% of the GP's promote, fund-wide from 1/15/2026;
+Sample Family Office: 50% and 40% on Granite Ave Industrial only, from
+3/1/2026). The firm's share of the GP capital and promote falls by those
+amounts. The Sample data menu still works by hand (its GP agreements stay
+"to check").
 
 Model Fund I has **$100M of total commitments** (LP + GP). It holds your
 deal plus nine illustrative assets, all owned: acquired 1/30/2026 – 11/13/2026:
@@ -4779,6 +4819,12 @@ and doesn't bump the version.
 - **Size:** each save stores a full copy in `workspace_versions`. A
   workspace is small (tens to hundreds of KB), so thousands of saves fit in
   the free plan's 500 MB.
+- **Record history (1.1.12, `supabase/firm_record_versions.sql`, run once):**
+  every time a record changes, the version it replaces is kept in
+  `firm_record_versions` with who saved it and when. Owners and editors can
+  read it; nobody can write to it. Settings and the working log keep their
+  last 200 versions; everything else keeps all of them. Restoring an older
+  version is done by hand in the SQL Editor.
 - **Data location:** data lives in the Supabase region chosen when the
   project was created, encrypted at rest.
 
@@ -4845,9 +4891,9 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
-| **1.3** | Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
+| **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
 | **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
 | **1.6** | Treasury Management (fund and asset bank accounts): cash position, unrestricted vs. restricted; bank concentration (flag above 25% at one bank); cash above FDIC limits (per entity, per bank); the interest rate cash earns and its cash drag against the fund's target and actual IRR; accounts a loan requires at the lender; **Lender Cash Sweep** (accounts swept after a covenant failure, and how much); a quarterly forecast for a rolling year against minimum cash of one quarter of planned expenses. Imports from manual entry, CSV, BAI2, CAMT.053 / MT940 and Yardi, built so treasury systems such as Kyriba can connect later. New **Treasury**, **Bank Accounts** and **Cash Forecast** tabs at the front of **Finance**; Distribution Analysis reads its balances from Treasury; the Dashboard alerts on Lender Cash Sweeps | Planned (added 11/25) |
@@ -4860,6 +4906,18 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.12
+
+A correctness and safety patch from the end-to-end code review (user, 11/27).
+
+- **Waterfall (§7.8, §7.10).** The GP's capital is paid pro rata; the pref, catch-up and tiers run on the LPs' share. The catch-up no longer overpays the promote. Promote tiers are **marginal** by default (cliff on request in Fund terms → Promote tier method); the tiers and method are read from the LPA. The deal waterfall and the fund waterfall are one engine.
+  - On Model Fund I (test data) the promote falls from $28.4M to $20.1M, the net LP multiple rises from 1.89x to 2.11x and the net LP IRR from 23.7% to 28.0%. Gross returns are unchanged.
+- **Leaving a tab with unsaved changes** offers Stay here, **Discard changes** and Save and continue.
+- **Saving.** Two people's edits are merged field by field instead of one overwriting the other; settings are no longer re-saved when nothing changed; a save happens within 2 minutes of the first unsaved change; the forward curve anchor no longer races the first load.
+- **Record history.** `supabase/firm_record_versions.sql` keeps every replaced version of a record (§12.7). Run it once.
+- **Other fixes.** Interest-only loans with no amortization; a 0% LTV limit; IRR with no sign change shows "n/a"; risk report loan balance at the report date and floating / swapped / capped / unhedged debt; credit review due dates and month ends; fund income before final close; negative amounts keep their sign in Capital Activity and the Pipeline.
+- **Sample material loads by itself (§7.13)** when an owner opens the firm: tenant credit, aged rent, sample documents with credit reports, and the sample GP partners, whose two agreements are switched on.
 
 ### What's in 1.1.11
 
