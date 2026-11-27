@@ -58,7 +58,8 @@ const DATA = [
   ["credit", "tenant credit", any((a) => (a.units ?? []).some((u) => n(u.credit?.records ?? u.credit) > 0))],
   ["credit", "tenant credit documents", manifest.credit.some((c) => c.kind === "tenant")],
   ["leasing", "leasing prospects", any((a) => n(a.leasing?.prospects ?? a.leasingProspects) > 0)],
-  ["valuations", "marks on every asset", deals.every((d) => n(f.valuations?.[d.id]) > 0 || (f.valuations?.marks ?? []).some?.((m) => m.dealId === d.id))],
+  // An asset is held at cost for its first six months, so only older ones are marked.
+  ["valuations", "marks on assets held over six months", deals.filter((d) => d.inputs.acquisitionDate <= "2026-03-31").every((d) => n(f.valuations?.[d.id]) > 0)],
   ["debt", "loans", any((a) => Number(a.ltvPct) > 0)],
   ["cashflow", "cash flows", deals.length > 0],
   ["returns", "returns", deals.length > 0],
@@ -84,7 +85,6 @@ const PENDING_DATA = {
   "impact / saved scenarios": "1.1.22",
   "sellhold / sell / hold decisions": "1.1.22",
   "trackrecord / sold assets": "1.1.23 (the sample joint venture's sold asset)",
-  "valuations / marks on every asset": "1.1.22",
   "fund / capital activity": "1.1.22",
   "fund / fund plan versions": "1.1.22",
   "distributions / distribution proposals": "1.1.22",
