@@ -50,7 +50,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(3500);
   await FX.openArea(p, "Pipeline");
   const ag = await p.getByRole("group", { name: "Acquisitions" }).getByRole("button").allInnerTexts();
-  check(ag.map((t) => t.replace(/\s*\d+$/, "")).join() === "Pipeline,Deal Screener,Portfolio Impact,Comps,Acquisition Documents", `Acquisitions tabs: ${ag.join(", ")}`);
+  check(ag.map((t) => t.replace(/\s*\d+$/, "")).join() === "Pipeline,Underwriter,Portfolio Impact,Comps,Acquisition Documents", `Acquisitions tabs: ${ag.join(", ")}`);
   await FX.openTab(p, "Acquisition Documents");
   await p.waitForTimeout(1200);
   const box = p.getByTestId("acq-documents");

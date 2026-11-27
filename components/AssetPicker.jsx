@@ -35,7 +35,7 @@ export default function AssetPicker({ deals, snapshots = [], activeId, onPick, o
       >
         {placeholder && !known && <option value="" disabled>{placeholder}</option>}
         {funds.map((f) => (
-          <optgroup key={f || "none"} label={f || "Not in a portfolio (Deal Screener)"}>
+          <optgroup key={f || "none"} label={f || "Not in a portfolio (Underwriter)"}>
             {deals.filter((d) => (d.inputs?.fundName?.trim() || "") === f).sort(byName).map((d) => (
               <option key={d.id} value={d.id}>{name(d)}</option>
             ))}

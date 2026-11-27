@@ -122,7 +122,7 @@ export default function Pipeline({ pipeline, onChange, fundNames = [], canEdit, 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Pipeline</h2>
-          <p className="text-xs text-gray-500">Every deal being watched. Upload a CoStar export or an internal spreadsheet, or add deals by hand. Screen opens a deal in Deal Screener; Convert to asset puts a closed deal in its fund.</p>
+          <p className="text-xs text-gray-500">Every deal being watched. Upload a CoStar export or an internal spreadsheet, or add deals by hand. Screen opens a deal in Underwriter; Convert to asset puts a closed deal in its fund.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {canEdit && (

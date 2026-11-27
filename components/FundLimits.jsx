@@ -18,12 +18,12 @@ function Badge({ status }) {
   return <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${s.cls}`} data-testid="limit-status">{s.label}</span>;
 }
 
-export default function FundLimits({ fundName, terms, deals, values, lineBalance, pipeline = [], canEdit, onFundTermsChange }) {
-  const inputs = useMemo(() => limitInputs(deals, { values, lineBalance }), [deals, values, lineBalance]);
+export default function FundLimits({ fundName, terms, deals, values, lineBalance, pipeline = [], canEdit, onFundTermsChange, todayISO = new Date().toISOString().slice(0, 10) }) {
+  const inputs = useMemo(() => limitInputs(deals, { values, lineBalance, todayISO }), [deals, values, lineBalance, todayISO]); // 1.1.25: tenants on today's leases
   const rows = useMemo(() => checkLimits(terms, inputs), [terms, inputs]);
   const [candId, setCandId] = useState("");
   const cand = pipeline.find((d) => d.id === candId) ?? null;
-  const pre = useMemo(() => (cand ? preAcquisition(terms, deals, cand, { values, lineBalance }) : null), [cand, terms, deals, values, lineBalance]);
+  const pre = useMemo(() => (cand ? preAcquisition(terms, deals, cand, { values, lineBalance, todayISO }) : null), [cand, terms, deals, values, lineBalance, todayISO]);
   const [nk, setNk] = useState("single_asset_pct");
   const [nv, setNv] = useState("");
   const internal = terms.internalLimits ?? [];

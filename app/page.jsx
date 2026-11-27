@@ -1127,7 +1127,7 @@ export default function Home() {
     else setInputs((prev) => ({ ...prev, exitCapRatePct: pct }));
   }
 
-  // Pipeline (phase M): Screen opens the deal in Deal Screener (a deal with
+  // Pipeline (phase M): Screen opens the deal in Underwriter (a deal with
   // no fund, so it stays out of the fund until it's converted).
   function pipelineToDeal(pl) {
     // No expected close: the end of the quarter about three months out.
@@ -1170,7 +1170,7 @@ export default function Home() {
   const [impactPreselect, setImpactPreselect] = useState([]);
   // Portfolio Impact's fund when it opens from the Screener (the deal's target fund).
   const [impactFund, setImpactFund] = useState("");
-  // Deal Screener (user, 11/25, 1.1.6): the Pipeline row picked when it has
+  // Underwriter (user, 11/25, 1.1.6): the Pipeline row picked when it has
   // no model to show (cleared when the deal on screen changes), and the row
   // just screened by picking it (for the "screened just now" note).
   const [pickedRowId, setPickedRowId] = useState(null);
@@ -1199,7 +1199,7 @@ export default function Home() {
       // Screening on pick (user, 11/25): the model is built from the Pipeline
       // figures and linked to the row, as the Pipeline's Screen does.
       const d = pipelineToDeal(row);
-      noteAudit(`Screened pipeline deal ${row.name} from the Deal Screener`);
+      noteAudit(`Screened pipeline deal ${row.name} from the Underwriter`);
       setDeals((prev) => [...prev, d]);
       setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === row.id ? { ...x, dealId: d.id, stage: x.stage === "watching" ? "screening" : x.stage, ...(x.stage === "watching" ? { stageDate: new Date().toISOString().slice(0, 10) } : {}) } : x)) }));
       setActiveDealId(d.id);
@@ -1461,7 +1461,7 @@ export default function Home() {
     setComps((c) => ({ ...c, market: sf.market }));
     setValuations((prev) => ({ ...prev, ...Object.fromEntries(Object.keys(sf.valuations).filter((id) => id.startsWith("sample-deal-")).map((id) => [id, sf.valuations[id]])) }));
     // The sample pipeline deals come pre-screened: each gets its model, so
-    // it opens straight into the Deal Screener (rows already screened keep
+    // it opens straight into the Underwriter (rows already screened keep
     // theirs).
     const plRows = (() => {
       const have = new Map((pipeline?.deals ?? []).map((d) => [d.id, d]));
@@ -2451,7 +2451,7 @@ export default function Home() {
               </div>
             )}
             {activeTab === "quick" && (() => {
-              // Deal Screener: pipeline deals only (phase M, 11/23); the
+              // Underwriter: pipeline deals only (phase M, 11/23); the
               // Pipeline Deal dropdown and what each row shows (1.1.6).
               const today = new Date().toISOString().slice(0, 10);
               const row = screenRow;
@@ -2475,7 +2475,7 @@ export default function Home() {
               return (
                 <div className="space-y-4">
                   {card}
-                  <ScreenerPicker activeDeal={activeDeal} owned={owned} pipelineRow={row ?? null} activeRows={(pipeline.deals ?? []).filter((r) => PIPELINE_ACTIVE.includes(r.stage))} onPickRow={(id) => handlePickScreener(`row:${id}`)} onSyncRow={locked || passed || !row ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${row.name} from Deal Screener`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === row.id ? { ...x, ...patch } : x)) })); }} />
+                  <ScreenerPicker activeDeal={activeDeal} owned={owned} pipelineRow={row ?? null} activeRows={(pipeline.deals ?? []).filter((r) => PIPELINE_ACTIVE.includes(r.stage))} onPickRow={(id) => handlePickScreener(`row:${id}`)} onSyncRow={locked || passed || !row ? null : (patch) => { if (!requireEdit()) return; noteAudit(`Updated pipeline row ${row.name} from Underwriter`); setPipeline((p) => ({ ...p, deals: p.deals.map((x) => (x.id === row.id ? { ...x, ...patch } : x)) })); }} />
                   {!owned && (
                     // Passed / lost: decided, so read-only (user, 11/25).
                     <fieldset disabled={passed} className={`min-w-0 space-y-4 ${passed ? "opacity-60" : ""}`} data-testid={passed ? "screener-readonly" : undefined}>
@@ -2691,7 +2691,7 @@ export default function Home() {
                 onOpenDeal={(id) => {
                   if (!deals.some((d) => d.id === id)) return;
                   setActiveDealId(id);
-                  setActiveTab("plan"); // owned assets open on their business plan (Deal Screener is for the pipeline)
+                  setActiveTab("plan"); // owned assets open on their business plan (Underwriter is for the pipeline)
                 }}
                 onOpenLeases={(id) => {
                   if (!deals.some((d) => d.id === id)) return;

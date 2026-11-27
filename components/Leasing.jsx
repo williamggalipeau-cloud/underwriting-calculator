@@ -15,6 +15,7 @@ import { COMPS_DOC_TYPES, PROSPECT_DOC_TYPES, leasingDocs, leasingTypeLabel, upl
 import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
 import CreditForm from "@/components/CreditForm";
 import { OWN_RATINGS, RESULTS, screeningComplete, signProspect } from "@/lib/creditReview";
+import { inputsToday } from "@/lib/leaseHistory";
 
 // Upload area for a prospect or the rent comps (signed in to the firm).
 function Docs({ docs, types, ctx, compact = false }) {
@@ -69,7 +70,7 @@ export default function Leasing({ deal, deals = [], canEdit = false, onUpdate, o
   const totals = pipelineTotals(rows);
   const comps = filterRentComps(L.comps, f);
   const stats = rentCompStats(comps);
-  const vs = rentVsComps(inputs, stats);
+  const vs = rentVsComps(inputsToday(inputs, todayISO), stats); // 1.1.25: in-place rent on today's leases
   const lDocs = leasingDocs(allDocs);
   const ctxFor = (dealId, target) => (workspaceId ? { canEdit, upload: async (type, file) => { await uploadLeasingDoc(workspaceId, { dealId, target, type, file }, email); await reload(); } } : null);
   async function exportPdf() {

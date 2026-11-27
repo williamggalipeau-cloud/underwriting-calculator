@@ -1,4 +1,4 @@
-// 1.1.6: Deal Screener → the Pipeline Deal dropdown (lib/screenerPicker.js):
+// 1.1.6: Underwriter → the Pipeline Deal dropdown (lib/screenerPicker.js):
 // every Pipeline deal, grouped Active / History; what picking each shows;
 // the blank-tenant sample leases Load Model Fund I replaces (lib/sampleDocs.js).
 const R = require("path").resolve(__dirname, "..", "..");

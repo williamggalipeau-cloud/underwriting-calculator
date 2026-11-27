@@ -1,4 +1,4 @@
-// 1.1.6 (user, 11/25): the Acquisitions flow. The Deal Screener's Pipeline
+// 1.1.6 (user, 11/25): the Acquisitions flow. The Underwriter's Pipeline
 // Deal dropdown reads the Pipeline (Active / History); picking a deal not yet
 // screened builds its model from the Pipeline figures; the screened deal
 // pre-loads Portfolio Impact (in its target fund) and opens Comps; passed
@@ -57,7 +57,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const picked = () => p.locator("#pipeline-deal-picker option:checked").innerText();
 
   // ── The dropdown reads the Pipeline ──
-  await FX.openTab(p, /^Deal Screener/);
+  await FX.openTab(p, /^Underwriter/);
   await p.waitForTimeout(800);
   const groups = await p.locator("#pipeline-deal-picker optgroup").evaluateAll((gs) => gs.map((g) => `${g.label}: ${[...g.querySelectorAll("option")].map((o) => o.textContent).join(" | ")}`));
   check(groups[0] === "Active: Fictional Canyon Flex · LOI · not screened yet | Fictional Harbor Small Bay · Screening · not screened yet", `Active, by stage: ${groups[0]}`);
@@ -81,14 +81,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await fi.count()) === 1 && (await fi.getByLabel("Candidate Fictional Canyon Flex").isChecked()) && (await fi.getByLabel("Fund").inputValue()) === FUND, "Portfolio Impact opens with it as the candidate, in Model Fund I");
 
   // ── Comps opens on the same deal ──
-  await FX.openTab(p, /^Deal Screener/);
+  await FX.openTab(p, /^Underwriter/);
   await p.waitForTimeout(800);
   await main.getByTestId("screener-next").getByRole("button", { name: "Comps →" }).click();
   await p.waitForTimeout(1200);
   check((await p.locator("#asset-picker option:checked").innerText()) === "Fictional Canyon Flex", "Comps opens on the Screener's deal");
 
   // ── Passed / lost: read-only ──
-  await FX.openTab(p, /^Deal Screener/);
+  await FX.openTab(p, /^Underwriter/);
   await p.waitForTimeout(800);
   await p.locator("#pipeline-deal-picker").selectOption({ label: "Fictional Ridge Flex · Passed / lost 9/30/2026 · read-only" });
   await p.waitForTimeout(1000);
@@ -122,7 +122,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await sm.getByRole("menuitem", { name: /Load Model Fund I/ }).click();
   await p.waitForTimeout(6000);
   check(alerts.some((a) => /tenant-named sample leases/.test(a)), "Load Model Fund I says unnamed sample leases are replaced");
-  await FX.openTab(p, /^Deal Screener/);
+  await FX.openTab(p, /^Underwriter/);
   await p.waitForTimeout(1000);
   const active = await p.locator("#pipeline-deal-picker optgroup[label='Active'] option").allInnerTexts();
   const samples = active.filter((t) => /^Example /.test(t));

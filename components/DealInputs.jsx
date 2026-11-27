@@ -744,8 +744,8 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
     <div className="space-y-7">
       {linked && (
         <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-          Linked to <span className="font-semibold">Deal Screener</span>. Edit price, NOI, loan, caps, fees and
-          exit there; changing those fields here is overwritten by the next Deal Screener edit.
+          Linked to <span className="font-semibold">Underwriter</span>. Edit price, NOI, loan, caps, fees and
+          exit there; changing those fields here is overwritten by the next Underwriter edit.
         </p>
       )}
       {/* Property */}
@@ -817,14 +817,14 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
               type="date"
               value={inputs.acquisitionDate ?? ""}
               disabled={linked}
-              title={linked ? "Set in Deal Screener (this deal is linked)" : ""}
+              title={linked ? "Set in Underwriter (this deal is linked)" : ""}
               onChange={(e) => set("acquisitionDate", e.target.value)}
               className={`rounded-lg border px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500 ${
                 !inputs.acquisitionDate && inputs.fundName?.trim() ? "border-amber-300 bg-amber-50" : "border-gray-200 bg-white"
               }`}
             />
             {linked ? (
-              <p className="text-[11px] text-gray-500">Set in Deal Screener.</p>
+              <p className="text-[11px] text-gray-500">Set in Underwriter.</p>
             ) : !inputs.acquisitionDate && inputs.fundName?.trim() ? (
               <p className="text-[11px] text-amber-700">Needed for fund returns. Until it&apos;s set, the fund assumes the asset was bought at its final close.</p>
             ) : null}

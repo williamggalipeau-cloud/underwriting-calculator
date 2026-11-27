@@ -1,6 +1,6 @@
 "use client";
 
-// Deal Screener's Pipeline Deal dropdown (user, 11/25, 1.1.6): every Pipeline
+// Underwriter's Pipeline Deal dropdown (user, 11/25, 1.1.6): every Pipeline
 // deal, grouped Active / History (lib/screenerPicker.js).
 export default function PipelineDealPicker({ groups, value = "", onPick, onEdit = null, label = "" }) {
   const { active = [], history = [], other = [] } = groups ?? {};

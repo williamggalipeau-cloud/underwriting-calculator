@@ -29,8 +29,8 @@ const docs = [
 const rows = A.acquisitionDocs(docs, deals, [], "2026-11-24");
 ok(rows.map((r) => r.id).sort().join() === "1,2,3,7", `shown: ${rows.map((r) => r.id).join(", ")} (not sale, CAM or unknown deals)`);
 const esa = rows.find((r) => r.id === "2");
-ok(esa.type === "phase1_esa" && esa.name === "ESA.pdf" && esa.groupLabel === "Under LOI or contract" && esa.status === "Deal Screener", "an [acq] document filed as Other reads as its real type");
-ok(rows.find((r) => r.id === "3").readOnly && rows.find((r) => r.id === "1").status === "Deal Screener" && rows.find((r) => r.id === "3").status === "Owned", "read-only loan; deal status");
+ok(esa.type === "phase1_esa" && esa.name === "ESA.pdf" && esa.groupLabel === "Under LOI or contract" && esa.status === "Underwriter", "an [acq] document filed as Other reads as its real type");
+ok(rows.find((r) => r.id === "3").readOnly && rows.find((r) => r.id === "1").status === "Underwriter" && rows.find((r) => r.id === "3").status === "Owned", "read-only loan; deal status");
 const pl = A.acquisitionDocs([{ id: "9", deal_id: null, doc_type: "om", title: "Pipeline OM.pdf", files: [] }], deals, [{ name: "Example Pipeline Deal", omDocId: "9", targetFund: "Fund A" }]);
 ok(pl.length === 1 && pl[0].deal === "Example Pipeline Deal" && pl[0].status === "Pipeline", "a pipeline deal's OM");
 

@@ -307,7 +307,7 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Deal Screener</h2>
+        <h2 className="text-base font-semibold text-gray-900">Underwriter</h2>
         <p className="text-xs text-gray-500 mt-0.5">
           NOI-driven model: forward 12-month NOI, annual growth, floating-rate loan with rate caps, sale at
           final-year NOI ÷ exit cap. Independent of the rent-roll inputs on the left.
