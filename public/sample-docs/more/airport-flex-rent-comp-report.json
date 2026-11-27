@@ -1,0 +1,52 @@
+{
+ "doc_type": "leasing_comps",
+ "title": "Airport Flex Park rent comp report",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · 6 comparable leases",
+ "fields": [
+  {
+   "key": "count",
+   "value": 6,
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "This report covers 6 comparable leases near Airport Flex Park.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "average_psf",
+   "value": 41.14868312757201,
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The average rent is $41.15 per square foot per year and the median is $42.45.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "range",
+   "value": "$37.02 to $42.97",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "Rents range from $37.02 to $42.97 per square foot per year.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-rent-comp-report.pdf"
+  ]
+ }
+}

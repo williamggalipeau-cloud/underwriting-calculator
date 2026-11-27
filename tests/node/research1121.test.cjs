@@ -13,8 +13,8 @@ let pass = 0, fail = 0;
 const check = (ok, msg) => { if (ok) pass++; else { fail++; console.log("FAIL", msg); } };
 const f = buildSampleFund({ todayISO: "2026-11-27" });
 const all = RS.allResearch(f.deals), sum = RS.researchSummary(all);
-check(all.length === 18 && sum.byType.market === 9 && sum.byType.rent_survey === 9, "every sample asset has a market report and a rent survey (18 items)");
-check(["marketRent", "rentGrowth", "vacancy", "exitCap"].every((k) => sum.covered.includes(k)) && sum.files === 3, `market rent, rent growth, vacancy and exit cap have support; three items have a file (${sum.covered}; ${sum.files})`);
+check(all.length === 24 && sum.byType.market === 9 && sum.byType.rent_survey === 9, `every sample asset has a market report and a rent survey; six more items came with 1.1.23 (${all.length} items)`);
+check(["marketRent", "rentGrowth", "vacancy", "exitCap"].every((k) => sum.covered.includes(k)) && sum.files === 9, `market rent, rent growth, vacancy and exit cap have support; nine items have a file (${sum.covered}; ${sum.files})`);
 const types = RS.RESEARCH_TYPES.map(([k]) => k), assumptions = RS.RESEARCH_ASSUMPTIONS.map(([k]) => k), blank = Object.keys(RS.makeResearch());
 check(all.every(({ r }) => types.includes(r.type) && r.assumptions.every((k) => assumptions.includes(k)) && blank.every((k) => k in r) && Object.keys(r).every((k) => blank.includes(k)) && /^\d{4}-\d{2}-\d{2}$/.test(r.date)), "each item has exactly the fields the tab saves, a known type and known assumptions");
 for (const d of f.deals) {
@@ -42,13 +42,13 @@ for (const d of f.deals) {
     check(item && item.fileName === x.file && abs.title === item.title && abs.quarter === stat.quarter && abs.vacancy_pct === stat.vacancyPct && abs.small_bay_rent_psf === stat.askingRentSmallBayPSF && abs.cap_rate_pct === stat.capRatePct && abs.small_bay_rent_growth_pct === growthPct && abs.inventory_sf === stat.inventorySF, `${x.name}: its figures are the submarket's, and its research item names the file`);
   }
   const manifest = require(R + "/public/sample-docs/manifest.json");
-  const add = SD.sampleDocPlan(manifest, { deals: f.deals, docs: [], leases: [] }).add.filter((x) => x.kind === "research");
+  const add = SD.sampleDocPlan(manifest, { deals: f.deals, docs: [], leases: [] }).add.filter((x) => x.kind === "research" && x.file.startsWith("research/")); // the three market reports (1.1.23 added more, tested in docs1123)
   check(add.length === 3 && add.every((x) => { const t = RS.parseResearchTitle(x.docTitle); return t && RS.researchOf(f.deals.find((d) => d.id === x.dealId).inputs).some((r) => r.id === t.researchId && r.fileName === t.name) && fs.existsSync(`${R}/public/sample-docs/${x.file}`); }), "the load files each PDF under its research item's id, so the item finds its file");
   const noItems = f.deals.map((d) => ({ ...d, inputs: { ...d.inputs, research: [] } }));
   const pl = SD.sampleDocPlan(manifest, { deals: noItems, docs: [], leases: [] });
-  check(pl.add.filter((x) => x.kind === "research").length === 0 && pl.skip.filter((x) => x.kind === "research" && /no research item/.test(x.reason)).length === 3, "an asset with no research item gets no market report");
+  check(pl.add.filter((x) => x.kind === "research").length === 0 && pl.skip.filter((x) => x.kind === "research" && x.file.startsWith("research/") && /no research item/.test(x.reason)).length === 3, "an asset with no research item gets no market report");
   const stored = add.map((x, i) => ({ id: `d${i}`, deal_id: x.dealId, title: x.docTitle, files: [{ name: x.file.split("/").pop() }] }));
-  check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "research").length === 0, "run again, nothing is uploaded twice");
+  check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "research" && x.file.startsWith("research/")).length === 0, "run again, nothing is uploaded twice");
 }
 console.log(`${pass} passed${fail ? `, ${fail} failed` : ""}`);
 process.exit(fail ? 1 : 0);

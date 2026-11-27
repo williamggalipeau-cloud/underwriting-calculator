@@ -1,0 +1,76 @@
+{
+ "doc_type": "pm_claims",
+ "title": "Harbor Light Industrial insurance claim closing letter",
+ "asset": "Harbor Light Industrial",
+ "summary": "Harbor Light Industrial · Fictional Mutual Insurance Company",
+ "fields": [
+  {
+   "key": "policy",
+   "value": "PR-55140",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "This letter closes the claim under policy PR-55140 for the loss of June 29, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cause",
+   "value": "Wind damage to a roll-up door",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Cause of loss: Wind damage to a roll-up door.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "amount",
+   "value": 38500,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The adjusted loss is $38,500.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "recovery",
+   "value": 13500,
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "After the $25,000 deductible, the insurer has paid $13,500.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "status",
+   "value": "Closed",
+   "status": "found",
+   "clause": "2.3",
+   "evidence": [
+    {
+     "quote": "The claim is closed.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "harbor-light-claim-closing.pdf"
+  ]
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "doc_type": "acquisition_loan_term_sheet",
+ "title": "Airport Flex Park loan term sheet",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Desert Mountain Bank",
+ "fields": [
+  {
+   "key": "lender",
+   "value": "Desert Mountain Bank",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Desert Mountain Bank proposes a first mortgage loan to Model Fund I — Runway Vista LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "amount",
+   "value": 4980000,
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Loan amount: $4,980,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "spread",
+   "value": "2%",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "Interest: one-month Term SOFR plus 2%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "term_years",
+   "value": 3,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Initial term: 3 years, with 2 extension options of 1 year each.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "dscr_min",
+   "value": 1.25,
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Minimum debt service coverage ratio: 1.25x.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-loan-term-sheet.pdf"
+  ]
+ }
+}

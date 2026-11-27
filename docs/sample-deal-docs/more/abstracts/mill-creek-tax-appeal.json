@@ -1,0 +1,76 @@
+{
+ "doc_type": "pm_appeals",
+ "title": "Mill Creek Business Park 2027 tax appeal",
+ "asset": "Mill Creek Business Park",
+ "summary": "Mill Creek Business Park · Tax year 2027",
+ "fields": [
+  {
+   "key": "parcel",
+   "value": "106-026-006",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Model Fund I — Mill Creek LLC appeals the assessed value of parcel 106-026-006 for tax year 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "filed_date",
+   "value": "2026-09-28",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The appeal was filed on September 28, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "hearing_date",
+   "value": "2027-01-20",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "The hearing is set for January 20, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "consultant",
+   "value": "Fictional Property Tax Advisors",
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "The owner is represented by Fictional Property Tax Advisors.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "assessed_value",
+   "value": 14800000,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The assessed value under appeal is $14,800,000.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "mill-creek-tax-appeal.pdf"
+  ]
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "doc_type": "acquisition_deed_title",
+ "title": "Airport Flex Park deed and title policy",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Recorded at closing",
+ "fields": [
+  {
+   "key": "grantor",
+   "value": "Sample Seller Holdings LLC",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "By special warranty deed dated January 30, 2026, Sample Seller Holdings LLC conveyed Airport Flex Park, 6230 Runway Vista Drive, Las Vegas, NV 89119, to Model Fund I — Runway Vista LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "grantee",
+   "value": "Model Fund I — Runway Vista LLC",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The grantee is Model Fund I — Runway Vista LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "policy_amount",
+   "value": 7200000,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The owner's policy of title insurance is in the amount of $7,200,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "policy_date",
+   "value": "2026-01-30",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "The policy is dated January 30, 2026.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-deed-title.pdf"
+  ]
+ }
+}

@@ -1,0 +1,173 @@
+{
+ "doc_type": "estoppel",
+ "title": "Copper Canyon Tile & Stone estoppel (sale)",
+ "asset": "Harbor Light Industrial",
+ "summary": "Harbor Light Industrial · Delivered for the sale",
+ "fields": [
+  {
+   "key": "tenant",
+   "value": "Copper Canyon Tile & Stone",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "The undersigned, Copper Canyon Tile & Stone (Tenant), certifies to Model Fund I — Pier Junction LLC and any buyer of the property as of November 16, 2026 as follows.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "estoppel_date",
+   "value": "November 16, 2026",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "The undersigned, Copper Canyon Tile & Stone (Tenant), certifies to Model Fund I — Pier Junction LLC and any buyer of the property as of November 16, 2026 as follows.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "amendments",
+   "value": "First Amendment to Lease (Notices and Certificates)",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "The Lease is dated March 31, 2022 and has been amended once, by the First Amendment to Lease (Notices and Certificates).",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "premises",
+   "value": "Unit 005",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Tenant leases Unit 005 at Harbor Light Industrial containing 2,250 rentable square feet.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "lease_date",
+   "value": "March 31, 2022",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "The Lease is dated March 31, 2022 and has been amended once, by the First Amendment to Lease (Notices and Certificates).",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "commencement_date",
+   "value": "May 31, 2022",
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "The term commenced on May 31, 2022.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "expiration_date",
+   "value": "May 30, 2027",
+   "status": "found",
+   "clause": "1.5",
+   "evidence": [
+    {
+     "quote": "The term expires on May 30, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "monthly_rent",
+   "value": "$3,628.12",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Current monthly base rent is $3,628.12.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_paid_through",
+   "value": "November 30, 2026",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Rent has been paid through November 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "security_deposit",
+   "value": "$7,043.00",
+   "status": "found",
+   "clause": "2.3",
+   "evidence": [
+    {
+     "quote": "Tenant has deposited a security deposit of $7,043.00 with Landlord.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "prepaid_rent",
+   "value": "$0",
+   "status": "found",
+   "clause": "2.4",
+   "evidence": [
+    {
+     "quote": "No rent has been paid more than one month in advance; prepaid rent is $0.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant_defaults",
+   "value": "None",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "Tenant is not in default under the Lease. There are no tenant defaults.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "landlord_defaults",
+   "value": "None",
+   "status": "found",
+   "clause": "3.2",
+   "evidence": [
+    {
+     "quote": "Landlord is not in default under the Lease, and Tenant has no claim, credit or offset against rent.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "harbor-light-sale-estoppel.pdf"
+  ],
+  "lease_tenant": "Copper Canyon Tile & Stone"
+ }
+}

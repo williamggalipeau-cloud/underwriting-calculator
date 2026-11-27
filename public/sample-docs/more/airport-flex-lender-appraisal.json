@@ -1,0 +1,52 @@
+{
+ "doc_type": "acquisition_lender_appraisal",
+ "title": "Airport Flex Park lender appraisal",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Prepared for Desert Mountain Bank",
+ "fields": [
+  {
+   "key": "as_is_value",
+   "value": 7200000,
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "The as-is market value of Airport Flex Park as of December 31, 2025 is $7,200,000, equal to the contract price.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "client",
+   "value": "Desert Mountain Bank",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "This appraisal was prepared for Desert Mountain Bank for loan underwriting.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "loan_to_value",
+   "value": "69.2%",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "A loan of $4,980,000 is 69.2% of that value.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-lender-appraisal.pdf"
+  ]
+ }
+}

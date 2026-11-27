@@ -340,6 +340,74 @@
      "summary": "The leases are the asset's rent comps in Active Leasing. Sample (fictional).",
      "addedBy": "Sample (fictional)",
      "addedAt": "2026-01-30T12:00:00.000Z"
+    },
+    {
+     "id": "srs-1-environmental",
+     "url": "",
+     "docId": null,
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2025-12-05T12:00:00.000Z",
+     "type": "environmental",
+     "title": "Airport Flex Park Phase I environmental site assessment",
+     "provider": "Fictional Environmental Consultants",
+     "date": "2025-12-05",
+     "fileName": "airport-flex-phase1.pdf",
+     "assumptions": [
+      "other"
+     ],
+     "keyFigures": "Phase I: Clean; Phase II: Not needed",
+     "summary": "The result is the asset's environmental fact on Asset Summary. Sample (fictional)."
+    },
+    {
+     "id": "srs-1-pca",
+     "url": "",
+     "docId": null,
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2025-12-26T12:00:00.000Z",
+     "type": "pca",
+     "title": "Airport Flex Park property condition report",
+     "provider": "Sample Building Consultants",
+     "date": "2025-12-26",
+     "fileName": "airport-flex-pcr.pdf",
+     "assumptions": [
+      "capex"
+     ],
+     "keyFigures": "3 findings; open cost $46,800",
+     "summary": "The findings are the asset's Property Condition rows. Sample (fictional)."
+    },
+    {
+     "id": "srs-1-credit",
+     "url": "",
+     "docId": null,
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2026-10-02T12:00:00.000Z",
+     "type": "credit",
+     "title": "Blue Mesa Fulfillment credit screening report",
+     "provider": "Keystone Tenant Screening (fictional)",
+     "date": "2026-10-02",
+     "fileName": "screening-blue-mesa-fulfillment.pdf",
+     "assumptions": [
+      "credit"
+     ],
+     "keyFigures": "Score 612; result: conditions; Personal guaranty; 2 months' deposit",
+     "summary": "The report is the tenant's record on Tenant Credit. Sample (fictional)."
+    },
+    {
+     "id": "srs-1-zoning",
+     "url": "",
+     "docId": null,
+     "addedBy": "Sample (fictional)",
+     "addedAt": "2025-12-05T12:00:00.000Z",
+     "type": "zoning",
+     "title": "Airport Flex Park zoning report",
+     "provider": "Fictional Zoning Advisors",
+     "date": "2025-12-05",
+     "fileName": "airport-flex-zoning-report.pdf",
+     "assumptions": [
+      "other"
+     ],
+     "keyFigures": "Zoning M-1 Light Industrial; industrial use by right: yes",
+     "summary": "The zoning is the asset's site fact on Asset Summary. Sample (fictional)."
     }
    ],
    "marketReport": {

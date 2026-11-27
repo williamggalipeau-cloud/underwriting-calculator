@@ -16,7 +16,7 @@ const { buildSampleFund } = j(R + "/lib/sampleFund.js");
 const { samplePipelineDeals } = j(R + "/lib/samplePipeline.js");
 const { SAMPLE_FUND_FEE_TERMS } = j(R + "/lib/samplePortfolio.js");
 const { DOC_TYPES } = j(R + "/lib/dealDocTypes.js");
-const { ACQ_TYPES } = j(R + "/lib/acquisitionDocs.js");
+const { ACQ_TYPES, FILED_ELSEWHERE_TYPES } = j(R + "/lib/acquisitionDocs.js");
 const { DISP_DOC_TYPES } = j(R + "/lib/dispositionDocs.js");
 const { LEASING_DOC_TYPES } = j(R + "/lib/leasingDocs.js");
 const { FACT_DOC_TYPES } = j(R + "/lib/assetFacts.js");
@@ -108,11 +108,13 @@ for (const [tab, name, has] of DATA) {
 for (const key of Object.keys(PENDING_DATA)) check(DATA.some(([tab, name]) => `${tab} / ${name}` === key), `PENDING_DATA "${key}" matches no data set`);
 
 // ── Document types: a sample document of each ──
+// A property condition report, Phase I report, survey and SNDA filed on another tab count on the acquisition checklist too (lib/acquisitionDocs.js).
+const FACT_ACQ = { pcr: "pca", phase1: "phase1_esa", survey: "title_survey", snda: "snda" };
 const have = {
   library: new Set([...manifest.deals.map((d) => d.docType), ...manifest.dispositions.map((d) => d.docType).filter((t) => DOC_TYPES.some((x) => x.id === t))]),
-  acquisition: new Set(manifest.deals.map((d) => d.docType)),
+  acquisition: new Set([...manifest.deals.map((d) => d.docType), ...(manifest.acquisition ?? []).map((d) => d.type), ...manifest.assetFacts.map((d) => FACT_ACQ[d.kind]).filter((k) => FILED_ELSEWHERE_TYPES.includes(k))]),
   disposition: new Set(manifest.dispositions.map((d) => d.docType)),
-  leasing: new Set(manifest.credit.map((c) => c.type)),
+  leasing: new Set([...manifest.credit.map((c) => c.type), ...(manifest.leasing ?? []).map((d) => d.type)]),
   fact: new Set(manifest.assetFacts.map((d) => d.kind)),
   research: new Set(manifest.research.map((d) => ({ market_report: "market" }[d.kind] ?? d.kind))),
   "property management": new Set(manifest.propertyMgmt.map((d) => d.section)),
@@ -126,17 +128,16 @@ const LISTS = {
   research: RESEARCH_TYPES.map(([k]) => k).filter((k) => k !== "other"),
   "property management": PM.PM_TAB_IDS.flatMap((tab) => PM.PM_TABS[tab].sections.map((s) => s.key)),
 };
-// Still missing, with the patch that adds it. 1.1.23 is the sample documents patch
-// (several of these are a document the fund already has under another list:
-// the property condition report, Phase I, survey, SNDA, appraisal and BOV).
+// Still missing, with the patch that adds it.
 const PENDING_DOCS = {
-  "library": { billing: "1.1.23", closing_disp: "1.1.24 (the sold asset)", jva: "1.1.24 (the sample joint venture)", sma: "1.1.24 (the sample separate account)" },
-  "acquisition": { current_leases: "1.1.23", listing_agreement: "1.1.23", broker_model: "1.1.23", site_plan: "1.1.23", title_survey: "1.1.23", phase1_esa: "1.1.23", pca: "1.1.23", zoning: "1.1.23", lender_appraisal: "1.1.23", snda: "1.1.23", ic_presentation: "1.1.23", loan_term_sheet: "1.1.23", deed_title: "1.1.23" },
-  "disposition": { listing_agreement: "1.1.23", marketing: "1.1.23", estoppel: "1.1.23", closing_disp: "1.1.24 (the sold asset)", post_closing: "1.1.24 (the sold asset)", distribution_notice: "1.1.24 (the sold asset)" },
-  "leasing": { proposal: "1.1.23", loi: "1.1.23", lease_draft: "1.1.23", approval_memo: "1.1.23", broker_report: "1.1.23", comps: "1.1.23" },
-  "fact": { phase2: "1.1.23" },
-  "research": { appraisal: "1.1.23", bov: "1.1.23", rent_survey: "1.1.23", environmental: "1.1.23", pca: "1.1.23", credit: "1.1.23", zoning: "1.1.23" },
-  "property management": { parcels: "1.1.23", appeals: "1.1.23", claims: "1.1.23", items: "1.1.23" },
+  "library": { closing_disp: "1.1.24 (the sold asset)", jva: "1.1.24 (the sample joint venture)", sma: "1.1.24 (the sample separate account)" },
+  "acquisition": {},
+  "disposition": { closing_disp: "1.1.24 (the sold asset)", post_closing: "1.1.24 (the sold asset)", distribution_notice: "1.1.24 (the sold asset)" },
+  "leasing": {},
+  // No Model Fund I asset needed a Phase II (every Phase I is clean); one of the 1.1.24 assets will.
+  "fact": { phase2: "1.1.24" },
+  "research": {},
+  "property management": {},
 };
 for (const [list, ids] of Object.entries(LISTS)) {
   for (const id of ids) {

@@ -1,0 +1,263 @@
+[
+ {
+  "name": "airport-flex-billing-2026-12",
+  "list": "library",
+  "type": "billing",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-billing-2026-12.pdf",
+  "title": "Airport Flex Park billing Nov–Dec 2026",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-current-leases",
+  "list": "acquisition",
+  "type": "current_leases",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-current-leases.pdf",
+  "title": "Airport Flex Park schedule of leases",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-broker-listing",
+  "list": "acquisition",
+  "type": "listing_agreement",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-broker-listing.pdf",
+  "title": "Airport Flex Park seller's listing summary",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-broker-model",
+  "list": "acquisition",
+  "type": "broker_model",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-broker-model.pdf",
+  "title": "Airport Flex Park broker underwriting",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-site-plan",
+  "list": "acquisition",
+  "type": "site_plan",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-site-plan.pdf",
+  "title": "Airport Flex Park site and floor plans",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-zoning-report",
+  "list": "acquisition",
+  "type": "zoning",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-zoning-report.pdf",
+  "title": "Airport Flex Park zoning report",
+  "link": {
+   "researchId": "srs-1-zoning"
+  }
+ },
+ {
+  "name": "airport-flex-lender-appraisal",
+  "list": "acquisition",
+  "type": "lender_appraisal",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-lender-appraisal.pdf",
+  "title": "Airport Flex Park lender appraisal",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-ic-presentation",
+  "list": "acquisition",
+  "type": "ic_presentation",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-ic-presentation.pdf",
+  "title": "Airport Flex Park IC presentation",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-loan-term-sheet",
+  "list": "acquisition",
+  "type": "loan_term_sheet",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-loan-term-sheet.pdf",
+  "title": "Airport Flex Park loan term sheet",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-deed-title",
+  "list": "acquisition",
+  "type": "deed_title",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-deed-title.pdf",
+  "title": "Airport Flex Park deed and title policy",
+  "link": {}
+ },
+ {
+  "name": "harbor-light-listing-agreement",
+  "list": "disposition",
+  "type": "listing_agreement",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-listing-agreement.pdf",
+  "title": "Harbor Light Industrial listing agreement",
+  "link": {}
+ },
+ {
+  "name": "harbor-light-offering-memo",
+  "list": "disposition",
+  "type": "marketing",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-offering-memo.pdf",
+  "title": "Harbor Light Industrial offering memorandum",
+  "link": {}
+ },
+ {
+  "name": "harbor-light-sale-estoppel",
+  "list": "disposition",
+  "type": "estoppel",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-sale-estoppel.pdf",
+  "title": "Copper Canyon Tile & Stone estoppel (sale)",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-leasing-proposal",
+  "list": "leasing",
+  "type": "proposal",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-leasing-proposal.pdf",
+  "title": "Example Bike Works LLC lease proposal",
+  "link": {
+   "prospectId": "sample-dlp-airport-flex-park-1"
+  }
+ },
+ {
+  "name": "airport-flex-leasing-loi",
+  "list": "leasing",
+  "type": "loi",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-leasing-loi.pdf",
+  "title": "Example Bike Works LLC letter of intent",
+  "link": {
+   "prospectId": "sample-dlp-airport-flex-park-1"
+  }
+ },
+ {
+  "name": "airport-flex-lease-draft",
+  "list": "leasing",
+  "type": "lease_draft",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-lease-draft.pdf",
+  "title": "Example Bike Works LLC lease draft",
+  "link": {
+   "prospectId": "sample-dlp-airport-flex-park-1"
+  }
+ },
+ {
+  "name": "airport-flex-lease-approval-memo",
+  "list": "leasing",
+  "type": "approval_memo",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-lease-approval-memo.pdf",
+  "title": "Example Bike Works LLC lease approval memo",
+  "link": {
+   "prospectId": "sample-dlp-airport-flex-park-1"
+  }
+ },
+ {
+  "name": "airport-flex-leasing-broker-report",
+  "list": "leasing",
+  "type": "broker_report",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-leasing-broker-report.pdf",
+  "title": "Example Bike Works LLC broker report",
+  "link": {
+   "prospectId": "sample-dlp-airport-flex-park-1"
+  }
+ },
+ {
+  "name": "airport-flex-rent-comp-report",
+  "list": "leasing",
+  "type": "comps",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-rent-comp-report.pdf",
+  "title": "Airport Flex Park rent comp report",
+  "link": {
+   "target": "comps",
+   "researchId": "srs-1-rent",
+   "compIds": [
+    "sample-rc-airport-flex-park-1",
+    "sample-rc-airport-flex-park-2",
+    "sample-rc-airport-flex-park-3",
+    "sample-rc-airport-flex-park-4",
+    "sample-rc-airport-flex-park-5",
+    "sample-rc-airport-flex-park-6"
+   ],
+   "compRents": [
+    42.97,
+    42.91,
+    42.59,
+    42.3,
+    37.02,
+    37.54
+   ]
+  }
+ },
+ {
+  "name": "airport-flex-assessment-notice",
+  "list": "pm",
+  "type": "parcels",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-assessment-notice.pdf",
+  "title": "Airport Flex Park 2026 assessment notice",
+  "link": {}
+ },
+ {
+  "name": "airport-flex-roof-repair-proposal",
+  "list": "pm",
+  "type": "items",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "file": "airport-flex-roof-repair-proposal.pdf",
+  "title": "Airport Flex Park roof repair proposal",
+  "link": {}
+ },
+ {
+  "name": "mill-creek-tax-appeal",
+  "list": "pm",
+  "type": "appeals",
+  "asset": "Mill Creek Business Park",
+  "dealId": "sample-deal-6",
+  "file": "mill-creek-tax-appeal.pdf",
+  "title": "Mill Creek Business Park 2027 tax appeal",
+  "link": {}
+ },
+ {
+  "name": "harbor-light-claim-closing",
+  "list": "pm",
+  "type": "claims",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "file": "harbor-light-claim-closing.pdf",
+  "title": "Harbor Light Industrial insurance claim closing letter",
+  "link": {}
+ }
+]

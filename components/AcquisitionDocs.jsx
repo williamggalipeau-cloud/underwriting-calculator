@@ -11,7 +11,7 @@ import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
 
 const sel = "rounded border border-gray-200 px-1.5 py-1 text-xs";
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "");
-const READ_ONLY_WHERE = { loan: "Debt", rate_cap: "Debt", insurance_cert: "Insurance" };
+const READ_ONLY_WHERE = { loan: "Debt", rate_cap: "Debt", insurance_cert: "Insurance", pca: "Asset Summary", phase1_esa: "Asset Summary", title_survey: "Asset Summary", snda: "Debt" }; // 1.1.23: the last four when filed there
 
 export default function AcquisitionDocs({ workspaceId = null, email = null, deals = [], pipeline = [], canEdit = false, scopeName = "", onOpenLibrary }) {
   const [docs, setDocs] = useState(null);

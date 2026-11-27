@@ -1,0 +1,64 @@
+{
+ "doc_type": "acquisition_ic_presentation",
+ "title": "Airport Flex Park IC presentation",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Summary slides",
+ "fields": [
+  {
+   "key": "price",
+   "value": 7200000,
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Purchase price $7,200,000; total cost $7,788,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "loan",
+   "value": 4980000,
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Loan $4,980,000; equity $2,835,858.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "noi1",
+   "value": 462412,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Year-one net operating income $462,412.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "irr",
+   "value": "31.0%",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Projected return 31.0% and 2.91x over a 4-year hold, at an exit capitalization rate of 6.75%.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-ic-presentation.pdf"
+  ]
+ }
+}

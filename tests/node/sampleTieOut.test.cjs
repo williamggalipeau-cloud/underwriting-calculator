@@ -99,7 +99,9 @@ for (const n of names) {
 ok((termsWithDocs.limits ?? []).length === docOf("model-fund-i-lpa").abstract.limits.length, `Model Fund I holds the LPA's ${termsWithDocs.limits?.length} investment limits`);
 
 // 4. The copies the app uploads are these documents.
-const man = JSON.parse(fs.readFileSync(R + "/public/sample-docs/manifest.json", "utf8"));
+const man0 = JSON.parse(fs.readFileSync(R + "/public/sample-docs/manifest.json", "utf8"));
+// The documents of the deals/ and dispositions/ sets (1.1.23 added documents from docs/sample-deal-docs/more to the same lists; they are checked in docs1123).
+const man = { ...man0, deals: man0.deals.filter((d) => d.file.startsWith("deals/")), dispositions: man0.dispositions.filter((d) => d.file.startsWith("dispositions/")) };
 ok(man.deals.length === names.length && man.deals.every((d) => fs.readFileSync(`${R}/public/sample-docs/${d.file}`).equals(fs.readFileSync(`${dir}/${d.name}.pdf`)) && fs.readFileSync(`${R}/public/sample-docs/${d.abstract}`).equals(fs.readFileSync(`${dir}/abstracts/${d.name}.json`))), `the ${man.deals.length} bundled PDFs and abstracts are the generated ones (copy_public.cjs)`);
 
 // 5. GP partner agreements: the fund's GP parties are the agreements' terms.
@@ -260,8 +262,10 @@ for (const l of leaseIndex) {
 {
   const T = j(R + "/lib/sampleDocTerms.js"), SD = j(R + "/lib/sampleDocs.js"), CH = require(R + "/lib/sampleDocChanges.json");
   // A fund saved before 1.1.13 (no document terms) comes out as the fund the app builds.
-  const upgraded = bare.deals.map((d) => ({ ...d, inputs: T.withSampleSaleComps(T.withSampleSale(T.applySampleDocTerms(d.inputs, d.id, { keepExisting: true }), d.id)) }));
-  const strip = (inp) => JSON.stringify({ ...inp, propertyManager: undefined, propertyManagementFirm: undefined }).replace(/mtm-[a-z0-9]+-/g, "mtm-"); // unit ids are made afresh on every build
+  const RX = j(R + "/lib/sampleResearch.js");
+  const upgraded = bare.deals.map((d) => ({ ...d, inputs: RX.withSampleResearchExtra(T.withSampleSaleComps(T.withSampleSale(T.applySampleDocTerms(d.inputs, d.id, { keepExisting: true }), d.id)), d.id, { valuations: fund.valuations }) }));
+  const byId = (xs) => [...(xs ?? [])].sort((a, b) => (a.id < b.id ? -1 : 1)); // the order research items were added in does not matter
+  const strip = (inp) => JSON.stringify({ ...inp, research: byId(inp.research), propertyManager: undefined, propertyManagementFirm: undefined }).replace(/mtm-[a-z0-9]+-/g, "mtm-"); // unit ids are made afresh on every build
   ok(upgraded.every((d, i) => strip(d.inputs) === strip(fund.deals[i].inputs)), "a fund saved before 1.1.13 gets exactly the document terms, lease terms and sales the app's own fund holds");
   // What the user entered is kept.
   const d3 = bare.deals.find((d) => d.inputs.propertyName === "Harbor Light Industrial");

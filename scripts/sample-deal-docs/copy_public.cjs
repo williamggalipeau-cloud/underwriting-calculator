@@ -81,6 +81,37 @@ for (const d of JSON.parse(fs.readFileSync(path.join(rsDir, "index.json"), "utf8
   copy(path.join(rsDir, "abstracts", `${d.name}.json`), path.join(OUT, "research", `${d.name}.json`));
   manifest.research.push({ name: d.name, kind: d.kind, researchId: d.researchId, asset: d.asset, file: `research/${d.file}`, abstract: `research/${d.name}.json`, title: d.title });
 }
+// 1.1.23: a sample document for each document type that had none
+// (scripts/sample-deal-docs/more_docs.cjs), each into the list it belongs to.
+const moreDir = path.join(R, "docs", "sample-deal-docs", "more");
+manifest.acquisition = [];
+manifest.leasing = [];
+for (const d of JSON.parse(fs.readFileSync(path.join(moreDir, "index.json"), "utf8"))) {
+  copy(path.join(moreDir, d.file), path.join(OUT, "more", d.file));
+  copy(path.join(moreDir, "abstracts", `${d.name}.json`), path.join(OUT, "more", `${d.name}.json`));
+  const abstract = JSON.parse(fs.readFileSync(path.join(moreDir, "abstracts", `${d.name}.json`), "utf8"));
+  const base = { name: d.name, asset: d.asset, file: `more/${d.file}`, abstract: `more/${d.name}.json`, title: d.title };
+  if (d.list === "library") manifest.deals.push({ ...base, docType: d.type, fund: null, leaseTenant: abstract.app?.lease_tenant ?? null });
+  else if (d.list === "disposition") manifest.dispositions.push({ ...base, docType: d.type, fund: null, leaseTenant: abstract.app?.lease_tenant ?? null });
+  else if (d.list === "pm") manifest.propertyMgmt.push({ ...base, kind: d.type, section: d.type });
+  else if (d.list === "acquisition") manifest.acquisition.push({ ...base, type: d.type });
+  else if (d.list === "leasing") manifest.leasing.push({ ...base, type: d.type, prospectId: d.link.prospectId ?? null, target: d.link.target ?? null, compIds: d.link.compIds ?? null, compRents: d.link.compRents ?? null });
+  // The zoning report and the rent comp report are also the file of a third-party research item.
+  if (d.link.researchId) manifest.research.push({ ...base, kind: d.type === "comps" ? "rent_survey" : d.type, researchId: d.link.researchId, compIds: d.link.compIds ?? null, compRents: d.link.compRents ?? null });
+}
+// 1.1.23: sample documents the fund already has, filed again under the
+// third-party research item that summarises them (as a firm files a copy of
+// a report with its research).
+for (const [researchId, kind, asset, file, abstract, title] of [
+  ["srs-1-appraisal", "appraisal", "Airport Flex Park", "deals/airport-flex-appraisal-2026q3.pdf", "deals/airport-flex-appraisal-2026q3.json", "Airport Flex Park appraisal (research copy)"],
+  ["srs-1-environmental", "environmental", "Airport Flex Park", "asset-facts/airport-flex-phase1.pdf", "asset-facts/airport-flex-phase1.json", "Airport Flex Park Phase I report (research copy)"],
+  ["srs-1-pca", "pca", "Airport Flex Park", "asset-facts/airport-flex-pcr.pdf", "asset-facts/airport-flex-pcr.json", "Airport Flex Park property condition report (research copy)"],
+  ["srs-1-credit", "credit", "Airport Flex Park", "credit/screening-blue-mesa-fulfillment.pdf", null, "Blue Mesa Fulfillment credit screening report (research copy)"],
+  ["srs-3-bov", "bov", "Harbor Light Industrial", "dispositions/harbor-light-bov.pdf", "dispositions/harbor-light-bov.json", "Harbor Light Industrial broker opinion (research copy)"],
+]) {
+  if (!fs.existsSync(path.join(OUT, file))) throw new Error(`research copy: ${file} is not among the sample documents`);
+  manifest.research.push({ name: `${researchId}-copy`, kind, researchId, asset, file, abstract, title, copy: true });
+}
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1));
 fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases, and the sample credit reports) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
 console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}, credit ${manifest.credit.length}, GP agreements ${manifest.gpAgreements.length}`);
