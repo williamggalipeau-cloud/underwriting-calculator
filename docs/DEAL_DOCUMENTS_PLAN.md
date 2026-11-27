@@ -244,6 +244,23 @@ on the firm's own data warehouse 2.3.
   - **Closing calendar (user, 11/27; future release, release not chosen, nothing scoped or coded):** a new tab in Acquisitions with a closing calendar for each deal in process. Shown as a calendar view, with an entry for every critical milestone once an offer is accepted. **The milestone list is to be reviewed with the user before anything is built.** Starting point for that review: the dates the app already holds on a pipeline deal and its contract (PSA date, deposit due, due diligence start and deadline, hard date, loan closing, expected close) and the PSA abstract (title and survey objection dates, extension).
   - **Home page: deals in process (user, 11/27; to be scoped in the same release as the closing calendar, nothing scoped or coded):** a section on the home page that shows every acquisition deal and every disposition deal in process.
   - **Rename Deal Screener to Underwriter (user, 11/27; a future patch, patch not chosen, nothing coded):** rename the tab and update every reference to the existing name: the app (tab label, buttons, messages, statuses such as "Deal Screener" on Acquisition Documents), the manual, the plan and the tests.
+  - **Acquisitions workflow (user, 11/27; recorded for the workflow to be defined in later stages, nothing scoped or coded).** The user's steps, with their four corrections of the same day applied (step references fixed; the second "offer made, offer letter signed" step removed; the IC memo locked before due diligence is the preliminary one; the repeated hard-deposit step removed):
+    1. The asset is identified and enters the pipeline.
+    2. Draft underwriting is created. Comps are found and updated.
+    3. Lender term sheets are obtained for financing, and the draft underwriting is updated.
+    4. Portfolio impact is assessed.
+    5. An offer is made. If accepted, go to step 6. If rejected, mark it so and go back to step 2.
+    6. A preliminary Investment Committee (IC) memo is drafted and the IC meeting scheduled.
+    7. The IC votes. If approved, go to step 8. If not, the deal is marked Passed and removed from the pipeline.
+    8. The underwriting and the preliminary IC memo are locked.
+    9. A soft, refundable deposit is made to begin due diligence, usually 14 to 30 days.
+    10. Due diligence begins.
+    11. When due diligence concludes, the Final IC memo is created and an IC meeting set for final approval. If approved, drafting of the Purchase and Sale Agreement begins.
+    12. After the P&S is executed, a hard, non-refundable deposit is made and the closing process begins.
+    13. The time from P&S to close is usually 60 days. Key milestones: title work, insurance setup, loan closed, deal closed.
+    14. The final asset business plan is created from the deal's final underwriting and the final closing statement.
+
+    It ties to the IC Memos tab, the closing calendar (step 13's milestones), the home page's deals in process, Portfolio Impact and the Deal Screener (to be renamed Underwriter). **Still to come from the user:** workflows for Dispositions, Leasing and Property Management, to be recorded here the same way.
 - **After merge:** the user opens Baywise once; Claude reads the live data back.
 
 **Live before it: version 1.1.13, sample data that ties out** (built 11/27; merged 11/27 as PR #119, `4746fd9`, with the user's OK and green tests; GitHub Release v1.1.13 published by the user and checked 11/27: tag `v1.1.13` on `4746fd9`).
