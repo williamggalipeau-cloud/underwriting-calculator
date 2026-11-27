@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.25** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.26** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -1242,6 +1242,54 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
   Light). A leasing document is filed only when the asset has that prospect,
   the rent comp report only when the asset holds the comps it lists, and a
   research file only on a research item the asset holds.
+- **Version 11 (1.1.26):** the sample joint venture and separate account
+  (below).
+
+**Sample joint venture and separate account (1.1.26, `lib/sampleVentures.js`).**
+Two more fictional portfolios load beside Model Fund I, so the joint venture
+and separate account screens, a sold asset, an asset behind its plan and
+assets owned for several years can be tested without typing anything in.
+
+| Portfolio | Type | Set up | Commitments | Investor | Outside GP partner |
+|---|---|---|---|---|---|
+| Sample Industrial Venture I | Joint venture | 2022 | $80,000,000 | Example Pension Fund | Placeholder Capital Partners LP |
+| Sample Separate Account A | Separate account | 2023 | $25,000,000 | Fictional Insurance Company | Demo Holdings Family Office |
+
+- **Terms (as you set them, 11/27).** Asset management 0.75% a year (joint
+  venture) and 1.25% (separate account), charged on invested equity as the
+  portfolio's fee; property management 5.0%; construction management 1.5%.
+  An 8% preferred return, then 20% of profit to the sponsor side up to a 14%
+  IRR and 30% above, with no catch-up. The sponsor co-invests 10%; the
+  outside GP partner funds half of that and takes 25% of the promote.
+- **Assets.** Each is about $50,000,000 with 60 to 80 units and a four-year
+  hold, with fixed past dates:
+
+  | Asset | Portfolio | Bought | Units | Price | Story |
+  |---|---|---|---|---|---|
+  | Example Gateway Industrial Park, Phoenix | Joint venture | 6/15/2022 | 72 | $49,500,000 | Sold 6/30/2026 for $85,650,000 (Track Record): 21.1% IRR against 17.6% underwritten |
+  | Example Summit Business Center, Las Vegas | Joint venture | 2/28/2023 | 64 | $51,000,000 | On plan: 16.3% against 13.5% underwritten |
+  | Example Foundry Flex Park, Salt Lake City | Joint venture | 11/15/2023 | 78 | $48,000,000 | Behind plan: bought 68% leased to reach about 92%, now 76%; −18.9% against 16.0% underwritten; marked $47,650,000 against a cost of $51,500,000 |
+  | Example Orchard Commerce Center, Denver | Separate account | 6/30/2023 | 68 | $50,500,000 | On plan: 15.5% against 13.0% underwritten |
+
+- **How each is built.** First as it was underwritten at purchase, which is
+  kept as the asset's underwriting baseline (the closing model). Then what
+  happened since, through the functions the tabs call: the leases signed
+  since purchase (the Rent Roll's Add lease), the sale (Dispositions), and,
+  for the asset behind plan, the vacant units' longer lease-up, a higher
+  exit cap rate and a lower market rent. Each asset has its own fixed rate
+  path and cap costs, so neither today's date nor the live rate curve moves
+  its figures.
+- **Marks.** Year-end appraisals and quarterly internal marks, moving from
+  cost toward the value each asset's model now reaches.
+- **Pipeline.** Two joint venture deals: Example Ironworks Distribution
+  Center (under contract) and Example Prairie Commerce Park (LOI).
+- **Not yet (1.1.27 and 1.1.28):** their documents (agreements, leases,
+  closing documents, a Phase II), and their business plans, leasing
+  pipeline, tenant credit and property management data.
+- **Loading.** Automatic, like the rest of the sample data: a firm that has
+  Model Fund I gets them the next time an owner opens Baywise. Only what is
+  missing is added; a portfolio, asset or mark you already have is left
+  alone.
 - **Version 9 (1.1.22):** fund-level records on Model Fund I, each made by
   the same function its tab runs when you press the button, from the fund as
   it is: one subscription line draw per purchase in the capital activity
@@ -5292,6 +5340,21 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.26
+
+The sample joint venture and separate account (§7.13): their terms, four assets, marks and two pipeline deals. Documents follow in 1.1.27 and the remaining tab data in 1.1.28.
+
+- **Two portfolios.** Sample Industrial Venture I (joint venture with Example Pension Fund, 2022, $80,000,000) and Sample Separate Account A (Fictional Insurance Company, 2023, $25,000,000), with the fees and promote you set and an outside GP partner each.
+- **Four assets** of about $50,000,000 and 60 to 80 units, bought in 2022 and 2023: one sold in June 2026 (the first sale on the Track Record), two on plan, and one well behind plan and marked below cost.
+- **Leases signed since purchase** on all four (234 in total), so the Rent Roll and every screen that lists leases show today's tenants. This is the first sample data for the lease history added in 1.1.24.
+- **Each asset keeps its closing model** as the underwriting baseline, so Underwritten vs Actual and the Track Record compare against what was underwritten.
+- **Figures (test copy, as of 11/27/2026).** Firm Economics over the life of both portfolios: fees $17,969,753, promote $1,852,447, co-invest profit $2,531,620, on $5,340,077 of the firm's own capital. The joint venture's promote ($809,103 in total, of which the firm's share is $606,827) is held down by the asset behind plan.
+- **Model Fund I: no figure changes.**
+- **Loads by itself** (sample data version 11); only what is missing is added.
+- **Also in the plan:** the Dispositions workflow (25 steps) and the expanded Acquisitions workflow (26 steps) for v1.2.
+- **Tests:** a new node suite (`ventures1126`, 46 checks), a new browser suite (`ventures1126`, 6 checks), and checks in both load tests on what is actually saved.
+- **No database change.**
 
 ### What's in 1.1.25
 
