@@ -46,6 +46,12 @@ app builds it**, so a document and the app never disagree. To rebuild:
 7. `node scripts/sample-yardi/generate.cjs` writes the sample Yardi-style
    exports (`docs/sample-yardi`) from the same fund; copy the two construction
    files into `lib/sampleConstruction.js`.
+7a. **Asset documents and SNDAs** (`asset-facts/`, 1.1.17): `node scripts/sample-deal-docs/asset_facts.cjs`
+   writes a property condition report, a Phase I report, a survey and a roof
+   warranty for three assets, and a signed SNDA for each lease the fund marks
+   signed, with their abstracts. Every fact comes from `fund.json`
+   (`lib/sampleAssetFacts.js` through the fund); nothing is typed in the
+   generator.
 8. `node scripts/sample-deal-docs/copy_public.cjs` refreshes the copies the
    app uploads.
 9. When a document is rewritten or retired, add its file name to

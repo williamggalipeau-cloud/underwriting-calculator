@@ -2,9 +2,12 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.16** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.17** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
+
+The detailed plan (what was decided and built in each release, and what is
+next) is in [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
 
 This manual covers:
 
@@ -1224,6 +1227,11 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 - **Legal entities:** the fund, the GP and nine property companies, with an
   ownership chart on Portfolio Summary; the documents use the same names.
 - **Property managers:** every sample asset has one, at the sponsor.
+- **Version 6 (1.1.17):** building and site facts on all nine sample assets;
+  SNDA statuses on the two assets with a sample loan agreement (Airport Flex
+  Park and Route 9 Small Bay); and 16 documents: a property condition report,
+  a Phase I report, a survey and a roof warranty on three assets, and four
+  signed SNDAs. Facts are added only to a section with nothing in it.
 - **Version 5 (1.1.16):** each of the three sample sales gets its own comps
   (its disposition set), copied from that asset's acquisition comps, so they
   are the fund's figures. A sale you started yourself is left alone.
@@ -1244,7 +1252,7 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 
 **Sample material loads by itself (1.1.12).** When an owner opens a firm
 that has Model Fund I and its sample material is older than the app's
-(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13, 4 in 1.1.14 and 5 in 1.1.16), Baywise adds what is missing with no clicks:
+(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13, 4 in 1.1.14, 5 in 1.1.16 and 6 in 1.1.17), Baywise adds what is missing with no clicks:
 sample tenant credit and aged rent, the sample documents (credit report
 PDFs included) and the two sample GP partners with their agreements. It adds
 only what isn't there, keeps your own records, logs the update in the Change
@@ -4000,6 +4008,92 @@ model, and each sample sale's comps.
 Tests: `tests/node/metrics1116.test.cjs`, `tests/node/sampleTieOut.test.cjs`
 (section 12), `tests/e2e/metrics1116.e2e.cjs`.
 
+### 7.66 Industrial characteristics and SNDAs (`lib/assetFacts.js`, `lib/snda.js`, version 1.1.17)
+
+Added 11/27 at the user's request. Baywise is industrial only for now
+(other asset types are planned for 3.0).
+
+**Where.** Setup & Maintenance → Edit asset has two new sections after
+Property: **Building** and **Location and site**. The facts are saved on the
+asset (`inputs.building`, `inputs.site`).
+
+**The twelve characteristics.**
+
+| # | Characteristic | Fields | Calculated |
+|---|---|---|---|
+| 1 | Clear height | clear height (ft) | |
+| 2 | Loading | dock-high doors, drive-in doors | SF per dock door = building SF ÷ dock-high doors |
+| 3 | Truck court | depth (ft), trailer stalls | |
+| 4 | Site coverage | land (acres), building footprint (SF) | site coverage = footprint ÷ (acres × 43,560) |
+| 5 | Power | amps, volts, phase | |
+| 6 | Floor | slab thickness (in), reinforcement, flatness FF, levelness FL | |
+| 7 | Columns | spacing width and depth (ft), speed bay depth | |
+| 8 | Sprinklers | type (ESFR, wet pipe, dry pipe, none, other) | ESFR yes / no |
+| 9 | Office | office SF | office share = office SF ÷ building SF |
+| 10 | Roof and paving | roof type, year installed, warranty to, expected life; paving surface, year resurfaced, expected life; concrete dolly pads | remaining useful life = year + life − this year |
+| 11 | Drayage and last mile | nearest port (miles, minutes), drayage round trips per shift, intermodal rail, airport, freeway access, population within 30 and 60 minutes | |
+| 12 | Environmental and zoning buffer | Phase I and II dates and results, open items, zoning, industrial use by right, residential next door, truck route limits, freeway reachable without a residential street | |
+
+- **Expected life:** 20 years for a roof and 15 for paving unless you enter
+  another (user, 11/27).
+- **Hints.** Typical ranges show in grey next to a field (clear height: Class
+  A 32–40+ ft, older 18–24; truck court 130–180 ft; site coverage 30–50%;
+  office 5–15%; slab 6 in standard, 7–8+ heavy). They never flag or block an
+  entry.
+- **Flags** (a note at the top of the section, nothing more): a roof or
+  paving life that ends inside the hold; open environmental items; industrial
+  use not allowed by right.
+
+**Three ways to fill them in.**
+1. **Type** them in.
+2. **Import a file** (CSV or Excel): one row per asset, the first column the
+   asset's name, a column per field. **Download as Excel** gives the file
+   with the asset's current values. Blank cells change nothing; columns and
+   assets it doesn't recognize are reported.
+3. **From a document.** Under **Source documents**, upload a property
+   condition report, a Phase I or II report, a survey or a roof warranty
+   (PDF). Once Claude has read it (its abstract lists the facts under
+   `building` and `site`, each with a quote), **Facts** shows what it says
+   next to what the asset has, and **Apply** fills them in. Uploading is by
+   hand in this release; linking to or importing from other document systems
+   is planned for 2.1.
+
+**Where they show.** Asset Summary (clear height, SF per dock door, site
+coverage, roof life left), the asset report's Excel, and asset setup.
+
+**SNDAs** (subordination, non-disturbance and attornment agreements).
+Leases tab → **SNDAs**, for one asset or the whole fund.
+- **The loan's rule:** which leases the loan requires an SNDA from: none,
+  all leases, or leases at or over a size (`loanTerms.sndaRule`,
+  `sndaMinSF`). With nothing set, none is assumed (user, 11/27).
+- **Status per lease** (`unit.snda`): not required, required and not yet
+  requested, requested, or signed, with the dates and the lender. A lease
+  follows the loan's rule unless you set its status.
+- **The signed document:** **Upload PDF** on the lease's row. Claude's
+  abstract (`doc_type: "snda"`) has the tenant, unit, lender, landlord, date,
+  the non-disturbance conditions, attornment, the lender's cure period and
+  the limits on its liability. **Terms** shows them against the asset (a
+  different lender or tenant is called out) and **Mark this lease signed
+  from the document** sets the status and date.
+- **Coverage** (also on Portfolio Debt → SNDA coverage by loan, and in its
+  Excel): leases required, signed and outstanding, and the share of occupied
+  rent and SF under a signed SNDA.
+
+**How the documents are stored.** No new database type: each is a deal
+document of type "other" on its asset, with its kind in the title
+(`[fact:pcr] file.pdf`, `[snda:001] file.pdf`).
+
+**Sample data** (fictional). All nine Model Fund I assets have building and
+site facts. Three (Airport Flex Park, Route 9 Small Bay, Harbor Light
+Industrial) have the four source documents. The two with a sample loan
+agreement have every lease required, two signed (each with its SNDA) and two
+requested. Every document is written from the fund
+(`scripts/sample-deal-docs/asset_facts.cjs`), and the tie-out test checks
+every stated fact and quote.
+
+Tests: `tests/node/facts1117.test.cjs`, `tests/node/sampleTieOut.test.cjs`
+(section 13), `tests/e2e/facts1117.e2e.cjs`.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Deal Screener defaults:
@@ -5023,6 +5117,9 @@ Model Fund I → Open**.
 
 ## 13. Roadmap
 
+The detailed plan behind this roadmap, with every decision and what each
+release built, is [`docs/DEAL_DOCUMENTS_PLAN.md`](DEAL_DOCUMENTS_PLAN.md).
+
 ### Design principles (user, 11/25)
 
 Every future release is checked against these:
@@ -5049,7 +5146,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; planned patches **1.1.17** (twelve industrial asset characteristics, SNDAs), **1.1.18** (lease rent steps in the model; property management fee paid asset by asset) and **1.1.19** (housekeeping) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; planned patches **1.1.18** (lease rent steps in the model; property management fee paid asset by asset) and **1.1.19** (housekeeping) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5068,6 +5165,18 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.17
+
+Industrial characteristics and SNDAs (§7.66).
+
+- **Asset setup:** two new sections, Building and Location and site, with the twelve industrial characteristics. Type them in, import a file, or apply them from a document Claude has read. Ratios and remaining lives are calculated; typical ranges show as grey hints.
+- **Source documents:** upload a property condition report, an environmental report, a survey or a roof warranty on the asset.
+- **SNDAs:** Leases → SNDAs has a status for each lease, the loan's rule for which leases need one, the signed documents and coverage. Portfolio Debt shows coverage by loan.
+- **Asset Summary:** clear height, SF per dock door, site coverage and roof life left.
+- **Sample data** (automatic load version 6): facts on all nine assets, 12 source documents on three assets, and four signed SNDAs.
+- **Manual:** the plan document is now linked at the top and at the start of the roadmap.
+- **Not in this patch:** linking to or importing documents from other systems (planned for 2.1).
 
 ### What's in 1.1.16
 
