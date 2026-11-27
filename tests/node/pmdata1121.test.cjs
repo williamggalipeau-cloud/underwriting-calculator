@@ -63,5 +63,37 @@ for (const d of f.deals) {
   const dates = PM.pmDates(f.deals, T, { within: 60 });
   check(dates.some((x) => x.kind === "tax" && /1st half/.test(x.text)) && dates.some((x) => x.kind === "contract") && dates.some((x) => /Tax appeal hearing/.test(x.text)), `tax installments, contract notices and the appeal hearing are in the next 60 days (${dates.length} dates)`);
 }
+// The three assets' Property Management documents: every quote is in the PDF, every figure is the row's, and the load files them once.
+{
+  const fs = require("fs"), { execFileSync } = require("child_process");
+  const dir = R + "/docs/sample-deal-docs/property-mgmt";
+  const index = JSON.parse(fs.readFileSync(dir + "/index.json", "utf8"));
+  check(index.length === 9 && ["tax_bill", "insurance_policy", "service_contract"].every((k) => index.filter((x) => x.kind === k).length === 3), "nine documents: a tax bill, insurance declarations and a service contract on each of three assets");
+  const flat = (t) => t.replace(/\s+/g, " ");
+  for (const d of index) {
+    const abs = JSON.parse(fs.readFileSync(`${dir}/abstracts/${d.name}.json`, "utf8"));
+    const text = flat(execFileSync("pdftotext", ["-layout", `${dir}/${d.file}`, "-"]).toString());
+    const missing = Object.entries(abs.quotes).filter(([, q]) => !text.includes(flat(q.replace(/ \((§[\d.]+|p\.\d+)\)$/, ""))));
+    check(missing.length === 0 && /SAMPLE – FICTIONAL/.test(text), `${d.name}: every quote is in the PDF, which is marked fictional${missing.length ? ` (missing: ${missing.map(([k]) => k)})` : ""}`);
+    const a = f.deals.find((x) => x.id === d.dealId).inputs, rows = (k) => PM.rowsOf(a, k);
+    if (d.kind === "tax_bill") {
+      const unpaid = rows("bills").filter((b) => !b.paidDate);
+      check(abs.parcel === rows("parcels")[0].apn && abs.assessed_value === a.purchasePrice && abs.installments.length === unpaid.length && abs.installments.every((x, i) => x.amount === unpaid[i].amount && x.due_date === unpaid[i].dueDate) && abs.installments.reduce((s2, x) => s2 + x.amount, 0) === PM.taxSummary(a, abs.tax_year).billed, `${d.name}: the parcel, assessed value and installments are the Property Taxes tab's, and add up to the year's bills`);
+    } else if (d.kind === "insurance_policy") {
+      const pol = rows("policies");
+      check(abs.total_premium === PM.insuranceSummary(a).premium && abs.policies.every((x, i) => x.policy_no === pol[i].policyNo && x.limit === pol[i].limit && x.premium === pol[i].premium && x.effective === pol[i].effective && x.expiry === pol[i].renewalDate) && abs.insurer === pol[0].carrier, `${d.name}: the policies and premiums are the Insurance tab's`);
+    } else {
+      const c = rows("contracts").find((x) => x.service === abs.service);
+      check(c && abs.vendor === c.vendor && abs.annual_cost === c.annualCost && abs.start === c.start && abs.end === c.end && abs.auto_renew === !!c.autoRenew && abs.notice_days === c.noticeDays, `${d.name}: the vendor, cost, term and notice are the Service Contracts tab's`);
+    }
+  }
+  const SD = j(R + "/lib/sampleDocs.js"), PD = j(R + "/lib/pmDocs.js");
+  const manifest = require(R + "/public/sample-docs/manifest.json");
+  const plan = SD.sampleDocPlan(manifest, { deals: f.deals, docs: [], leases: [] });
+  const pm = plan.add.filter((x) => x.kind === "pm");
+  check(pm.length === 9 && pm.every((x) => PD.parsePmTitle(x.docTitle)?.section === x.section && fs.existsSync(`${R}/public/sample-docs/${x.file}`) && fs.existsSync(`${R}/public/sample-docs/${x.abstract}`)), "the load files the nine documents under their Property Management section, and the published copies exist");
+  const stored = pm.map((x, i) => ({ id: `d${i}`, deal_id: x.dealId, title: x.docTitle, files: [{ name: x.file.split("/").pop() }] }));
+  check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "pm").length === 0 && PD.pmDocs(stored).length === 9, "run again, nothing is uploaded twice; the Property Management tabs list all nine");
+}
 console.log(`${pass} passed${fail ? `, ${fail} failed` : ""}`);
 process.exit(fail ? 1 : 0);

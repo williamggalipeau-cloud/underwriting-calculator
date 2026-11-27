@@ -42,6 +42,7 @@ function fundJson() {
       },
       propertyCompany: samplePropertyCompany(Number(d.id.replace("sample-deal-", "")) - 1),
       building: a.building ?? {}, site: a.site ?? {}, sndaRule: a.loanTerms?.sndaRule ?? "none", /* 1.1.17 */
+      propertyMgmt: a.propertyMgmt ?? {}, /* 1.1.21 */
       marks: Object.fromEntries(Object.entries(f.valuations[d.id] ?? {}).map(([q, m]) => [q, { value: m.value, capRate: m.capRate, source: m.source }])),
       units: (a.units ?? []).map((u) => ({
         name: u.name, tenant: u.tenantName ?? "", sf: u.squareFeet, status: u.leaseStatus, leaseType: u.leaseType, rentPSF: u.currentRentPSF, leaseEnd: u.leaseEnd ?? "",
