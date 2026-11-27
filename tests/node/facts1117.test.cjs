@@ -90,7 +90,7 @@ ok(S.sndaByLoan(loans).length === loans.length && S.sndaByLoan(loans).filter((r)
 const mine = { ...fund.deals[0].inputs, building: { clearHeightFt: 99 }, site: {} };
 ok(SA.withSampleAssetFacts(mine, "sample-deal-1").building.clearHeightFt === 99 && Object.keys(SA.withSampleAssetFacts(mine, "sample-deal-1").site).length > 10, "the load fills only a section with nothing in it");
 ok(SA.withSampleSnda(fund.deals[0].inputs, "sample-deal-1") === fund.deals[0].inputs && SA.withSampleSnda({ ...fund.deals[0].inputs, loanTerms: { sndaRule: "min_sf" }, units: fund.deals[0].inputs.units.map((u) => ({ ...u, snda: undefined })) }, "sample-deal-1").loanTerms.sndaRule === "min_sf", "SNDA statuses are added once; a rule the user set is kept");
-ok(SAMPLE_DATA_VERSION === 8, "the automatic load's version is 8 (1.1.21)");
+ok(SAMPLE_DATA_VERSION === 9, "the automatic load's version is 9 (1.1.22)");
 // 1.1.18: the load as app/page.jsx runs it, twice over (the second pass is the
 // safety step of 1.1.14). The credit step must not put back the units as they
 // were at the start, or the SNDA statuses set by the first pass are lost.
