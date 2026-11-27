@@ -112,6 +112,7 @@ on the firm's own data warehouse 2.3.
 - **Leases tab:** `MismatchFlag` compares the abstract with the purchase lease and with today's lease and takes the better match. Applying an abstract still edits the rent roll at purchase.
 - **Rename:** "Deal Screener" → "Underwriter" in `app/`, `lib/`, `components/` and `tests/` (text only; the tab id stays `quick`), and in the manual's current sections. History notes keep the old name.
 - **Decided by the user 11/27:** the rename goes in this patch; **1.1.28 is the last 1.1 patch** (1.1.26 to 1.1.28: the sample joint venture and separate account).
+- **Vercel Web Analytics (user, 11/27):** `@vercel/analytics` 2.x, `<Analytics />` in `app/layout.jsx` beside Speed Insights. The user switches it on in the Vercel dashboard (Project → Analytics → Enable); there is no tool here to do it.
 - **Tests:** `leasetoday1125` node (31) and browser (10).
 
 **Live: version 1.1.24, leases signed after purchase** (built 11/27; merged 11/27 as PR #130, `08de56f`, with the user's OK and green tests; GitHub Release v1.1.24 published by the user and checked 11/27; Model Fund I's figures do not move; no sample load).

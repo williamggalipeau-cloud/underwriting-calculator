@@ -505,7 +505,7 @@ Claude Code) built and maintains it, using the tools below.
 | **GitHub** | Opening, updating and merging pull requests; checking the test runs and their logs; checking that a release was published. | `create_pull_request`, `update_pull_request`, `merge_pull_request`, `pull_request_read`, `list_pull_requests`, `actions_list`, `actions_run_trigger`, `get_job_logs`, `get_latest_release`, `get_release_by_tag`, `list_tags`, `add_reply_to_pull_request_comment` |
 | **Claude Code Remote** (cloud session tools) | Creating the cloud environment that allows `pensford.com` and `markets.newyorkfed.org`, watching pull requests, and scheduling check-ins. | `create_environment`, `get_environment`, `update_environment`, `create_session`, `create_trigger`, `get_trigger`, `list_triggers`, `update_trigger`, `delete_trigger`, `send_later`, `subscribe_pr_activity`, `unsubscribe_pr_activity`, `list_computer_folders`, `read_documentation` |
 | **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). Since 11/25 (user's choice; all data is test data): **reading** the live firm data to check features against it, and **writing** sample data only when the user asks, each write stamped "Claude (sample data, on request)", version-checked and logged in the audit log. New tables, types and policies stay in `supabase/*.sql` for the user to run. One exception, at the user's request (11/27, "shut the restriction off"): Claude put the two document read rules back as `deal_documents.sql` has them and removed two helper functions, after a draft of the 1.1.15 script had restricted them (§12.5). | `list_projects`, `list_tables`, `execute_sql`, `apply_migration`, `get_advisors` |
-| **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. On 11/27, when a browser still showed 1.1.20 after 1.1.22 went out: checking that the 1.1.21 and 1.1.22 production builds were Ready and that `baywise.baysidecre.com` pointed at the 1.1.22 build (it did; the browser was showing a cached page). Read-only. | `authorize_team_access`, `filter_project_envs`, `list_deployments`, `list_aliases` |
+| **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. On 11/27, when a browser still showed 1.1.20 after 1.1.22 went out: checking that the 1.1.21 and 1.1.22 production builds were Ready and that `baywise.baysidecre.com` pointed at the 1.1.22 build (it did; the browser was showing a cached page). Read-only. | `authorize_team_access`, `filter_project_envs`, `list_deployments`, `list_aliases`, `search_vercel_documentation`, `get_project` (1.1.25: how to turn on Web Analytics; reading the project's settings) |
 | **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. | `list_deals`, `run_cre_debt_sizing` |
 | **CREparser Lease Abstraction** | Reading the fictional sample leases and validating their abstracts (§7.24); saving the "Light industrial (Model Fund I)" export template. Not used in the app's calculations. | `lease_prepare_upload`, `lease_open_upload`, `lease_read_pdf`, `lease_read_pages`, `lease_search_text`, `lease_combine_pdfs`, `lease_validate_abstract`, `lease_show_abstract`, `lease_save_template` |
 | **CREparser Deal Review** | Checking the account and its plan. Its validators were **not** run on the sample deal documents: their abstracts are written by script from the fund and marked "Sample (fictional)", not connector-validated (the app shows that badge). A user can validate their own documents with it (§7.28). | `cre_account` |
@@ -513,8 +513,10 @@ Claude Code) built and maintains it, using the tools below.
 
 The tool names are the ones recorded in the build sessions. Many more
 connectors are installed in the Claude Code environment (finance, legal,
-design and others); none of them was used for Baywise and none is listed
-here. Claude also used its built-in tools (reading and editing files,
+design and others), among them Acquirepad, Corbis, Gamma, RiskModels and
+TradingCalc, which show in Claude Code's tools panel; none of them was
+called for Baywise (checked against the session record, 11/27) and none
+is listed in the table. Claude also used its built-in tools (reading and editing files,
 running commands and tests, web search and web fetch), which are not
 connectors. This table is updated with each release.
 
@@ -589,6 +591,7 @@ dataviz). The app does not need them to run.
 | `react`, `react-dom` | 19.2.4 | UI. |
 | `jspdf`, `jspdf-autotable` | 2.5.2, 3.8.4 | PDF reports, built in the browser and loaded only when you export (Valuation → Export PDF). |
 | `@vercel/speed-insights` | 2.x | Vercel Speed Insights: page-load timings on the live site, in the Vercel dashboard (added by Vercel's bot in PR #113; `<SpeedInsights />` in `app/layout.jsx`). No firm data is sent. |
+| `@vercel/analytics` | 2.x | Vercel Web Analytics (1.1.25, your request 11/27): visits to the live site, in the Vercel dashboard (`<Analytics />` in `app/layout.jsx`). It counts page views, with the visitor's country, device, browser and referring site; it sets no cookies and sends none of your firm's data. Nothing is collected until Web Analytics is switched on for the project in Vercel (Project → Analytics → Enable), and nothing on other hosts or in local runs. |
 | `tailwindcss`, `@tailwindcss/postcss` | 4 | Styling (dev). |
 | `eslint`, `eslint-config-next` | 9 / 16.2.4 | Linting (dev). |
 
@@ -5298,6 +5301,7 @@ The lease in effect today on every screen that lists leases (§7.19), and Deal S
 - **SNDAs.** When a new tenant's lease is in effect, the former tenant's SNDA no longer counts and the row says so. A renewal keeps its SNDA.
 - **Leases tab.** A lease document is compared with the lease at purchase and the lease today, whichever it agrees with better.
 - **Deal Screener is now Underwriter** (your request, 11/27): the tab, its heading, and every message and label that named it. Nothing else about the tab changes. Notes on earlier releases below keep the name used at the time.
+- **Vercel Web Analytics** (your request, 11/27; §4): visit counts for the live site in the Vercel dashboard. No cookies, none of your firm's data. It starts counting once you switch it on in Vercel (Project → Analytics → Enable).
 - **Model Fund I: no figure changes.** None of its units has a signed lease, so each of these screens reads it exactly as before; the tie-out test confirms it.
 - **The model is untouched.** These are reading changes only.
 - **Numbering (your decision, 11/27):** 1.1.28 is the last 1.1 patch. 1.1.26 to 1.1.28 are the sample joint venture and separate account.
