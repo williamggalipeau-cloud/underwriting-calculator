@@ -15,6 +15,7 @@ const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8,
 const KIND = {
   rent: ["Rent", "bg-red-50 text-red-700"],
   lease: ["Lease", "bg-amber-50 text-amber-800"],
+  leaseended: ["Lease ended", "bg-amber-100 text-amber-900"], // 1.1.24: ended with no newer lease recorded
   leasing: ["Leasing", "bg-indigo-50 text-indigo-800"],
   covenant: ["Covenant", "bg-red-50 text-red-700"],
   tax: ["Property tax", "bg-orange-50 text-orange-800"],
