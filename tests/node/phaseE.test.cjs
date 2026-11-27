@@ -3,7 +3,7 @@ const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const T = j(R + "/lib/dealDocTypes.js"); const A = j(R + "/lib/dealDocApply.js"); const V = j(R + "/lib/leaseViews.js");
 const c = j(R + "/lib/calculations.js"); const sp = j(R + "/lib/samplePortfolio.js"); const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
 let fail = 0; const ok = (cnd, m) => { console.log((cnd ? "PASS " : "FAIL ") + m); if (!cnd) fail++; };
-const D = R + "/docs/sample-deal-docs/deals";
+const D = R + "/tests/fixtures/deal-docs"; // the pre-1.1.13 copies: they differ from the model on purpose
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
 // 1.1.13: `abs` is the sample document as generated (it ties to Model Fund I: sampleTieOut.test.cjs)
 // and is used for the check against the PDF. The compare / apply tests below need documents that

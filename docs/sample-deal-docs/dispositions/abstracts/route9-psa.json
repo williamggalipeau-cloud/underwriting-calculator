@@ -1,15 +1,15 @@
 {
  "doc_type": "psa",
  "title": "Route 9 Small Bay PSA",
- "summary": "PSA with Example Logistics REIT at $14,500,000; deposits $500,000; closing January 29, 2027.",
+ "summary": "PSA with Example Logistics REIT at $13,150,000; deposits $500,000; closing January 20, 2027.",
  "fields": [
   {
    "key": "psa_date",
-   "value": "December 1, 2026",
+   "value": "November 20, 2026",
    "status": "found",
    "evidence": [
     {
-     "quote": "This Purchase and Sale Agreement is effective December 1, 2026.",
+     "quote": "This Purchase and Sale Agreement is effective November 20, 2026.",
      "page": 1
     }
    ],
@@ -17,11 +17,11 @@
   },
   {
    "key": "purchase_price",
-   "value": "$14,500,000",
+   "value": "$13,150,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Purchase Price for the Property is $14,500,000.",
+     "quote": "The Purchase Price for the Property is $13,150,000.",
      "page": 1
     }
    ],
@@ -29,11 +29,11 @@
   },
   {
    "key": "initial_deposit",
-   "value": "$300,000",
+   "value": "$250,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Buyer shall deposit $300,000 with Escrow Agent as the Initial Deposit.",
+     "quote": "Buyer shall deposit $250,000 with Escrow Agent as the Initial Deposit.",
      "page": 1
     }
    ],
@@ -41,11 +41,11 @@
   },
   {
    "key": "additional_deposit",
-   "value": "$200,000",
+   "value": "$250,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Buyer shall deposit an additional $200,000 as the Additional Deposit at the end of the Due Diligence Period.",
+     "quote": "Buyer shall deposit an additional $250,000 as the Additional Deposit at the end of the Due Diligence Period.",
      "page": 1
     }
    ],
@@ -53,11 +53,11 @@
   },
   {
    "key": "deposit_hard_date",
-   "value": "December 31, 2026",
+   "value": "December 21, 2026",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Deposits become non-refundable on December 31, 2026.",
+     "quote": "The Deposits become non-refundable on December 21, 2026.",
      "page": 1
     }
    ],
@@ -65,11 +65,11 @@
   },
   {
    "key": "dd_expiry",
-   "value": "December 31, 2026",
+   "value": "December 21, 2026",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Due Diligence Period expires on December 31, 2026.",
+     "quote": "The Due Diligence Period expires on December 21, 2026.",
      "page": 1
     }
    ],
@@ -77,11 +77,11 @@
   },
   {
    "key": "closing_date",
-   "value": "January 29, 2027",
+   "value": "January 20, 2027",
    "status": "found",
    "evidence": [
     {
-     "quote": "Closing shall occur on January 29, 2027.",
+     "quote": "Closing shall occur on January 20, 2027.",
      "page": 1
     }
    ],
@@ -102,40 +102,40 @@
  ],
  "critical_dates": [
   {
-   "date": "2026-12-31",
+   "date": "2026-12-21",
    "kind": "deadline",
    "label": "Deposits go hard",
    "action": "Deposits become non-refundable",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Deposits become non-refundable on December 31, 2026.",
+     "quote": "The Deposits become non-refundable on December 21, 2026.",
      "page": 1
     }
    ]
   },
   {
-   "date": "2026-12-31",
+   "date": "2026-12-21",
    "kind": "deadline",
    "label": "Due diligence expires",
    "action": "Buyer's termination right ends",
    "status": "found",
    "evidence": [
     {
-     "quote": "The Due Diligence Period expires on December 31, 2026.",
+     "quote": "The Due Diligence Period expires on December 21, 2026.",
      "page": 1
     }
    ]
   },
   {
-   "date": "2027-01-29",
+   "date": "2027-01-20",
    "kind": "deadline",
    "label": "Closing",
    "action": "Close the sale",
    "status": "found",
    "evidence": [
     {
-     "quote": "Closing shall occur on January 29, 2027.",
+     "quote": "Closing shall occur on January 20, 2027.",
      "page": 1
     }
    ]

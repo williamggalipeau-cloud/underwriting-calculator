@@ -1,7 +1,7 @@
 {
  "doc_type": "cam",
  "title": "Lakeshore 2025 CAM reconciliation",
- "summary": "2025 CAM reconciliation: $180,000 of expenses; North Texas Fleet billed at a 6.00% share (lease 5.50%) and a management fee of 4.5% of revenue (lease cap 4%).",
+ "summary": "2025 CAM reconciliation: $134,600 of expenses; Bayline Auto Parts billed at its lease share (5.50%); management fee 5% of revenue (the lease's cap).",
  "fields": [
   {
    "key": "year",
@@ -16,44 +16,44 @@
   },
   {
    "key": "total_opex",
-   "value": "$180,000",
+   "value": "$134,600",
    "status": "found",
    "evidence": [
     {
-     "quote": "Total Operating Expenses for 2025 were $180,000.",
+     "quote": "Total Operating Expenses for 2025 were $134,600.",
      "page": 1
     }
    ]
   },
   {
    "key": "controllable_opex",
-   "value": "$96,000",
+   "value": "$44,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Controllable Operating Expenses were $96,000.",
+     "quote": "Controllable Operating Expenses were $44,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "management_fee",
-   "value": "$10,800",
+   "value": "$28,600",
    "status": "found",
    "evidence": [
     {
-     "quote": "The management fee charged was $10,800 on gross revenues of $240,000.",
+     "quote": "The management fee charged was $28,600 on gross revenues of $572,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "gross_revenue",
-   "value": "$240,000",
+   "value": "$572,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The management fee charged was $10,800 on gross revenues of $240,000.",
+     "quote": "The management fee charged was $28,600 on gross revenues of $572,000.",
      "page": 1
     }
    ]
@@ -61,29 +61,29 @@
  ],
  "tenants": [
   {
-   "tenant": "North Texas Fleet Service LLC",
-   "share_pct": 6.0,
-   "billed": 10800,
+   "tenant": "Bayline Auto Parts",
+   "share_pct": 5.5,
+   "billed": 7403.0,
    "base_year_amount": 0,
-   "estimates_paid": 10200,
-   "balance_due": 600,
+   "estimates_paid": 7032.85,
+   "balance_due": 370.15,
    "evidence": [
     {
-     "quote": "North Texas Fleet Service LLC: share 6.00%, share of expenses $10,800, estimates paid $10,200, balance due $600.",
+     "quote": "Bayline Auto Parts: share 5.50%, share of expenses $7,403.00, estimates paid $7,032.85, balance due $370.15.",
      "page": 1
     }
    ]
   },
   {
-   "tenant": "Prairie Auto Glass Inc.",
-   "share_pct": 7.5,
-   "billed": 13500,
+   "tenant": "Blue Mesa Collision Center",
+   "share_pct": 5.5,
+   "billed": 7403.0,
    "base_year_amount": 0,
-   "estimates_paid": 13500,
+   "estimates_paid": 7403.0,
    "balance_due": 0,
    "evidence": [
     {
-     "quote": "Prairie Auto Glass Inc.: share 7.50%, share of expenses $13,500, estimates paid $13,500, balance due $0.",
+     "quote": "Blue Mesa Collision Center: share 5.50%, share of expenses $7,403.00, estimates paid $7,403.00, balance due $0.00.",
      "page": 1
     }
    ]
@@ -91,6 +91,7 @@
  ],
  "critical_dates": [],
  "app": {
+  "lease_tenant": "Bayline Auto Parts",
   "validated": false,
   "made_with": "Sample (fictional)",
   "files": [

@@ -5,16 +5,60 @@
     "city": "Las Vegas",
     "address": "6230 Runway Vista Drive",
     "zip": "89119",
-    "suite": "Building B, Suite 104",
+    "suite": "Unit 005",
     "rsf": 2000,
-    "tenant": "Desert Aero Parts LLC",
-    "lease_type": "MG",
-    "commencement": "2025-03-01",
-    "expiration": "2028-02-29",
-    "rate": 15.0,
+    "tenant": "Blue Mesa Fulfillment",
+    "lease_type": "NNN",
+    "commencement": "2022-05-01",
+    "expiration": "2027-04-30",
+    "rate": 17.94,
     "files": [
-      "02-airport-flex-park-desert-aero.pdf"
-    ]
+      "02-airport-flex-park-blue-mesa-fulfillment.pdf"
+    ],
+    "fund": {
+      "unit": "005",
+      "lease_date": "2022-03-01",
+      "landlord": "Model Fund I — Runway Vista LLC",
+      "deposit": 2990.0,
+      "share_pct": 8.33,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2022-05-01",
+          "end": "2023-04-30",
+          "rate": 17.94,
+          "monthly": 2990.0
+        },
+        {
+          "start": "2023-05-01",
+          "end": "2024-04-30",
+          "rate": 18.48,
+          "monthly": 3080.0
+        },
+        {
+          "start": "2024-05-01",
+          "end": "2025-04-30",
+          "rate": 19.03,
+          "monthly": 3171.67
+        },
+        {
+          "start": "2025-05-01",
+          "end": "2026-04-30",
+          "rate": 19.6,
+          "monthly": 3266.67
+        },
+        {
+          "start": "2026-05-01",
+          "end": "2027-04-30",
+          "rate": 20.19,
+          "monthly": 3365.0
+        }
+      ],
+      "amendments": 0
+    }
   },
   {
     "asset": "Route 9 Small Bay",
@@ -22,16 +66,60 @@
     "city": "Kent",
     "address": "21800 Valley Freight Way",
     "zip": "98032",
-    "suite": "Unit 7",
-    "rsf": 2400,
-    "tenant": "Cascade Cabinet Works Inc.",
+    "suite": "Unit 005",
+    "rsf": 2300,
+    "tenant": "Sierra Coffee Roasters",
     "lease_type": "NNN",
-    "commencement": "2022-06-01",
-    "expiration": "2027-05-31",
-    "rate": 13.75,
+    "commencement": "2022-03-17",
+    "expiration": "2027-03-16",
+    "rate": 15.64,
     "files": [
-      "03-route-9-small-bay-cascade-cabinet.pdf"
-    ]
+      "03-route-9-small-bay-sierra-coffee-roasters.pdf"
+    ],
+    "fund": {
+      "unit": "005",
+      "lease_date": "2022-01-17",
+      "landlord": "Model Fund I — Valley Freight LLC",
+      "deposit": 2997.67,
+      "share_pct": 5.48,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2022-03-17",
+          "end": "2023-03-16",
+          "rate": 15.64,
+          "monthly": 2997.67
+        },
+        {
+          "start": "2023-03-17",
+          "end": "2024-03-16",
+          "rate": 16.11,
+          "monthly": 3087.75
+        },
+        {
+          "start": "2024-03-17",
+          "end": "2025-03-16",
+          "rate": 16.59,
+          "monthly": 3179.75
+        },
+        {
+          "start": "2025-03-17",
+          "end": "2026-03-16",
+          "rate": 17.09,
+          "monthly": 3275.58
+        },
+        {
+          "start": "2026-03-17",
+          "end": "2027-03-16",
+          "rate": 17.6,
+          "monthly": 3373.33
+        }
+      ],
+      "amendments": 0
+    }
   },
   {
     "asset": "Harbor Light Industrial",
@@ -39,18 +127,62 @@
     "city": "Long Beach",
     "address": "2715 Pier Junction Avenue",
     "zip": "90810",
-    "suite": "Suite 210",
-    "rsf": 2300,
-    "tenant": "Portside Marine Electric",
+    "suite": "Unit 005",
+    "rsf": 2250,
+    "tenant": "Copper Canyon Tile & Stone",
     "lease_type": "NNN",
-    "commencement": "2024-01-01",
-    "expiration": "2030-12-31",
-    "rate": 17.4,
+    "commencement": "2022-05-31",
+    "expiration": "2027-05-30",
+    "rate": 17.19,
     "files": [
-      "04-harbor-light-portside-marine.pdf",
-      "04a-harbor-light-portside-marine-first-amendment.pdf"
+      "04-harbor-light-industrial-copper-canyon-tile-stone.pdf",
+      "04a-harbor-light-industrial-copper-canyon-tile-stone-first-amendment.pdf"
     ],
-    "amendment": "First Amendment to Lease (Expansion)"
+    "fund": {
+      "unit": "005",
+      "lease_date": "2022-03-31",
+      "landlord": "Model Fund I — Pier Junction LLC",
+      "deposit": 7043.0,
+      "share_pct": 6.25,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2022-05-31",
+          "end": "2023-05-30",
+          "rate": 17.19,
+          "monthly": 3223.12
+        },
+        {
+          "start": "2023-05-31",
+          "end": "2024-05-30",
+          "rate": 17.71,
+          "monthly": 3320.62
+        },
+        {
+          "start": "2024-05-31",
+          "end": "2025-05-30",
+          "rate": 18.24,
+          "monthly": 3420.0
+        },
+        {
+          "start": "2025-05-31",
+          "end": "2026-05-30",
+          "rate": 18.78,
+          "monthly": 3521.25
+        },
+        {
+          "start": "2026-05-31",
+          "end": "2027-05-30",
+          "rate": 19.35,
+          "monthly": 3628.12
+        }
+      ],
+      "amendments": 1
+    },
+    "amendment": "First Amendment to Lease (Notices and Certificates)"
   },
   {
     "asset": "Ridgeway Trade Center",
@@ -58,16 +190,60 @@
     "city": "Fort Worth",
     "address": "9400 Ridgeway Commerce Blvd",
     "zip": "76177",
-    "suite": "Suite 300",
+    "suite": "Unit 005",
     "rsf": 2000,
-    "tenant": "Lone Star HVAC Supply LLC",
+    "tenant": "Riverbend Flooring",
     "lease_type": "NNN",
-    "commencement": "2021-10-01",
-    "expiration": "2027-09-30",
-    "rate": 10.25,
+    "commencement": "2022-08-16",
+    "expiration": "2027-08-15",
+    "rate": 15.52,
     "files": [
-      "05-ridgeway-lone-star-hvac.pdf"
-    ]
+      "05-ridgeway-trade-center-riverbend-flooring.pdf"
+    ],
+    "fund": {
+      "unit": "005",
+      "lease_date": "2022-06-16",
+      "landlord": "Model Fund I — Ridgeway Commerce LLC",
+      "deposit": 2586.67,
+      "share_pct": 7.14,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2022-08-16",
+          "end": "2023-08-15",
+          "rate": 15.52,
+          "monthly": 2586.67
+        },
+        {
+          "start": "2023-08-16",
+          "end": "2024-08-15",
+          "rate": 15.99,
+          "monthly": 2665.0
+        },
+        {
+          "start": "2024-08-16",
+          "end": "2025-08-15",
+          "rate": 16.47,
+          "monthly": 2745.0
+        },
+        {
+          "start": "2025-08-16",
+          "end": "2026-08-15",
+          "rate": 16.96,
+          "monthly": 2826.67
+        },
+        {
+          "start": "2026-08-16",
+          "end": "2027-08-15",
+          "rate": 17.47,
+          "monthly": 2911.67
+        }
+      ],
+      "amendments": 0
+    }
   },
   {
     "asset": "Canal Street Workshops",
@@ -75,16 +251,60 @@
     "city": "Houston",
     "address": "3120 Canal Street",
     "zip": "77003",
-    "suite": "Workshop 5",
+    "suite": "Unit 005",
     "rsf": 2000,
-    "tenant": "Bayou Fabrication Studio LLC",
-    "lease_type": "Gross",
-    "commencement": "2026-02-01",
-    "expiration": "2029-01-31",
-    "rate": 18.0,
+    "tenant": "Prairie Glass & Glazing",
+    "lease_type": "NNN",
+    "commencement": "2023-03-16",
+    "expiration": "2028-03-15",
+    "rate": 18.06,
     "files": [
-      "06-canal-street-bayou-fabrication.pdf"
-    ]
+      "06-canal-street-workshops-prairie-glass-glazing.pdf"
+    ],
+    "fund": {
+      "unit": "005",
+      "lease_date": "2023-01-16",
+      "landlord": "Model Fund I — Canal Street LLC",
+      "deposit": 3010.0,
+      "share_pct": 11.11,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2023-03-16",
+          "end": "2024-03-15",
+          "rate": 18.06,
+          "monthly": 3010.0
+        },
+        {
+          "start": "2024-03-16",
+          "end": "2025-03-15",
+          "rate": 18.6,
+          "monthly": 3100.0
+        },
+        {
+          "start": "2025-03-16",
+          "end": "2026-03-15",
+          "rate": 19.16,
+          "monthly": 3193.33
+        },
+        {
+          "start": "2026-03-16",
+          "end": "2027-03-15",
+          "rate": 19.73,
+          "monthly": 3288.33
+        },
+        {
+          "start": "2027-03-16",
+          "end": "2028-03-15",
+          "rate": 20.33,
+          "monthly": 3388.33
+        }
+      ],
+      "amendments": 0
+    }
   },
   {
     "asset": "Mill Creek Business Park",
@@ -92,18 +312,62 @@
     "city": "Everett",
     "address": "11500 Mill Creek Loop",
     "zip": "98204",
-    "suite": "Building 2, Suite 120",
-    "rsf": 2300,
-    "tenant": "Snohomish Brewing Equipment Co.",
+    "suite": "Unit 005",
+    "rsf": 2250,
+    "tenant": "Harbor Precision Machining",
     "lease_type": "NNN",
-    "commencement": "2020-04-01",
-    "expiration": "2027-03-31",
-    "rate": 12.5,
+    "commencement": "2022-07-15",
+    "expiration": "2027-07-14",
+    "rate": 15.9,
     "files": [
-      "07-mill-creek-snohomish-brewing.pdf",
-      "07a-mill-creek-snohomish-brewing-first-amendment.pdf"
+      "07-mill-creek-business-park-harbor-precision-machining.pdf",
+      "07a-mill-creek-business-park-harbor-precision-machining-first-amendment.pdf"
     ],
-    "amendment": "First Amendment to Lease (Extension)"
+    "fund": {
+      "unit": "005",
+      "lease_date": "2022-05-15",
+      "landlord": "Model Fund I — Mill Creek LLC",
+      "deposit": 2981.25,
+      "share_pct": 4.5,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2022-07-15",
+          "end": "2023-07-14",
+          "rate": 15.9,
+          "monthly": 2981.25
+        },
+        {
+          "start": "2023-07-15",
+          "end": "2024-07-14",
+          "rate": 16.38,
+          "monthly": 3071.25
+        },
+        {
+          "start": "2024-07-15",
+          "end": "2025-07-14",
+          "rate": 16.87,
+          "monthly": 3163.12
+        },
+        {
+          "start": "2025-07-15",
+          "end": "2026-07-14",
+          "rate": 17.37,
+          "monthly": 3256.88
+        },
+        {
+          "start": "2026-07-15",
+          "end": "2027-07-14",
+          "rate": 17.9,
+          "monthly": 3356.25
+        }
+      ],
+      "amendments": 1
+    },
+    "amendment": "First Amendment to Lease (Notices and Certificates)"
   },
   {
     "asset": "Southpoint Flex",
@@ -111,16 +375,48 @@
     "city": "Henderson",
     "address": "855 Southpoint Parkway",
     "zip": "89074",
-    "suite": "Suite 6",
+    "suite": "Unit 005",
     "rsf": 2100,
-    "tenant": "Sunrise Solar Installers LLC",
-    "lease_type": "MG",
-    "commencement": "2024-05-01",
-    "expiration": "2029-04-30",
-    "rate": 16.8,
+    "tenant": "Desert Sky Print Shop",
+    "lease_type": "NNN",
+    "commencement": "2024-10-31",
+    "expiration": "2027-10-30",
+    "rate": 16.99,
     "files": [
-      "08-southpoint-sunrise-solar.pdf"
-    ]
+      "08-southpoint-flex-desert-sky-print-shop.pdf"
+    ],
+    "fund": {
+      "unit": "005",
+      "lease_date": "2024-08-31",
+      "landlord": "Model Fund I — Southpoint LLC",
+      "deposit": 6125.0,
+      "share_pct": 6.56,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2024-10-31",
+          "end": "2025-10-30",
+          "rate": 16.99,
+          "monthly": 2973.25
+        },
+        {
+          "start": "2025-10-31",
+          "end": "2026-10-30",
+          "rate": 17.5,
+          "monthly": 3062.5
+        },
+        {
+          "start": "2026-10-31",
+          "end": "2027-10-30",
+          "rate": 18.02,
+          "monthly": 3153.5
+        }
+      ],
+      "amendments": 0
+    }
   },
   {
     "asset": "Granite Ave Industrial",
@@ -128,16 +424,60 @@
     "city": "Fontana",
     "address": "15020 Granite Avenue",
     "zip": "92335",
-    "suite": "Unit 3",
+    "suite": "Unit 005",
     "rsf": 2150,
-    "tenant": "Granite State Signs & Graphics",
+    "tenant": "Granite Courier",
     "lease_type": "NNN",
-    "commencement": "2025-11-01",
-    "expiration": "2030-10-31",
-    "rate": 15.6,
+    "commencement": "2023-01-16",
+    "expiration": "2028-01-15",
+    "rate": 17.76,
     "files": [
-      "09-granite-ave-granite-state-signs.pdf"
-    ]
+      "09-granite-ave-industrial-granite-courier.pdf"
+    ],
+    "fund": {
+      "unit": "005",
+      "lease_date": "2022-11-16",
+      "landlord": "Model Fund I — Granite Avenue LLC",
+      "deposit": 3182.0,
+      "share_pct": 8.27,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2023-01-16",
+          "end": "2024-01-15",
+          "rate": 17.76,
+          "monthly": 3182.0
+        },
+        {
+          "start": "2024-01-16",
+          "end": "2025-01-15",
+          "rate": 18.29,
+          "monthly": 3276.96
+        },
+        {
+          "start": "2025-01-16",
+          "end": "2026-01-15",
+          "rate": 18.84,
+          "monthly": 3375.5
+        },
+        {
+          "start": "2026-01-16",
+          "end": "2027-01-15",
+          "rate": 19.41,
+          "monthly": 3477.62
+        },
+        {
+          "start": "2027-01-16",
+          "end": "2028-01-15",
+          "rate": 19.99,
+          "monthly": 3581.54
+        }
+      ],
+      "amendments": 0
+    }
   },
   {
     "asset": "Lakeshore Service Center",
@@ -145,18 +485,62 @@
     "city": "Dallas",
     "address": "7300 Lakeshore Service Road",
     "zip": "75228",
-    "suite": "Bay 12",
+    "suite": "Unit 005",
     "rsf": 2200,
-    "tenant": "North Texas Fleet Service LLC",
+    "tenant": "Bayline Auto Parts",
     "lease_type": "NNN",
-    "commencement": "2023-03-01",
-    "expiration": "2028-02-29",
-    "rate": 14.25,
+    "commencement": "2022-11-14",
+    "expiration": "2027-11-13",
+    "rate": 15.66,
     "files": [
-      "10-lakeshore-north-texas-fleet.pdf",
-      "10a-lakeshore-north-texas-fleet-first-amendment.pdf"
+      "10-lakeshore-service-center-bayline-auto-parts.pdf",
+      "10a-lakeshore-service-center-bayline-auto-parts-first-amendment.pdf"
     ],
-    "amendment": "First Amendment to Lease (Renewal Option)"
+    "fund": {
+      "unit": "005",
+      "lease_date": "2022-09-14",
+      "landlord": "Model Fund I — Lakeshore Service LLC",
+      "deposit": 2871.0,
+      "share_pct": 5.5,
+      "mgmt_fee_cap": "5% of gross revenues of the Project",
+      "gl_limit": "$1,000,000 per occurrence and $2,000,000 in the aggregate",
+      "umbrella": "$2,000,000",
+      "auto_limit": "$1,000,000 combined single limit",
+      "schedule": [
+        {
+          "start": "2022-11-14",
+          "end": "2023-11-13",
+          "rate": 15.66,
+          "monthly": 2871.0
+        },
+        {
+          "start": "2023-11-14",
+          "end": "2024-11-13",
+          "rate": 16.13,
+          "monthly": 2957.17
+        },
+        {
+          "start": "2024-11-14",
+          "end": "2025-11-13",
+          "rate": 16.61,
+          "monthly": 3045.17
+        },
+        {
+          "start": "2025-11-14",
+          "end": "2026-11-13",
+          "rate": 17.11,
+          "monthly": 3136.83
+        },
+        {
+          "start": "2026-11-14",
+          "end": "2027-11-13",
+          "rate": 17.63,
+          "monthly": 3232.17
+        }
+      ],
+      "amendments": 1
+    },
+    "amendment": "First Amendment to Lease (Notices and Certificates)"
   },
   {
     "asset": "Eastside Distribution Hub",

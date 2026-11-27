@@ -7,9 +7,8 @@
 // with the app's own compare functions (lib/dealDocApply.js), so "ties out"
 // here means what the Documents tab would show: nothing to apply, no flag.
 //
-// Families still written the old way are listed at the bottom under NOT YET
-// TIED with their current differences. That list is exact: a family leaving
-// it must tie, and nothing may be added to it.
+// There is no "not yet tied" allowance: every sample document, lease, sale
+// document and sample file must tie, or this test fails.
 const R = require("path").resolve(__dirname, "..", "..");
 const fs = require("fs");
 const { execFileSync } = require("child_process");
@@ -28,7 +27,7 @@ const PMGR = j(R + "/lib/propertyManager.js");
 const { SAMPLE_CONSTRUCTION_JOBS_CSV, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_AS_OF } = j(R + "/lib/sampleConstruction.js");
 const CON = j(R + "/lib/construction.js");
 const { parseCSV } = j(R + "/lib/fundTerms.js");
-let untiedJobs = 0;
+const DS = j(R + "/lib/dispositions.js");
 const { samplePipelineDeals } = j(R + "/lib/samplePipeline.js");
 const { assetOf, AS_OF } = require(R + "/scripts/sample-deal-docs/make_terms.cjs");
 let fail = 0; const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail++; };
@@ -58,8 +57,7 @@ ok(Object.keys(fund.valuations).every((id) => Object.keys(fund.valuations[id]).e
 const dir = R + "/docs/sample-deal-docs/deals";
 const names = fs.readdirSync(dir + "/abstracts").map((f) => f.replace(/\.json$/, "")).filter((n) => assetOf(n) !== null).sort();
 const docOf = (n) => { const a = JSON.parse(fs.readFileSync(`${dir}/abstracts/${n}.json`, "utf8")); return { id: `sample:${n}`, name: n, doc_type: a.doc_type, title: a.title, abstract: a }; };
-const PENDING = new Set(["airport-flex-estoppel-desert-aero", "airport-flex-insurance-desert-aero", "lakeshore-cam-2025"]); // wait for the leases (below)
-for (const n of names.filter((x) => !PENDING.has(x))) {
+for (const n of names) {
   const doc = docOf(n), deal = assetOf(n) ? dealOf(assetOf(n)) : null;
   const rows = DA.compareDoc(doc, { inputs: deal?.inputs ?? {}, terms: termsWithDocs });
   const diff = rows.filter((r) => r.differs && r.target !== "executedCaps" && !/docId/.test(r.target)); // an executed cap's row carries the document's database id
@@ -153,8 +151,7 @@ ok(fund.deals.every((d) => String(d.inputs.propertyManager ?? "").trim() && PMGR
   ok(jobs.length > 0 && imp.unmatched.length === 0 && jobs.every((x) => namesInFund.has(x.propertyName)) && noUnit.length === 0, `construction jobs: every job is on a Model Fund I asset and a unit of it (${jobs.length} jobs${noUnit.length ? "; no such unit: " + noUnit.map((x) => x.code).join(", ") : ""})`);
   const known = (d) => new Set([...d.inputs.units.map((u) => u.tenantName), ...(d.inputs.leasing?.prospects ?? []).map((q) => q.tenant)].filter(Boolean));
   const strangers = jobs.filter((x) => x.tenant && !known(dealOf(x.propertyName)).has(x.tenant));
-  untiedJobs = strangers.length;
-  if (strangers.length) console.log(`NOT YET TIED construction job tenants: ${strangers.length} jobs name a tenant that is neither on the rent roll nor a leasing prospect: ${strangers.map((x) => `${x.code} ${x.tenant}`).join("; ")}`);
+  ok(strangers.length === 0, `construction jobs: every tenant named is on its asset's rent roll or a leasing prospect${strangers.length ? " — " + strangers.map((x) => `${x.code} ${x.tenant}`).join("; ") : ""}`);
   const pr = fund.deals.flatMap((d) => (d.inputs.leasing?.prospects ?? []).map((p) => ({ p, d })));
   ok(pr.length > 0 && pr.every(({ p, d }) => !p.unitId || d.inputs.units.some((u) => u.id === p.unitId)), `leasing prospects: each is for a unit of its asset (${pr.length} prospects)`);
   ok(fund.deals.every((d) => d.inputs.businessPlan), "every asset has its business plan");
@@ -162,18 +159,101 @@ ok(fund.deals.every((d) => String(d.inputs.propertyManager ?? "").trim() && PMGR
   ok(pl.length > 0 && pl.every((r) => !namesInFund.has(r.name ?? r.propertyName)), `pipeline deals are not assets already in the fund (${pl.length} deals)`);
 }
 
-// 7. NOT YET TIED (1.1.13 in progress): written before the documents were
-// tied to the fund. Printed with their differences; they do not fail the run
-// yet, and the counts below are exact so nothing can join this list unseen.
+// 7. Leases: each is for a tenant on its asset's rent roll, and ties to that unit.
+const leaseDir = R + "/docs/sample-leases";
+const leaseIndex = JSON.parse(fs.readFileSync(leaseDir + "/index.json", "utf8")).filter((l) => l.fund);
+const leaseAbsOf = (l) => JSON.parse(fs.readFileSync(`${leaseDir}/abstracts/${l.files[0].replace(/\.pdf$/, "")}.json`, "utf8"));
+const leaseRows = []; // as the app holds them (lease_documents rows)
+ok(leaseIndex.length === fund.deals.length && man.leases.length === leaseIndex.length, `one lease per Model Fund I asset (${leaseIndex.length})`);
+for (const l of leaseIndex) {
+  const d = dealOf(l.asset), abs = leaseAbsOf(l), u = d?.inputs.units.find((x) => x.tenantName === l.tenant);
+  if (!u) { ok(false, `${l.tenant} is not on ${l.asset}'s rent roll`); continue; }
+  leaseRows.push({ id: `L-${d.id}`, deal_id: d.id, tenant: l.tenant, abstract: abs });
+  const rows = LA.compareWithUnit(abs, u, d.inputs), key = LA.leaseMismatches(abs, u, d.inputs);
+  const other = rows.filter((r) => r.differs && r.key !== "rentSteps");
+  ok(key.length === 0 && other.length === 0, `${l.files[0].replace(/\.pdf$/, "")}: ${l.tenant}, unit ${u.name}: ${rows.length - 1} lease terms, all as on the rent roll (tenant, SF, type, start, end, rent, escalation, deposit, options…)${other.length ? " — " + other.map((r) => `${r.label}: unit ${JSON.stringify(r.unitValue)} / lease ${JSON.stringify(r.abstractValue)}`).join("; ") : ""}`);
+  // The lease's rent schedule is not copied to the unit (the model escalates the unit's rent itself); it must agree with the unit instead.
+  const steps = LA.abstractUnitValues(abs, d.inputs).values.rentSteps ?? [], now = LA.stepOn(steps, d.inputs.acquisitionDate);
+  const growth = steps.slice(1).every((x, i) => Math.abs((x.rentPSF / steps[i].rentPSF - 1) * 100 - u.annualEscalationPct) <= 0.06);
+  ok(!u.rentSteps && now && near(now.rentPSF, u.currentRentPSF, 0.005) && growth && steps.at(-1).end === u.leaseEnd, `${l.tenant}: the lease's rent schedule gives the unit's rent on the acquisition date ($${u.currentRentPSF}/SF), grows at the unit's ${u.annualEscalationPct}% and ends on the unit's lease end`);
+  ok(fs.readFileSync(`${R}/public/sample-docs/leases/${l.files[0]}`).equals(fs.readFileSync(`${leaseDir}/${l.files[0]}`)) && abs.app.made_with === "Sample (fictional)" && abs.app.validated === false, `${l.tenant}: the bundled lease is the generated one, marked as a sample abstract`);
+}
+
+// 8. Documents about a tenant: the estoppel, the tenant's certificate and the CAM reconciliation.
 {
-  const leaseAbs = (f) => JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${f}`, "utf8"));
-  const untiedLeases = man.leases.filter((l) => { const d = dealOf(l.asset), u = d?.inputs.units.find((x) => x.tenantName === l.tenant); return !u || LA.leaseMismatches(leaseAbs(l.abstract), u, d.inputs).length > 0; });
-  console.log(`NOT YET TIED leases: ${untiedLeases.length} of ${man.leases.length} (the tenant is not on the asset's rent roll): ${untiedLeases.map((l) => `${l.tenant} at ${l.asset}`).join("; ")}`);
-  console.log(`NOT YET TIED lease-dependent documents: ${[...PENDING].join(", ")} (they name those tenants)`);
-  const dispNoSale = man.dispositions.filter((x) => !(dealOf(x.asset)?.inputs.dispositions ?? []).length);
-  console.log(`NOT YET TIED sale documents: ${dispNoSale.length} of ${man.dispositions.length} (the fund the app builds holds no sale; a sale is added only when the documents are uploaded)`);
-  ok(untiedLeases.length === 9 && PENDING.size === 3 && dispNoSale.length === 12 && untiedJobs === 6, "the not-yet-tied list is exactly: 9 leases, 3 lease-dependent documents, 12 sale documents, 6 construction job tenants");
-  void DISP;
+  const est = names.map(docOf).find((x) => x.doc_type === "estoppel"), cert = names.map(docOf).find((x) => x.doc_type === "insurance_cert" && x.abstract.app.lease_tenant), cam = names.map(docOf).find((x) => x.doc_type === "cam");
+  const lr = (doc, n) => leaseRows.find((x) => x.deal_id === dealOf(assetOf(n)).id && x.tenant === doc.abstract.app.lease_tenant);
+  const el = lr(est, est.name), eu = dealOf(assetOf(est.name)).inputs.units.find((u) => u.tenantName === el?.tenant);
+  const checks = el ? DA.estoppelChecks(est, el.abstract, eu) : [];
+  const badE = checks.filter((r) => !r.ok);
+  ok(el && checks.length >= 8 && badE.length === 0, `${est.name}: ${checks.length} statements, all as in the lease and on the rent roll${badE.length ? " — " + badE.map((r) => `${r.label}: ${r.estoppel} / ${r.lease}`).join("; ") : ""}`);
+  const cl = lr(cert, cert.name);
+  const gaps = cl ? DA.insuranceGaps(cert.abstract, { leaseAbs: cl.abstract, asOf: AS_OF }) : [{ text: "no lease" }];
+  ok(gaps.length === 0 && DA.leaseInsuranceRequirements(cl.abstract), `${cert.name}: meets the lease's insurance requirements, nothing lapsed or expiring${gaps.length ? " — " + gaps.map((g) => g.text).join("; ") : ""}`);
+  const camDeal = dealOf(assetOf(cam.name)), cc = DA.camCheck({ ...cam, deal_id: camDeal.id }, leaseRows);
+  const onRoll = cam.abstract.tenants.every((t) => camDeal.inputs.units.some((u) => u.tenantName === t.tenant && near(t.share_pct, (u.squareFeet / camDeal.inputs.squareFootage) * 100, 0.006)));
+  const withLease = cc.tenants.filter((t) => !t.noLease);
+  ok(onRoll && withLease.length === 1 && withLease.every((t) => t.issues.length === 0 && near(t.diff, 0, 0.5)), `${cam.name}: every tenant billed is on the rent roll at its share of the building; the lease tenant is billed what its lease allows${withLease.some((t) => t.issues.length) ? " — " + withLease.flatMap((t) => t.issues).join("; ") : ""}`);
+  const x = camDeal.inputs, opex = DA.docField(cam.abstract, "total_opex"), v = (k) => Number(String(DA.docField(cam.abstract, k).value).replace(/[$,]/g, ""));
+  ok(opex && near(v("management_fee"), v("gross_revenue") * x.managementFeePct / 100, 0.5) && near(v("total_opex"), (x.realEstateTaxPSF + x.insurancePSF + x.utilitiesPSF + x.maintenancePSF + x.janitorialPSF) * x.squareFootage + v("management_fee"), 1), `${cam.name}: expenses are the model's $/SF lines and its ${x.managementFeePct}% management fee`);
+}
+
+// 9. Sales in progress: the fund holds each sale as its documents state it.
+{
+  const dispDir = R + "/docs/sample-deal-docs/dispositions";
+  const TYPE = { bov: "bov", loi: "offer_letter", psa: "psa" };
+  const files = fs.readdirSync(dispDir + "/abstracts").map((f) => f.replace(/\.json$/, "")).sort();
+  ok(files.length === man.dispositions.length && man.dispositions.every((x) => fs.readFileSync(`${R}/public/sample-docs/${x.file}`).equals(fs.readFileSync(`${dispDir}/${x.name}.pdf`)) && fs.readFileSync(`${R}/public/sample-docs/${x.abstract}`).equals(fs.readFileSync(`${dispDir}/abstracts/${x.name}.json`))), `the ${files.length} bundled sale documents are the generated ones`);
+  const sold = fund.deals.filter((d) => (d.inputs.dispositions ?? []).some((s) => s.closing || s.stage === "closed") || d.inputs.realizedSale);
+  ok(sold.length === 0 && !man.dispositions.some((x) => /closing/.test(x.docType)), "Model Fund I holds no sold asset, and no sale document is a closing statement");
+  for (const x of man.dispositions) {
+    const d = dealOf(x.asset), sales = d?.inputs.dispositions ?? [], abs = JSON.parse(fs.readFileSync(`${dispDir}/abstracts/${x.name}.json`, "utf8"));
+    const r = sales.length === 1 ? DISP.dispositionRows(d.inputs, { type: x.docType, saleId: sales[0].id }, abs) : { rows: [{ differs: true, label: `${sales.length} sales on the asset` }] };
+    const diff = r.rows.filter((q) => q.differs && !q.info);
+    ok(DISP.canReview(x.docType) && r.rows.length > 0 && diff.length === 0, `${x.name} (${x.docType}): ${r.rows.length} terms, all as on the sale in the app${diff.length ? " — " + diff.map((q) => `${q.label}: ${JSON.stringify(q.appValue)} / ${JSON.stringify(q.docValue)}`).join("; ") : ""}`);
+    const seller = DA.docField(abs, "seller")?.value;
+    if (seller) ok(seller === (fund.termsPatch.entities ?? []).find((e) => e.dealId === d.id)?.name, `${x.name}: the seller is the asset's property company (${seller})`);
+  }
+  const act = DS.activeSales(fund.deals);
+  ok(act.length === 3 && act.filter((a) => a.sale.stage === "contract").length === 1 && act.filter((a) => a.sale.stage === "offers").length === 2, "three sales in progress: one under contract, two with offers");
+  for (const d of fund.deals.filter((q) => (q.inputs.dispositions ?? []).length)) {
+    const s = d.inputs.dispositions[0], bov = s.bovs[0], mk = fund.valuations[d.id] ?? {}, q = Object.keys(mk).sort().pop(), r = underwrite(d.inputs);
+    const basis = q ? mk[q].value : null;
+    ok(bov && (basis ? near(bov.price, basis) : bov.price > d.inputs.purchasePrice && near(bov.capPct, (r.annualCashFlows[0].noi / bov.price) * 100, 0.006)), `${d.inputs.propertyName}: the broker's value ($${bov?.price?.toLocaleString("en-US")}) is ${basis ? `the asset's ${q} mark` : "the model's year-1 NOI at the stated cap rate"}`);
+  }
+}
+
+// 10. The sample property-accounting exports (docs/sample-yardi) are the fund's units and rents.
+{
+  const Y = R + "/docs/sample-yardi";
+  e = ""; try { execFileSync("node", [R + "/scripts/sample-yardi/generate.cjs", "--check"], { stdio: "pipe" }); } catch (err) { e = String(err.stderr || err.message).trim().split("\n")[0]; }
+  ok(!e, `the sample Yardi files are what the generator writes from the fund today${e ? ": " + e : ""}`);
+  const exp = JSON.parse(fs.readFileSync(Y + "/expected.json", "utf8"));
+  ok(exp.properties.length === fund.deals.length && exp.properties.every((p, i) => p.name === fund.deals[i].inputs.propertyName), "its properties are the fund's nine assets, in order");
+  const codeOf = Object.fromEntries(exp.properties.map((p, i) => [p.code, fund.deals[i]]));
+  const rowsOf = (file) => { const rows = parseCSV(fs.readFileSync(`${Y}/${file}`, "utf8")); const h = rows.findIndex((r) => r.some((c) => /^property/i.test(String(c)))); return { head: rows[h].map((c) => String(c).toLowerCase()), body: rows.slice(h + 1).filter((r) => r.length > 3) }; };
+  let n = 0; const off = [];
+  for (const file of ["aged-receivables-2026-08.csv", "aged-receivables-2026-09.csv", "aged-receivables-2026-10.csv", "tenant-ledger.csv"]) {
+    const { head, body } = rowsOf(file);
+    const col = (re) => head.findIndex((c) => re.test(c));
+    const ip = col(/^property( code)?$/), iu = col(/^unit/), it = col(/tenant name|^tenant$|resident/);
+    for (const r of body) {
+      const d = codeOf[r[ip]]; if (!d) continue;
+      n++;
+      const ic = col(/tenant code/), code = ic >= 0 ? String(r[ic]) : "";
+      // The unit: its own column, else the tenant code (t + property number + unit position).
+      const u = iu >= 0 ? d.inputs.units.find((x) => x.name === r[iu]) : d.inputs.units[Number(code.slice(-3)) - 1];
+      const monthly = u ? Math.round((u.currentRentPSF * u.squareFeet / 12) * 100) / 100 : NaN;
+      const idesc = col(/^description$/), iamt = col(/^amount$/);
+      const rentOff = idesc >= 0 && r[idesc] === "Base rent" && !near(Number(r[iamt]), monthly, 0.005);
+      if (!u || (it >= 0 && r[it] && u.tenantName !== r[it]) || rentOff) off.push(`${file}: ${r[ip]} ${iu >= 0 ? r[iu] : code} ${it >= 0 ? r[it] : ""}${rentOff ? ` rent ${r[iamt]} vs ${monthly}` : ""}`);
+    }
+  }
+  ok(n > 0 && off.length === 0, `aged receivables and tenant ledger: every row is a unit of the fund with its tenant, and each rent charge is that unit's monthly rent (${n} rows${off.length ? "; not in the fund: " + off.slice(0, 4).join("; ") : ""})`);
+  const amts = exp.scenarios.every((sc) => { const d = dealOf(sc.asset), u = d?.inputs.units.find((x) => x.name === sc.unit); return u && u.leaseStatus === "occupied"; });
+  ok(amts, "each delinquency scenario is an occupied unit of the fund");
+  const cash = parseCSV(fs.readFileSync(Y + "/cash-balances-2026-09.csv", "utf8")).filter((r) => r[1] && r[0] !== "Property Code" && r[0] !== "Total");
+  ok(cash.length > 0 && cash.every((r) => dealOf(r[1])), `cash balances: every property is an asset of the fund (${cash.length} rows)`);
 }
 
 console.log(fail ? `${fail} FAILED` : "ALL PASS");

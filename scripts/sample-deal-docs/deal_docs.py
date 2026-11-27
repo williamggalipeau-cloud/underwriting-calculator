@@ -35,6 +35,21 @@ def add_days(iso, n):
 
 
 AF = ASSET["Airport Flex Park"]
+# The Model Fund I leases as scripts/sample-leases writes them (from the same
+# fund.json): the estoppel, the tenant's certificate and the CAM
+# reconciliation state the lease's own terms.
+LEASES = {l["asset"]: l for l in json.loads((Path(__file__).resolve().parents[2] / "docs" / "sample-leases" / "index.json").read_text()) if l.get("fund")}
+
+
+def slug(x):
+    import re
+    return re.sub(r"[^a-z0-9]+", "-", x.lower()).strip("-")
+
+
+def money2(x):
+    return f"${x:,.2f}"
+
+
 R9 = ASSET["Route 9 Small Bay"]
 (OUT / "html").mkdir(parents=True, exist_ok=True)
 (OUT / "abstracts").mkdir(parents=True, exist_ok=True)
@@ -248,29 +263,29 @@ build("airport-flex-insurance-owner", "Certificate of Liability and Property Ins
     ],
     "critical_dates": [],
 })
+_tl = LEASES["Airport Flex Park"]
+_tt, _tf = _tl["tenant"], _tl["fund"]
 tn = {
-    "ins": "Named insured: Desert Aero Parts LLC.", "hold": "Certificate holder: Model Fund I — Runway Vista LLC, as landlord and additional insured.",
-    "co": "Insurer: Fictional Casualty Group, rated A- (Excellent).", "date": "Certificate date: March 3, 2026.",
-    "gl": "General liability, policy CG-88410: $1,000,000 each occurrence, $2,000,000 aggregate, landlord is additional insured, waiver of subrogation applies, expires March 1, 2027.",
-    "umb": "Umbrella, policy CU-88411: limit $1,000,000, expires March 1, 2027.",
-    "auto": "Business auto, policy CA-88412: combined single limit $1,000,000, expires March 1, 2027.",
-    "wc": "Workers' compensation, policy WC-88413: statutory limits, expires March 1, 2027.",
+    "ins": f"Named insured: {_tt}.", "hold": f"Certificate holder: {_tf['landlord']}, as landlord and additional insured.",
+    "co": "Insurer: Fictional Casualty Group, rated A- (Excellent).", "date": "Certificate date: May 4, 2026.",
+    "gl": "General liability, policy CG-88410: $1,000,000 each occurrence, $2,000,000 aggregate, landlord is additional insured, waiver of subrogation applies, expires May 1, 2027.",
+    "umb": f"Umbrella, policy CU-88411: limit {_tf['umbrella']}, expires May 1, 2027.",
+    "auto": "Business auto, policy CA-88412: combined single limit $1,000,000, expires May 1, 2027.",
+    "wc": "Workers' compensation, policy WC-88413: statutory limits, expires May 1, 2027.",
 }
-build("airport-flex-insurance-desert-aero", "Certificate of Liability Insurance (Tenant: Desert Aero Parts)", [("Certificate", list(tn.values()))], {
-    "doc_type": "insurance_cert", "title": "Desert Aero Parts 2026–27", "summary": "Tenant certificate for Desert Aero Parts; the umbrella ($1,000,000) is below the lease's $2,000,000.",
-    "fields": [F("insured", "Desert Aero Parts LLC", tn["ins"]), F("holder", "Model Fund I — Runway Vista LLC, as landlord and additional insured", tn["hold"]),
-               F("insurer", "Fictional Casualty Group", tn["co"]), F("insurer_rating", "A- (Excellent)", tn["co"]), F("cert_date", "March 3, 2026", tn["date"])],
+assert _tf["gl_limit"] == "$1,000,000 per occurrence and $2,000,000 in the aggregate" and _tf["auto_limit"].startswith("$1,000,000")
+build(f"airport-flex-insurance-{slug(_tt)}", f"Certificate of Liability Insurance (Tenant: {_tt})", [("Certificate", list(tn.values()))], {
+    "doc_type": "insurance_cert", "title": f"{_tt} 2026–27", "summary": f"Tenant certificate for {_tt}: general liability, umbrella, auto and workers' compensation at the limits its lease requires, to May 1, 2027.",
+    "fields": [F("insured", _tt, tn["ins"]), F("holder", f"{_tf['landlord']}, as landlord and additional insured", tn["hold"]),
+               F("insurer", "Fictional Casualty Group", tn["co"]), F("insurer_rating", "A- (Excellent)", tn["co"]), F("cert_date", "May 4, 2026", tn["date"])],
     "policies": [
-        {"coverage": "cgl", "policy_no": "CG-88410", "per_occurrence": 1000000, "aggregate": 2000000, "expiry": "2027-03-01", "additional_insured": True, "waiver_of_subrogation": True, "evidence": [{"quote": tn["gl"]}]},
-        {"coverage": "umbrella", "policy_no": "CU-88411", "limit": 1000000, "expiry": "2027-03-01", "evidence": [{"quote": tn["umb"]}]},
-        {"coverage": "auto", "policy_no": "CA-88412", "limit": 1000000, "expiry": "2027-03-01", "evidence": [{"quote": tn["auto"]}]},
-        {"coverage": "workers_comp", "policy_no": "WC-88413", "limit": "statutory", "expiry": "2027-03-01", "evidence": [{"quote": tn["wc"]}]},
+        {"coverage": "cgl", "policy_no": "CG-88410", "per_occurrence": 1000000, "aggregate": 2000000, "expiry": "2027-05-01", "additional_insured": True, "waiver_of_subrogation": True, "evidence": [{"quote": tn["gl"]}]},
+        {"coverage": "umbrella", "policy_no": "CU-88411", "limit": int(_tf["umbrella"].replace("$", "").replace(",", "")), "expiry": "2027-05-01", "evidence": [{"quote": tn["umb"]}]},
+        {"coverage": "auto", "policy_no": "CA-88412", "limit": 1000000, "expiry": "2027-05-01", "evidence": [{"quote": tn["auto"]}]},
+        {"coverage": "workers_comp", "policy_no": "WC-88413", "limit": "statutory", "expiry": "2027-05-01", "evidence": [{"quote": tn["wc"]}]},
     ],
-    "critical_dates": [],
+    "critical_dates": [], "app": {"lease_tenant": _tt},
 })
-
-# (1.1.13: the Route 9 "test sale" settlement statement is gone. Model Fund I
-# holds no closed sale, so a closing statement for one could not tie out.)
 
 # ── Model Fund I LPA and PPM ────────────────────────────────────────────────
 lp = {
@@ -442,45 +457,61 @@ appraisal_from_mark("airport-flex-appraisal-2026q3", AF, "Fictional Valuation Ad
 appraisal_from_mark("route9-appraisal-2026q3", R9, "Example Appraisal Group, MAI", "2026-09-30", "October 22, 2026")
 
 # ── Estoppel, CAM reconciliation and billing (phase H) ──────────────────────
+_est_iso = "2026-11-16"
+_row = next(r for r in _tf["schedule"] if r["start"] <= _est_iso <= r["end"])
 e = {
-    "who": "The undersigned, Desert Aero Parts LLC (Tenant), certifies to Model Fund I and its lender as of November 16, 2026 as follows.",
-    "prem": "Tenant leases Building B, Suite 104 at Airport Flex Park containing 2,000 rentable square feet.",
-    "lease": "The Lease is dated January 1, 2025 and has not been amended; there are no amendments.",
-    "com": "The term commenced on March 1, 2025.", "exp": "The term expires on February 28, 2028.",
-    "rent": "Current monthly base rent is $2,583.33.", "paid": "Rent has been paid through November 30, 2026.",
-    "dep": "Tenant has deposited a security deposit of $2,500.00 with Landlord.",
-    "ren": "Tenant has one (1) option to extend the term for three (3) years.",
+    "who": f"The undersigned, {_tt} (Tenant), certifies to {_tf['landlord']} and its lender as of {long(_est_iso)} as follows.",
+    "prem": f"Tenant leases {_tl['suite']} at Airport Flex Park containing {_tl['rsf']:,} rentable square feet.",
+    "lease": f"The Lease is dated {long(_tf['lease_date'])} and has not been amended; there are no amendments.",
+    "com": f"The term commenced on {long(_tl['commencement'])}.", "exp": f"The term expires on {long(_tl['expiration'])}.",
+    "rent": f"Current monthly base rent is {money2(_row['monthly'])}.", "paid": "Rent has been paid through November 30, 2026.",
+    "dep": f"Tenant has deposited a security deposit of {money2(_tf['deposit'])} with Landlord.",
+    "ren": "Tenant has no option to extend the term.",
     "tdef": "Tenant is not in default under the Lease. There are no tenant defaults.",
-    "ldef": "Tenant claims a credit of $1,200 against rent for HVAC repairs Tenant paid in August 2026 that Landlord was required to make.",
+    "ldef": "Landlord is not in default under the Lease, and Tenant has no claim, credit or offset against rent.",
     "pre": "No rent has been paid more than one month in advance; prepaid rent is $0.",
 }
-build("airport-flex-estoppel-desert-aero", "Tenant Estoppel Certificate – Desert Aero Parts LLC", [
+build(f"airport-flex-estoppel-{slug(_tt)}", f"Tenant Estoppel Certificate – {_tt}", [
     ("Certification", [e["who"], e["prem"], e["lease"], e["com"], e["exp"]]), ("Rent and deposit", [e["rent"], e["paid"], e["dep"], e["pre"]]),
     ("Options", [e["ren"]]), ("Defaults and claims", [e["tdef"], e["ldef"]])], {
-    "doc_type": "estoppel", "title": "Desert Aero Parts estoppel", "summary": "Estoppel dated November 16, 2026: expiration stated as February 28, 2028 (the lease says February 29) and a $1,200 HVAC credit claimed against Landlord.",
-    "fields": [F("tenant", "Desert Aero Parts LLC", e["who"]), F("estoppel_date", "November 16, 2026", e["who"]), F("premises", "Building B, Suite 104", e["prem"]),
-               F("lease_date", "January 1, 2025", e["lease"]), F("amendments", "None", e["lease"]), F("commencement_date", "March 1, 2025", e["com"]),
-               F("expiration_date", "February 28, 2028", e["exp"]), F("monthly_rent", "$2,583.33", e["rent"]), F("rent_paid_through", "November 30, 2026", e["paid"]),
-               F("security_deposit", "$2,500.00", e["dep"]), F("renewal_options", "One (1) option of three (3) years", e["ren"]), F("tenant_defaults", "None", e["tdef"]),
-               F("landlord_defaults", "Claims a $1,200 credit for HVAC repairs Landlord was required to make", e["ldef"]), F("prepaid_rent", "$0", e["pre"])],
-    "critical_dates": [],
+    "doc_type": "estoppel", "title": f"{_tt} estoppel", "summary": f"Estoppel dated {long(_est_iso)}: the tenant confirms the lease's dates, rent and deposit, no options, no defaults and no claims.",
+    "fields": [F("tenant", _tt, e["who"]), F("estoppel_date", long(_est_iso), e["who"]), F("premises", _tl["suite"], e["prem"]),
+               F("lease_date", long(_tf["lease_date"]), e["lease"]), F("amendments", "None", e["lease"]), F("commencement_date", long(_tl["commencement"]), e["com"]),
+               F("expiration_date", long(_tl["expiration"]), e["exp"]), F("monthly_rent", money2(_row["monthly"]), e["rent"]), F("rent_paid_through", "November 30, 2026", e["paid"]),
+               F("security_deposit", money2(_tf["deposit"]), e["dep"]), F("renewal_options", "None", e["ren"]), F("tenant_defaults", "None", e["tdef"]),
+               F("landlord_defaults", "None", e["ldef"]), F("prepaid_rent", "$0", e["pre"])],
+    "critical_dates": [], "app": {"lease_tenant": _tt},
 })
 
+# Lakeshore: the seller's 2025 reconciliation, at the model's own expense
+# lines and management fee, with the lease tenant billed at its lease share.
+LS = ASSET["Lakeshore Service Center"]
+_cl = LEASES["Lakeshore Service Center"]
+_ct, _cf = _cl["tenant"], _cl["fund"]
+_cx = LS["expensesPSF"]
+_crev = round(sum(u["sf"] * u["rentPSF"] for u in LS["units"] if u["status"] == "occupied") / 1000) * 1000
+_cfee = round(_crev * LS["managementFeePct"] / 100)
+_cctl = round((_cx["utilities"] + _cx["maintenance"] + _cx["janitorial"]) * LS["sf"])
+_copex = round((_cx["realEstateTax"] + _cx["insurance"]) * LS["sf"]) + _cctl + _cfee
+_o = next(u for u in LS["units"] if u["status"] == "occupied" and u["tenant"] != _ct)
+_oshare = round(_o["sf"] / LS["sf"] * 100, 2)
+_b1, _b2 = round(_cf["share_pct"] / 100 * _copex, 2), round(_oshare / 100 * _copex, 2)
+_p1 = round(_b1 * 0.95, 2)
 c = {
     "yr": "This statement reconciles Operating Expenses at Lakeshore Service Center for calendar year 2025.",
-    "opex": "Total Operating Expenses for 2025 were $180,000.", "ctl": "Controllable Operating Expenses were $96,000.",
-    "fee": "The management fee charged was $10,800 on gross revenues of $240,000.",
-    "t1": "North Texas Fleet Service LLC: share 6.00%, share of expenses $10,800, estimates paid $10,200, balance due $600.",
-    "t2": "Prairie Auto Glass Inc.: share 7.50%, share of expenses $13,500, estimates paid $13,500, balance due $0.",
+    "opex": f"Total Operating Expenses for 2025 were ${_copex:,}.", "ctl": f"Controllable Operating Expenses were ${_cctl:,}.",
+    "fee": f"The management fee charged was ${_cfee:,} on gross revenues of ${_crev:,}.",
+    "t1": f"{_ct}: share {_cf['share_pct']:.2f}%, share of expenses {money2(_b1)}, estimates paid {money2(_p1)}, balance due {money2(round(_b1 - _p1, 2))}.",
+    "t2": f"{_o['tenant']}: share {_oshare:.2f}%, share of expenses {money2(_b2)}, estimates paid {money2(_b2)}, balance due $0.00.",
 }
 build("lakeshore-cam-2025", "2025 Operating Expense Reconciliation – Lakeshore Service Center", [
     ("Summary", [c["yr"], c["opex"], c["ctl"], c["fee"]]), ("Tenant shares", [c["t1"], c["t2"]])], {
-    "doc_type": "cam", "title": "Lakeshore 2025 CAM reconciliation", "summary": "2025 CAM reconciliation: $180,000 of expenses; North Texas Fleet billed at a 6.00% share (lease 5.50%) and a management fee of 4.5% of revenue (lease cap 4%).",
-    "fields": [F("year", "2025", c["yr"]), F("total_opex", "$180,000", c["opex"]), F("controllable_opex", "$96,000", c["ctl"]),
-               F("management_fee", "$10,800", c["fee"]), F("gross_revenue", "$240,000", c["fee"])],
-    "tenants": [{"tenant": "North Texas Fleet Service LLC", "share_pct": 6.0, "billed": 10800, "base_year_amount": 0, "estimates_paid": 10200, "balance_due": 600, "evidence": [{"quote": c["t1"], "page": 1}]},
-                {"tenant": "Prairie Auto Glass Inc.", "share_pct": 7.5, "billed": 13500, "base_year_amount": 0, "estimates_paid": 13500, "balance_due": 0, "evidence": [{"quote": c["t2"], "page": 1}]}],
-    "critical_dates": [],
+    "doc_type": "cam", "title": "Lakeshore 2025 CAM reconciliation", "summary": f"2025 CAM reconciliation: ${_copex:,} of expenses; {_ct} billed at its lease share ({_cf['share_pct']:.2f}%); management fee {LS['managementFeePct']:g}% of revenue (the lease's cap).",
+    "fields": [F("year", "2025", c["yr"]), F("total_opex", f"${_copex:,}", c["opex"]), F("controllable_opex", f"${_cctl:,}", c["ctl"]),
+               F("management_fee", f"${_cfee:,}", c["fee"]), F("gross_revenue", f"${_crev:,}", c["fee"])],
+    "tenants": [{"tenant": _ct, "share_pct": _cf["share_pct"], "billed": _b1, "base_year_amount": 0, "estimates_paid": _p1, "balance_due": round(_b1 - _p1, 2), "evidence": [{"quote": c["t1"], "page": 1}]},
+                {"tenant": _o["tenant"], "share_pct": _oshare, "billed": _b2, "base_year_amount": 0, "estimates_paid": _b2, "balance_due": 0, "evidence": [{"quote": c["t2"], "page": 1}]}],
+    "critical_dates": [], "app": {"lease_tenant": _ct},
 })
 
 b = {

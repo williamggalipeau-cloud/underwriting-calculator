@@ -298,8 +298,361 @@
       "tradeDate": "2026-03-12"
      }
     ]
+   ],
+   [
+    "dispositions",
+    [
+     {
+      "id": "sample-sale-2",
+      "scope": "whole",
+      "unitIds": [],
+      "reason": "plan_complete",
+      "targetPrice": 13700000,
+      "targetCapPct": null,
+      "targetClose": "",
+      "stage": "contract",
+      "withdrawnReason": "",
+      "bovs": [
+       {
+        "id": "sample-bov-2-1",
+        "broker": "Fictional Industrial Advisors",
+        "price": 13280000,
+        "capPct": 6.02,
+        "feePct": 1.25,
+        "notes": "Value range $12,900,000–$13,700,000; list $13,700,000; $316/SF; eight weeks; BOV dated 2026-11-02",
+        "docId": null
+       }
+      ],
+      "brokerChosen": "",
+      "listing": {
+       "feePct": null,
+       "termMonths": null,
+       "exclusions": ""
+      },
+      "marketing": {
+       "casSigned": 0,
+       "tours": 0,
+       "callForOffers": ""
+      },
+      "contract": {
+       "psaDate": "2026-11-20",
+       "deposit": 500000,
+       "depositDue": "",
+       "hardDate": "2026-12-21",
+       "ddStart": "",
+       "ddDeadline": "2026-12-21",
+       "loanClosing": "",
+       "closingDate": "2027-01-20",
+       "priceLog": [],
+       "docId": null
+      },
+      "closing": null,
+      "offers": [
+       {
+        "id": "sample-offer-2-1",
+        "buyer": "Example Logistics REIT",
+        "buyerType": "Private investor",
+        "broker": "",
+        "date": "2026-11-06",
+        "round": "initial",
+        "price": 13150000,
+        "deposit": 250000,
+        "ddDays": 30,
+        "closingDays": 30,
+        "financingContingency": false,
+        "notes": "",
+        "selected": true,
+        "docId": null,
+        "history": []
+       }
+      ],
+      "startedFrom": "Sample sale (fictional)",
+      "createdAt": "2026-11-27T12:00:00.000Z"
+     }
+    ]
+   ]
+  ],
+  "sample-deal-3": [
+   [
+    "dispositions",
+    [
+     {
+      "id": "sample-sale-3",
+      "scope": "whole",
+      "unitIds": [],
+      "reason": "plan_complete",
+      "targetPrice": 10450000,
+      "targetCapPct": null,
+      "targetClose": "",
+      "stage": "offers",
+      "withdrawnReason": "",
+      "bovs": [
+       {
+        "id": "sample-bov-3-1",
+        "broker": "Sample Coastal Brokerage",
+        "price": 10150000,
+        "capPct": 6.43,
+        "feePct": 1,
+        "notes": "Value range $9,850,000–$10,450,000; list $10,450,000; $282/SF; ten weeks; BOV dated 2026-11-02",
+        "docId": null
+       }
+      ],
+      "brokerChosen": "",
+      "listing": {
+       "feePct": null,
+       "termMonths": null,
+       "exclusions": ""
+      },
+      "marketing": {
+       "casSigned": 0,
+       "tours": 0,
+       "callForOffers": ""
+      },
+      "contract": {
+       "psaDate": "",
+       "deposit": null,
+       "depositDue": "",
+       "hardDate": "",
+       "ddStart": "",
+       "ddDeadline": "",
+       "loanClosing": "",
+       "closingDate": "",
+       "priceLog": []
+      },
+      "closing": null,
+      "offers": [
+       {
+        "id": "sample-offer-3-1",
+        "buyer": "Fictional Pacific Industrial Fund II",
+        "buyerType": "Private investor",
+        "broker": "",
+        "date": "2026-11-12",
+        "round": "initial",
+        "price": 10050000,
+        "deposit": 200000,
+        "ddDays": 45,
+        "closingDays": 30,
+        "financingContingency": true,
+        "notes": "",
+        "selected": false,
+        "docId": null,
+        "history": []
+       }
+      ],
+      "startedFrom": "Sample sale (fictional)",
+      "createdAt": "2026-11-27T12:00:00.000Z"
+     }
+    ]
+   ]
+  ],
+  "sample-deal-6": [
+   [
+    "dispositions",
+    [
+     {
+      "id": "sample-sale-6",
+      "scope": "whole",
+      "unitIds": [],
+      "reason": "plan_complete",
+      "targetPrice": 15850000,
+      "targetCapPct": null,
+      "targetClose": "",
+      "stage": "offers",
+      "withdrawnReason": "",
+      "bovs": [
+       {
+        "id": "sample-bov-6-1",
+        "broker": "Example Northwest Capital Markets",
+        "price": 15400000,
+        "capPct": 5.95,
+        "feePct": 1.1,
+        "notes": "Value range $14,950,000–$15,850,000; list $15,850,000; $308/SF; eight weeks; BOV dated 2026-11-02",
+        "docId": null
+       }
+      ],
+      "brokerChosen": "",
+      "listing": {
+       "feePct": null,
+       "termMonths": null,
+       "exclusions": ""
+      },
+      "marketing": {
+       "casSigned": 0,
+       "tours": 0,
+       "callForOffers": ""
+      },
+      "contract": {
+       "psaDate": "",
+       "deposit": null,
+       "depositDue": "",
+       "hardDate": "",
+       "ddStart": "",
+       "ddDeadline": "",
+       "loanClosing": "",
+       "closingDate": "",
+       "priceLog": []
+      },
+      "closing": null,
+      "offers": [
+       {
+        "id": "sample-offer-6-1",
+        "buyer": "Demo Flex Owners LLC",
+        "buyerType": "Private investor",
+        "broker": "",
+        "date": "2026-11-18",
+        "round": "initial",
+        "price": 15250000,
+        "deposit": 300000,
+        "ddDays": 30,
+        "closingDays": 45,
+        "financingContingency": false,
+        "notes": "",
+        "selected": false,
+        "docId": null,
+        "history": []
+       }
+      ],
+      "startedFrom": "Sample sale (fictional)",
+      "createdAt": "2026-11-27T12:00:00.000Z"
+     }
+    ]
    ]
   ]
+ },
+ "units": {
+  "sample-deal-1": {
+   "005": {
+    "tenant": "Blue Mesa Fulfillment",
+    "set": {
+     "leaseStart": "2022-05-01",
+     "securityDeposit": 2990,
+     "recoveries": "Triple net (NNN); tenant's share 8.33%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-2": {
+   "005": {
+    "tenant": "Sierra Coffee Roasters",
+    "set": {
+     "leaseStart": "2022-03-17",
+     "securityDeposit": 2997.67,
+     "recoveries": "Triple net (NNN); tenant's share 5.48%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-3": {
+   "005": {
+    "tenant": "Copper Canyon Tile & Stone",
+    "set": {
+     "leaseStart": "2022-05-31",
+     "recoveries": "Triple net (NNN); tenant's share 6.25%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-4": {
+   "005": {
+    "tenant": "Riverbend Flooring",
+    "set": {
+     "leaseStart": "2022-08-16",
+     "securityDeposit": 2586.67,
+     "recoveries": "Triple net (NNN); tenant's share 7.14%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-5": {
+   "005": {
+    "tenant": "Prairie Glass & Glazing",
+    "set": {
+     "leaseStart": "2023-03-16",
+     "securityDeposit": 3010,
+     "recoveries": "Triple net (NNN); tenant's share 11.11%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-6": {
+   "005": {
+    "tenant": "Harbor Precision Machining",
+    "set": {
+     "leaseStart": "2022-07-15",
+     "securityDeposit": 2981.25,
+     "recoveries": "Triple net (NNN); tenant's share 4.50%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-7": {
+   "005": {
+    "tenant": "Desert Sky Print Shop",
+    "set": {
+     "leaseStart": "2024-10-31",
+     "recoveries": "Triple net (NNN); tenant's share 6.56%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-8": {
+   "005": {
+    "tenant": "Granite Courier",
+    "set": {
+     "leaseStart": "2023-01-16",
+     "securityDeposit": 3182,
+     "recoveries": "Triple net (NNN); tenant's share 8.27%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  },
+  "sample-deal-9": {
+   "005": {
+    "tenant": "Bayline Auto Parts",
+    "set": {
+     "leaseStart": "2022-11-14",
+     "securityDeposit": 2871,
+     "recoveries": "Triple net (NNN); tenant's share 5.50%; no expense cap",
+     "renewalOptions": 0,
+     "renewalOptionYears": 0,
+     "renewalNoticeMonths": 0,
+     "terminationNoticeMonths": 0,
+     "terminationFee": 0
+    }
+   }
+  }
  },
  "fund": [
   [

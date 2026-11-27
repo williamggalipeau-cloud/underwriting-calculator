@@ -11,10 +11,18 @@ const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const sp = j(R + "/lib/samplePortfolio.js");
 const c = j(R + "/lib/calculations.js");
 const { TEST_INPUTS } = j(R + "/lib/testScenario.js");
-const OUT = path.join(R, "docs", "sample-yardi");
+// --check: write to a temporary folder and compare with docs/sample-yardi (exit 1 if they differ).
+const CHECK = process.argv.includes("--check");
+const REAL = path.join(R, "docs", "sample-yardi");
+const OUT = CHECK ? fs.mkdtempSync(path.join(require("os").tmpdir(), "yardi-")) : REAL;
 fs.mkdirSync(OUT, { recursive: true });
 
-const deals = sp.buildSampleDeals(TEST_INPUTS);
+// 1.1.13 (everything ties out): the fund the app loads (lib/sampleFund.js),
+// so every property, unit, tenant, SF and rent here is the app's. The files
+// as they were before (built from the test scenario's inputs) are kept for
+// the tests in tests/fixtures/sample-yardi.
+const { buildSampleFund } = j(R + "/lib/sampleFund.js");
+const deals = buildSampleFund({ todayISO: "2026-11-27", docTerms: false }).deals;
 const r2 = (n) => Math.round(n * 100) / 100;
 const props = deals.map((d, i) => ({ code: `mf1-${String(i + 1).padStart(2, "0")}`, name: d.inputs.propertyName, inputs: d.inputs }));
 const tcode = (pi, ui) => `t${String(pi + 1).padStart(4, "0")}${String(ui + 1).padStart(3, "0")}`;
@@ -105,19 +113,20 @@ fs.writeFileSync(path.join(OUT, "income-statement-2026.csv"), csv([["Income Stat
 // TI and capital jobs by unit (budget, committed, invoiced, paid) and their
 // invoices, for the later "TI spend by unit" enhancement of the business plan.
 // TI budgets = the unit's TI/SF assumption × SF. Generic columns, not Yardi's.
-// [asset, unit or "", job name, category, kind (new|renewal|capex), new tenant, budget override, committed %, invoiced %, paid share of invoiced, status, start, completion, scheduled (target) completion]
+// The Tenant column is the unit's tenant on the rent roll (blank for a vacant unit: no tenant is signed yet).
+// [asset, unit or "", job name, category, kind (new|renewal|capex), new tenant (unused), budget override, committed %, invoiced %, paid share of invoiced, status, start, completion, scheduled (target) completion]
 const JOBS = [
-  ["Airport Flex Park", "001", "Unit 001 re-tenant TI", "Tenant Improvements", "new", "Silverline Auto Glass LLC", null, 1.078, 1.078, 1, "Complete", "2026-08-03", "2026-09-12", "2026-09-12"], // 7.8% over
+  ["Airport Flex Park", "001", "Unit 001 re-tenant TI", "Tenant Improvements", "new", "", null, 1.078, 1.078, 1, "Complete", "2026-08-03", "2026-09-12", "2026-09-12"], // 7.8% over
   ["Airport Flex Park", "002", "Unit 002 renewal TI", "Tenant Improvements", "renewal", "", null, 0.95, 0.95, 1, "Complete", "2026-09-08", "2026-09-30", "2026-09-30"],
-  ["Airport Flex Park", "012", "Unit 012 lease-up TI", "Tenant Improvements", "new", "Mojave Drone Works Inc.", null, 0.75, 0.40, 1, "In progress", "2026-10-01", "", "2026-12-15"],
+  ["Airport Flex Park", "012", "Unit 012 lease-up TI", "Tenant Improvements", "new", "", null, 0.75, 0.40, 1, "In progress", "2026-10-01", "", "2026-12-15"],
   ["Airport Flex Park", "", "Roof replacement, Building B", "Capital Improvements", "capex", "", 180000, 0.98, 0.55, 0.9, "In progress", "2026-09-15", "", "2027-01-29"],
-  ["Route 9 Small Bay", "017", "Unit 017 lease-up TI", "Tenant Improvements", "new", "Garden State Millwork LLC", null, 1, 1, 1, "Complete", "2026-05-04", "2026-06-26", "2026-06-26"],
+  ["Route 9 Small Bay", "017", "Unit 017 lease-up TI", "Tenant Improvements", "new", "", null, 1, 1, 1, "Complete", "2026-05-04", "2026-06-26", "2026-06-26"],
   ["Route 9 Small Bay", "018", "Unit 018 lease-up TI", "Tenant Improvements", "new", "", null, 0, 0, 0, "Not started", "", "", "2027-03-31"],
   ["Route 9 Small Bay", "001", "Unit 001 renewal TI", "Tenant Improvements", "renewal", "", null, 1, 1, 1, "Complete", "2026-09-01", "2026-09-20", "2026-09-20"],
-  ["Harbor Light Industrial", "016", "Unit 016 lease-up TI", "Tenant Improvements", "new", "Tidewater Marine Electric LLC", null, 0.9, 0.6, 0.8, "In progress", "2026-09-14", "", "2026-11-20"],
+  ["Harbor Light Industrial", "016", "Unit 016 lease-up TI", "Tenant Improvements", "new", "", null, 0.9, 0.6, 0.8, "In progress", "2026-09-14", "", "2026-11-20"],
   ["Harbor Light Industrial", "", "Parking lot resurfacing", "Capital Improvements", "capex", "", 95000, 1, 1, 1, "Complete", "2026-07-06", "2026-08-21", "2026-08-21"],
-  ["Ridgeway Trade Center", "014", "Unit 014 lease-up TI", "Tenant Improvements", "new", "Lone Star Cabinetry LLC", null, 1.344, 1.344, 0.85, "Complete", "2026-07-20", "2026-10-09", "2026-10-09"], // 34% over
-  ["Mill Creek Business Park", "021", "Unit 021 lease-up TI", "Tenant Improvements", "new", "Cascade Climbing Supply Co.", null, 0.6, 0.25, 1, "In progress", "2026-10-05", "", "2027-01-08"],
+  ["Ridgeway Trade Center", "014", "Unit 014 lease-up TI", "Tenant Improvements", "new", "", null, 1.344, 1.344, 0.85, "Complete", "2026-07-20", "2026-10-09", "2026-10-09"], // 34% over
+  ["Mill Creek Business Park", "021", "Unit 021 lease-up TI", "Tenant Improvements", "new", "", null, 0.6, 0.25, 1, "In progress", "2026-10-05", "", "2027-01-08"],
 ];
 const VENDORS = { "Tenant Improvements": ["Example Builders Inc.", "Sample Electric Co.", "Fictional HVAC Services"], "Capital Improvements": ["Test Roofing & Paving LLC", "Example Builders Inc."] };
 const jobRows = [["Job Code", "Property", "Property Name", "Unit", "Job Name", "Category", "Tenant", "Original Budget", "Revisions", "Revised Budget", "Committed", "Invoiced to Date", "Paid to Date", "Retainage Held", "Remaining Budget", "Status", "Start Date", "Completion Date", "Scheduled Completion"]];
@@ -155,4 +164,8 @@ fs.writeFileSync(path.join(OUT, "construction-jobs-2026-10.csv"), csv([["Constru
 fs.writeFileSync(path.join(OUT, "construction-invoices-2026-10.csv"), csv([["Construction Invoice Detail through 10/31/2026"], cmNote, [], ...invRows]));
 expected.construction = construction;
 fs.writeFileSync(path.join(OUT, "expected.json"), JSON.stringify({ properties: props.map((p) => ({ code: p.code, name: p.name })), scenarios: SC.map(([a, u, ch, , note]) => ({ asset: a, unit: u, charge: ch, note })), ...expected }, null, 1));
-console.log("ok", expected);
+if (CHECK) {
+  const stale = fs.readdirSync(OUT).filter((f) => !fs.existsSync(path.join(REAL, f)) || fs.readFileSync(path.join(OUT, f), "utf8") !== fs.readFileSync(path.join(REAL, f), "utf8"));
+  if (stale.length) { console.error("docs/sample-yardi is stale (" + stale.join(", ") + "): run node scripts/sample-yardi/generate.cjs and update lib/sampleConstruction.js"); process.exit(1); }
+  console.log("docs/sample-yardi is current");
+} else console.log("ok", expected);

@@ -109,7 +109,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m
   check((await bpEl.innerText()).includes("Revision 1 of 2") && !(await bpEl.innerText()).includes("Infill flex"), "revision 1 is unchanged");
   await bpEl.getByLabel("Revision").selectOption("2");
   // Import actuals for the whole fund
-  await bpEl.getByLabel("Import actuals").setInputFiles(`${R}/docs/sample-yardi/income-statement-2026.csv`);
+  await bpEl.getByLabel("Import actuals").setInputFiles(`${R}/tests/fixtures/sample-yardi/income-statement-2026.csv`);
   await p.waitForTimeout(1000);
   check(/8 assets matched/.test(await bpEl.getByTestId("plan-msg").innerText()), "income statement imported: 8 assets matched");
   const util = bpEl.locator('[data-testid="variance-row"][data-line="utilities"]');

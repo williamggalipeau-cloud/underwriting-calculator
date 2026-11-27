@@ -11,7 +11,7 @@ const FUND_I = ["Airport Flex Park", "Route 9 Small Bay", "Harbor Light Industri
 const PREFIX = { "airport-flex": "Airport Flex Park", route9: "Route 9 Small Bay", "harbor-light": "Harbor Light Industrial", "mill-creek": "Mill Creek Business Park", lakeshore: "Lakeshore Service Center", "model-fund-i": "" };
 const assetOf = (name) => { const k = Object.keys(PREFIX).find((p) => name.startsWith(p + "-")); return k === undefined ? null : PREFIX[k]; };
 // Asset documents that belong to a tenant's lease (insurance certificate, estoppel).
-const LEASE_TENANT = { "airport-flex-insurance-desert-aero": "Desert Aero Parts LLC", "airport-flex-estoppel-desert-aero": "Desert Aero Parts LLC" };
+// A document about one tenant names it in its abstract (app.lease_tenant), so the upload links it to that tenant's lease.
 fs.rmSync(OUT, { recursive: true, force: true });
 const manifest = { deals: [], dispositions: [], leases: [], credit: [], gpAgreements: [] };
 const copy = (from, to) => { fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(from, to); };
@@ -25,7 +25,7 @@ for (const [set, key] of [["deals", "deals"], ["dispositions", "dispositions"]])
     const abstract = JSON.parse(fs.readFileSync(path.join(dir, "abstracts", f), "utf8"));
     copy(path.join(dir, `${name}.pdf`), path.join(OUT, set, `${name}.pdf`));
     copy(path.join(dir, "abstracts", f), path.join(OUT, set, `${name}.json`));
-    manifest[key].push({ name, file: `${set}/${name}.pdf`, abstract: `${set}/${name}.json`, docType: abstract.doc_type, asset: asset || null, fund: asset ? null : "Model Fund I", leaseTenant: LEASE_TENANT[name] ?? null, title: abstract.title ?? name });
+    manifest[key].push({ name, file: `${set}/${name}.pdf`, abstract: `${set}/${name}.json`, docType: abstract.doc_type, asset: asset || null, fund: asset ? null : "Model Fund I", leaseTenant: abstract.app?.lease_tenant ?? null, title: abstract.title ?? name });
   }
 }
 const leases = JSON.parse(fs.readFileSync(path.join(R, "docs", "sample-leases", "index.json"), "utf8"));

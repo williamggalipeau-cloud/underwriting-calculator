@@ -1,0 +1,120 @@
+{
+ "doc_type": "insurance_cert",
+ "title": "Blue Mesa Fulfillment 2026–27",
+ "summary": "Tenant certificate for Blue Mesa Fulfillment: general liability, umbrella, auto and workers' compensation at the limits its lease requires, to May 1, 2027.",
+ "fields": [
+  {
+   "key": "insured",
+   "value": "Blue Mesa Fulfillment",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Named insured: Blue Mesa Fulfillment.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "holder",
+   "value": "Model Fund I — Runway Vista LLC, as landlord and additional insured",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Certificate holder: Model Fund I — Runway Vista LLC, as landlord and additional insured.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "insurer",
+   "value": "Fictional Casualty Group",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Insurer: Fictional Casualty Group, rated A- (Excellent).",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "insurer_rating",
+   "value": "A- (Excellent)",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Insurer: Fictional Casualty Group, rated A- (Excellent).",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cert_date",
+   "value": "May 4, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Certificate date: May 4, 2026.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "policies": [
+  {
+   "coverage": "cgl",
+   "policy_no": "CG-88410",
+   "per_occurrence": 1000000,
+   "aggregate": 2000000,
+   "expiry": "2027-05-01",
+   "additional_insured": true,
+   "waiver_of_subrogation": true,
+   "evidence": [
+    {
+     "quote": "General liability, policy CG-88410: $1,000,000 each occurrence, $2,000,000 aggregate, landlord is additional insured, waiver of subrogation applies, expires May 1, 2027."
+    }
+   ]
+  },
+  {
+   "coverage": "umbrella",
+   "policy_no": "CU-88411",
+   "limit": 2000000,
+   "expiry": "2027-05-01",
+   "evidence": [
+    {
+     "quote": "Umbrella, policy CU-88411: limit $2,000,000, expires May 1, 2027."
+    }
+   ]
+  },
+  {
+   "coverage": "auto",
+   "policy_no": "CA-88412",
+   "limit": 1000000,
+   "expiry": "2027-05-01",
+   "evidence": [
+    {
+     "quote": "Business auto, policy CA-88412: combined single limit $1,000,000, expires May 1, 2027."
+    }
+   ]
+  },
+  {
+   "coverage": "workers_comp",
+   "policy_no": "WC-88413",
+   "limit": "statutory",
+   "expiry": "2027-05-01",
+   "evidence": [
+    {
+     "quote": "Workers' compensation, policy WC-88413: statutory limits, expires May 1, 2027."
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "lease_tenant": "Blue Mesa Fulfillment",
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-insurance-blue-mesa-fulfillment.pdf"
+  ]
+ }
+}

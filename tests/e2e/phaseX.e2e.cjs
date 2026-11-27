@@ -54,7 +54,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(n >= 7 && (await da.getByText("projected, no balance entered").count()) === n, `${n} assets held; all projected before any balance`);
 
   // Upload the fictional Yardi cash report
-  await da.getByTestId("yardi-cash-file").setInputFiles(R + "/docs/sample-yardi/cash-balances-2026-09.csv");
+  await da.getByTestId("yardi-cash-file").setInputFiles(R + "/tests/fixtures/sample-yardi/cash-balances-2026-09.csv");
   await p.waitForTimeout(1500);
   const msg = await da.getByTestId("dist-msg").innerText();
   check(/Loaded 6 balances for 2026 Q3/.test(msg) && /No balance for .*Southpoint Flex/.test(msg), `upload message: ${msg}`);

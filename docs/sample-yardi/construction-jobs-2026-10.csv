@@ -2,14 +2,14 @@ Construction Job Summary as of 10/31/2026
 "SAMPLE – FICTIONAL – FOR TESTING ONLY (generic layout in the style of a construction manager export, not a Yardi template)"
 
 Job Code,Property,Property Name,Unit,Job Name,Category,Tenant,Original Budget,Revisions,Revised Budget,Committed,Invoiced to Date,Paid to Date,Retainage Held,Remaining Budget,Status,Start Date,Completion Date,Scheduled Completion
-mf1-01-J01,mf1-01,Airport Flex Park,001,Unit 001 re-tenant TI,Tenant Improvements,Silverline Auto Glass LLC,16000,1248,17248,17248,17248,17248,0,0,Complete,2026-08-03,2026-09-12,2026-09-12
+mf1-01-J01,mf1-01,Airport Flex Park,001,Unit 001 re-tenant TI,Tenant Improvements,Ironwood Electrical Contractors,16000,1248,17248,17248,17248,17248,0,0,Complete,2026-08-03,2026-09-12,2026-09-12
 mf1-01-J02,mf1-01,Airport Flex Park,002,Unit 002 renewal TI,Tenant Improvements,Evergreen Food Distributors,4000,0,4000,3800,3800,3800,0,200,Complete,2026-09-08,2026-09-30,2026-09-30
-mf1-01-J03,mf1-01,Airport Flex Park,012,Unit 012 lease-up TI,Tenant Improvements,Mojave Drone Works Inc.,16000,0,16000,12000,6400,6400,640,9600,In progress,2026-10-01,,2026-12-15
+mf1-01-J03,mf1-01,Airport Flex Park,012,Unit 012 lease-up TI,Tenant Improvements,,16000,0,16000,12000,6400,6400,640,9600,In progress,2026-10-01,,2026-12-15
 mf1-01-J04,mf1-01,Airport Flex Park,,"Roof replacement, Building B",Capital Improvements,,180000,0,180000,176400,99000,66000,6600,81000,In progress,2026-09-15,,2027-01-29
-mf1-02-J05,mf1-02,Route 9 Small Bay,017,Unit 017 lease-up TI,Tenant Improvements,Garden State Millwork LLC,18400,0,18400,18400,18400,18400,0,0,Complete,2026-05-04,2026-06-26,2026-06-26
+mf1-02-J05,mf1-02,Route 9 Small Bay,017,Unit 017 lease-up TI,Tenant Improvements,,18400,0,18400,18400,18400,18400,0,0,Complete,2026-05-04,2026-06-26,2026-06-26
 mf1-02-J06,mf1-02,Route 9 Small Bay,018,Unit 018 lease-up TI,Tenant Improvements,,23200,0,23200,0,0,0,0,23200,Not started,,,2027-03-31
 mf1-02-J07,mf1-02,Route 9 Small Bay,001,Unit 001 renewal TI,Tenant Improvements,Pinnacle Electronics,4600,0,4600,4600,4600,4600,0,0,Complete,2026-09-01,2026-09-20,2026-09-20
-mf1-03-J08,mf1-03,Harbor Light Industrial,016,Unit 016 lease-up TI,Tenant Improvements,Tidewater Marine Electric LLC,18000,0,18000,16200,10800,5400,540,7200,In progress,2026-09-14,,2026-11-20
+mf1-03-J08,mf1-03,Harbor Light Industrial,016,Unit 016 lease-up TI,Tenant Improvements,,18000,0,18000,16200,10800,5400,540,7200,In progress,2026-09-14,,2026-11-20
 mf1-03-J09,mf1-03,Harbor Light Industrial,,Parking lot resurfacing,Capital Improvements,,95000,0,95000,95000,95000,95000,0,0,Complete,2026-07-06,2026-08-21,2026-08-21
-mf1-04-J10,mf1-04,Ridgeway Trade Center,014,Unit 014 lease-up TI,Tenant Improvements,Lone Star Cabinetry LLC,16000,5504,21504,21504,21504,14340,0,0,Complete,2026-07-20,2026-10-09,2026-10-09
-mf1-06-J11,mf1-06,Mill Creek Business Park,021,Unit 021 lease-up TI,Tenant Improvements,Cascade Climbing Supply Co.,18000,0,18000,10800,4500,4500,450,13500,In progress,2026-10-05,,2027-01-08
+mf1-04-J10,mf1-04,Ridgeway Trade Center,014,Unit 014 lease-up TI,Tenant Improvements,,16000,5504,21504,21504,21504,14340,0,0,Complete,2026-07-20,2026-10-09,2026-10-09
+mf1-06-J11,mf1-06,Mill Creek Business Park,021,Unit 021 lease-up TI,Tenant Improvements,,18000,0,18000,10800,4500,4500,450,13500,In progress,2026-10-05,,2027-01-08

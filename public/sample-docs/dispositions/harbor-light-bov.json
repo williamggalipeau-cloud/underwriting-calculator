@@ -1,7 +1,7 @@
 {
  "doc_type": "bov",
  "title": "Harbor Light Industrial BOV",
- "summary": "Sample Coastal Brokerage values Harbor Light Industrial at $11,300,000–$12,100,000, most likely $11,700,000, and recommends listing at $11,950,000.",
+ "summary": "Sample Coastal Brokerage values Harbor Light Industrial at $9,850,000–$10,450,000, most likely $10,150,000, and recommends listing at $10,450,000.",
  "fields": [
   {
    "key": "broker",
@@ -9,7 +9,7 @@
    "status": "found",
    "evidence": [
     {
-     "quote": "Prepared by Sample Coastal Brokerage for Model Fund I Harbor Light LLC.",
+     "quote": "Prepared by Sample Coastal Brokerage for Model Fund I — Pier Junction LLC.",
      "page": 1
     }
    ]
@@ -27,66 +27,66 @@
   },
   {
    "key": "value_low",
-   "value": "$11,300,000",
+   "value": "$9,850,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Harbor Light Industrial at between $11,300,000 and $12,100,000.",
+     "quote": "We estimate the market value of Harbor Light Industrial at between $9,850,000 and $10,450,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_mid",
-   "value": "$11,700,000",
+   "value": "$10,150,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Our most likely value is $11,700,000.",
+     "quote": "Our most likely value is $10,150,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_high",
-   "value": "$12,100,000",
+   "value": "$10,450,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We estimate the market value of Harbor Light Industrial at between $11,300,000 and $12,100,000.",
+     "quote": "We estimate the market value of Harbor Light Industrial at between $9,850,000 and $10,450,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "price_psf",
-   "value": "325",
+   "value": "282",
    "status": "found",
    "evidence": [
     {
-     "quote": "That value is $325 per square foot.",
+     "quote": "That value is $282 per square foot.",
      "page": 1
     }
    ]
   },
   {
    "key": "cap_rate",
-   "value": "5.60%",
+   "value": "6.43%",
    "status": "found",
    "evidence": [
     {
-     "quote": "The most likely value reflects a 5.60% cap rate on in-place net operating income.",
+     "quote": "The most likely value reflects a 6.43% cap rate on in-place net operating income.",
      "page": 1
     }
    ]
   },
   {
    "key": "list_price",
-   "value": "$11,950,000",
+   "value": "$10,450,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "We recommend a list price of $11,950,000.",
+     "quote": "We recommend a list price of $10,450,000.",
      "page": 1
     }
    ]

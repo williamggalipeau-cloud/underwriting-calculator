@@ -1,0 +1,170 @@
+{
+ "doc_type": "estoppel",
+ "title": "Blue Mesa Fulfillment estoppel",
+ "summary": "Estoppel dated November 16, 2026: the tenant confirms the lease's dates, rent and deposit, no options, no defaults and no claims.",
+ "fields": [
+  {
+   "key": "tenant",
+   "value": "Blue Mesa Fulfillment",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The undersigned, Blue Mesa Fulfillment (Tenant), certifies to Model Fund I — Runway Vista LLC and its lender as of November 16, 2026 as follows.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "estoppel_date",
+   "value": "November 16, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The undersigned, Blue Mesa Fulfillment (Tenant), certifies to Model Fund I — Runway Vista LLC and its lender as of November 16, 2026 as follows.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "premises",
+   "value": "Unit 005",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Tenant leases Unit 005 at Airport Flex Park containing 2,000 rentable square feet.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "lease_date",
+   "value": "March 1, 2022",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Lease is dated March 1, 2022 and has not been amended; there are no amendments.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "amendments",
+   "value": "None",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The Lease is dated March 1, 2022 and has not been amended; there are no amendments.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "commencement_date",
+   "value": "May 1, 2022",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The term commenced on May 1, 2022.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "expiration_date",
+   "value": "April 30, 2027",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The term expires on April 30, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "monthly_rent",
+   "value": "$3,365.00",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Current monthly base rent is $3,365.00.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_paid_through",
+   "value": "November 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Rent has been paid through November 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "security_deposit",
+   "value": "$2,990.00",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Tenant has deposited a security deposit of $2,990.00 with Landlord.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "renewal_options",
+   "value": "None",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Tenant has no option to extend the term.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant_defaults",
+   "value": "None",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Tenant is not in default under the Lease. There are no tenant defaults.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "landlord_defaults",
+   "value": "None",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Landlord is not in default under the Lease, and Tenant has no claim, credit or offset against rent.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "prepaid_rent",
+   "value": "$0",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "No rent has been paid more than one month in advance; prepaid rent is $0.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "lease_tenant": "Blue Mesa Fulfillment",
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-estoppel-blue-mesa-fulfillment.pdf"
+  ]
+ }
+}

@@ -320,6 +320,8 @@ def fund_lease(no, asset, tenant, company, years=(5, 3, 7, 4, 6, 2, 1), amendmen
         mgmt_fee_cap=f"{A['managementFeePct']:g}% of gross revenues of the Project",
         fund_unit=dict(name=u["name"], tenant=tenant, business=business, sic=u["sic"], rent=u["rentPSF"], lease_end=u["leaseEnd"]),
     )
+    if u.get("securityDeposit") is not None:
+        L["deposit_amount"] = float(u["securityDeposit"])  # the deposit the app already holds for this tenant
     if amendment:
         L["amendment"] = dict(file=f"{no:02d}a-{_slug(asset)}-{_slug(tenant)}-first-amendment", **amendment)
     L.update(extra)
@@ -349,7 +351,7 @@ _FUND_LEASES = [
     fund_lease(8, "Southpoint Flex", "Desert Sky Print Shop", "Southpoint"),
     fund_lease(9, "Granite Ave Industrial", "Granite Courier", "Granite Avenue"),
     fund_lease(10, "Lakeshore Service Center", "Bayline Auto Parts", "Lakeshore Service",
-               amendment=_notice_amendment("2026-12-01", "2500 Example Parts Parkway, Garland, Texas 75041")),
+               amendment=_notice_amendment("2026-11-20", "2500 Example Parts Parkway, Garland, Texas 75041")),
 ]
 _FUND_ASSETS = {L["asset"] for L in _FUND_LEASES}
 # The three leases on assets outside Model Fund I stay as they were.
