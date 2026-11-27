@@ -260,8 +260,10 @@ for (const l of leaseIndex) {
 {
   const T = j(R + "/lib/sampleDocTerms.js"), SD = j(R + "/lib/sampleDocs.js"), CH = require(R + "/lib/sampleDocChanges.json");
   // A fund saved before 1.1.13 (no document terms) comes out as the fund the app builds.
-  const upgraded = bare.deals.map((d) => ({ ...d, inputs: T.withSampleSaleComps(T.withSampleSale(T.applySampleDocTerms(d.inputs, d.id, { keepExisting: true }), d.id)) }));
-  const strip = (inp) => JSON.stringify({ ...inp, propertyManager: undefined, propertyManagementFirm: undefined }).replace(/mtm-[a-z0-9]+-/g, "mtm-"); // unit ids are made afresh on every build
+  const RX = j(R + "/lib/sampleResearch.js");
+  const upgraded = bare.deals.map((d) => ({ ...d, inputs: RX.withSampleResearchExtra(T.withSampleSaleComps(T.withSampleSale(T.applySampleDocTerms(d.inputs, d.id, { keepExisting: true }), d.id)), d.id, { valuations: fund.valuations }) }));
+  const byId = (xs) => [...(xs ?? [])].sort((a, b) => (a.id < b.id ? -1 : 1)); // the order research items were added in does not matter
+  const strip = (inp) => JSON.stringify({ ...inp, research: byId(inp.research), propertyManager: undefined, propertyManagementFirm: undefined }).replace(/mtm-[a-z0-9]+-/g, "mtm-"); // unit ids are made afresh on every build
   ok(upgraded.every((d, i) => strip(d.inputs) === strip(fund.deals[i].inputs)), "a fund saved before 1.1.13 gets exactly the document terms, lease terms and sales the app's own fund holds");
   // What the user entered is kept.
   const d3 = bare.deals.find((d) => d.inputs.propertyName === "Harbor Light Industrial");

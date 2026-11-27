@@ -13,8 +13,8 @@ let pass = 0, fail = 0;
 const check = (ok, msg) => { if (ok) pass++; else { fail++; console.log("FAIL", msg); } };
 const f = buildSampleFund({ todayISO: "2026-11-27" });
 const all = RS.allResearch(f.deals), sum = RS.researchSummary(all);
-check(all.length === 18 && sum.byType.market === 9 && sum.byType.rent_survey === 9, "every sample asset has a market report and a rent survey (18 items)");
-check(["marketRent", "rentGrowth", "vacancy", "exitCap"].every((k) => sum.covered.includes(k)) && sum.files === 3, `market rent, rent growth, vacancy and exit cap have support; three items have a file (${sum.covered}; ${sum.files})`);
+check(all.length === 24 && sum.byType.market === 9 && sum.byType.rent_survey === 9, `every sample asset has a market report and a rent survey; six more items came with 1.1.23 (${all.length} items)`);
+check(["marketRent", "rentGrowth", "vacancy", "exitCap"].every((k) => sum.covered.includes(k)) && sum.files === 9, `market rent, rent growth, vacancy and exit cap have support; nine items have a file (${sum.covered}; ${sum.files})`);
 const types = RS.RESEARCH_TYPES.map(([k]) => k), assumptions = RS.RESEARCH_ASSUMPTIONS.map(([k]) => k), blank = Object.keys(RS.makeResearch());
 check(all.every(({ r }) => types.includes(r.type) && r.assumptions.every((k) => assumptions.includes(k)) && blank.every((k) => k in r) && Object.keys(r).every((k) => blank.includes(k)) && /^\d{4}-\d{2}-\d{2}$/.test(r.date)), "each item has exactly the fields the tab saves, a known type and known assumptions");
 for (const d of f.deals) {
