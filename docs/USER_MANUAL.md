@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.23** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.24** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -1601,6 +1601,46 @@ Cells are colored by their difference from the base case.
 ---
 
 ### 7.19 Units and leases (`lib/leases.js`)
+
+**Leases signed since purchase (1.1.24, `lib/leaseHistory.js`).** The rent
+roll rows are the leases in place on the day the asset was bought: the model
+counts each one down from the purchase date and then applies the rollover
+assumptions. A lease signed afterwards is added to its unit's history:
+
+- **Where:** Rent Roll → open a unit (▸) → **Leases signed since purchase** →
+  **+ Add lease**. Enter renewal or new tenant, the tenant, start and end,
+  the rent per SF at the start, the yearly increase, free rent, TI per SF and
+  the commission (blank uses the unit's renewal or new-lease rate). A lease
+  that started by the purchase date belongs on the rent roll row itself, and
+  two leases on a unit may not overlap.
+- **Leases in effect today.** On an owned asset, once a lease has been added
+  or a lease has ended, the Rent Roll shows a table above the rent roll with
+  each unit's lease today: **At purchase**, **Renewal, signed**, **New
+  tenant, signed**, **Vacant, next lease recorded**, **Vacant**, or **Ended,
+  no lease recorded**. The lease expirations and weighted average lease term
+  on the Rent Roll and Asset Summary use the lease today.
+- **The model.** For the months a signed lease covers, the unit earns that
+  lease's rent (its yearly increase compounds monthly from the lease's
+  start; rent steps, when it has them, set each month). The time between
+  the earlier lease and the signed one is vacant, at market rent, for the
+  actual gap. The signed lease's TI, commission (rent × term × rate) and free
+  rent (months ÷ 12 × rent) are charged in the month it starts. The rollover
+  assumptions (renewal probability, downtime, market rent) apply only when
+  the last signed lease ends. A unit with no signed lease is modelled as
+  before.
+- **Ended, no lease recorded.** A lease that has ended with nothing newer
+  recorded is flagged on its rent roll row, and the Dashboard lists one
+  action per asset ("N leases have ended with no newer lease recorded").
+  Until a lease is added the model keeps using the rollover assumptions.
+- **Active Leasing.** Marking a prospect **Signed** adds its lease to its
+  unit automatically, with the prospect's start, term, rent, increase, free
+  rent and TI. If it cannot be added (no start date, term or rent; a start
+  on or before the purchase date; an overlap) the prospect is still signed
+  and a message says why.
+- **Not yet on the lease today (the next patch):** the risk report, Tenant
+  Credit, the SNDA list, the Leases tab and the asset report still read the
+  lease at purchase for a unit that has a signed lease.
+
 
 Reference figures from each deal's rent roll (`inputs.units`), shown on the
 Unit Roll tab and in the Asset Summary. They don't change the cash flow.
@@ -5211,7 +5251,7 @@ Every future release is checked against these:
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; patch **1.1.21**: sample Property Management data and documents, third-party research, the sample leases' rent steps; planned patches **1.1.22** and **1.1.23** (row below) |
-| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.24** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
+| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.25** the lease in effect today on the remaining screens (risk report, Tenant Credit, SNDA list, Leases tab, asset report); **1.1.26 onward** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5230,6 +5270,24 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.24
+
+Leases signed after purchase (§7.19). No sample data in this patch.
+
+- **The gap.** Baywise held one lease per unit, the one in place on the day the asset was bought, and counted it down from the purchase date. There was nowhere to record the lease signed afterwards, so an asset owned for a few years showed its purchase-day leases, mostly expired (on a test asset bought in March 2023, 60 of 63).
+- **Lease history.** Each unit now keeps the leases signed since purchase: Rent Roll → open a unit → Add lease.
+- **Leases in effect today.** The Rent Roll shows each unit's lease today above the rent roll at purchase, and flags a lease that has ended with nothing newer recorded.
+- **The model follows what was signed.** Where a signed lease exists the model uses its rent, the actual gap before it and its free rent, TI and commission. Your rollover assumptions apply only after the last signed lease ends.
+- **Active Leasing.** Marking a prospect Signed adds its lease to the unit automatically.
+- **Dashboard.** A lease that has ended with nothing newer recorded is one action per asset, in place of one "expires" line per unit.
+- **Model Fund I: no figure changes.** None of its units has a signed lease, and the tie-out test confirms every asset's model figures are the ones the sample documents were written from. On the test copy its Dashboard goes from five past-due lease lines to three "lease ended" lines, one per asset.
+- **Not in this patch.** The risk report, Tenant Credit, the SNDA list, the Leases tab and the asset report still read the lease at purchase for a unit with a signed lease. They follow in 1.1.25.
+- **What it does not do.** The model still runs from the purchase date. It does not restart from today or replace past months with Yardi actuals.
+- **Numbering:** 1.1.25 finishes the remaining screens; the sample joint venture and separate account follow from 1.1.26.
+- **Also recorded in the plan for a future patch (your request, 11/27):** rename Deal Screener to Underwriter.
+- **Tests:** a new node suite (`leasehist1124`, 36 checks), a new browser suite (`leasehist1124`, 19 checks) and a check in the credit browser test that signing adds the lease.
+- **No database change.**
 
 ### What's in 1.1.23
 
