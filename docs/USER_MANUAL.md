@@ -5220,7 +5220,7 @@ Sample data for Property Management and third-party research, and the sample lea
   - Two sample sale values move $50,000, because a broker opinion rounds to the nearest $50,000: Harbor Light most likely value $10,150,000 → $10,200,000 and offer $10,050,000 → $10,100,000; Mill Creek $15,400,000 → $15,450,000 and offer $15,250,000 → $15,300,000. Airport Flex Park's IC memo states year-one NOI $462,412 (was $462,176).
   - The load replaces those five documents and updates the saved figures only where they still hold the earlier sample value. A figure you changed, or a sale you started yourself, is kept.
 - **Not in this patch (now 1.1.22):** a survey of every tab and document type found more gaps than expected, listed in the roadmap row above. They and the coverage test follow in 1.1.22; the sample joint venture and separate account become 1.1.23.
-- **Tests:** three new suites (168 checks) and new checks in both browser tests of the load on what is actually saved. One of those caught a case before release: a firm with no market data got market report PDFs with no research item to file them under; the load now skips them.
+- **Tests:** three new suites (189 checks) and new checks in both browser tests of the load on what is actually saved. One of those caught a case before release: a firm with no market data got market report PDFs with no research item to file them under; the load now skips them.
 - **No database change.**
 
 ### What's in 1.1.20
