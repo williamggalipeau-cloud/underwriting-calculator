@@ -536,6 +536,12 @@ session record on 11/27.
 - **fork** — copies of the main session that built parts of 1.1.13 in
   parallel (the sample fund pipeline, the property manager fields).
 
+**Custom agents.** There are none. The three above are standard Claude Code
+agent types. The repository defines no agents, skills or commands of its own
+(`.claude/` holds only `settings.json`, the list of pre-approved Supabase
+read tools). If one is ever added, for example an agent that runs the
+release checks, it is listed here with what it does and what it may touch.
+
 ### Useful next to the app
 
 These are optional and not wired into the app:
