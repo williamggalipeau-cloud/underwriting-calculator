@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.13** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.14** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -1196,6 +1196,13 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 - **Legal entities:** the fund, the GP and nine property companies, with an
   ownership chart on Portfolio Summary; the documents use the same names.
 - **Property managers:** every sample asset has one, at the sponsor.
+- **Version 4 (1.1.14), a fix:** the load now saves the asset changes
+  before it uploads documents, and applies them again before recording the
+  version. In 1.1.13 they sat unsaved for about a minute while documents
+  uploaded; moving to another tab then showed the unsaved-changes box, and
+  **Discard changes** threw them away while the load carried on, so the fund
+  was marked up to date with the nine assets' changes missing. Version 4 runs
+  the same steps again, so a firm left that way is completed on its next open.
 - **Version 3 of the automatic load (1.1.13):** on an owner's open it fills
   those document terms where empty, adds the entities, limits and property
   managers, and replaces the earlier sample documents and leases with the
@@ -1206,7 +1213,7 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 
 **Sample material loads by itself (1.1.12).** When an owner opens a firm
 that has Model Fund I and its sample material is older than the app's
-(`SAMPLE_DATA_VERSION`, 2 in 1.1.12 and 3 in 1.1.13), Baywise adds what is missing with no clicks:
+(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13 and 4 in 1.1.14), Baywise adds what is missing with no clicks:
 sample tenant credit and aged rent, the sample documents (credit report
 PDFs included) and the two sample GP partners with their agreements. It adds
 only what isn't there, keeps your own records, logs the update in the Change
@@ -4937,7 +4944,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; planned patches **1.1.14** (Dispositions comps with separate acquisition and disposition sets, price per SF, break-even occupancy) and **1.1.15** (twelve industrial asset characteristics, SNDAs) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); planned patches **1.1.15** (Dispositions comps with separate acquisition and disposition sets, price per SF, break-even occupancy) and **1.1.16** (twelve industrial asset characteristics, SNDAs) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4956,6 +4963,14 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.14
+
+A fix to the automatic sample load (§7.13).
+
+- **What went wrong in 1.1.13:** on the firm's live data the load saved the fund's terms, legal entities and documents but not the changes to the nine assets (property managers, the terms from the documents, the three sales in progress). The asset changes were waiting to be saved while documents uploaded. Moving to another tab during that minute showed the unsaved-changes box, and Discard changes removed them.
+- **The fix:** the asset changes are saved before the uploads start and applied again before the version is recorded. The load's version is now 4, so the firm is completed the next time an owner opens Baywise.
+- **Test:** `tests/e2e/sampleSyncRecords.e2e.cjs` runs the load with the real save timing, moves to another tab part-way and checks that all nine assets are saved.
 
 ### What's in 1.1.13
 
