@@ -1682,6 +1682,11 @@ export default function Home() {
         for (const id of Object.keys(next)) for (const q of Object.keys(next[id] ?? {})) if (prev[id]?.[q] && prev[id][q].source !== "internal") next[id] = { ...next[id], [q]: prev[id][q] };
         return next;
       });
+      // 1.1.14: save the asset changes now, before the uploads (about a
+      // minute). Left unsaved, moving to another tab showed the unsaved-changes
+      // box, and Discard changes threw them away while the load carried on.
+      await new Promise((r) => setTimeout(r, 900)); // after the unsaved-changes check has seen the new data
+      await saveRef.current?.();
       const { removeSupersededSampleDocs } = await import("@/lib/sampleDocs");
       const replaced = (await removeSupersededSampleDocs(l.id, { fromVersion, fundName: SAMPLE_FUND_NAME })).total; // earlier sample documents, sale documents and leases, by their file names
       const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
@@ -1707,6 +1712,12 @@ export default function Home() {
       }
       setGpPartners(gp);
       const failed = [...docs.failed, ...gpr.failed];
+      // 1.1.14: the asset changes are applied again here, to whatever the
+      // assets are now, in case they were discarded or reloaded during the
+      // uploads (on the firm's live data, 11/27, version 3 saved the fund's
+      // terms but not the nine assets'). withDocs only fills what is empty,
+      // so applying it twice changes nothing more.
+      setDeals((prev) => prev.map(withDocs));
       // The version is recorded only when everything went in; otherwise the next open tries again.
       setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...sampleFundTermsPatch(prev[SAMPLE_FUND_NAME] ?? {}, { keepExisting: true }), ...((prev[SAMPLE_FUND_NAME]?.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
