@@ -118,12 +118,19 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(/Own: Acceptable/.test(await row.getByTestId("prospect-credit").innerText()), "screening saved on the prospect");
   await row.getByLabel("Prospect stage").selectOption("signed");
   await p.waitForTimeout(800);
+  const signMsg = (await p.getByTestId("credit-msg").innerText().catch(() => "")).replace(/\s+/g, " ");
   await FX.saveLoadUpgrade(p); // Save changes now (this fixture's workspace autosaves after 20 s)
   await p.waitForTimeout(1500);
   const d1 = ws.data.deals.find((d) => d.id === "sample-deal-1")?.inputs;
   const pr = (d1?.leasing?.prospects ?? []).find((x) => x.tenant === tenant);
   const unit = (d1?.units ?? []).find((u) => u.id === pr?.unitId);
   check(pr?.stage === "signed" && (unit?.credit?.records ?? []).some((r) => r.source === "own" && r.rating === "acceptable" && r.tenant === tenant), `signed: the screening is copied to unit ${unit?.name ?? "?"}`);
+  {
+    // 1.1.24: the signed lease is added to the unit, or the message says why it could not be.
+    const ll = (unit?.laterLeases ?? []).find((l) => l.prospectId === pr?.id);
+    const expectLease = /^\d{4}-\d{2}-\d{2}$/.test(pr?.expectedStart ?? "") && pr.termMonths > 0 && (pr.proposedRentPSF > 0 || pr.askingRentPSF > 0) && pr.expectedStart > d1.acquisitionDate;
+    check(expectLease ? !!ll && ll.tenantName === tenant && ll.start === pr.expectedStart && ll.rentPSF === (pr.proposedRentPSF || pr.askingRentPSF) && /was added to the unit on the Rent Roll/.test(signMsg) : !ll && /not added to the Rent Roll/.test(signMsg), `1.1.24: marking the prospect Signed ${expectLease ? "adds its lease to the unit with the prospect's terms" : "says why no lease was added"} (${signMsg.slice(0, 140)})`);
+  }
 
   // ── Risk report: Tenant Credit and Aged Rent ──
   await FX.openTab(p, "Reports");

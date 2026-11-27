@@ -3,6 +3,8 @@
 import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/fundTerms";
 import { SIC_CODES, sicLabel, sicTitle, suggestSic } from "@/lib/sicCodes";
+import { LeasesToday, UnitLeaseHistory, leaseTodayLabel } from "@/components/LeaseHistory";
+import { inputsToday, laterLeasesOf, leaseToday } from "@/lib/leaseHistory";
 import { LEASE_FIELDS, leaseAnalytics, leaseEndOf, monthsRemainingFor, parseRentRollRows, rentRollRows, todayISO } from "@/lib/leases";
 import { readXlsxGrid, writeXlsx } from "@/lib/xlsx";
 import { leaseMismatches, showValue } from "@/lib/leaseApply";
@@ -412,7 +414,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
     );
   };
 
-  const la = leaseAnalytics({ ...inputs, units }, todayISO());
+  const la = leaseAnalytics(inputsToday({ ...inputs, units }, todayISO()), todayISO()); // 1.1.24: on the lease in effect today
   const [openId, setOpenId] = useState(null);
   const [showExp, setShowExp] = useState(false); // 1.1.11: expense columns on request
   const setLeaseField = (u, key, value) => {
@@ -532,6 +534,8 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
         </div>
       )}
 
+      {units.length > 0 && <LeasesToday inputs={inputs} units={units} todayISO={todayISO()} onOpen={(id) => setOpenId(id)} />}
+
       {/* Lease roll table */}
       {units.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-gray-200">
@@ -573,6 +577,15 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                     </td>
                     <td className="sticky left-6 z-10 bg-white px-2 py-1.5">
                       <TextCell label="Unit name" value={u.name} onChange={(v) => update(u.id, "name", v)} />
+                      {(() => {
+                        // 1.1.24: the lease in effect today, when it is not the lease at purchase.
+                        const owned = /^\d{4}-\d{2}-\d{2}$/.test(inputs.acquisitionDate ?? "") && inputs.acquisitionDate <= todayISO();
+                        if (!owned) return null;
+                        const t = leaseToday(u, { ...inputs, units }, todayISO());
+                        if (t.status === "purchase" || t.status === "vacant") return null;
+                        const cls = t.status === "ended" ? "bg-amber-100 text-amber-900" : t.status === "later" ? "bg-emerald-50 text-emerald-800" : "bg-gray-100 text-gray-700";
+                        return <span className={`mt-0.5 block whitespace-nowrap rounded px-1 text-[10px] font-medium ${cls}`} title={t.status === "ended" ? "This lease has ended and no newer lease is recorded. Open the unit (the arrow on the left) to add the lease signed since; until then the model uses your rollover assumptions." : laterLeasesOf(u).length ? "A lease signed since purchase. Open the unit to see the history." : ""} data-testid="unit-lease-today">{t.status === "ended" ? "⚠ " : ""}{leaseTodayLabel(t)}</span>;
+                      })()}
                       {(() => {
                         const l = leases.find((x) => (x.unit_ids ?? []).includes(u.id));
                         const bad = l ? estoppels.filter((d) => d.lease_id === l.id).flatMap((d) => estoppelChecks(d, l.abstract, u)).filter((r) => !r.ok) : [];
@@ -765,6 +778,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                     <tr className="bg-blue-50/30">
                       <td colSpan={COL_HEADERS.length + 3 - (showExp ? 0 : EXPENSE_KEYS.length)}>
                         <LeaseDetails unit={u} inputs={inputs} onField={(k, v) => setLeaseField(u, k, v)} />
+                        <UnitLeaseHistory unit={u} inputs={inputs} units={units} onUnits={onChange} />
                       </td>
                     </tr>
                   )}

@@ -66,6 +66,7 @@ const DATA = [
   ["assets", "owned assets", deals.length === 9],
   ["plan", "business plans", all((a) => n(a.businessPlan?.revisions) > 0)],
   ["units", "rent rolls", all((a) => n(a.units) > 0)],
+  ["units", "leases signed since purchase", any((a) => (a.units ?? []).some((u) => n(u.laterLeases) > 0))],
   ["leases", "lease abstracts", manifest.leases.length > 0],
   ["credit", "tenant credit", any((a) => (a.units ?? []).some((u) => n(u.credit?.records ?? u.credit) > 0))],
   ["credit", "tenant credit documents", manifest.credit.some((c) => c.kind === "tenant")],
@@ -94,9 +95,11 @@ const DATA = [
 ];
 // Still missing, with the patch that adds it.
 const PENDING_DATA = {
-  "trackrecord / sold assets": "1.1.24 (the sample joint venture's sold asset)",
+  // Model Fund I's assets were all bought in 2026 and none has a lease signed since (adding one would move its figures and its documents).
+  "units / leases signed since purchase": "1.1.26 (the sample joint venture and separate account, bought in 2022 and 2023)",
+  "trackrecord / sold assets": "1.1.26 (the sample joint venture's sold asset)",
   // Model Fund I bought its assets in 2026 on the subscription line: no capital is called and nothing is distributable yet.
-  "distributions / distribution proposals": "1.1.24 (the sample joint venture and separate account, set up in 2022 and 2023)",
+  "distributions / distribution proposals": "1.1.26 (the sample joint venture and separate account, set up in 2022 and 2023)",
 };
 for (const t of TABS) check(DATA.some(([tab]) => tab === t.id), `tab "${t.label}" (${t.id}) has no sample data set listed in this test`);
 for (const [tab, name, has] of DATA) {
@@ -130,12 +133,12 @@ const LISTS = {
 };
 // Still missing, with the patch that adds it.
 const PENDING_DOCS = {
-  "library": { closing_disp: "1.1.24 (the sold asset)", jva: "1.1.24 (the sample joint venture)", sma: "1.1.24 (the sample separate account)" },
+  "library": { closing_disp: "1.1.26 (the sold asset)", jva: "1.1.26 (the sample joint venture)", sma: "1.1.26 (the sample separate account)" },
   "acquisition": {},
-  "disposition": { closing_disp: "1.1.24 (the sold asset)", post_closing: "1.1.24 (the sold asset)", distribution_notice: "1.1.24 (the sold asset)" },
+  "disposition": { closing_disp: "1.1.26 (the sold asset)", post_closing: "1.1.26 (the sold asset)", distribution_notice: "1.1.26 (the sold asset)" },
   "leasing": {},
-  // No Model Fund I asset needed a Phase II (every Phase I is clean); one of the 1.1.24 assets will.
-  "fact": { phase2: "1.1.24" },
+  // No Model Fund I asset needed a Phase II (every Phase I is clean); one of the 1.1.26 assets will.
+  "fact": { phase2: "1.1.26" },
   "research": {},
   "property management": {},
 };
