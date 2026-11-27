@@ -5,6 +5,10 @@ nine sample assets. They use generic columns, not Yardi's templates, and are
 for testing only. Regenerate them with `node scripts/sample-yardi/generate.cjs`.
 `expected.json` holds the totals the tests check.
 
+**1.1.13:** the files are generated from the fund the app loads (`lib/sampleFund.js`), so every property,
+unit, tenant and rent is the app's (`tests/node/sampleTieOut.test.cjs`). The files as they were before,
+built from the test scenario's inputs, are kept for the tests in `tests/fixtures/sample-yardi`.
+
 | File | What it is | Used by |
 |---|---|---|
 | `aged-receivables-2026-08/09/10.csv` | Aged receivables by tenant at three month-ends (current, 1–30 … over 180, prepayments) | Phase H rent delinquency (Unit Roll → Upload aged report) |

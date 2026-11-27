@@ -44,5 +44,20 @@ ok(pmItems.every((x) => !x.dealId || x.owner === f.deals.find((d) => d.id === x.
 const noPm = H.actionsAndCalendar(snaps.map((d) => ({ ...d, inputs: { ...d.inputs, propertyManager: "" } })), { [SP.SAMPLE_FUND_NAME]: terms }, f.valuations, { todayISO: today }).calendar.filter((x) => ["tax", "insurance", "contract"].includes(x.kind));
 ok(noPm.every((x) => !x.dealId || x.owner === f.deals.find((d) => d.id === x.dealId).inputs.assetManager), "with no property manager they stay with the asset manager");
 
+// The asset reports and the remaining Excel exports name the property manager too.
+{
+  const AR = j(R + "/lib/assetReport.js"), PMG = j(R + "/lib/propertyMgmt.js");
+  const d1 = f.deals[0], label = PM.propertyManagerLabel(d1.inputs);
+  const rep = AR.buildAssetReport(snaps, terms, f.valuations, { assetId: d1.id, qEnd: "2026-09-30", todayISO: today });
+  const x = AR.assetReportXlsx(rep);
+  ok(rep.asset.propertyManager === label && x.some((r) => r[0] === "Property manager" && r[1] === label), `the asset quarterly report and its Excel name the property manager (${label})`);
+  const px = PMG.pmXlsx("taxes", f.deals);
+  const at = px.findIndex((r) => r[0] === "Property managers");
+  ok(at > 0 && f.deals.every((d) => px.some((r) => r[0] === d.inputs.propertyName && r[1] === PM.propertyManagerLabel(d.inputs))), "the Property Management Excel lists each asset's property manager");
+  ok(!PMG.pmXlsx("taxes", f.deals.map((d) => ({ ...d, inputs: { ...d.inputs, propertyManager: "", propertyManagementFirm: undefined } }))).some((r) => r[0] === "Property managers"), "with none entered, the exports are as before");
+  const src = (n) => require("fs").readFileSync(R + "/lib/" + n, "utf8");
+  ok(/property manager: \$\{a\.propertyManager\}/.test(src("assetReportPdf.js")) && /"Property manager", propertyManagerLabel\(inputs\)/.test(src("businessPlanPdf.js")) && /Property managers/.test(src("pmPdf.js")), "the asset report PDF, the business plan PDF and the Property Management PDF print it");
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);
