@@ -256,5 +256,38 @@ for (const l of leaseIndex) {
   ok(cash.length > 0 && cash.every((r) => dealOf(r[1])), `cash balances: every property is an asset of the fund (${cash.length} rows)`);
 }
 
+// 11. The automatic load on a firm's saved data (app/page.jsx syncSampleData): the same result, and nothing of the user's is touched.
+{
+  const T = j(R + "/lib/sampleDocTerms.js"), SD = j(R + "/lib/sampleDocs.js"), CH = require(R + "/lib/sampleDocChanges.json");
+  // A fund saved before 1.1.13 (no document terms) comes out as the fund the app builds.
+  const upgraded = bare.deals.map((d) => ({ ...d, inputs: T.withSampleSale(T.applySampleDocTerms(d.inputs, d.id, { keepExisting: true }), d.id) }));
+  const strip = (inp) => JSON.stringify({ ...inp, propertyManager: undefined, propertyManagementFirm: undefined }).replace(/mtm-[a-z0-9]+-/g, "mtm-"); // unit ids are made afresh on every build
+  ok(upgraded.every((d, i) => strip(d.inputs) === strip(fund.deals[i].inputs)), "a fund saved before 1.1.13 gets exactly the document terms, lease terms and sales the app's own fund holds");
+  // What the user entered is kept.
+  const d3 = bare.deals.find((d) => d.inputs.propertyName === "Harbor Light Industrial");
+  const mine = { ...d3.inputs, units: d3.inputs.units.map((u) => (u.tenantName === "Copper Canyon Tile & Stone" ? { ...u, leaseStart: "2021-01-01" } : u)), dispositions: [{ ...T.sampleSale(d3.id), id: "user-sale", startedFrom: "Sample sale (fictional)", bovs: [{ id: "b", broker: "My Broker", price: 1 }], offers: [] }] };
+  const kept = T.withSampleSale(T.applySampleDocTerms(mine, d3.id, { keepExisting: true }), d3.id);
+  ok(kept.units.find((u) => u.tenantName === "Copper Canyon Tile & Stone").leaseStart === "2021-01-01" && kept.dispositions.length === 1 && kept.dispositions[0].bovs[0].broker === "My Broker", "a lease start the user entered and a sale the user has worked on are left as they are");
+  const empty = { ...d3.inputs, dispositions: [{ id: "live-id", startedFrom: "Sample sale (fictional)", stage: "marketing", bovs: [], offers: [], contract: { psaDate: "" }, closing: null, createdAt: "2026-11-25T00:00:00.000Z" }] };
+  const filled = T.withSampleSale(empty, d3.id).dispositions;
+  ok(filled.length === 1 && filled[0].id === "live-id" && filled[0].bovs.length === 1 && filled[0].offers.length === 1 && filled[0].stage === "offers", "an earlier, still-empty sample sale keeps its id (its documents stay attached) and takes the documented BOV and offer");
+  // Earlier sample documents are found only by their old file names, on sample assets.
+  const row = (id, deal, name, extra = {}) => ({ id, deal_id: deal, fund_name: "Model Fund I", title: name, files: [{ name }], abstract: { app: { made_with: "Sample (fictional)" } }, ...extra });
+  const docs = [row("a", "sample-deal-2", "route9-closing-disp.pdf", { title: "[sale:s1] Closing statement: route9-closing-disp.pdf" }), row("b", "sample-deal-2", "route9-bov.pdf", { title: "[sale:s1] BOV: route9-bov.pdf" }),
+    row("c", "sample-deal-2", "my-offer.pdf", { title: "[sale:s1] LOI / offer letter: my-offer.pdf" }), row("d", "deal-7", "route9-bov.pdf", { title: "[sale:s9] BOV: route9-bov.pdf" }),
+    row("e", "sample-deal-2", "route9-psa.pdf", { title: "[sale:s1] P&S: route9-psa.pdf", abstract: { app: { made_with: "CREparser Deal Review" } } }), row("f", "sample-deal-1", "airport-flex-estoppel-desert-aero.pdf")];
+  ok(SD.supersededSampleSaleDocs(docs, CH).map((d) => d.id).join() === "a,b" && SD.supersededSampleDocs(docs, CH).map((d) => d.id).join() === "f" && SD.supersededSampleSaleDocs(docs, CH, { fromVersion: 3 }).length === 0, "earlier sale documents and the earlier estoppel are replaced; a user's own file, another asset's file and a document with a non-sample abstract are not");
+  const ls = [{ id: "1", deal_id: "sample-deal-1", files: [{ name: "02-airport-flex-park-desert-aero.pdf" }] }, { id: "2", deal_id: "sample-deal-3", files: [{ name: "04-harbor-light-portside-marine.pdf" }, { name: "04a-harbor-light-portside-marine-first-amendment.pdf" }] },
+    { id: "3", deal_id: "sample-deal-1", files: [{ name: "my-lease.pdf" }] }, { id: "4", deal_id: "deal-7", files: [{ name: "05-ridgeway-lone-star-hvac.pdf" }] }, { id: "5", deal_id: "sample-deal-4", files: [{ name: "05-ridgeway-lone-star-hvac.pdf" }] },
+    { id: "6", deal_id: "sample-deal-1", files: [{ name: "02-airport-flex-park-blue-mesa-fulfillment.pdf" }] }];
+  ok(SD.supersededSampleLeases(ls, CH, { withCreditDocs: new Set(["5"]) }).map((l) => l.id).join() === "1,2", "earlier sample leases are replaced; a user's lease, a lease on another asset, a lease with tenant credit documents and the current sample lease are kept");
+  const current = new Set([...man.deals, ...man.dispositions].map((x) => x.file.split("/").pop()).concat(man.leases.flatMap((l) => l.files.map((f) => f.split("/").pop()))));
+  const listed = new Set([...CH["3"], ...CH.sales["3"], ...CH.leases["3"]]);
+  const before = require("child_process").execFileSync("git", ["-C", R, "show", "a5c6af8:public/sample-docs/manifest.json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  const was = JSON.parse(before); const wasNames = [...was.deals, ...was.dispositions].map((x) => x.file.split("/").pop()).concat(was.leases.flatMap((l) => l.files.map((f) => f.split("/").pop())));
+  const unlisted = wasNames.filter((n) => !current.has(n) && !listed.has(n));
+  ok(unlisted.length === 0, `every sample file of the previous release that is no longer loaded is on the replace list${unlisted.length ? " — missing: " + unlisted.join(", ") : ""}`);
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);

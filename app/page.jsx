@@ -27,7 +27,7 @@ import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
-import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch } from "@/lib/sampleDocTerms";
+import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale } from "@/lib/sampleDocTerms";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -1515,7 +1515,13 @@ export default function Home() {
     // submarkets and marks, construction data, and the terms that exist only
     // in the sample documents), so tests build the same fund.
     const sf = buildSampleFund({ todayISO, funds, market: comps?.market, valuations });
-    const built = sf.deals, credit = sf.credit;
+    // A rebuilt asset's sample sale keeps the id of the sample sale the asset
+    // had, so the sale documents already filed on it stay attached.
+    const built = sf.deals.map((d) => {
+      const was = (deals.find((x) => x.id === d.id)?.inputs?.dispositions ?? []).find((s) => s.startedFrom === "Sample sale (fictional)" && !["closed", "withdrawn"].includes(s.stage));
+      return was && (d.inputs.dispositions ?? []).length ? { ...d, inputs: { ...d.inputs, dispositions: d.inputs.dispositions.map((s, i) => (i === 0 ? { ...s, id: was.id } : s)) } } : d;
+    });
+    const credit = sf.credit;
     setComps((c) => ({ ...c, market: sf.market }));
     setValuations((prev) => ({ ...prev, ...Object.fromEntries(Object.keys(sf.valuations).filter((id) => id.startsWith("sample-deal-")).map((id) => [id, sf.valuations[id]])) }));
     // The sample pipeline deals come pre-screened: each gets its model, so
@@ -1663,7 +1669,7 @@ export default function Home() {
       const withDocs = (d) => {
         if (!d.id.startsWith("sample-deal-")) return d;
         let inp = credit.updates[d.id] ? { ...d.inputs, ...credit.updates[d.id] } : d.inputs;
-        inp = applySampleDocTerms(inp, d.id, { keepExisting: true });
+        inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         return inp === d.inputs ? d : { ...d, inputs: inp };
       };
@@ -1677,7 +1683,7 @@ export default function Home() {
         return next;
       });
       const { removeSupersededSampleDocs } = await import("@/lib/sampleDocs");
-      const replaced = await removeSupersededSampleDocs(l.id, { fromVersion, fundName: SAMPLE_FUND_NAME });
+      const replaced = (await removeSupersededSampleDocs(l.id, { fromVersion, fundName: SAMPLE_FUND_NAME })).total; // earlier sample documents, sale documents and leases, by their file names
       const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
       const docs = await addSampleDocuments({
         workspaceId: l.id, email, deals: built,
@@ -1706,7 +1712,7 @@ export default function Home() {
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
       setRecordNotice(failed.length
         ? `Model Fund I sample data: ${failed.length} item${failed.length === 1 ? "" : "s"} couldn't be added (${failed[0].error}); it will try again the next time you open Baywise.`
-        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${replaced ? `, ${replaced} rewritten document${replaced === 1 ? "" : "s"} replaced` : ""}${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
+        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added${replaced ? `, ${replaced} earlier sample document${replaced === 1 ? "" : "s"} and lease${replaced === 1 ? "" : "s"} replaced` : ""}${switched ? `; ${switched} GP agreement${switched === 1 ? "" : "s"} switched on` : ""}. See Tenant Credit and Finance → GP Partners.`);
     } catch (e) {
       setRecordNotice(`Model Fund I sample data couldn't be updated (${e.message || e}); it will try again the next time you open Baywise.`);
     } finally {
