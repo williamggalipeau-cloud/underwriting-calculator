@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.15** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.16** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -1210,6 +1210,9 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 - **Legal entities:** the fund, the GP and nine property companies, with an
   ownership chart on Portfolio Summary; the documents use the same names.
 - **Property managers:** every sample asset has one, at the sponsor.
+- **Version 5 (1.1.16):** each of the three sample sales gets its own comps
+  (its disposition set), copied from that asset's acquisition comps, so they
+  are the fund's figures. A sale you started yourself is left alone.
 - **Version 4 (1.1.14), a fix:** the load now saves the asset changes
   before it uploads documents, and applies them again before recording the
   version. In 1.1.13 they sat unsaved for about a minute while documents
@@ -1227,7 +1230,7 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 
 **Sample material loads by itself (1.1.12).** When an owner opens a firm
 that has Model Fund I and its sample material is older than the app's
-(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13 and 4 in 1.1.14), Baywise adds what is missing with no clicks:
+(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13, 4 in 1.1.14 and 5 in 1.1.16), Baywise adds what is missing with no clicks:
 sample tenant credit and aged rent, the sample documents (credit report
 PDFs included) and the two sample GP partners with their agreements. It adds
 only what isn't there, keeps your own records, logs the update in the Change
@@ -3162,7 +3165,10 @@ fund's record.
 
 ### 7.48 Research: Comps and Third-Party (`lib/research.js`, 11/24)
 
-**Acquisitions → Research** has two sections, switched at the top right.
+**Acquisitions → Research** has two sections, switched at the top right:
+**Acquisition Comps** (called Sales Comps before 1.1.16) and Third-Party.
+These comps are the asset's acquisition set; a sale's own comps are kept on
+the sale (§7.65).
 Everything in it is saved on the asset (the Asset dropdown picks which), so
 it follows the asset into whichever fund it sits in, and every change is in
 the change log.
@@ -3924,6 +3930,60 @@ checked:
 The PDFs are printed by `scripts/sample-deal-docs/gp_agreements.cjs`. This
 isn't part of Load Model Fund I, so the test fund keeps all of its GP
 capital until you save the agreements.
+
+### 7.65 Price per SF, break-even occupancy and the comps of a sale (`lib/assetMetrics.js`, version 1.1.16)
+
+Added 11/27 at the user's request. One library gives every screen and export
+the same figures.
+
+**Price per SF** = an amount ÷ the asset's SF (the SF entered on the asset,
+else the total of its units).
+- **Deal Screener:** purchase price per SF and all-in basis per SF.
+- **Disposition Candidates:** Value / SF (the latest mark on or before today)
+  and Basis / SF, amber when the value is below the basis.
+- **Sell/Hold Analysis:** sale value per SF next to basis per SF.
+- **All-in basis** = purchase price + closing costs + the capital plan (the
+  model's total cost without the rate cap premium).
+
+**Break-even occupancy** = (operating expenses + debt service on the current
+loan) ÷ potential gross income, from one year of the asset's model: the hold
+year in progress, or year 1 for a deal not yet bought.
+- **Cushion** = occupancy − break-even, in points.
+- **Flag:** amber under 10 points, red under 5 (user, 11/27). Otherwise
+  "Comfortable".
+- Shown on the Deal Screener, Disposition Candidates, Sell/Hold Analysis and
+  next to DSCR on Portfolio Debt.
+- Under net leases the tenants pay most operating costs, so the model's
+  operating expenses are small and break-even occupancy is mostly the loan
+  payment.
+
+**Two sets of sales comps per asset** (user, 11/27).
+- **Acquisition set:** the asset's comps in Research → Acquisition Comps
+  (`inputs.salesComps`), as before.
+- **Disposition set:** each sale's own comps (`sale.comps`), in its card in
+  Dispositions → Assets for Sale. A sale starts with none.
+  - **Copy from the acquisition set** adds the asset's acquisition comps as
+    copies; running it again adds nothing twice.
+  - **+ Comp** adds one by hand. Untick **Use** to leave a comp out.
+- **What the comps imply:** the average $/SF of the comps in use × the SF
+  being sold, and the forward NOI ÷ their average cap rate. Shown next to
+  each broker opinion, the asking price and the selected offer, each with
+  its $/SF, cap rate and gap to the comps' $/SF value. The offer's $/SF and
+  cap rate are the same as in the Offers view.
+- **Excel:** the sales export has the comps and what they imply per sale.
+- **Valuation uses neither set** (user, 11/27: the value changes as the
+  asset goes through its capital plan; comps matter at acquisition and
+  disposition). The Valuation market check compares with the submarket's
+  market data (§7.57). **Lease comps** stay in Active Leasing only.
+
+**Sample data.** Each of the three sample sales has a disposition set copied
+from its asset's acquisition comps (automatic load version 5). The tie-out
+test checks basis and SF against the figures the sample documents were
+written from, value and basis per SF, break-even occupancy against the
+model, and each sample sale's comps.
+
+Tests: `tests/node/metrics1116.test.cjs`, `tests/node/sampleTieOut.test.cjs`
+(section 12), `tests/e2e/metrics1116.e2e.cjs`.
 
 ## 8. Worked example: the default deal
 
@@ -4974,7 +5034,7 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); planned patches **1.1.16** (Dispositions comps with separate acquisition and disposition sets, price per SF, break-even occupancy), **1.1.17** (twelve industrial asset characteristics, SNDAs), **1.1.18** (lease rent steps in the model; property management fee paid asset by asset) and **1.1.19** (housekeeping) |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; planned patches **1.1.17** (twelve industrial asset characteristics, SNDAs), **1.1.18** (lease rent steps in the model; property management fee paid asset by asset) and **1.1.19** (housekeeping) |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -4993,6 +5053,17 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.16
+
+Dispositions comps, price per SF and break-even occupancy (§7.65).
+
+- **Comps in Dispositions.** Each sale has its own comps (the disposition set), separate from the asset's acquisition comps in Research. The sale card shows what the comps imply next to the broker opinion, the asking price and the selected offer.
+- **Price per SF** on the Deal Screener, Disposition Candidates and Sell/Hold Analysis.
+- **Break-even occupancy** with its cushion and flag on the Deal Screener, Disposition Candidates, Sell/Hold Analysis and Portfolio Debt.
+- **Research:** the Sales Comps section is now called Acquisition Comps.
+- **Sample data:** the three sample sales get their comps automatically (load version 5). Model Fund I's returns are unchanged (test copy).
+- **Manual §3:** the connector table now lists every tool called, with Vercel added; it is checked at each release.
 
 ### What's in 1.1.15
 
