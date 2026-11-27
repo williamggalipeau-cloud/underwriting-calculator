@@ -24,7 +24,10 @@ const G = j(R + "/lib/gpEconomics.js");
 const GP = j(R + "/lib/gpPartners.js");
 const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
 const { sampleFundTermsPatch } = j(R + "/lib/sampleDocTerms.js");
-const { SAMPLE_CONSTRUCTION_JOBS_CSV } = j(R + "/lib/sampleConstruction.js");
+const { SAMPLE_CONSTRUCTION_JOBS_CSV, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_AS_OF } = j(R + "/lib/sampleConstruction.js");
+const CON = j(R + "/lib/construction.js");
+const { parseCSV } = j(R + "/lib/fundTerms.js");
+let untiedJobs = 0;
 const { samplePipelineDeals } = j(R + "/lib/samplePipeline.js");
 const { assetOf, AS_OF } = require(R + "/scripts/sample-deal-docs/make_terms.cjs");
 let fail = 0; const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail++; };
@@ -124,12 +127,17 @@ ok(man.deals.length === names.length && man.deals.every((d) => fs.readFileSync(`
 // 6. Other sample sets name assets and units that exist.
 {
   const namesInFund = new Set(fund.deals.map((d) => d.inputs.propertyName));
-  const rows = SAMPLE_CONSTRUCTION_JOBS_CSV.split("\n").filter((l) => /^[A-Z0-9-]+,/.test(l) && !/^Job Code/.test(l)).map((l) => l.split(","));
-  const missing = [...new Set(rows.map((r) => r[2]).filter((p) => p && !namesInFund.has(p)))];
-  ok(rows.length > 0 && missing.length === 0, `construction jobs: every job's property is a Model Fund I asset (${rows.length} jobs${missing.length ? "; not in the fund: " + missing.join(", ") : ""})`);
+  const jobs = CON.parseJobs(parseCSV(SAMPLE_CONSTRUCTION_JOBS_CSV));
+  const imp = CON.importConstruction(fund.deals, { jobs, invoices: CON.parseInvoices(parseCSV(SAMPLE_CONSTRUCTION_INVOICES_CSV)), asOf: SAMPLE_CONSTRUCTION_AS_OF, source: "sample" });
+  const noUnit = jobs.filter((x) => x.unit && !dealOf(x.propertyName)?.inputs.units.some((u) => u.name === x.unit));
+  ok(jobs.length > 0 && imp.unmatched.length === 0 && jobs.every((x) => namesInFund.has(x.propertyName)) && noUnit.length === 0, `construction jobs: every job is on a Model Fund I asset and a unit of it (${jobs.length} jobs${noUnit.length ? "; no such unit: " + noUnit.map((x) => x.code).join(", ") : ""})`);
+  const known = (d) => new Set([...d.inputs.units.map((u) => u.tenantName), ...(d.inputs.leasing?.prospects ?? []).map((q) => q.tenant)].filter(Boolean));
+  const strangers = jobs.filter((x) => x.tenant && !known(dealOf(x.propertyName)).has(x.tenant));
+  untiedJobs = strangers.length;
+  if (strangers.length) console.log(`NOT YET TIED construction job tenants: ${strangers.length} jobs name a tenant that is neither on the rent roll nor a leasing prospect: ${strangers.map((x) => `${x.code} ${x.tenant}`).join("; ")}`);
   const pr = fund.deals.flatMap((d) => (d.inputs.leasing?.prospects ?? []).map((p) => ({ p, d })));
   ok(pr.length > 0 && pr.every(({ p, d }) => !p.unitId || d.inputs.units.some((u) => u.id === p.unitId)), `leasing prospects: each is for a unit of its asset (${pr.length} prospects)`);
-  ok(fund.deals.every((d) => d.inputs.businessPlan && d.inputs.construction !== undefined || d.inputs.businessPlan), "every asset has its business plan");
+  ok(fund.deals.every((d) => d.inputs.businessPlan), "every asset has its business plan");
   const pl = samplePipelineDeals(AS_OF, { targetFund: SP.SAMPLE_FUND_NAME });
   ok(pl.length > 0 && pl.every((r) => !namesInFund.has(r.name ?? r.propertyName)), `pipeline deals are not assets already in the fund (${pl.length} deals)`);
 }
