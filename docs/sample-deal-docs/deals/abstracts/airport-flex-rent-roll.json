@@ -1,15 +1,15 @@
 {
  "doc_type": "rent_roll",
- "title": "Airport Flex Park rent roll (excerpt)",
- "summary": "Excerpt of the seller's rent roll: four units, including Desert Aero Parts in Building B Suite 104.",
+ "title": "Airport Flex Park rent roll",
+ "summary": "The rent roll at closing: all 12 units, 11 occupied.",
  "fields": [
   {
    "key": "as_of",
-   "value": "December 31, 2025",
+   "value": "January 30, 2026",
    "status": "found",
    "evidence": [
     {
-     "quote": "Rent roll as of December 31, 2025.",
+     "quote": "Rent roll as of January 30, 2026.",
      "page": 1
     }
    ]
@@ -22,8 +22,7 @@
    "sf": 2000,
    "status": "occupied",
    "lease_type": "NNN",
-   "rent_psf": 17.93,
-   "lease_start": "2024-08-01",
+   "rent_psf": 17.74,
    "lease_end": "2026-07-30",
    "escalation_pct": 3,
    "business": "Electrical contractor"
@@ -34,23 +33,109 @@
    "sf": 2000,
    "status": "occupied",
    "lease_type": "NNN",
-   "rent_psf": 18.4,
-   "lease_start": "2025-02-01",
-   "lease_end": "2028-01-31",
+   "rent_psf": 18.2,
+   "lease_end": "2026-09-30",
    "escalation_pct": 3,
-   "business": "Food distribution"
+   "business": "Specialty food distribution"
   },
   {
-   "name": "Building B Suite 104",
-   "tenant": "Desert Aero Parts LLC",
+   "name": "003",
+   "tenant": "Desert Sky Fitness Studio",
    "sf": 2000,
    "status": "occupied",
-   "lease_type": "MG",
-   "rent_psf": 15.5,
-   "lease_start": "2025-03-01",
-   "lease_end": "2028-02-29",
-   "escalation_pct": 3.33,
-   "business": "Aircraft parts distribution"
+   "lease_type": "NNN",
+   "rent_psf": 18.67,
+   "lease_end": "2026-12-30",
+   "escalation_pct": 3,
+   "business": "Strength & conditioning gym"
+  },
+  {
+   "name": "004",
+   "tenant": "Riverbend Plumbing Supply",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 19.13,
+   "lease_end": "2027-02-28",
+   "escalation_pct": 3,
+   "business": "Plumbing & heating supply wholesale"
+  },
+  {
+   "name": "005",
+   "tenant": "Blue Mesa Fulfillment",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 19.6,
+   "lease_end": "2027-04-30",
+   "escalation_pct": 3,
+   "business": "E-commerce fulfillment & storage"
+  },
+  {
+   "name": "006",
+   "tenant": "Westgate Welding & Repair",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 17.74,
+   "lease_end": "2027-06-30",
+   "escalation_pct": 3,
+   "business": "Welding repair & custom fabrication"
+  },
+  {
+   "name": "007",
+   "tenant": "Northstar Print Shop",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 18.2,
+   "lease_end": "2027-09-30",
+   "escalation_pct": 3,
+   "business": "Commercial printing"
+  },
+  {
+   "name": "008",
+   "tenant": "Summit Electronics",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 18.67,
+   "lease_end": "2027-11-30",
+   "escalation_pct": 3,
+   "business": "Electronics assembly"
+  },
+  {
+   "name": "009",
+   "tenant": "Bayline Landscape Supply",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 19.13,
+   "lease_end": "2028-01-30",
+   "escalation_pct": 3,
+   "business": "Landscaping services & yard storage"
+  },
+  {
+   "name": "010",
+   "tenant": "Harbor Roofing",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 19.6,
+   "lease_end": "2029-01-30",
+   "escalation_pct": 3,
+   "business": "Roofing contractor"
+  },
+  {
+   "name": "011",
+   "tenant": "Copper Canyon Industrial Supply",
+   "sf": 2000,
+   "status": "occupied",
+   "lease_type": "NNN",
+   "rent_psf": 17.74,
+   "lease_end": "2029-07-30",
+   "escalation_pct": 3,
+   "business": "Industrial supplies & fasteners"
   },
   {
    "name": "012",

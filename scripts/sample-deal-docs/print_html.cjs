@@ -1,5 +1,5 @@
 // Prints <dir>/html/*.html to <dir>/*.pdf with the SAMPLE header and footer.
-// Usage: node scripts/sample-deal-docs/print_html.cjs docs/sample-deal-docs/deals
+// Usage: node scripts/sample-deal-docs/print_html.cjs docs/sample-deal-docs/deals [name …]
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
@@ -7,7 +7,9 @@ const dir = path.resolve(process.argv[2]);
 (async () => {
   const b = await chromium.launch();
   const p = await b.newPage();
-  const files = fs.readdirSync(path.join(dir, "html")).filter((f) => f.endsWith(".html")).sort();
+  // Optional names after the directory print only those documents.
+  const only = process.argv.slice(3).map((n) => n.replace(/\.(html|pdf)$/, ""));
+  const files = fs.readdirSync(path.join(dir, "html")).filter((f) => f.endsWith(".html") && (!only.length || only.includes(f.replace(/\.html$/, "")))).sort();
   for (const f of files) {
     await p.goto("file://" + path.join(dir, "html", f));
     await p.pdf({

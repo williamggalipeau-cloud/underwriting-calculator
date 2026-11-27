@@ -1,7 +1,7 @@
 {
  "doc_type": "appraisal",
- "title": "Route 9 Small Bay appraisal June 30, 2026",
- "summary": "Example Appraisal Group, MAI: as-is market value $12,800,000 as of June 30, 2026 at a 6.00% cap on $768,000 NOI.",
+ "title": "Route 9 Small Bay appraisal September 30, 2026",
+ "summary": "Example Appraisal Group, MAI: as-is market value $13,280,000 as of September 30, 2026 at a 6.02% cap on $799,456 NOI.",
  "fields": [
   {
    "key": "appraiser",
@@ -16,22 +16,22 @@
   },
   {
    "key": "effective_date",
-   "value": "June 30, 2026",
+   "value": "September 30, 2026",
    "status": "found",
    "evidence": [
     {
-     "quote": "The effective date of value is June 30, 2026.",
+     "quote": "The effective date of value is September 30, 2026.",
      "page": 1
     }
    ]
   },
   {
    "key": "report_date",
-   "value": "July 22, 2026",
+   "value": "October 22, 2026",
    "status": "found",
    "evidence": [
     {
-     "quote": "The date of the report is July 22, 2026.",
+     "quote": "The date of the report is October 22, 2026.",
      "page": 1
     }
    ]
@@ -49,66 +49,66 @@
   },
   {
    "key": "value",
-   "value": "$12,800,000",
+   "value": "$13,280,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "The market value of the leased fee interest, as is, is $12,800,000.",
+     "quote": "The market value of the leased fee interest, as is, is $13,280,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "cap_rate",
-   "value": "6.00%",
+   "value": "6.02%",
    "status": "found",
    "evidence": [
     {
-     "quote": "A direct capitalization rate of 6.00% was applied to stabilized net operating income of $768,000.",
+     "quote": "A direct capitalization rate of 6.02% was applied to stabilized net operating income of $799,456.",
      "page": 1
     }
    ]
   },
   {
    "key": "noi",
-   "value": "$768,000",
+   "value": "$799,456",
    "status": "found",
    "evidence": [
     {
-     "quote": "A direct capitalization rate of 6.00% was applied to stabilized net operating income of $768,000.",
+     "quote": "A direct capitalization rate of 6.02% was applied to stabilized net operating income of $799,456.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_income",
-   "value": "$12,800,000",
+   "value": "$13,280,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Income capitalization approach: $12,800,000.",
+     "quote": "Income capitalization approach: $13,280,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_sales",
-   "value": "$12,900,000",
+   "value": "$13,410,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Sales comparison approach: $12,900,000.",
+     "quote": "Sales comparison approach: $13,410,000.",
      "page": 1
     }
    ]
   },
   {
    "key": "value_cost",
-   "value": "$11,800,000",
+   "value": "$11,950,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Cost approach: $11,800,000.",
+     "quote": "Cost approach: $11,950,000.",
      "page": 1
     }
    ]
@@ -130,7 +130,7 @@
   "validated": false,
   "made_with": "Sample (fictional)",
   "files": [
-   "route9-appraisal-2026q2.pdf"
+   "route9-appraisal-2026q3.pdf"
   ]
  }
 }

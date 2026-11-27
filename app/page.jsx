@@ -27,6 +27,7 @@ import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund } from "@/lib/sampleFund";
+import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch } from "@/lib/sampleDocTerms";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -1536,7 +1537,7 @@ export default function Home() {
     // unless commitments were already entered.
     setFunds((prev) => {
       const terms = prev[SAMPLE_FUND_NAME] ?? { ...DEFAULT_FUND_TERMS, ...(prev[OLD_SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME };
-      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...sf.termsPatch, ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
+      return { ...prev, [SAMPLE_FUND_NAME]: { ...terms, ...sampleFundTermsPatch(terms), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), targetEquity: terms.targetEquity > 0 ? terms.targetEquity : SAMPLE_FUND_COMMITMENTS, ...(terms.feeModel ? {} : SAMPLE_FUND_FEE_TERMS), ...(terms.portfolioManager ? {} : { portfolioManager: SAMPLE_FUND_FEE_TERMS.portfolioManager }), rentRollModel: MTM_MODEL, testDataModel: TEST_DATA_MODEL, noiModel: NOI_MODEL, sicModel: SIC_MODEL, sizingModel: SIZING_MODEL } };
     });
     // The fictional pipeline deals load with the sample fund too (1.1, user
     // 11/25); ones already there are kept as they are.

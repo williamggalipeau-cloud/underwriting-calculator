@@ -118,7 +118,7 @@
    "asset": "Airport Flex Park",
    "fund": null,
    "leaseTenant": null,
-   "title": "Airport Flex Park rent roll (excerpt)"
+   "title": "Airport Flex Park rent roll"
   },
   {
    "name": "airport-flex-t12",
@@ -161,14 +161,14 @@
    "title": "Model Fund I PPM (excerpt)"
   },
   {
-   "name": "route9-appraisal-2026q2",
-   "file": "deals/route9-appraisal-2026q2.pdf",
-   "abstract": "deals/route9-appraisal-2026q2.json",
+   "name": "route9-appraisal-2026q3",
+   "file": "deals/route9-appraisal-2026q3.pdf",
+   "abstract": "deals/route9-appraisal-2026q3.json",
    "docType": "appraisal",
    "asset": "Route 9 Small Bay",
    "fund": null,
    "leaseTenant": null,
-   "title": "Route 9 Small Bay appraisal June 30, 2026"
+   "title": "Route 9 Small Bay appraisal September 30, 2026"
   },
   {
    "name": "route9-cap-2026",
@@ -179,16 +179,6 @@
    "fund": null,
    "leaseTenant": null,
    "title": "Route 9 Small Bay cap 2026"
-  },
-  {
-   "name": "route9-closing-disp",
-   "file": "deals/route9-closing-disp.pdf",
-   "abstract": "deals/route9-closing-disp.json",
-   "docType": "closing_disp",
-   "asset": "Route 9 Small Bay",
-   "fund": null,
-   "leaseTenant": null,
-   "title": "Route 9 Small Bay sale (test)"
   },
   {
    "name": "route9-loan",

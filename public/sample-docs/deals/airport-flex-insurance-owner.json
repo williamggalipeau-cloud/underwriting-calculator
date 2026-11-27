@@ -16,11 +16,11 @@
   },
   {
    "key": "holder",
-   "value": "Fictional Bank, N.A., as mortgagee",
+   "value": "Desert Mountain Bank, as mortgagee",
    "status": "found",
    "evidence": [
     {
-     "quote": "Certificate holder: Fictional Bank, N.A., its successors and assigns, as mortgagee.",
+     "quote": "Certificate holder: Desert Mountain Bank, its successors and assigns, as mortgagee.",
      "page": 1
     }
    ]

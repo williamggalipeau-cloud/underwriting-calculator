@@ -1,26 +1,26 @@
 {
  "doc_type": "rate_cap",
  "title": "Route 9 Small Bay cap 2026",
- "summary": "Executed 3.91% Term SOFR cap from Example Derivatives Corp (BBB+) on $9,000,000, March 16, 2026 to March 16, 2027, premium $51,045.",
+ "summary": "Executed 3.91% Term SOFR cap from Atlas Derivatives Bank (A+) on $9,125,000, March 16, 2026 to March 16, 2027, premium $51,045.",
  "fields": [
   {
    "key": "counterparty",
-   "value": "Example Derivatives Corp",
+   "value": "Atlas Derivatives Bank",
    "status": "found",
    "evidence": [
     {
-     "quote": "This Confirmation sets out the terms of the interest rate cap entered into between Example Derivatives Corp (Party A) and the owner of Route 9 Small Bay (Party B), reference EDC-26-0316.",
+     "quote": "This Confirmation sets out the terms of the interest rate cap entered into between Atlas Derivatives Bank (Party A) and the owner of Route 9 Small Bay (Party B), reference ADB-26-0316.",
      "page": 1
     }
    ]
   },
   {
    "key": "counterparty_rating",
-   "value": "BBB+",
+   "value": "A+",
    "status": "found",
    "evidence": [
     {
-     "quote": "Party A is rated BBB+ by S&P.",
+     "quote": "Party A is rated A+ by S&P.",
      "page": 1
     }
    ]
@@ -60,11 +60,11 @@
   },
   {
    "key": "notional",
-   "value": "$9,000,000",
+   "value": "$9,125,000",
    "status": "found",
    "evidence": [
     {
-     "quote": "Notional Amount: $9,000,000.",
+     "quote": "Notional Amount: $9,125,000.",
      "page": 1
     }
    ]
@@ -130,22 +130,22 @@
   },
   {
    "key": "calculation_agent",
-   "value": "Example Derivatives Corp",
+   "value": "Atlas Derivatives Bank",
    "status": "found",
    "evidence": [
     {
-     "quote": "Calculation Agent: Example Derivatives Corp.",
+     "quote": "Calculation Agent: Atlas Derivatives Bank.",
      "page": 1
     }
    ]
   },
   {
    "key": "assigned_to",
-   "value": "Fictional Bank, N.A.",
+   "value": "Cascade Commercial Bank",
    "status": "found",
    "evidence": [
     {
-     "quote": "Party B has collaterally assigned its rights under this Transaction to Fictional Bank, N.A., as Lender.",
+     "quote": "Party B has collaterally assigned its rights under this Transaction to Cascade Commercial Bank, as Lender.",
      "page": 1
     }
    ]
