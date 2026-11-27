@@ -5,7 +5,6 @@ const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const C = j(R + "/lib/calculations.js");
 const G = j(R + "/lib/gpEconomics.js");
 const GP = j(R + "/lib/gpPartners.js");
-const LD = j(R + "/lib/leasingDocs.js");
 const Q = j(R + "/lib/records.js");
 const SP = j(R + "/lib/samplePortfolio.js");
 const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
@@ -66,16 +65,12 @@ const fr = fs.readFileSync(R + "/supabase/firm_records.sql", "utf8");
 const fnText = (s) => s.slice(s.indexOf("create or replace function public.save_records"), s.indexOf("grant execute on function public.save_records"));
 ok(fnText(sql).length > 500 && fnText(sql) === fnText(fr), "save_records is the same in the release script and in firm_records.sql");
 ok(/not cur\.deleted then\s+raise exception 'conflict:/.test(fnText(sql)), "save_records refuses a save with no version for a live record");
-// The restricted titles in the script are the titles the app writes.
-const res = [...sql.matchAll(/title ~ '([^']+)'/g)].map((x) => new RegExp(x[1]));
-const restricted = (t) => res.some((re) => re.test(t));
-ok(res.length === 2, "two restricted title patterns in the script");
-const GPT = fs.readFileSync(R + "/components/GpPartners.jsx", "utf8").match(/GP_AGREEMENT_TAG = \(partnerId\) => `([^`]+)`/)[1].replace("${partnerId}", "gp-abc");
-ok(restricted(`${GPT} Agreement.pdf`), "a GP agreement's title is restricted");
-for (const t of ["credit_screening", "credit_report", "credit_memo"]) ok(restricted(LD.leasingTitle({ target: LD.tenantDocTarget("Fictional Tenant Co"), type: t, name: "x.pdf" })) && restricted(LD.leasingTitle({ target: "lp-1", type: t, name: "x.pdf" })), `${LD.leasingTypeLabel(t)}: restricted for a tenant and for a prospect`);
-for (const t of LD.LEASING_DOC_TYPES.map(([k]) => k).filter((k) => !/^credit_/.test(k))) ok(!restricted(LD.leasingTitle({ target: "lp-1", type: t, name: "Credit report: x.pdf" })), `${LD.leasingTypeLabel(t)}: not restricted`);
-ok(!restricted("Offering memorandum") && !restricted("Credit report: x.pdf") && !restricted(null ?? ""), "ordinary documents are not restricted");
-ok(/deal_doc_select[\s\S]+'owner', 'editor'\]\)\s+or \(public\.ws_can\(workspace_id, array\['viewer'\]\) and not public\.deal_doc_restricted\(title\)\)/.test(sql) && /deal_docs_read[\s\S]+not public\.deal_doc_path_restricted\(name\)/.test(sql) && /deal_doc_path_restricted[\s\S]+security definer/.test(sql), "viewers: rows and files of restricted documents are excluded; the file check runs with the definer's rights");
+// User, 11/27: viewers read every document (access controls come later). The
+// script leaves the two read rules as deal_documents.sql has them.
+const dd = fs.readFileSync(R + "/supabase/deal_documents.sql", "utf8");
+const pol = (t, name) => (t.match(new RegExp(`create policy ${name} [\\s\\S]*?;`)) ?? [""])[0].replace(/\s+/g, " ");
+ok(pol(sql, "deal_doc_select").length > 40 && pol(sql, "deal_doc_select") === pol(dd, "deal_doc_select") && pol(sql, "deal_docs_read") === pol(dd, "deal_docs_read"), "the document read rules are the same as in deal_documents.sql (every member reads)");
+ok(/'viewer'/.test(pol(sql, "deal_doc_select")) && /'viewer'/.test(pol(sql, "deal_docs_read")) && !/create or replace function public\.deal_doc_restricted/.test(sql) && /drop function if exists public\.deal_doc_restricted/.test(sql), "viewers read every document; the restriction of the earlier draft is removed");
 
 console.log(fail ? `${fail} failed` : "all passed");
 process.exit(fail ? 1 : 0);
