@@ -24,7 +24,7 @@ import { importConstruction, parseInvoices, parseJobs } from "@/lib/construction
 import { addSamplePlans } from "@/lib/samplePlans";
 import { addSampleLeasing } from "@/lib/sampleLeasing";
 import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
-import { addSampleCredit } from "@/lib/sampleCredit";
+import { addSampleCredit, mergeCreditUpdate } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
 import { withSampleAssetFacts, withSampleSnda } from "@/lib/sampleAssetFacts";
@@ -1669,10 +1669,10 @@ export default function Home() {
       const fromVersion = terms.sampleDataVersion ?? 0;
       const withDocs = (d) => {
         if (!d.id.startsWith("sample-deal-")) return d;
-        let inp = credit.updates[d.id] ? { ...d.inputs, ...credit.updates[d.id] } : d.inputs;
+        let inp = mergeCreditUpdate(d.inputs, credit.updates[d.id]); // 1.1.18: only the credit fields, onto the asset as it is now
         inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
         inp = withSampleSaleComps(inp); // 1.1.16: each sample sale's comps, copied from the asset's acquisition comps
-        inp = withSampleSnda(withSampleAssetFacts(inp, d.id), d.id); // 1.1.17: building and site facts, and SNDA statuses (only where none is set)
+        inp = withSampleSnda(withSampleAssetFacts(inp, d.id), d.id, { repair: fromVersion === 6 }); // 1.1.17: building and site facts, and SNDA statuses (only where none is set; 1.1.18 repairs a version-6 load that lost them)
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         return inp === d.inputs ? d : { ...d, inputs: inp };
       };
@@ -1797,7 +1797,7 @@ export default function Home() {
     const ids = Object.keys(r.updates);
     if (!ids.length) { window.alert("Load Model Fund I first: the sample tenant credit is for its assets."); return; }
     noteAudit(`Added sample tenant credit (${r.counts.records} records, ${r.counts.flags} flag, ${r.counts.screenings} prospect screenings)${r.delinquency ? " and a sample aged receivables report" : ""}`);
-    setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...r.updates[d.id] } } : d)));
+    setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: mergeCreditUpdate(d.inputs, r.updates[d.id]) } : d)));
     if (r.delinquency) setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...(prev[SAMPLE_FUND_NAME] ?? {}), delinquency: r.delinquency } }));
     window.alert(`Added sample tenant credit to ${ids.length} sample assets${r.delinquency ? " and a sample aged receivables report to Model Fund I" : " (Model Fund I has aged receivables of its own; those are kept)"}. See Asset Management → Tenant Credit and the risk report.`);
   }

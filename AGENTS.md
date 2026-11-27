@@ -24,6 +24,8 @@ All data and all functions in the app must tie.
 # No manual loading (user, 11/27)
 
 Sample material loads by itself (the automatic load in `app/page.jsx`, `SAMPLE_DATA_VERSION` in `lib/samplePortfolio.js`). A release that adds sample material raises the version and adds the step. Never ask the user to click to load data.
+- A load step changes only its own fields on an asset, applied to the asset as it is now (never a copy made earlier).
+- Everything a load adds is checked in the browser tests of the load (`tests/e2e/sampleSync*.e2e.cjs`) on what is actually saved, not only in the builder's tests (11/27: 1.1.13 and 1.1.17 each lost data this way).
 
 # Working rules (user, across sessions)
 

@@ -90,7 +90,34 @@ ok(S.sndaByLoan(loans).length === loans.length && S.sndaByLoan(loans).filter((r)
 const mine = { ...fund.deals[0].inputs, building: { clearHeightFt: 99 }, site: {} };
 ok(SA.withSampleAssetFacts(mine, "sample-deal-1").building.clearHeightFt === 99 && Object.keys(SA.withSampleAssetFacts(mine, "sample-deal-1").site).length > 10, "the load fills only a section with nothing in it");
 ok(SA.withSampleSnda(fund.deals[0].inputs, "sample-deal-1") === fund.deals[0].inputs && SA.withSampleSnda({ ...fund.deals[0].inputs, loanTerms: { sndaRule: "min_sf" }, units: fund.deals[0].inputs.units.map((u) => ({ ...u, snda: undefined })) }, "sample-deal-1").loanTerms.sndaRule === "min_sf", "SNDA statuses are added once; a rule the user set is kept");
-ok(SAMPLE_DATA_VERSION === 6, "the automatic load's version is 6");
+ok(SAMPLE_DATA_VERSION === 7, "the automatic load's version is 7");
+// 1.1.18: the load as app/page.jsx runs it, twice over (the second pass is the
+// safety step of 1.1.14). The credit step must not put back the units as they
+// were at the start, or the SNDA statuses set by the first pass are lost.
+{
+  const SC = j(R + "/lib/sampleCredit.js");
+  const bare = buildSampleFund({ todayISO: T0 });
+  const start = bare.deals.map((d) => ({ ...d, inputs: { ...d.inputs, loanTerms: (() => { const { sndaRule, ...rest } = d.inputs.loanTerms ?? {}; return rest; })(), units: d.inputs.units.map(({ snda, ...u }) => u) } }));
+  ok(start.every((d) => d.inputs.units.every((u) => !u.snda) && !d.inputs.loanTerms.sndaRule), "a firm saved before 1.1.17 has no SNDA rule and no statuses");
+  const credit = SC.addSampleCredit(start, { todayISO: T0, funds: {}, fundName: "Model Fund I" });
+  const step = (d, repair = false) => ({ ...d, inputs: SA.withSampleSnda(SA.withSampleAssetFacts(SC.mergeCreditUpdate(d.inputs, credit.updates[d.id]), d.id), d.id, { repair }) });
+  const twice = start.map((d) => step(d)).map((d) => step(d));
+  const counts = (ds) => ds.filter((d) => SA.SAMPLE_SNDA_ASSETS.includes(d.id)).map((d) => { const c = S.sndaCoverage(d.inputs); return `${c.signed}/${c.requested}`; }).join();
+  ok(counts(twice) === "2/2,2/2", `after both passes of the load, each of the two assets has two leases signed and two requested (${counts(twice)})`);
+  ok(twice.every((d) => d.inputs.units.every((u) => u.leaseStatus !== "occupied" || !u.tenantName || u.credit)), "and the credit records are there too");
+  // What 1.1.17 did: the update replaced the unit list.
+  const old = (d) => ({ ...d, inputs: SA.withSampleSnda(SA.withSampleAssetFacts(credit.updates[d.id] ? { ...d.inputs, ...credit.updates[d.id] } : d.inputs, d.id), d.id) });
+  const broken = start.map(old).map(old);
+  ok(counts(broken) === "0/0,0/0" && broken.filter((d) => SA.SAMPLE_SNDA_ASSETS.includes(d.id)).every((d) => d.inputs.loanTerms.sndaRule === "all"), "the 1.1.17 load is reproduced: the rule saved, every status lost");
+  const repaired = broken.map((d) => step(d, true)).map((d) => step(d, true));
+  ok(counts(repaired) === "2/2,2/2", "the next load repairs a firm left that way");
+  const userRule = { ...broken[0], inputs: { ...broken[0].inputs, loanTerms: { ...broken[0].inputs.loanTerms, sndaRule: "min_sf", sndaMinSF: 5000 } } };
+  ok(S.sndaCoverage(step(userRule, true).inputs).signed === 0 && step(userRule, true).inputs.loanTerms.sndaRule === "min_sf", "a rule the user changed is not touched by the repair");
+  // mergeCreditUpdate takes only the credit fields.
+  const d0 = twice[0].inputs, edited = { ...d0, units: d0.units.map((u, i) => (i === 0 ? { ...u, tenantName: "Renamed By User", currentRentPSF: 99 } : u)) };
+  const merged = SC.mergeCreditUpdate(edited, credit.updates[twice[0].id]);
+  ok(merged.units[0].tenantName === "Renamed By User" && merged.units[0].currentRentPSF === 99 && merged.units[0].snda?.status === "signed" && merged.units[0].credit && SC.mergeCreditUpdate(edited, undefined) === edited, "the credit step keeps everything else on a unit (a rename, a rent, an SNDA status)");
+}
 
 // ── The sample documents say what the fund holds ──
 const man = require(R + "/public/sample-docs/manifest.json");
