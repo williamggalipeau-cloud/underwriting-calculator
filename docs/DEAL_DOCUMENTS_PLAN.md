@@ -105,7 +105,8 @@ on the firm's own data warehouse 2.3.
   - The GP partner splits add up.
   - Cash is conserved from asset to fund.
 
-**Merged: version 1.1.14, fix to the automatic sample load** (built 11/27; merged 11/27 as PR #120, `81a1eed`, with the user's OK and green tests; GitHub Release v1.1.14 to be published by the user; the live read-back follows once the user opens Baywise).
+**Merged: version 1.1.14, fix to the automatic sample load** (built 11/27; merged 11/27 as PR #120, `81a1eed`, with the user's OK and green tests; GitHub Release v1.1.14 published by the user and checked 11/26 11:37 PM Pacific: tag `v1.1.14` on `81a1eed`).
+- **Live read-back (read-only, 11/26 11:38 PM Pacific), confirmed:** the load ran on the user's next open. Fund at sample data version 4 with 11 entities; all nine sample assets saved with a property manager (sponsor firm); the asset with the full document set holds its IC approval, contract date, lender and executed cap; the second holds its loan terms and cap; three assets each hold one sale in progress; 39 documents.
 - **Found by the live check after 1.1.13 (read-only, 11/27 07:02 UTC):** the fund record was saved (sample data version 3, 11 entities, 8 limits; 39 documents; 9 new leases) but none of the 20 asset records changed: no property managers, no document terms, no sales in progress.
 - **Cause (reproduced):** `syncSampleData` set the asset changes, then uploaded documents for about a minute before saving. Moving to another tab in that minute showed the unsaved-changes box; Discard changes reloaded the firm and removed them, and the load carried on and saved the fund with the version. The same weakness existed in 1.1.12's load.
 - **Fix:** the asset changes are saved before the uploads, and applied again (functional update, fills only what is empty) before the version is recorded. `SAMPLE_DATA_VERSION` 4 re-runs the steps for the firm.
