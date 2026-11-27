@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const R = path.resolve(__dirname, "..", "..");
 const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
-const { buildSampleFund } = j(R + "/lib/sampleFund.js");
+const { buildSampleFund, samplePropertyCompany } = j(R + "/lib/sampleFund.js");
 const { underwrite } = j(R + "/lib/calculations.js");
 const SP = j(R + "/lib/samplePortfolio.js");
 const { DEFAULT_FUND_TERMS } = j(R + "/lib/fundTerms.js");
@@ -40,10 +40,12 @@ function fundJson() {
         equity: Math.round(r.debt.equityRequired), noi1: Math.round(cf.noi), goingInCapPct: r2((cf.noi / a.purchasePrice) * 100), irrPct: Math.round(r.returns.irr * 10) / 10,
         multiple: r2(r.returns.equityMultiple), coc1Pct: Math.round(r.returns.yearOneCashOnCash * 10) / 10, totalCost: a.purchasePrice + closing + (a.capexBudget ?? 0),
       },
+      propertyCompany: samplePropertyCompany(Number(d.id.replace("sample-deal-", "")) - 1),
+      building: a.building ?? {}, site: a.site ?? {}, sndaRule: a.loanTerms?.sndaRule ?? "none", /* 1.1.17 */
       marks: Object.fromEntries(Object.entries(f.valuations[d.id] ?? {}).map(([q, m]) => [q, { value: m.value, capRate: m.capRate, source: m.source }])),
       units: (a.units ?? []).map((u) => ({
         name: u.name, tenant: u.tenantName ?? "", sf: u.squareFeet, status: u.leaseStatus, leaseType: u.leaseType, rentPSF: u.currentRentPSF, leaseEnd: u.leaseEnd ?? "",
-        escalationPct: u.annualEscalationPct, business: u.businessDescription ?? "", sic: u.sicCode ?? "", securityDeposit: u.securityDeposit ?? null,
+        escalationPct: u.annualEscalationPct, business: u.businessDescription ?? "", sic: u.sicCode ?? "", securityDeposit: u.securityDeposit ?? null, snda: u.snda ?? null,
       })),
     };
   });

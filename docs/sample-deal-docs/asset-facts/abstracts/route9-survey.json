@@ -1,0 +1,35 @@
+{
+ "doc_type": "survey",
+ "title": "Route 9 Small Bay survey",
+ "asset": "Route 9 Small Bay",
+ "report_date": "2026-02-16",
+ "prepared_by": "Fictional Land Surveying, Inc.",
+ "building": {
+  "landAcres": 2.6,
+  "footprintSF": 42000
+ },
+ "site": {
+  "zoning": "M1 Industrial",
+  "industrialByRight": "yes",
+  "residentialAdjacency": "None",
+  "truckRestrictions": "None",
+  "freewayName": "SR-167",
+  "freewayMiles": 0.8,
+  "freewayNoResidential": "yes"
+ },
+ "quotes": {
+  "landAcres": "The parcel contains 2.6 acres, more or less.",
+  "footprintSF": "The building footprint measures 42,000 square feet.",
+  "zoning": "The property is zoned M1 Industrial. Industrial use is permitted by right.",
+  "industrialByRight": "The property is zoned M1 Industrial. Industrial use is permitted by right.",
+  "residentialAdjacency": "Adjoining residential uses: None. Posted truck route restrictions: None.",
+  "truckRestrictions": "Adjoining residential uses: None. Posted truck route restrictions: None.",
+  "freewayName": "Access to SR-167 is 0.8 miles from the property and does not pass along a residential street.",
+  "freewayMiles": "Access to SR-167 is 0.8 miles from the property and does not pass along a residential street.",
+  "freewayNoResidential": "Access to SR-167 is 0.8 miles from the property and does not pass along a residential street."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

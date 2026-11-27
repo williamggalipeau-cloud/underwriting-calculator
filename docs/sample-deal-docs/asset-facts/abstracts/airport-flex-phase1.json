@@ -1,0 +1,21 @@
+{
+ "doc_type": "phase1",
+ "title": "Airport Flex Park Phase I environmental report",
+ "asset": "Airport Flex Park",
+ "report_date": "2025-12-05",
+ "prepared_by": "Fictional Environmental Services, LLC",
+ "site": {
+  "phase1Date": "2025-12-05",
+  "phase1Result": "Clean",
+  "phase2Result": "Not needed"
+ },
+ "quotes": {
+  "phase1Date": "This Phase I Environmental Site Assessment was completed on December 5, 2025 in accordance with ASTM E1527-21.",
+  "phase1Result": "This assessment has revealed no recognized environmental conditions in connection with the property.",
+  "phase2Result": "No further investigation, including a Phase II assessment, is recommended."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

@@ -79,6 +79,58 @@
     "coc1Pct": -1.6,
     "totalCost": 7788000
    },
+   "propertyCompany": "Model Fund I — Runway Vista LLC",
+   "building": {
+    "clearHeightFt": 20,
+    "dockDoors": 2,
+    "driveInDoors": 12,
+    "truckCourtFt": 110,
+    "trailerStalls": 4,
+    "landAcres": 1.5,
+    "footprintSF": 24000,
+    "powerAmps": 1200,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 5,
+    "slabReinforcement": "Wire mesh",
+    "floorFF": 30,
+    "floorFL": 22,
+    "columnSpacingW": 30,
+    "columnSpacingD": 40,
+    "sprinklerType": "Wet pipe",
+    "officeSF": 2880,
+    "roofType": "TPO",
+    "roofYear": 2018,
+    "roofWarrantyTo": 2038,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt",
+    "pavingYear": 2016,
+    "pavingLifeYears": 15,
+    "dollyPads": "no"
+   },
+   "site": {
+    "portName": "Fictional Inland Port (Las Vegas)",
+    "portMiles": 12,
+    "portMinutes": 25,
+    "drayageTripsPerShift": 5,
+    "railName": "Fictional Rail Ramp North",
+    "railMiles": 9,
+    "airportName": "LAS",
+    "airportMiles": 3,
+    "freewayName": "I-15",
+    "freewayMiles": 0.6,
+    "pop30": 1400000,
+    "pop60": 2300000,
+    "phase1Date": "2025-12-05",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "M-1 Light Industrial",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "all",
    "marks": {
     "2026-09-30": {
      "value": 7600000,
@@ -98,7 +150,12 @@
      "escalationPct": 3,
      "business": "Electrical contractor",
      "sic": "1731",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "signed",
+      "signedOn": "2026-01-22",
+      "lender": "Desert Mountain Bank"
+     }
     },
     {
      "name": "002",
@@ -111,7 +168,12 @@
      "escalationPct": 3,
      "business": "Specialty food distribution",
      "sic": "5149",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "signed",
+      "signedOn": "2026-01-23",
+      "lender": "Desert Mountain Bank"
+     }
     },
     {
      "name": "003",
@@ -124,7 +186,12 @@
      "escalationPct": 3,
      "business": "Strength & conditioning gym",
      "sic": "7991",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "requested",
+      "requestedOn": "2026-10-30",
+      "lender": "Desert Mountain Bank"
+     }
     },
     {
      "name": "004",
@@ -137,7 +204,12 @@
      "escalationPct": 3,
      "business": "Plumbing & heating supply wholesale",
      "sic": "5074",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "requested",
+      "requestedOn": "2026-10-30",
+      "lender": "Desert Mountain Bank"
+     }
     },
     {
      "name": "005",
@@ -150,7 +222,8 @@
      "escalationPct": 3,
      "business": "E-commerce fulfillment & storage",
      "sic": "4225",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "006",
@@ -163,7 +236,8 @@
      "escalationPct": 3,
      "business": "Welding repair & custom fabrication",
      "sic": "7692",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -176,7 +250,8 @@
      "escalationPct": 3,
      "business": "Commercial printing",
      "sic": "2752",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -189,7 +264,8 @@
      "escalationPct": 3,
      "business": "Electronics assembly",
      "sic": "3679",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -202,7 +278,8 @@
      "escalationPct": 3,
      "business": "Landscaping services & yard storage",
      "sic": "0782",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -215,7 +292,8 @@
      "escalationPct": 3,
      "business": "Roofing contractor",
      "sic": "1761",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -228,7 +306,8 @@
      "escalationPct": 3,
      "business": "Industrial supplies & fasteners",
      "sic": "5085",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -241,7 +320,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -298,6 +378,58 @@
     "coc1Pct": -3.1,
     "totalCost": 14000000
    },
+   "propertyCompany": "Model Fund I — Valley Freight LLC",
+   "building": {
+    "clearHeightFt": 24,
+    "dockDoors": 6,
+    "driveInDoors": 18,
+    "truckCourtFt": 120,
+    "trailerStalls": 8,
+    "landAcres": 2.6,
+    "footprintSF": 42000,
+    "powerAmps": 2000,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 6,
+    "slabReinforcement": "Rebar",
+    "floorFF": 35,
+    "floorFL": 25,
+    "columnSpacingW": 40,
+    "columnSpacingD": 40,
+    "sprinklerType": "Wet pipe",
+    "officeSF": 4200,
+    "roofType": "TPO",
+    "roofYear": 2019,
+    "roofWarrantyTo": 2039,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt",
+    "pavingYear": 2014,
+    "pavingLifeYears": 15,
+    "dollyPads": "no"
+   },
+   "site": {
+    "portName": "Fictional Port of Puget Sound",
+    "portMiles": 19,
+    "portMinutes": 30,
+    "drayageTripsPerShift": 4,
+    "railName": "Fictional Rail Yard South",
+    "railMiles": 6,
+    "airportName": "SEA",
+    "airportMiles": 7,
+    "freewayName": "SR-167",
+    "freewayMiles": 0.8,
+    "pop30": 1100000,
+    "pop60": 3400000,
+    "phase1Date": "2026-02-10",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "M1 Industrial",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "all",
    "marks": {
     "2026-09-30": {
      "value": 13280000,
@@ -317,7 +449,12 @@
      "escalationPct": 3,
      "business": "Electronics assembly",
      "sic": "3679",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "signed",
+      "signedOn": "2026-03-09",
+      "lender": "Cascade Commercial Bank"
+     }
     },
     {
      "name": "002",
@@ -330,7 +467,12 @@
      "escalationPct": 3,
      "business": "Landscaping services & yard storage",
      "sic": "0782",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "signed",
+      "signedOn": "2026-03-10",
+      "lender": "Cascade Commercial Bank"
+     }
     },
     {
      "name": "003",
@@ -343,7 +485,12 @@
      "escalationPct": 3,
      "business": "Roofing contractor",
      "sic": "1761",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "requested",
+      "requestedOn": "2026-11-05",
+      "lender": "Cascade Commercial Bank"
+     }
     },
     {
      "name": "004",
@@ -356,7 +503,12 @@
      "escalationPct": 3,
      "business": "Industrial supplies & fasteners",
      "sic": "5085",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": {
+      "status": "requested",
+      "requestedOn": "2026-11-05",
+      "lender": "Cascade Commercial Bank"
+     }
     },
     {
      "name": "005",
@@ -369,7 +521,8 @@
      "escalationPct": 3,
      "business": "Specialty coffee roasting",
      "sic": "2095",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "006",
@@ -382,7 +535,8 @@
      "escalationPct": 3,
      "business": "Security & alarm installation",
      "sic": "7382",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -395,7 +549,8 @@
      "escalationPct": 3,
      "business": "Same-day courier service",
      "sic": "4215",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -408,7 +563,8 @@
      "escalationPct": 3,
      "business": "Furniture & woodworking shop",
      "sic": "2511",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -421,7 +577,8 @@
      "escalationPct": 3,
      "business": "Construction equipment rental",
      "sic": "7359",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -434,7 +591,8 @@
      "escalationPct": 3,
      "business": "Auto body & paint",
      "sic": "7532",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -447,7 +605,8 @@
      "escalationPct": 3,
      "business": "Medical & dental equipment distribution",
      "sic": "5047",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -460,7 +619,8 @@
      "escalationPct": 3,
      "business": "Countertop fabrication & stone",
      "sic": "3281",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "013",
@@ -473,7 +633,8 @@
      "escalationPct": 3,
      "business": "Pest control services",
      "sic": "7342",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "014",
@@ -486,7 +647,8 @@
      "escalationPct": 3,
      "business": "Auto parts distribution",
      "sic": "5013",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "015",
@@ -499,7 +661,8 @@
      "escalationPct": 3,
      "business": "Craft brewery & taproom",
      "sic": "2082",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "016",
@@ -512,7 +675,8 @@
      "escalationPct": 3,
      "business": "Plumbing & mechanical contractor",
      "sic": "1711",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "017",
@@ -525,7 +689,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "018",
@@ -538,7 +703,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -595,6 +761,58 @@
     "coc1Pct": -2,
     "totalCost": 10592000
    },
+   "propertyCompany": "Model Fund I — Pier Junction LLC",
+   "building": {
+    "clearHeightFt": 26,
+    "dockDoors": 8,
+    "driveInDoors": 16,
+    "truckCourtFt": 125,
+    "trailerStalls": 10,
+    "landAcres": 2.1,
+    "footprintSF": 36000,
+    "powerAmps": 2000,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 6,
+    "slabReinforcement": "Rebar",
+    "floorFF": 38,
+    "floorFL": 27,
+    "columnSpacingW": 40,
+    "columnSpacingD": 50,
+    "sprinklerType": "ESFR",
+    "officeSF": 3240,
+    "roofType": "EPDM",
+    "roofYear": 2015,
+    "roofWarrantyTo": 2030,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt and concrete",
+    "pavingYear": 2018,
+    "pavingLifeYears": 15,
+    "dollyPads": "yes"
+   },
+   "site": {
+    "portName": "Fictional Harbor Terminal",
+    "portMiles": 4,
+    "portMinutes": 12,
+    "drayageTripsPerShift": 7,
+    "railName": "Fictional Dockside Rail",
+    "railMiles": 5,
+    "airportName": "LGB",
+    "airportMiles": 6,
+    "freewayName": "I-710",
+    "freewayMiles": 0.5,
+    "pop30": 2600000,
+    "pop60": 9800000,
+    "phase1Date": "2026-03-20",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "IG General Industrial",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "none",
    "marks": {},
    "units": [
     {
@@ -608,7 +826,8 @@
      "escalationPct": 3,
      "business": "Furniture & woodworking shop",
      "sic": "2511",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "002",
@@ -621,7 +840,8 @@
      "escalationPct": 3,
      "business": "Construction equipment rental",
      "sic": "7359",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "003",
@@ -634,7 +854,8 @@
      "escalationPct": 3,
      "business": "Auto body & paint",
      "sic": "7532",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "004",
@@ -647,7 +868,8 @@
      "escalationPct": 3,
      "business": "Medical & dental equipment distribution",
      "sic": "5047",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "005",
@@ -660,7 +882,8 @@
      "escalationPct": 3,
      "business": "Countertop fabrication & stone",
      "sic": "3281",
-     "securityDeposit": 7043
+     "securityDeposit": 7043,
+     "snda": null
     },
     {
      "name": "006",
@@ -673,7 +896,8 @@
      "escalationPct": 3,
      "business": "Pest control services",
      "sic": "7342",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -686,7 +910,8 @@
      "escalationPct": 3,
      "business": "Auto parts distribution",
      "sic": "5013",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -699,7 +924,8 @@
      "escalationPct": 3,
      "business": "Craft brewery & taproom",
      "sic": "2082",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -712,7 +938,8 @@
      "escalationPct": 3,
      "business": "Plumbing & mechanical contractor",
      "sic": "1711",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -725,7 +952,8 @@
      "escalationPct": 3,
      "business": "Warehousing & distribution",
      "sic": "4225",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -738,7 +966,8 @@
      "escalationPct": 3,
      "business": "Tooling & die making",
      "sic": "3544",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -751,7 +980,8 @@
      "escalationPct": 3,
      "business": "Flooring contractor & showroom",
      "sic": "1752",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "013",
@@ -764,7 +994,8 @@
      "escalationPct": 3,
      "business": "Refrigeration & appliance repair",
      "sic": "7623",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "014",
@@ -777,7 +1008,8 @@
      "escalationPct": 3,
      "business": "Plastic parts molding",
      "sic": "3089",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "015",
@@ -790,7 +1022,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "016",
@@ -803,7 +1036,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -860,6 +1094,58 @@
     "coc1Pct": -3.1,
     "totalCost": 9336000
    },
+   "propertyCompany": "Model Fund I — Ridgeway Commerce LLC",
+   "building": {
+    "clearHeightFt": 22,
+    "dockDoors": 4,
+    "driveInDoors": 14,
+    "truckCourtFt": 115,
+    "trailerStalls": 6,
+    "landAcres": 1.9,
+    "footprintSF": 28000,
+    "powerAmps": 1600,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 5,
+    "slabReinforcement": "Wire mesh",
+    "floorFF": 32,
+    "floorFL": 24,
+    "columnSpacingW": 36,
+    "columnSpacingD": 40,
+    "sprinklerType": "Wet pipe",
+    "officeSF": 3080,
+    "roofType": "TPO",
+    "roofYear": 2020,
+    "roofWarrantyTo": 2040,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt",
+    "pavingYear": 2017,
+    "pavingLifeYears": 15,
+    "dollyPads": "no"
+   },
+   "site": {
+    "portName": "Fictional Inland Port (Fort Worth)",
+    "portMiles": 14,
+    "portMinutes": 22,
+    "drayageTripsPerShift": 5,
+    "railName": "Fictional Alliance Rail Ramp",
+    "railMiles": 11,
+    "airportName": "DFW",
+    "airportMiles": 18,
+    "freewayName": "I-35W",
+    "freewayMiles": 0.9,
+    "pop30": 1500000,
+    "pop60": 5200000,
+    "phase1Date": "2026-05-08",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "K Heavy Industrial",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "none",
    "marks": {},
    "units": [
     {
@@ -873,7 +1159,8 @@
      "escalationPct": 3,
      "business": "Craft brewery & taproom",
      "sic": "2082",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "002",
@@ -886,7 +1173,8 @@
      "escalationPct": 3,
      "business": "Plumbing & mechanical contractor",
      "sic": "1711",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "003",
@@ -899,7 +1187,8 @@
      "escalationPct": 3,
      "business": "Warehousing & distribution",
      "sic": "4225",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "004",
@@ -912,7 +1201,8 @@
      "escalationPct": 3,
      "business": "Tooling & die making",
      "sic": "3544",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "005",
@@ -925,7 +1215,8 @@
      "escalationPct": 3,
      "business": "Flooring contractor & showroom",
      "sic": "1752",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "006",
@@ -938,7 +1229,8 @@
      "escalationPct": 3,
      "business": "Refrigeration & appliance repair",
      "sic": "7623",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -951,7 +1243,8 @@
      "escalationPct": 3,
      "business": "Plastic parts molding",
      "sic": "3089",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -964,7 +1257,8 @@
      "escalationPct": 3,
      "business": "Commercial general contractor",
      "sic": "1542",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -977,7 +1271,8 @@
      "escalationPct": 3,
      "business": "Sporting goods wholesale",
      "sic": "5091",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -990,7 +1285,8 @@
      "escalationPct": 3,
      "business": "Testing & research laboratory",
      "sic": "8731",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -1003,7 +1299,8 @@
      "escalationPct": 3,
      "business": "Commercial cleaning services",
      "sic": "7349",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -1016,7 +1313,8 @@
      "escalationPct": 3,
      "business": "Glass & glazing contractor",
      "sic": "1793",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "013",
@@ -1029,7 +1327,8 @@
      "escalationPct": 3,
      "business": "Custom cabinetry & millwork",
      "sic": "2434",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "014",
@@ -1042,7 +1341,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -1099,6 +1399,58 @@
     "coc1Pct": -1.9,
     "totalCost": 5866000
    },
+   "propertyCompany": "Model Fund I — Canal Street LLC",
+   "building": {
+    "clearHeightFt": 18,
+    "dockDoors": 0,
+    "driveInDoors": 9,
+    "truckCourtFt": 90,
+    "trailerStalls": 0,
+    "landAcres": 1.1,
+    "footprintSF": 18000,
+    "powerAmps": 800,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 5,
+    "slabReinforcement": "Wire mesh",
+    "floorFF": 28,
+    "floorFL": 20,
+    "columnSpacingW": 30,
+    "columnSpacingD": 30,
+    "sprinklerType": "Wet pipe",
+    "officeSF": 2520,
+    "roofType": "Built-up",
+    "roofYear": 2012,
+    "roofWarrantyTo": 2022,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt",
+    "pavingYear": 2013,
+    "pavingLifeYears": 15,
+    "dollyPads": "no"
+   },
+   "site": {
+    "portName": "Fictional Ship Channel Terminal",
+    "portMiles": 9,
+    "portMinutes": 20,
+    "drayageTripsPerShift": 6,
+    "railName": "Fictional Englewood Yard",
+    "railMiles": 7,
+    "airportName": "HOU",
+    "airportMiles": 10,
+    "freewayName": "I-10",
+    "freewayMiles": 0.4,
+    "pop30": 2400000,
+    "pop60": 5600000,
+    "phase1Date": "2026-06-12",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "No zoning (deed restricted industrial)",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "none",
    "marks": {},
    "units": [
     {
@@ -1112,7 +1464,8 @@
      "escalationPct": 3,
      "business": "Commercial general contractor",
      "sic": "1542",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "002",
@@ -1125,7 +1478,8 @@
      "escalationPct": 3,
      "business": "Sporting goods wholesale",
      "sic": "5091",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "003",
@@ -1138,7 +1492,8 @@
      "escalationPct": 3,
      "business": "Testing & research laboratory",
      "sic": "8731",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "004",
@@ -1151,7 +1506,8 @@
      "escalationPct": 3,
      "business": "Commercial cleaning services",
      "sic": "7349",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "005",
@@ -1164,7 +1520,8 @@
      "escalationPct": 3,
      "business": "Glass & glazing contractor",
      "sic": "1793",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "006",
@@ -1177,7 +1534,8 @@
      "escalationPct": 3,
      "business": "Custom cabinetry & millwork",
      "sic": "2434",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -1190,7 +1548,8 @@
      "escalationPct": 3,
      "business": "Local trucking & freight",
      "sic": "4213",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -1203,7 +1562,8 @@
      "escalationPct": 3,
      "business": "Sheet metal fabrication",
      "sic": "3444",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -1216,7 +1576,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -1273,6 +1634,58 @@
     "coc1Pct": -2.8,
     "totalCost": 16592000
    },
+   "propertyCompany": "Model Fund I — Mill Creek LLC",
+   "building": {
+    "clearHeightFt": 28,
+    "dockDoors": 10,
+    "driveInDoors": 22,
+    "truckCourtFt": 135,
+    "trailerStalls": 14,
+    "landAcres": 3.2,
+    "footprintSF": 50000,
+    "powerAmps": 2500,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 6,
+    "slabReinforcement": "Rebar",
+    "floorFF": 40,
+    "floorFL": 28,
+    "columnSpacingW": 50,
+    "columnSpacingD": 50,
+    "sprinklerType": "ESFR",
+    "officeSF": 4000,
+    "roofType": "TPO",
+    "roofYear": 2021,
+    "roofWarrantyTo": 2041,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt and concrete",
+    "pavingYear": 2019,
+    "pavingLifeYears": 15,
+    "dollyPads": "yes"
+   },
+   "site": {
+    "portName": "Fictional Port of Puget Sound",
+    "portMiles": 31,
+    "portMinutes": 45,
+    "drayageTripsPerShift": 3,
+    "railName": "Fictional Rail Yard North",
+    "railMiles": 4,
+    "airportName": "PAE",
+    "airportMiles": 3,
+    "freewayName": "I-5",
+    "freewayMiles": 1.1,
+    "pop30": 700000,
+    "pop60": 2900000,
+    "phase1Date": "2026-07-10",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "LI-1 Light Industrial",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "none",
    "marks": {},
    "units": [
     {
@@ -1286,7 +1699,8 @@
      "escalationPct": 3,
      "business": "Sheet metal fabrication",
      "sic": "3444",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "002",
@@ -1299,7 +1713,8 @@
      "escalationPct": 3,
      "business": "HVAC equipment wholesale",
      "sic": "5075",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "003",
@@ -1312,7 +1727,8 @@
      "escalationPct": 3,
      "business": "Commercial signage & vehicle wraps",
      "sic": "3993",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "004",
@@ -1325,7 +1741,8 @@
      "escalationPct": 3,
      "business": "General automotive repair",
      "sic": "7538",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "005",
@@ -1338,7 +1755,8 @@
      "escalationPct": 3,
      "business": "CNC machining & precision parts",
      "sic": "3599",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "006",
@@ -1351,7 +1769,8 @@
      "escalationPct": 3,
      "business": "Electrical contractor",
      "sic": "1731",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -1364,7 +1783,8 @@
      "escalationPct": 3,
      "business": "Specialty food distribution",
      "sic": "5149",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -1377,7 +1797,8 @@
      "escalationPct": 3,
      "business": "Strength & conditioning gym",
      "sic": "7991",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -1390,7 +1811,8 @@
      "escalationPct": 3,
      "business": "Plumbing & heating supply wholesale",
      "sic": "5074",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -1403,7 +1825,8 @@
      "escalationPct": 3,
      "business": "E-commerce fulfillment & storage",
      "sic": "4225",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -1416,7 +1839,8 @@
      "escalationPct": 3,
      "business": "Welding repair & custom fabrication",
      "sic": "7692",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -1429,7 +1853,8 @@
      "escalationPct": 3,
      "business": "Commercial printing",
      "sic": "2752",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "013",
@@ -1442,7 +1867,8 @@
      "escalationPct": 3,
      "business": "Electronics assembly",
      "sic": "3679",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "014",
@@ -1455,7 +1881,8 @@
      "escalationPct": 3,
      "business": "Landscaping services & yard storage",
      "sic": "0782",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "015",
@@ -1468,7 +1895,8 @@
      "escalationPct": 3,
      "business": "Roofing contractor",
      "sic": "1761",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "016",
@@ -1481,7 +1909,8 @@
      "escalationPct": 3,
      "business": "Industrial supplies & fasteners",
      "sic": "5085",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "017",
@@ -1494,7 +1923,8 @@
      "escalationPct": 3,
      "business": "Specialty coffee roasting",
      "sic": "2095",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "018",
@@ -1507,7 +1937,8 @@
      "escalationPct": 3,
      "business": "Security & alarm installation",
      "sic": "7382",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "019",
@@ -1520,7 +1951,8 @@
      "escalationPct": 3,
      "business": "Same-day courier service",
      "sic": "4215",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "020",
@@ -1533,7 +1965,8 @@
      "escalationPct": 3,
      "business": "Furniture & woodworking shop",
      "sic": "2511",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "021",
@@ -1546,7 +1979,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "022",
@@ -1559,7 +1993,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -1616,6 +2051,58 @@
     "coc1Pct": -2.6,
     "totalCost": 10164000
    },
+   "propertyCompany": "Model Fund I — Southpoint LLC",
+   "building": {
+    "clearHeightFt": 22,
+    "dockDoors": 4,
+    "driveInDoors": 15,
+    "truckCourtFt": 110,
+    "trailerStalls": 5,
+    "landAcres": 2,
+    "footprintSF": 32000,
+    "powerAmps": 1600,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 5,
+    "slabReinforcement": "Wire mesh",
+    "floorFF": 32,
+    "floorFL": 24,
+    "columnSpacingW": 36,
+    "columnSpacingD": 40,
+    "sprinklerType": "Wet pipe",
+    "officeSF": 3840,
+    "roofType": "TPO",
+    "roofYear": 2017,
+    "roofWarrantyTo": 2037,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt",
+    "pavingYear": 2015,
+    "pavingLifeYears": 15,
+    "dollyPads": "no"
+   },
+   "site": {
+    "portName": "Fictional Inland Port (Las Vegas)",
+    "portMiles": 18,
+    "portMinutes": 30,
+    "drayageTripsPerShift": 4,
+    "railName": "Fictional Rail Ramp North",
+    "railMiles": 16,
+    "airportName": "LAS",
+    "airportMiles": 9,
+    "freewayName": "I-11",
+    "freewayMiles": 0.7,
+    "pop30": 1200000,
+    "pop60": 2300000,
+    "phase1Date": "2026-08-25",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "IG General Industrial",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "none",
    "marks": {},
    "units": [
     {
@@ -1629,7 +2116,8 @@
      "escalationPct": 3,
      "business": "Strength & conditioning gym",
      "sic": "7991",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "002",
@@ -1642,7 +2130,8 @@
      "escalationPct": 3,
      "business": "Plumbing & heating supply wholesale",
      "sic": "5074",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "003",
@@ -1655,7 +2144,8 @@
      "escalationPct": 3,
      "business": "E-commerce fulfillment & storage",
      "sic": "4225",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "004",
@@ -1668,7 +2158,8 @@
      "escalationPct": 3,
      "business": "Welding repair & custom fabrication",
      "sic": "7692",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "005",
@@ -1681,7 +2172,8 @@
      "escalationPct": 3,
      "business": "Commercial printing",
      "sic": "2752",
-     "securityDeposit": 6125
+     "securityDeposit": 6125,
+     "snda": null
     },
     {
      "name": "006",
@@ -1694,7 +2186,8 @@
      "escalationPct": 3,
      "business": "Electronics assembly",
      "sic": "3679",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -1707,7 +2200,8 @@
      "escalationPct": 3,
      "business": "Landscaping services & yard storage",
      "sic": "0782",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -1720,7 +2214,8 @@
      "escalationPct": 3,
      "business": "Roofing contractor",
      "sic": "1761",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -1733,7 +2228,8 @@
      "escalationPct": 3,
      "business": "Industrial supplies & fasteners",
      "sic": "5085",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -1746,7 +2242,8 @@
      "escalationPct": 3,
      "business": "Specialty coffee roasting",
      "sic": "2095",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -1759,7 +2256,8 @@
      "escalationPct": 3,
      "business": "Security & alarm installation",
      "sic": "7382",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -1772,7 +2270,8 @@
      "escalationPct": 3,
      "business": "Same-day courier service",
      "sic": "4215",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "013",
@@ -1785,7 +2284,8 @@
      "escalationPct": 3,
      "business": "Furniture & woodworking shop",
      "sic": "2511",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "014",
@@ -1798,7 +2298,8 @@
      "escalationPct": 3,
      "business": "Construction equipment rental",
      "sic": "7359",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "015",
@@ -1811,7 +2312,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -1868,6 +2370,58 @@
     "coc1Pct": -1.7,
     "totalCost": 8254000
    },
+   "propertyCompany": "Model Fund I — Granite Avenue LLC",
+   "building": {
+    "clearHeightFt": 24,
+    "dockDoors": 4,
+    "driveInDoors": 12,
+    "truckCourtFt": 130,
+    "trailerStalls": 6,
+    "landAcres": 1.6,
+    "footprintSF": 26000,
+    "powerAmps": 1600,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 6,
+    "slabReinforcement": "Rebar",
+    "floorFF": 35,
+    "floorFL": 25,
+    "columnSpacingW": 40,
+    "columnSpacingD": 40,
+    "sprinklerType": "ESFR",
+    "officeSF": 2600,
+    "roofType": "PVC",
+    "roofYear": 2019,
+    "roofWarrantyTo": 2039,
+    "roofLifeYears": 20,
+    "pavingSurface": "Concrete",
+    "pavingYear": 2011,
+    "pavingLifeYears": 30,
+    "dollyPads": "yes"
+   },
+   "site": {
+    "portName": "Fictional Harbor Terminal",
+    "portMiles": 62,
+    "portMinutes": 85,
+    "drayageTripsPerShift": 2,
+    "railName": "Fictional Inland Empire Rail",
+    "railMiles": 8,
+    "airportName": "ONT",
+    "airportMiles": 9,
+    "freewayName": "I-10",
+    "freewayMiles": 0.6,
+    "pop30": 1900000,
+    "pop60": 8700000,
+    "phase1Date": "2026-09-11",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "M-2 General Industrial",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "none",
    "marks": {},
    "units": [
     {
@@ -1881,7 +2435,8 @@
      "escalationPct": 3,
      "business": "Roofing contractor",
      "sic": "1761",
-     "securityDeposit": 6292
+     "securityDeposit": 6292,
+     "snda": null
     },
     {
      "name": "002",
@@ -1894,7 +2449,8 @@
      "escalationPct": 3,
      "business": "Industrial supplies & fasteners",
      "sic": "5085",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "003",
@@ -1907,7 +2463,8 @@
      "escalationPct": 3,
      "business": "Specialty coffee roasting",
      "sic": "2095",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "004",
@@ -1920,7 +2477,8 @@
      "escalationPct": 3,
      "business": "Security & alarm installation",
      "sic": "7382",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "005",
@@ -1933,7 +2491,8 @@
      "escalationPct": 3,
      "business": "Same-day courier service",
      "sic": "4215",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "006",
@@ -1946,7 +2505,8 @@
      "escalationPct": 3,
      "business": "Furniture & woodworking shop",
      "sic": "2511",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -1959,7 +2519,8 @@
      "escalationPct": 3,
      "business": "Construction equipment rental",
      "sic": "7359",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -1972,7 +2533,8 @@
      "escalationPct": 3,
      "business": "Auto body & paint",
      "sic": "7532",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -1985,7 +2547,8 @@
      "escalationPct": 3,
      "business": "Medical & dental equipment distribution",
      "sic": "5047",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -1998,7 +2561,8 @@
      "escalationPct": 3,
      "business": "Countertop fabrication & stone",
      "sic": "3281",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -2011,7 +2575,8 @@
      "escalationPct": 3,
      "business": "Pest control services",
      "sic": "7342",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -2024,7 +2589,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   },
@@ -2081,6 +2647,58 @@
     "coc1Pct": -3.8,
     "totalCost": 12964000
    },
+   "propertyCompany": "Model Fund I — Lakeshore Service LLC",
+   "building": {
+    "clearHeightFt": 24,
+    "dockDoors": 6,
+    "driveInDoors": 18,
+    "truckCourtFt": 120,
+    "trailerStalls": 8,
+    "landAcres": 2.5,
+    "footprintSF": 40000,
+    "powerAmps": 2000,
+    "powerVolts": 480,
+    "powerPhase": "3",
+    "slabIn": 6,
+    "slabReinforcement": "Rebar",
+    "floorFF": 35,
+    "floorFL": 25,
+    "columnSpacingW": 40,
+    "columnSpacingD": 40,
+    "sprinklerType": "Wet pipe",
+    "officeSF": 4000,
+    "roofType": "TPO",
+    "roofYear": 2016,
+    "roofWarrantyTo": 2036,
+    "roofLifeYears": 20,
+    "pavingSurface": "Asphalt",
+    "pavingYear": 2015,
+    "pavingLifeYears": 15,
+    "dollyPads": "no"
+   },
+   "site": {
+    "portName": "Fictional Inland Port (Dallas)",
+    "portMiles": 11,
+    "portMinutes": 20,
+    "drayageTripsPerShift": 5,
+    "railName": "Fictional South Dallas Rail",
+    "railMiles": 8,
+    "airportName": "DAL",
+    "airportMiles": 6,
+    "freewayName": "I-35E",
+    "freewayMiles": 0.5,
+    "pop30": 2100000,
+    "pop60": 6100000,
+    "phase1Date": "2026-10-09",
+    "phase1Result": "Clean",
+    "phase2Result": "Not needed",
+    "zoning": "IR Industrial Research",
+    "industrialByRight": "yes",
+    "residentialAdjacency": "None",
+    "truckRestrictions": "None",
+    "freewayNoResidential": "yes"
+   },
+   "sndaRule": "none",
    "marks": {},
    "units": [
     {
@@ -2094,7 +2712,8 @@
      "escalationPct": 3,
      "business": "Auto body & paint",
      "sic": "7532",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "002",
@@ -2107,7 +2726,8 @@
      "escalationPct": 3,
      "business": "Medical & dental equipment distribution",
      "sic": "5047",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "003",
@@ -2120,7 +2740,8 @@
      "escalationPct": 3,
      "business": "Countertop fabrication & stone",
      "sic": "3281",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "004",
@@ -2133,7 +2754,8 @@
      "escalationPct": 3,
      "business": "Pest control services",
      "sic": "7342",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "005",
@@ -2146,7 +2768,8 @@
      "escalationPct": 3,
      "business": "Auto parts distribution",
      "sic": "5013",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "006",
@@ -2159,7 +2782,8 @@
      "escalationPct": 3,
      "business": "Craft brewery & taproom",
      "sic": "2082",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "007",
@@ -2172,7 +2796,8 @@
      "escalationPct": 3,
      "business": "Plumbing & mechanical contractor",
      "sic": "1711",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "008",
@@ -2185,7 +2810,8 @@
      "escalationPct": 3,
      "business": "Warehousing & distribution",
      "sic": "4225",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "009",
@@ -2198,7 +2824,8 @@
      "escalationPct": 3,
      "business": "Tooling & die making",
      "sic": "3544",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "010",
@@ -2211,7 +2838,8 @@
      "escalationPct": 3,
      "business": "Flooring contractor & showroom",
      "sic": "1752",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "011",
@@ -2224,7 +2852,8 @@
      "escalationPct": 3,
      "business": "Refrigeration & appliance repair",
      "sic": "7623",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "012",
@@ -2237,7 +2866,8 @@
      "escalationPct": 3,
      "business": "Plastic parts molding",
      "sic": "3089",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "013",
@@ -2250,7 +2880,8 @@
      "escalationPct": 3,
      "business": "Commercial general contractor",
      "sic": "1542",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "014",
@@ -2263,7 +2894,8 @@
      "escalationPct": 3,
      "business": "Sporting goods wholesale",
      "sic": "5091",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "015",
@@ -2276,7 +2908,8 @@
      "escalationPct": 3,
      "business": "Testing & research laboratory",
      "sic": "8731",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "016",
@@ -2289,7 +2922,8 @@
      "escalationPct": 3,
      "business": "Commercial cleaning services",
      "sic": "7349",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "017",
@@ -2302,7 +2936,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     },
     {
      "name": "018",
@@ -2315,7 +2950,8 @@
      "escalationPct": 3,
      "business": "",
      "sic": "",
-     "securityDeposit": null
+     "securityDeposit": null,
+     "snda": null
     }
    ]
   }

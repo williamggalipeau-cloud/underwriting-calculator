@@ -1,0 +1,162 @@
+[
+ {
+  "name": "airport-flex-pcr",
+  "kind": "pcr",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "unit": null,
+  "tenant": null,
+  "file": "airport-flex-pcr.pdf",
+  "title": "Airport Flex Park property condition report"
+ },
+ {
+  "name": "airport-flex-phase1",
+  "kind": "phase1",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "unit": null,
+  "tenant": null,
+  "file": "airport-flex-phase1.pdf",
+  "title": "Airport Flex Park Phase I environmental report"
+ },
+ {
+  "name": "airport-flex-survey",
+  "kind": "survey",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "unit": null,
+  "tenant": null,
+  "file": "airport-flex-survey.pdf",
+  "title": "Airport Flex Park survey"
+ },
+ {
+  "name": "airport-flex-roof-warranty",
+  "kind": "roof_warranty",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "unit": null,
+  "tenant": null,
+  "file": "airport-flex-roof-warranty.pdf",
+  "title": "Airport Flex Park roof warranty"
+ },
+ {
+  "name": "airport-flex-snda-ironwood-electrical-contractors",
+  "kind": "snda",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "unit": "001",
+  "tenant": "Ironwood Electrical Contractors",
+  "file": "airport-flex-snda-ironwood-electrical-contractors.pdf",
+  "title": "Airport Flex Park SNDA: Ironwood Electrical Contractors"
+ },
+ {
+  "name": "airport-flex-snda-evergreen-food-distributors",
+  "kind": "snda",
+  "asset": "Airport Flex Park",
+  "dealId": "sample-deal-1",
+  "unit": "002",
+  "tenant": "Evergreen Food Distributors",
+  "file": "airport-flex-snda-evergreen-food-distributors.pdf",
+  "title": "Airport Flex Park SNDA: Evergreen Food Distributors"
+ },
+ {
+  "name": "route9-pcr",
+  "kind": "pcr",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "unit": null,
+  "tenant": null,
+  "file": "route9-pcr.pdf",
+  "title": "Route 9 Small Bay property condition report"
+ },
+ {
+  "name": "route9-phase1",
+  "kind": "phase1",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "unit": null,
+  "tenant": null,
+  "file": "route9-phase1.pdf",
+  "title": "Route 9 Small Bay Phase I environmental report"
+ },
+ {
+  "name": "route9-survey",
+  "kind": "survey",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "unit": null,
+  "tenant": null,
+  "file": "route9-survey.pdf",
+  "title": "Route 9 Small Bay survey"
+ },
+ {
+  "name": "route9-roof-warranty",
+  "kind": "roof_warranty",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "unit": null,
+  "tenant": null,
+  "file": "route9-roof-warranty.pdf",
+  "title": "Route 9 Small Bay roof warranty"
+ },
+ {
+  "name": "route9-snda-pinnacle-electronics",
+  "kind": "snda",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "unit": "001",
+  "tenant": "Pinnacle Electronics",
+  "file": "route9-snda-pinnacle-electronics.pdf",
+  "title": "Route 9 Small Bay SNDA: Pinnacle Electronics"
+ },
+ {
+  "name": "route9-snda-sagebrush-landscape-supply",
+  "kind": "snda",
+  "asset": "Route 9 Small Bay",
+  "dealId": "sample-deal-2",
+  "unit": "002",
+  "tenant": "Sagebrush Landscape Supply",
+  "file": "route9-snda-sagebrush-landscape-supply.pdf",
+  "title": "Route 9 Small Bay SNDA: Sagebrush Landscape Supply"
+ },
+ {
+  "name": "harbor-light-pcr",
+  "kind": "pcr",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "unit": null,
+  "tenant": null,
+  "file": "harbor-light-pcr.pdf",
+  "title": "Harbor Light Industrial property condition report"
+ },
+ {
+  "name": "harbor-light-phase1",
+  "kind": "phase1",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "unit": null,
+  "tenant": null,
+  "file": "harbor-light-phase1.pdf",
+  "title": "Harbor Light Industrial Phase I environmental report"
+ },
+ {
+  "name": "harbor-light-survey",
+  "kind": "survey",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "unit": null,
+  "tenant": null,
+  "file": "harbor-light-survey.pdf",
+  "title": "Harbor Light Industrial survey"
+ },
+ {
+  "name": "harbor-light-roof-warranty",
+  "kind": "roof_warranty",
+  "asset": "Harbor Light Industrial",
+  "dealId": "sample-deal-3",
+  "unit": null,
+  "tenant": null,
+  "file": "harbor-light-roof-warranty.pdf",
+  "title": "Harbor Light Industrial roof warranty"
+ }
+]

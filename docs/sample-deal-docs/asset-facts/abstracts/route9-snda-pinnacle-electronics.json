@@ -1,0 +1,30 @@
+{
+ "doc_type": "snda",
+ "title": "Route 9 Small Bay SNDA: Pinnacle Electronics",
+ "asset": "Route 9 Small Bay",
+ "tenant": "Pinnacle Electronics",
+ "unit": "001",
+ "lender": "Cascade Commercial Bank",
+ "landlord": "Model Fund I — Valley Freight LLC",
+ "loan_amount": 9125000,
+ "date": "2026-03-09",
+ "non_disturbance": "Tenant's possession is not disturbed while it is not in default beyond a cure period",
+ "attornment": "Tenant attorns to the lender if it succeeds the landlord",
+ "lender_cure_days": 30,
+ "lender_liability": "Not liable for a prior landlord's acts, rent prepaid more than one month, or a deposit it did not receive",
+ "quotes": {
+  "tenant": "This Subordination, Non-Disturbance and Attornment Agreement is made as of March 9, 2026 among Cascade Commercial Bank (\"Lender\"), Model Fund I — Valley Freight LLC (\"Landlord\") and Pinnacle Electronics (\"Tenant\"). (p.1)",
+  "unit": "Tenant leases Unit 001, containing 2,300 square feet, at Route 9 Small Bay (the \"Premises\"). (§1.1)",
+  "lender": "Lender has made a loan to Landlord in the original principal amount of $9,125,000, secured by a deed of trust on the property. (§1.2)",
+  "landlord": "This Subordination, Non-Disturbance and Attornment Agreement is made as of March 9, 2026 among Cascade Commercial Bank (\"Lender\"), Model Fund I — Valley Freight LLC (\"Landlord\") and Pinnacle Electronics (\"Tenant\"). (p.1)",
+  "date": "This Subordination, Non-Disturbance and Attornment Agreement is made as of March 9, 2026 among Cascade Commercial Bank (\"Lender\"), Model Fund I — Valley Freight LLC (\"Landlord\") and Pinnacle Electronics (\"Tenant\"). (p.1)",
+  "non_disturbance": "So long as Tenant is not in default beyond any applicable cure period, Lender shall not disturb Tenant's possession of the Premises under the Lease. (§3.1)",
+  "attornment": "If Lender succeeds to Landlord's interest, Tenant shall attorn to Lender as its landlord under the Lease. (§4.1)",
+  "lender_cure_days": "Tenant shall give Lender notice of any Landlord default and thirty (30) days to cure it before exercising any remedy. (§5.1)",
+  "lender_liability": "Lender shall not be liable for any act or omission of a prior landlord, bound by rent paid more than one month in advance, or responsible for any security deposit it has not received. (§5.2)"
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}
