@@ -126,7 +126,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(1000);
   const active = await p.locator("#pipeline-deal-picker optgroup[label='Active'] option").allInnerTexts();
   const samples = active.filter((t) => /^Example /.test(t));
-  check(samples.length === 3 && samples.every((t) => / · screened$/.test(t)), `the three sample pipeline deals are pre-screened (${samples.join(" | ")})`);
+  check(samples.length === 5 && samples.every((t) => / · screened$/.test(t)), `the five sample pipeline deals (three for Model Fund I, two for the sample joint venture) are pre-screened (${samples.join(" | ")})`);
 
   check(errs.length === 0, `no page errors${errs.length ? `: ${errs.join("; ")}` : ""}`);
   await b.close();

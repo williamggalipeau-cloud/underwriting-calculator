@@ -1283,6 +1283,10 @@ assets owned for several years can be tested without typing anything in.
   its figures.
 - **Marks.** Year-end appraisals and quarterly internal marks, moving from
   cost toward the value each asset's model now reaches.
+- **Tenant credit.** Every tenant in place has its own clean screening
+  record (a tenant that moved in since purchase has one in its own name), so
+  none shows as missing on Tenant Credit. The credit stories (weak, watch,
+  late rent) come with the rest of the tab data in 1.1.28.
 - **Pipeline.** Two joint venture deals: Example Ironworks Distribution
   Center (under contract) and Example Prairie Commerce Park (LOI).
 - **Not yet (1.1.27 and 1.1.28):** their documents (agreements, leases,
@@ -5355,10 +5359,12 @@ The sample joint venture and separate account (§7.13): their terms, four assets
 - **Each asset keeps its closing model** as the underwriting baseline, so Underwritten vs Actual and the Track Record compare against what was underwritten.
 - **Figures (test copy, as of 11/27/2026).** Firm Economics over the life of both portfolios: fees $6,277,891, promote $3,869,496, co-invest profit $3,101,706, on $5,009,945 of the firm's own capital. The joint venture's promote ($2,697,568 in total, of which the firm's share is $2,023,176) is held down by the asset behind plan.
 - **Construction management fee on construction spending (your decision, 11/27).** An asset's construction management fee can now be charged on construction spending (its capital budget, in the year the model spends it, and each year's tenant improvements) in place of the asset's value every year: asset inputs → Constr. mgmt fee on. The two new portfolios use it at 1.5%. Model Fund I and your own assets stay on asset value until you change them.
+- **A sold asset now drops off the operating screens** (found while building; `lib/assetStatus.js`). Baywise had never held a sold asset, and the Dashboard, Tenant Credit, the risk report, the fund limits, Portfolio Debt, the SNDA list and the lease flags kept treating one as owned. From its sale date they leave it out. Portfolio Return, the Track Record, GP and Firm Economics and the valuations up to the sale keep it.
+- **Tenant credit follows the tenant.** On a unit where a new tenant has moved in, credit records and flags recorded for the former tenant no longer count against the new one.
 - **Model Fund I: no figure changes.**
 - **Loads by itself** (sample data version 11); only what is missing is added.
 - **Also in the plan:** the Dispositions workflow (25 steps) and the expanded Acquisitions workflow (26 steps) for v1.2.
-- **Tests:** a new node suite (`ventures1126`, 51 checks), a new browser suite (`ventures1126`, 6 checks), and checks in both load tests on what is actually saved.
+- **Tests:** a new node suite (`ventures1126`, 59 checks), a new browser suite (`ventures1126`, 6 checks), and checks in both load tests on what is actually saved.
 - **No database change.**
 
 ### What's in 1.1.25

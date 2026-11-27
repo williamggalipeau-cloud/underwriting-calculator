@@ -97,6 +97,28 @@ check(res.every((r) => r.f.promote.total > 0), "each portfolio earns a promote (
 const cr = C.creditRows(v.deals, { asOf: T });
 const newTenants = v.deals.flatMap((d) => d.inputs.units.flatMap((u) => LH.laterLeasesOf(u).filter((l) => l.kind === "new" && l.start <= T && l.end >= T).map((l) => l.tenantName)));
 check(newTenants.length > 20 && newTenants.every((n) => cr.some((r) => r.tenant === n)), `Tenant Credit lists the ${newTenants.length} tenants that moved in since purchase`);
+const held = cr.filter((r) => r.dealId !== "sample-jv-1");
+check(held.length > 150 && held.every((r) => r.status === "ok" && r.records.length === 1 && r.records[0].tenant === r.tenant && r.records[0].result === "approved"), `every tenant in place on the three held assets has its own clean screening: none shows as missing (${held.filter((r) => r.status !== "ok").length} of ${held.length} not OK)`);
+// A record naming a former tenant does not count for the tenant that replaced it.
+{
+  const d = v.deals[1], u = d.inputs.units.find((x) => LH.leaseToday(x, d.inputs, T).kind === "new");
+  const stale = { ...d, inputs: { ...d.inputs, units: d.inputs.units.map((x) => (x.id === u.id ? { ...x, credit: { records: [{ id: "old", kind: "assessment", source: "own", rating: "weak", tenant: u.tenantName, date: "2023-01-01" }], flags: [{ id: "f", status: "open", date: "2023-01-01", reason: "old" }] } } : x)) } };
+  const row = C.creditRows([stale], { asOf: T }).find((r) => r.unitId === u.id);
+  check(row.status === "missing" && row.records.length === 0 && row.openFlags.length === 0, "a weak rating and an open flag recorded for the former tenant do not count against the new tenant");
+}
+
+// ── A sold asset drops off the screens that list what the firm operates ──
+{
+  const AS = j(R + "/lib/assetStatus.js"), H = j(R + "/lib/home.js"), RR = j(R + "/lib/riskReport.js"), FL = j(R + "/lib/fundLimits.js"), FD = j(R + "/lib/fundDebt.js");
+  const jvDeals = v.deals.filter((d) => d.inputs.fundName === V.SAMPLE_JV_NAME);
+  check(AS.isSold(aI, T) && !AS.isSold(aI, "2026-06-29") && AS.notSold(v.deals, T).length === 3 && AS.notSold(v.deals, "2026-06-29").length === 4, "sold from its sale date: three of the four are held on 11/27/2026, all four the day before the sale");
+  check(!cr.some((r) => r.dealId === "sample-jv-1") && C.creditRows(v.deals, { asOf: "2026-06-29" }).some((r) => r.dealId === "sample-jv-1"), "Tenant Credit leaves out the sold asset's tenants (and listed them before the sale)");
+  const rr = RR.riskReport(jvDeals, jv, { asOf: T }), before = RR.riskReport(jvDeals, jv, { asOf: "2026-06-29" });
+  check(rr.leasing.assets.length === 2 && !rr.leasing.assets.some((a) => a.id === "sample-jv-1") && before.leasing.assets.length === 3, "the risk report covers the two held joint venture assets (three before the sale)");
+  check(FL.limitInputs(jvDeals, { todayISO: T }).assets.length === 2 && FL.limitInputs(jvDeals).assets.length === 3, "the fund limits count the two held assets when given a date");
+  check(FD.fundLoans(jvDeals, v.valuations, T).length === 2 && FD.fundLoans(jvDeals, v.valuations, "2026-06-29").length === 3, "Portfolio Debt lists two loans: the sold asset's was paid off");
+  check(LH.endedLeases(aI, T).length === 0 && !H.vacantUnits(v.deals, { todayISO: T }).some((r) => r.dealId === "sample-jv-1") && H.vacantUnits(v.deals, { todayISO: T }).some((r) => r.dealId === "sample-jv-3"), "no lease flags or vacant units are listed for the sold asset; the asset behind plan's vacant units are");
+}
 
 // ── The load adds only what is missing ──
 const toDeal = (r) => ({ id: `pl-test-${r.id}`, linked: true, quick: {}, inputs: { propertyName: r.name, fundName: "" }, pipelineId: r.id });
