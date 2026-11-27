@@ -63,6 +63,41 @@ warehouse is 3.0.
 
 ## Where we left off (end of 11/25)
 
+**End-to-end code review done 11/27** (user asked; four read-only reviewers: calculations, structure, data safety, performance and tests; main findings re-checked by Claude). Nothing changed yet; **waiting for the user to pick what goes into cleanup patch 1.1.12.** Findings:
+- **Wrong numbers:**
+  - (C1) GP catch-up overpays the GP: lib/fundTimeline.js:313 computes the catch-up target on the whole remaining pile, then splits the rest by the tier again; a 50% catch-up equals 100%. Reproduced: −100 / +200 in a year, 90/10, 8% pref, 80/20 → GP profit 34.38 vs 28 expected. Default terms have catch-up 100%, so promote is overstated wherever it shows.
+  - (C2) Income dated on or before final close is dropped (lib/fundExpenses.js).
+  - (C3) The risk report flags fixed / swapped loans as "floating, no cap" and uses the original loan amount, not the balance (lib/riskReport.js).
+  - (C4) Amortization 0 years and LTV 0% break underwrite (lib/calculations.js).
+  - (C5) Promote tiers are a cliff on whole-fund IRR, not marginal: needs the user's decision.
+  - (C6) Negative amounts print as positive in Capital activity and Pipeline.
+- **Data safety:**
+  - (D1) A save conflict replaces the second person's whole record (asset or all settings).
+  - (D2) Settings may re-save after every open (jsonb key order); not confirmed against the live database, which was unreachable.
+  - (D3) firm_records has no version history.
+  - (D4) Every deal is rewritten on open (the anchored curve is stored on each deal).
+  - (D5) Autosave is a debounce: continuous editing never saves.
+  - (D6) Viewers can read tenant credit data and GP agreements.
+  - (D7) The abstraction prompts route PDFs to a session with SQL access.
+- **Tests:**
+  - (T1) Browser tests use the real calendar and fail from 2027-01-01 (phaseL expects "2026 Q3").
+  - (T2) xirr and the fund waterfall have no unit tests.
+  - (T3) About 8 minutes of CI is waiting on the 20 s legacy autosave.
+  - (T4) Lint isn't run in CI.
+- **Structure:**
+  - app/page.jsx is one 2,400-line component.
+  - 22 fmtM / 29 usDate / 27 pct copies that differ.
+  - Dead code (CapitalAnalysis.jsx, about 15 unused exports, Pages base path, the legacy workspace save path).
+  - 4 lint errors.
+- **Performance:**
+  - The engines are fine at 100 assets (under 100 ms).
+  - The curve object is rebuilt each render, so every memo recomputes.
+  - Documents are refetched by 18 components.
+- **Sound:**
+  - RLS on all tables; workspace isolation; no secrets in code.
+  - The GP partner splits add up.
+  - Cash is conserved from asset to fund.
+
 **Live: version 1.1.11, UI polish** (merged 11/26 as PR #117, `a5c6af8`, with the user's OK; GitHub Release v1.1.11 published and checked 11/26). The user said "do all of the UI enhancements" and answered "a phone is for quick looks and use" (11/26); mockups for items 1, 4 and 5 were sent (scratchpad ui1111.png). All 13 review items are built:
 1. Rent Roll: unit table first, Unit and Tenant sticky, full names, "e.g." hints only on focus, expense columns on request, supporting sections collapsed with headlines, Regenerate / Clear all in ⋯ with a confirm. Rent delinquency stays open (it has the upload controls).
 2. Phone: tables in scroll boxes keep 40rem and fix the first column; 40px tap targets outside tables; the ☰ Menu button; Home's first 5 actions.
