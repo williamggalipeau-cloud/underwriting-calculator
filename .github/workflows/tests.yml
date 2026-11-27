@@ -34,6 +34,10 @@ jobs:
       - name: Install pdftotext
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
 
+      # Fails on errors; warnings are listed but do not fail the run.
+      - name: Lint
+        run: npm run lint
+
       - name: Node checks
         run: npm test
 

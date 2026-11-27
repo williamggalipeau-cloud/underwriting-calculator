@@ -15,7 +15,7 @@ import {
   hurdleStats,
 } from "@/lib/fundTimeline";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName, termsToCSV, termsToXlsx } from "@/lib/fundTerms";
-import { fundLpEvents, subLineTerms } from "@/lib/fundFlows";
+import { fundLpEvents } from "@/lib/fundFlows";
 import { fundCashYield } from "@/lib/cashYield";
 import { FundCashYield } from "@/components/CashYield";
 import { actualCapital } from "@/lib/capitalActivity";

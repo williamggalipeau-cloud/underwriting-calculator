@@ -2518,7 +2518,7 @@ export default function Home() {
                   {!owned && (
                     // Passed / lost: decided, so read-only (user, 11/25).
                     <fieldset disabled={passed} className={`min-w-0 space-y-4 ${passed ? "opacity-60" : ""}`} data-testid={passed ? "screener-readonly" : undefined}>
-                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={viewFunds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={row?.targetFund || ""} />
+                      <ScreenerFundImpact activeDeal={activeDeal} deals={deals} funds={viewFunds} todayISO={today} curve={effectiveCurve(baseCurve, anchorToLive, live)} defaultFund={row?.targetFund || ""} onOpenImpact={(f) => { preloadImpact(activeDeal.id, f); setActiveTab("impact"); }} />
                       <QuickUnderwrite
                         inputs={activeDeal.quick ?? QUICK_DEFAULTS}
                         onChange={passed ? () => {} : setQuick}

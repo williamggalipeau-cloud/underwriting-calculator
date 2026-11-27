@@ -3,7 +3,7 @@
 // Acquisitions → Research (11/24): Comps (moved from Asset Management) and
 // Third-Party research, both tied to the asset. onUpdate(dealId, fn) edits
 // the asset's inputs (salesComps, research), so every change is in the log.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import SalesComps from "@/components/SalesComps";
 import {
   RESEARCH_ASSUMPTIONS, RESEARCH_TYPES, allResearch, assumptionLabel, compsFor, makeResearch, parseResearchTitle, researchOf,

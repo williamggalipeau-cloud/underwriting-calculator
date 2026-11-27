@@ -2,6 +2,8 @@
 // Playwright test in tests/e2e (npm run test:e2e). Supabase is mocked inside
 // each test, so no secrets or network are needed. Exits 1 if any fails.
 // Usage: node tests/run-e2e.cjs [name filter…]   (build first: npm run build)
+// Each suite runs with "today" fixed at E2E_TODAY (default 2026-11-27, the
+// date of the sample data): tests/e2e/clock.cjs.
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -30,7 +32,7 @@ const server = http.createServer((req, res) => {
 });
 
 const run = (file, env = {}) => new Promise((resolve) => {
-  const child = spawn(process.execPath, [file], { env: { ...process.env, BASE_URL: `http://localhost:${PORT}${BASE}/`, ...env }, stdio: ["ignore", "pipe", "pipe"] });
+  const child = spawn(process.execPath, ["-r", path.join(__dirname, "e2e", "clock.cjs"), file], { env: { ...process.env, BASE_URL: `http://localhost:${PORT}${BASE}/`, ...env }, stdio: ["ignore", "pipe", "pipe"] });
   let out = "";
   child.stdout.on("data", (d) => (out += d));
   child.stderr.on("data", (d) => (out += d));
