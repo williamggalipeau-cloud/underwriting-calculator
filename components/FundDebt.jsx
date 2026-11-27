@@ -100,7 +100,7 @@ export default function FundDebt({ deals = [], funds = {}, marks = {}, todayISO 
           <Card title="SNDA coverage by loan" testid="debt-snda">
             <div className="overflow-x-auto"><table className="w-full text-xs tabular-nums">
               <thead className="text-gray-500"><tr>{["Asset", "Lender", "Loan", "Loan requires", "Required", "Signed", "Rent covered", "SF covered", "Status"].map((h) => <th key={h} className="px-1.5 py-1 text-left font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
-              <tbody>{sndaByLoan(loans).map((c) => (
+              <tbody>{sndaByLoan(loans, { todayISO }).map((c) => (
                 <tr key={c.dealId} className="border-t border-gray-100" data-testid="debt-snda-row">
                   <td className="px-1.5 py-1 font-medium">{c.asset}</td><td className="px-1.5 py-1">{c.lender || <span className="text-gray-500">not entered</span>}</td><td className="px-1.5 py-1">{money(c.loan)}</td>
                   <td className="px-1.5 py-1">{c.ruleText}</td><td className="px-1.5 py-1">{c.required}</td><td className="px-1.5 py-1">{c.signed}</td>

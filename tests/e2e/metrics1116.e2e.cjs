@@ -113,18 +113,18 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(22000);
   const sd = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.id === "sample-deal-1")?.inputs;
   check(sd?.dispositions?.[0]?.comps?.comps?.length === 2 && sd.dispositions[0].comps.comps.every((c) => /^dc-/.test(c.id)) && sd.salesComps.comps.length === 2 && sd.salesComps.comps[0].id === "ac-1", "saved: the sale holds its own two comps; the acquisition comps are untouched");
-  // Deal Screener: purchase price and all-in basis per SF, break-even occupancy.
+  // Underwriter: purchase price and all-in basis per SF, break-even occupancy.
   // A deal still in the pipeline (no portfolio yet) is the open deal.
   ws.data = { ...data, activeDealId: "pipe-t1" };
   await p.reload();
   await p.waitForTimeout(3500);
   await FX.saveLoadUpgrade(p);
-  await FX.openTab(p, "Deal Screener");
+  await FX.openTab(p, "Underwriter");
   await p.waitForTimeout(1500);
   const sm = p.getByTestId("screener-metrics");
   if (await sm.count()) {
-    check(/\$\d+ \/ SF/.test(await p.getByTestId("screener-price-psf").innerText()) && /\$\d+ \/ SF/.test(await p.getByTestId("screener-basis-psf").innerText()) && /\d+\.\d%/.test(await p.getByTestId("screener-break-even").innerText()) && /pts/.test(await p.getByTestId("screener-cushion").innerText()), "Deal Screener: price and basis per SF, break-even occupancy and its cushion");
-  } else check(false, "Deal Screener: the price per SF and break-even tiles are shown");
+    check(/\$\d+ \/ SF/.test(await p.getByTestId("screener-price-psf").innerText()) && /\$\d+ \/ SF/.test(await p.getByTestId("screener-basis-psf").innerText()) && /\d+\.\d%/.test(await p.getByTestId("screener-break-even").innerText()) && /pts/.test(await p.getByTestId("screener-cushion").innerText()), "Underwriter: price and basis per SF, break-even occupancy and its cushion");
+  } else check(false, "Underwriter: the price per SF and break-even tiles are shown");
 
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   console.log(fails ? `${fails} FAILED` : "ALL PASS");

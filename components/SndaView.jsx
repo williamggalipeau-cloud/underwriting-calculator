@@ -20,8 +20,8 @@ export function SndaBadge({ status, label }) {
 
 function AssetSnda({ deal, canEdit, onUpdateInputs, workspaceId, email, docs, reload, todayISO }) {
   const inputs = deal.inputs;
-  const rows = sndaRows(inputs);
-  const cov = sndaCoverage(inputs);
+  const rows = sndaRows(inputs, { todayISO }); // 1.1.25: the tenant and lease in effect today
+  const cov = sndaCoverage(inputs, { todayISO });
   const rule = sndaRuleOf(inputs);
   const lender = inputs.loanTerms?.lender || inputs.lenderName || "";
   const mine = sndaDocs(docs, deal.id);
@@ -31,7 +31,17 @@ function AssetSnda({ deal, canEdit, onUpdateInputs, workspaceId, email, docs, re
   const [msg, setMsg] = useState("");
   const update = (fn) => onUpdateInputs?.(deal.id, fn);
   const setRule = (patch) => update((cur) => ({ ...cur, loanTerms: { ...(cur.loanTerms ?? {}), ...patch } }));
-  const setStatus = (unitId, status) => update((cur) => setSnda(cur, unitId, { status, lender: status && status !== "not_required" ? (cur.units.find((u) => u.id === unitId)?.snda?.lender || lender) : "", ...(status === "requested" ? { requestedOn: cur.units.find((u) => u.id === unitId)?.snda?.requestedOn || todayISO } : {}), ...(status === "signed" ? { signedOn: cur.units.find((u) => u.id === unitId)?.snda?.signedOn || todayISO } : {}) }));
+  // 1.1.25: a status set on a new tenant's lease is recorded for that tenant,
+  // starting clean of the former tenant's dates and document.
+  const setStatus = (unitId, status) => update((cur) => {
+    const row = rows.find((r) => r.unitId === unitId);
+    const was = row?.formerTenant ? {} : cur.units.find((u) => u.id === unitId)?.snda ?? {};
+    return setSnda(cur, unitId, {
+      ...(row?.formerTenant ? { requestedOn: "", signedOn: "", docId: null, note: "" } : {}), ...(row?.newTenant ? { tenant: row.tenant } : {}),
+      status, lender: status && status !== "not_required" ? was.lender || lender : "",
+      ...(status === "requested" ? { requestedOn: was.requestedOn || todayISO } : {}), ...(status === "signed" ? { signedOn: was.signedOn || todayISO } : {}),
+    });
+  });
   async function onFile(e) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -70,6 +80,7 @@ function AssetSnda({ deal, canEdit, onUpdateInputs, workspaceId, email, docs, re
                   <td className="px-1.5 py-1">{r.unit}</td><td className="px-1.5 py-1">{r.tenant}</td><td className="px-1.5 py-1 text-right">{Math.round(r.sf).toLocaleString("en-US")}</td><td className="px-1.5 py-1">{usDate(r.leaseEnd)}</td>
                   <td className="px-1.5 py-1">
                     <SndaBadge status={r.status} label={r.label} />
+                    {r.formerTenant && <span className="ml-1 text-[11px] text-amber-700" data-testid="snda-former" title="The status on file was recorded for the former tenant, so it no longer counts.">former tenant&apos;s SNDA on file</span>}
                     {canEdit && <select aria-label={`SNDA status for ${r.tenant}`} value={r.entered ? r.status : ""} onChange={(e) => setStatus(r.unitId, e.target.value)} className={`${inp} ml-1`}>{SNDA_STATUSES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>}
                   </td>
                   <td className="px-1.5 py-1">{r.required ? r.lender || lender : "—"}</td>
@@ -84,11 +95,11 @@ function AssetSnda({ deal, canEdit, onUpdateInputs, workspaceId, email, docs, re
                     ))}
                     {canEdit && workspaceId && <button type="button" onClick={() => { setTarget(r); fileRef.current?.click(); }} className="text-[11px] text-blue-700 hover:underline" data-testid="snda-upload">Upload PDF</button>}
                     {d.filter((x) => x.id === open).map((x) => {
-                      const terms = sndaDocRows(x.doc.abstract, inputs);
+                      const terms = sndaDocRows(x.doc.abstract, inputs, { todayISO });
                       return (
                         <div key={x.id} className="mt-1 rounded border border-gray-200 bg-gray-50 p-2" data-testid="snda-terms-panel">
                           <table className="w-full"><tbody>{terms.map((t) => <tr key={t.key} className="align-top"><td className="pr-2 text-gray-500">{t.label}</td><td className={t.ok === false ? "font-medium text-red-700" : ""}>{String(t.value)}{t.ok === false && t.now ? ` (the asset has ${t.now})` : ""}{t.quote && <span className="block text-[10px] italic text-gray-500">&quot;{t.quote}&quot;</span>}</td></tr>)}</tbody></table>
-                          {canEdit && !r.signed && <button type="button" onClick={() => update((cur) => applySndaDoc(cur, x.doc.abstract, x.id).inputs)} className="mt-1 rounded border border-blue-600 bg-blue-600 px-2 py-0.5 text-[11px] font-medium text-white" data-testid="snda-apply">Mark this lease signed from the document</button>}
+                          {canEdit && !r.signed && <button type="button" onClick={() => update((cur) => applySndaDoc(cur, x.doc.abstract, x.id, { todayISO }).inputs)} className="mt-1 rounded border border-blue-600 bg-blue-600 px-2 py-0.5 text-[11px] font-medium text-white" data-testid="snda-apply">Mark this lease signed from the document</button>}
                         </div>
                       );
                     })}
@@ -109,7 +120,7 @@ export default function SndaView({ deals = [], title = "", canEdit = false, onUp
   const [docs, setDocs] = useState([]);
   const reload = () => (workspaceId ? listDealDocs(workspaceId).then(setDocs).catch(() => {}) : Promise.resolve());
   useEffect(() => { reload(); }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
-  const exportX = async () => downloadBlob(await writeXlsx(sndaXlsx(deals), { sheetName: "SNDAs" }), `${safeFileName(title || "snda")}-sndas-${todayISO}.xlsx`);
+  const exportX = async () => downloadBlob(await writeXlsx(sndaXlsx(deals, { todayISO }), { sheetName: "SNDAs" }), `${safeFileName(title || "snda")}-sndas-${todayISO}.xlsx`);
   return (
     <div className="space-y-3" data-testid="snda-view">
       <div className="flex flex-wrap items-end justify-between gap-2">

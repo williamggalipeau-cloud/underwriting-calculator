@@ -180,7 +180,7 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
         <div className="flex gap-2 text-xs">
           {row.live && onOpenDeal && (
             <button type="button" onClick={() => onOpenDeal(row.id)} className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 font-medium text-blue-700 hover:bg-blue-100">
-              Open in Deal Screener
+              Open in Underwriter
             </button>
           )}
           <button type="button" onClick={onClose} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-50">Close</button>

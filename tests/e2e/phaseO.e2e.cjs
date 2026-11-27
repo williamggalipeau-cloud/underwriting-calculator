@@ -43,7 +43,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await FX.openSetup(p);
   check((await sb.getByRole("button", { name: "New asset" }).count()) === 1 && (await sb.getByLabel("Edit asset").count()) === 1 && (await sb.getByRole("button", { name: "New fund" }).count()) === 1 && (await sb.getByLabel("Edit fund").count()) === 1, "Setup & Maintenance (the last Functions area): New asset, Edit asset, New fund, Edit fund");
   check((await p.getByTestId("setup-maintenance").getByTestId("setup-buttons").count()) === 1 && (await p.getByRole("navigation", { name: "Functions" }).getByTestId("setup-maintenance").count()) === 1, "the setup controls are the Setup & Maintenance row inside Functions");
-  for (const t of ["Asset Summary", "Rent Roll", "Portfolio Return", "Deal Screener", "Documents"]) {
+  for (const t of ["Asset Summary", "Rent Roll", "Portfolio Return", "Underwriter", "Documents"]) {
     await FX.openTab(p, new RegExp(`^${t}`));
     await p.waitForTimeout(400);
   }

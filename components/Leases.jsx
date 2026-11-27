@@ -30,6 +30,7 @@ import { listDealDocs } from "@/lib/dealDocs";
 import { estoppelChecks } from "@/lib/dealDocApply";
 import { planDates } from "@/lib/businessPlan";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
+import { unitToday } from "@/lib/leaseHistory";
 
 const STATUS_STYLE = {
   uploaded: "border-gray-200 bg-gray-50 text-gray-700",
@@ -515,7 +516,17 @@ function MismatchFlag({ lease, units, inputs }) {
   if (!lease.abstract || !inputs) return null;
   const linked = units.filter((u) => (lease.unit_ids ?? []).includes(u.id));
   if (!linked.length) return <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-[11px] text-gray-500" data-testid="lease-flag">Not on the rent roll yet</span>;
-  const diffs = linked.flatMap((u) => leaseMismatches(lease.abstract, u, inputs).map((r) => ({ ...r, unit: u.name })));
+  // 1.1.25: a unit with a lease signed since purchase is compared with the
+  // lease at purchase and with the lease in effect today; the document is
+  // taken to be the one it agrees with better.
+  const day = new Date().toISOString().slice(0, 10);
+  const diffsOf = (u) => {
+    const a = leaseMismatches(lease.abstract, u, inputs), t = unitToday(u, inputs, day);
+    if (t === u) return a;
+    const b = leaseMismatches(lease.abstract, t, inputs);
+    return b.length < a.length ? b : a;
+  };
+  const diffs = linked.flatMap((u) => diffsOf(u).map((r) => ({ ...r, unit: u.name })));
   if (!diffs.length) return <span className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-800" data-testid="lease-flag">✓ Rent roll matches the lease</span>;
   const title = diffs.map((d) => `${d.unit} · ${d.label}: rent roll ${showValue(d.kind, d.unitValue)}, lease ${showValue(d.kind, d.abstractValue)}`).join("\n");
   return (

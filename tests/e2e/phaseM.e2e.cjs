@@ -1,5 +1,5 @@
 // Phase M Playwright: Pipeline tab (CoStar and internal uploads, totals,
-// stages, Screen into Deal Screener, Convert to asset, Excel). Fictional
+// stages, Screen into Underwriter, Convert to asset, Excel). Fictional
 // files in docs/sample-pipeline; Supabase mocked.
 const { chromium } = require("playwright");
 const FX = require("./fixture.cjs");
@@ -40,15 +40,15 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   const R = require("path").resolve(__dirname, "..", "..");
   await FX.openArea(p, "Pipeline");
   const nav = await p.locator("nav").first().innerText();
-  check(nav.indexOf("Pipeline") >= 0 && nav.indexOf("Pipeline") < nav.indexOf("Deal Screener"), "Pipeline is first in Acquisitions");
+  check(nav.indexOf("Pipeline") >= 0 && nav.indexOf("Pipeline") < nav.indexOf("Underwriter"), "Pipeline is first in Acquisitions");
   check((await main.getByTestId("home").count()) === 1, "the app opens on the Dashboard (phase Z)");
-  // Deal Screener with an owned asset: notice, no model
-  await FX.openTab(p, /^Deal Screener/);
+  // Underwriter with an owned asset: notice, no model
+  await FX.openTab(p, /^Underwriter/);
   await p.waitForTimeout(800);
-  check((await main.getByTestId("screener-owned").count()) === 1 && (await main.getByTestId("screener-impact").count()) === 0, "Deal Screener: an owned asset gets a notice, not the screener");
+  check((await main.getByTestId("screener-owned").count()) === 1 && (await main.getByTestId("screener-impact").count()) === 0, "Underwriter: an owned asset gets a notice, not the screener");
   // The picker reads the Pipeline (1.1.6), never owned assets (user, 11/24)
   const pickOpts = await p.locator("#pipeline-deal-picker option").allInnerTexts();
-  check(/Pipeline Deal/i.test(await p.locator('label[for="pipeline-deal-picker"]').innerText()) && !pickOpts.some((o) => /Airport Flex Park|Route 9 Small Bay/.test(o)) && pickOpts[0] === "No Pipeline deals yet", `Deal Screener picker: pipeline deals only (${pickOpts.slice(0, 3).join(", ")})`);
+  check(/Pipeline Deal/i.test(await p.locator('label[for="pipeline-deal-picker"]').innerText()) && !pickOpts.some((o) => /Airport Flex Park|Route 9 Small Bay/.test(o)) && pickOpts[0] === "No Pipeline deals yet", `Underwriter picker: pipeline deals only (${pickOpts.slice(0, 3).join(", ")})`);
   await FX.openTab(p, /^Pipeline/);
   await p.waitForTimeout(1200);
   const pl = main.getByTestId("pipeline");
@@ -77,12 +77,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(500);
   check((await pl.getByLabel("Probability Mesa Small Bay").inputValue()) === "20", "stage change sets the default probability (Screening 20%)");
 
-  // Screen into Deal Screener
+  // Screen into Underwriter
   const gl = pl.getByTestId("pipeline-row").filter({ hasText: "Glendale Commerce Center" });
   await gl.getByRole("button", { name: "Screen" }).click();
   await p.waitForTimeout(1500);
-  check(/Deal Screener/.test(await p.locator("nav button[aria-current], nav .bg-blue-600").first().innerText().catch(() => "Deal Screener")), "Screen opens Deal Screener");
-  check((await main.innerText()).includes("10,400,000") || (await p.locator("input[value='10400000']").count()) > 0, "Deal Screener has the asking price");
+  check(/Underwriter/.test(await p.locator("nav button[aria-current], nav .bg-blue-600").first().innerText().catch(() => "Underwriter")), "Screen opens Underwriter");
+  check((await main.innerText()).includes("10,400,000") || (await p.locator("input[value='10400000']").count()) > 0, "Underwriter has the asking price");
   const sync = main.getByTestId("screener-sync");
   check((await sync.count()) === 1 && /close date/.test(await sync.innerText()), "screener vs. pipeline row: the close date differs (offered to update)");
   await sync.getByRole("button", { name: "Update pipeline row" }).click();

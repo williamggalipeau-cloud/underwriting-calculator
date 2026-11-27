@@ -20,7 +20,7 @@ const deals = [
   deal("c", { squareFootage: 50_000 }), // no rent roll: 95% leased from vacancy
   deal("pipeline", { acquisitionDate: "2027-03-01" }), // not acquired yet
   deal("sold", { realizedSaleDate: "2026-06-30" }), // sold
-  deal("screener", { fundName: "" }), // Deal Screener / unassigned
+  deal("screener", { fundName: "" }), // Underwriter / unassigned
   deal("nodate", { acquisitionDate: "" }),
 ];
 const f = E.firmSummary(deals, {}, {}, { todayISO: TODAY });

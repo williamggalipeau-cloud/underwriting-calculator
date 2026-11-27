@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.24** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.25** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -281,7 +281,7 @@ One-time setup (full detail, table layout and admin queries in §12):
 
 **Header.** **Baywise**, *Industrial Real Estate Management*, then a
 firm-wide strip that is the same on every tab. It covers every fund in the
-workspace and owned assets only (no sold, pipeline, Deal Screener or
+workspace and owned assets only (no sold, pipeline, Underwriter or
 unassigned deals). Hover over a figure for its definition:
 
 | Figure | Definition |
@@ -308,7 +308,7 @@ replaces this with New / Edit asset and New / Edit fund buttons.
 
 | Group | Tabs (left to right) | Coming later |
 |---|---|---|
-| **Acquisitions** | Pipeline · Deal Screener · Portfolio Impact · Comps · Acquisition Documents | |
+| **Acquisitions** | Pipeline · Underwriter · Portfolio Impact · Comps · Acquisition Documents | |
 | **Dispositions** | Disposition Candidates (1.1.5) · Sell/Hold Analysis · Assets for Sale · Offers · Track Record · Disposition Documents | |
 | **Asset Management** | Asset Summary · Asset Business Plan · Rent Roll · Leases · Active Leasing · Valuation · Debt · Cash Flow · Asset Return · Return Sensitivity | |
 | **Property Management** | Property Taxes · Insurance · Property Condition · Service Contracts | |
@@ -344,7 +344,7 @@ in the header, next to User manual.
 
 | Tab | What it does |
 |---|---|
-| **Deal Screener** (named Quick Underwrite until 11/22/2026) | **Pipeline Deal** dropdown (1.1.6, §7.61): every deal on the Pipeline, grouped **Active** and **History**; picking one not screened yet builds its model from the Pipeline figures; **Portfolio Impact →** and **Comps →** open on the deal; passed deals are read-only and closed deals point to their asset. The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
+| **Underwriter** (named Quick Underwrite until 11/22/2026, then Deal Screener until 1.1.25) | **Pipeline Deal** dropdown (1.1.6, §7.61): every deal on the Pipeline, grouped **Active** and **History**; picking one not screened yet builds its model from the Pipeline figures; **Portfolio Impact →** and **Comps →** open on the deal; passed deals are read-only and closed deals point to their asset. The fast NOI-driven model: price, closing costs, year-1 NOI and growth, hold, exit cap, loan (LTV, SOFR + spread, IO, 3+1+1 term, extension fee), a one-line rate cap summary (the cap itself is set on the Debt tab), AM / PM / CM fees, forward curve controls. When the deal is **linked** (the default), these inputs drive every other tab. |
 
 **Asset Management**
 
@@ -381,7 +381,7 @@ in the header, next to User manual.
 | **Change log** (header button, next to User manual) | Every change to deals, fund terms, capital activity, valuations, comps and the forward curve: when, who (your signed-in email), what, from → to. Filter, search, export to Excel. |
 
 
-**Asset dropdown.** Deal Screener, Unit Roll, Debt, Cash Flow, Asset
+**Asset dropdown.** Underwriter, Unit Roll, Debt, Cash Flow, Asset
 Return, Return Sensitivity and Research have an **Asset** dropdown at the top,
 grouped by fund, listing every open deal; choosing one switches the active
 deal (the same as clicking its tab in the left panel). Saved fund snapshots
@@ -398,7 +398,7 @@ workspaces saved before locations existed get them when they open.
 **Units.** The Property section of the inputs has a **Units** field. When a
 deal has a rent roll, the count comes from the rent roll instead.
 
-**Linked deals.** A linked deal's Deal Screener inputs are mapped onto the
+**Linked deals.** A linked deal's Underwriter inputs are mapped onto the
 full model (`toMainInputs`, §7.3), so every tab analyses the same deal.
 Edits to the same fields in the left panel are overwritten by the next Quick
 Underwrite edit. Unlink the deal to edit the full model directly.
@@ -438,7 +438,7 @@ data; saved workspaces drop them once when they open.)
 **NOI source.** Every Model Fund I asset, and every new deal, runs on
 **rent-roll NOI**: the cash flow is built from the rent roll (§7.1). Direct
 NOI (an entered year-1 NOI and growth rate) is still available per deal
-(NOI Source in the deal inputs, or linking the deal to Deal Screener).
+(NOI Source in the deal inputs, or linking the deal to Underwriter).
 
 **Rent rolls and mark to market.** Every Model Fund I asset has a rent roll
 (`lib/sampleRentRolls.js`):
@@ -450,7 +450,7 @@ NOI (an entered year-1 NOI and growth rate) is still available per deal
 - **Market rent:** set 20–40% above in-place (each asset has its own target
   in that range), so **mark to market** (market ÷ in-place − 1) is 20–40%.
 - **The nine sample assets** were moved from direct NOI to rent-roll NOI and
-  unlinked from Deal Screener (loan, cap, fee and exit terms unchanged).
+  unlinked from Underwriter (loan, cap, fee and exit terms unchanged).
   Each rent roll is **calibrated to the asset's former NOI path**:
   - about 80% of leases roll 6–24 months after purchase, the rest at 36–48
     months, so most income re-prices during the 4-year hold;
@@ -472,7 +472,7 @@ NOI (an entered year-1 NOI and growth rate) is still available per deal
 
 **Acquisition dates and the fund terms.** Every fund asset needs an
 acquisition date: it places the asset's cash flows in the fund's timeline.
-- **Where to set it:** Deal Screener for linked deals; **Acquisition
+- **Where to set it:** Underwriter for linked deals; **Acquisition
   date** in the deal inputs' Property section for unlinked deals.
 - **Missing date:** the fund assumes the asset was bought at its final
   close. The field turns amber, and the Asset Summary lists the asset and
@@ -486,7 +486,7 @@ acquisition date: it places the asset's cash flows in the fund's timeline.
 
 **Hold period.** Every deal defaults to a **4-year hold**: new deals, the
 nine sample assets and the three test-scenario deals. Change
-it per deal under **Hold** (Deal Screener, for linked deals) or **Hold
+it per deal under **Hold** (Underwriter, for linked deals) or **Hold
 Period** (deal inputs, for unlinked deals). Deals you already have keep the
 hold they were saved with, except sample and test-scenario deals still on an
 earlier default hold, which move to 4 years when the workspace opens.
@@ -505,7 +505,7 @@ Claude Code) built and maintains it, using the tools below.
 | **GitHub** | Opening, updating and merging pull requests; checking the test runs and their logs; checking that a release was published. | `create_pull_request`, `update_pull_request`, `merge_pull_request`, `pull_request_read`, `list_pull_requests`, `actions_list`, `actions_run_trigger`, `get_job_logs`, `get_latest_release`, `get_release_by_tag`, `list_tags`, `add_reply_to_pull_request_comment` |
 | **Claude Code Remote** (cloud session tools) | Creating the cloud environment that allows `pensford.com` and `markets.newyorkfed.org`, watching pull requests, and scheduling check-ins. | `create_environment`, `get_environment`, `update_environment`, `create_session`, `create_trigger`, `get_trigger`, `list_triggers`, `update_trigger`, `delete_trigger`, `send_later`, `subscribe_pr_activity`, `unsubscribe_pr_activity`, `list_computer_folders`, `read_documentation` |
 | **Supabase** | Checking the database against `supabase/setup.sql`, running Supabase's security advisor (§12.5), and creating the first database workspace, "Model Fund I" (§12.9). Since 11/25 (user's choice; all data is test data): **reading** the live firm data to check features against it, and **writing** sample data only when the user asks, each write stamped "Claude (sample data, on request)", version-checked and logged in the audit log. New tables, types and policies stay in `supabase/*.sql` for the user to run. One exception, at the user's request (11/27, "shut the restriction off"): Claude put the two document read rules back as `deal_documents.sql` has them and removed two helper functions, after a draft of the 1.1.15 script had restricted them (§12.5). | `list_projects`, `list_tables`, `execute_sql`, `apply_migration`, `get_advisors` |
-| **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. On 11/27, when a browser still showed 1.1.20 after 1.1.22 went out: checking that the 1.1.21 and 1.1.22 production builds were Ready and that `baywise.baysidecre.com` pointed at the 1.1.22 build (it did; the browser was showing a cached page). Read-only. | `authorize_team_access`, `filter_project_envs`, `list_deployments`, `list_aliases` |
+| **Vercel** | Setting up hosting in 1.1.7: getting access to the team, checking the project's environment variable names (never their values) and checking that deployments were Ready. On 11/27, when a browser still showed 1.1.20 after 1.1.22 went out: checking that the 1.1.21 and 1.1.22 production builds were Ready and that `baywise.baysidecre.com` pointed at the 1.1.22 build (it did; the browser was showing a cached page). Read-only. | `authorize_team_access`, `filter_project_envs`, `list_deployments`, `list_aliases`, `search_vercel_documentation`, `get_project` (1.1.25: how to turn on Web Analytics; reading the project's settings) |
 | **OloLand** | Early in the project: listing deals and running a CRE debt-sizing check on the deal, to cross-check the loan sizing. | `list_deals`, `run_cre_debt_sizing` |
 | **CREparser Lease Abstraction** | Reading the fictional sample leases and validating their abstracts (§7.24); saving the "Light industrial (Model Fund I)" export template. Not used in the app's calculations. | `lease_prepare_upload`, `lease_open_upload`, `lease_read_pdf`, `lease_read_pages`, `lease_search_text`, `lease_combine_pdfs`, `lease_validate_abstract`, `lease_show_abstract`, `lease_save_template` |
 | **CREparser Deal Review** | Checking the account and its plan. Its validators were **not** run on the sample deal documents: their abstracts are written by script from the fund and marked "Sample (fictional)", not connector-validated (the app shows that badge). A user can validate their own documents with it (§7.28). | `cre_account` |
@@ -513,8 +513,10 @@ Claude Code) built and maintains it, using the tools below.
 
 The tool names are the ones recorded in the build sessions. Many more
 connectors are installed in the Claude Code environment (finance, legal,
-design and others); none of them was used for Baywise and none is listed
-here. Claude also used its built-in tools (reading and editing files,
+design and others), among them Acquirepad, Corbis, Gamma, RiskModels and
+TradingCalc, which show in Claude Code's tools panel; none of them was
+called for Baywise (checked against the session record, 11/27) and none
+is listed in the table. Claude also used its built-in tools (reading and editing files,
 running commands and tests, web search and web fetch), which are not
 connectors. This table is updated with each release.
 
@@ -589,6 +591,7 @@ dataviz). The app does not need them to run.
 | `react`, `react-dom` | 19.2.4 | UI. |
 | `jspdf`, `jspdf-autotable` | 2.5.2, 3.8.4 | PDF reports, built in the browser and loaded only when you export (Valuation → Export PDF). |
 | `@vercel/speed-insights` | 2.x | Vercel Speed Insights: page-load timings on the live site, in the Vercel dashboard (added by Vercel's bot in PR #113; `<SpeedInsights />` in `app/layout.jsx`). No firm data is sent. |
+| `@vercel/analytics` | 2.x | Vercel Web Analytics (1.1.25, your request 11/27): visits to the live site, in the Vercel dashboard (`<Analytics />` in `app/layout.jsx`). It counts page views, with the visitor's country, device, browser and referring site; it sets no cookies and sends none of your firm's data. Nothing is collected until Web Analytics is switched on for the project in Vercel (Project → Analytics → Enable), and nothing on other hosts or in local runs. |
 | `tailwindcss`, `@tailwindcss/postcss` | 4 | Styling (dev). |
 | `eslint`, `eslint-config-next` | 9 / 16.2.4 | Linting (dev). |
 
@@ -632,7 +635,7 @@ underwriting-calculator/
 │   ├── globals.css           Tailwind + base styles
 │   └── favicon.ico
 ├── components/               One file per tab or panel (React, client side)
-│   ├── QuickUnderwrite.jsx   Deal Screener tab, forward-curve and Pensford import panels
+│   ├── QuickUnderwrite.jsx   Underwriter tab, forward-curve and Pensford import panels
 │   ├── DealInputs.jsx        Left-panel full-model inputs (NOI source, costs, loan, fees…)
 │   ├── UnitRoll.jsx          Rent roll editor and CSV import
 │   ├── RateCapSchedule.jsx   Rate cap settings and schedule (Debt tab)
@@ -748,7 +751,7 @@ Conventions used throughout:
 
 ### 7.1 Net operating income
 
-**Direct-NOI mode** (Deal Screener and all linked deals):
+**Direct-NOI mode** (Underwriter and all linked deals):
 
 ```
 NOI_gross(y) = Year-1 NOI × (1 + g)^(y−1)          g = NOI growth %
@@ -800,7 +803,7 @@ NOI            = EGR − OpEx
   - The unit re-leases at market rent (market rent in force that month).
   - Credit loss is applied to net revenue.
 
-### 7.2 Deal Screener model (`lib/quickUnderwrite.js`)
+### 7.2 Underwriter model (`lib/quickUnderwrite.js`)
 
 ```
 Loan at close    = purchase price × LTV
@@ -840,7 +843,7 @@ in the sale year.
 **Sensitivity grid:** NOI growth 0–35% (steps of 5) × exit cap
 4.0–7.5%.
 
-### 7.3 Linking Deal Screener to the full model (`toMainInputs`)
+### 7.3 Linking Underwriter to the full model (`toMainInputs`)
 
 A linked deal runs the full engine in direct-NOI mode with:
 - closing costs as a single line;
@@ -874,13 +877,13 @@ a parity script during development).
 ### 7.5 Rate caps (`lib/capPricer.js`)
 
 **Where it's set.** The rate cap is set on the **Debt** tab (moved from
-Deal Screener, then called Quick Underwrite, on 11/22/2026; Deal Screener
+Underwriter, then called Quick Underwrite, on 11/22/2026; Underwriter
 shows a one-line summary).
 The settings are initial strike (on SOFR), cap term, renewal strike (reset
 to market or same as initial), and pricing (market with an optional vol
 shift, or manual costs). A change reprices the caps and updates the cash
 flows and returns on every tab:
-- **Linked deals:** as before, through Deal Screener's mapping.
+- **Linked deals:** as before, through Underwriter's mapping.
 - **Unlinked deals** (every Model Fund I asset): priced on the deal's own
   loan amount, hold, spread and acquisition date (`capEngineFields`,
   `capSettingsFor` in `lib/quickUnderwrite.js`).
@@ -942,7 +945,7 @@ Cost when bought = PV ÷ DF(start)        (forward value at purchase)
   Saved workspaces got them once when they opened (`sizingModel`, values
   already entered kept). At these levels LTV (65%) still sets every Fund I
   loan, so loans and returns did not change; the Asset Summary shows the
-  cushion to the next test. Deals linked to Deal Screener size on LTV
+  cushion to the next test. Deals linked to Underwriter size on LTV
   only.
 - **Loan constant** = the rate if IO, else annual payment ÷ loan.
 - **Effective rate** = (SOFR(y) + spread), capped at the strike while a cap
@@ -1246,7 +1249,7 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
   with its returns as the targets; **Sell now** on the assets with a sale in
   progress (Sell/Hold Analysis); last quarter's internal report, issued
   (Reports); a saved Portfolio Impact scenario for the sample pipeline deal
-  under contract (when the firm has it in the Deal Screener); and the
+  under contract (when the firm has it in the Underwriter); and the
   fictional benchmark series for the Benchmarking tab (three indexes, two
   vintage sources, seven monthly series). Only what the fund or firm does
   not have is added. There is no distribution proposal: nothing is
@@ -1528,12 +1531,12 @@ previous save and records one entry per changed field:
 | Who | The name entered under **Change Log → Your name** in this browser ("Unknown user" if blank) |
 | Area | Deal, Saved deal, Fund terms, Capital activity, Valuation, Sales comps, Forward curve, or Workspace |
 | Item | The deal, fund, asset or comp |
-| Field | What changed, e.g. "Deal Screener › Exit cap (%)" or "2026-06-30 › Fair value ($)" |
+| Field | What changed, e.g. "Underwriter › Exit cap (%)" or "2026-06-30 › Fair value ($)" |
 | From → To | Old and new value ("added" / "removed" for whole items) |
 
 **What is tracked:**
-- **Deals:** Deal Screener inputs and the deal's own inputs. For linked
-  deals, fields that come from Deal Screener are logged only on the Quick
+- **Deals:** Underwriter inputs and the deal's own inputs. For linked
+  deals, fields that come from Underwriter are logged only on the Quick
   side.
 - **Everything else:** saved copies, fund terms, capital activity entries,
   valuation marks, sales comps and the imported forward curve.
@@ -1637,9 +1640,28 @@ assumptions. A lease signed afterwards is added to its unit's history:
   rent and TI. If it cannot be added (no start date, term or rent; a start
   on or before the purchase date; an overlap) the prospect is still signed
   and a message says why.
-- **Not yet on the lease today (the next patch):** the risk report, Tenant
-  Credit, the SNDA list, the Leases tab and the asset report still read the
-  lease at purchase for a unit that has a signed lease.
+- **Every screen that lists leases reads the lease today (1.1.25).** For a
+  unit with a signed lease, the tenant, rent, lease end and whether it is
+  occupied come from the lease in effect on the screen's date: the risk
+  report (rollover, tenant and industry concentration, large tenants
+  expiring, renewal notice deadlines), the fund limits (largest tenant;
+  Fund Limits, the risk report and the internal quarterly report agree),
+  Tenant Credit, the SNDA list and its coverage on Portfolio Debt, the
+  asset report and the asset KPIs (occupancy, average rent, WALT, as of the
+  quarter end), Vacant Units, aged rent (the monthly rent a balance is
+  compared with, as of the report's date) and a prospect's downtime
+  against the plan. The model itself still takes the rent roll at purchase
+  plus the signed leases; none of these screens changes a model figure.
+- **SNDAs and a change of tenant.** An SNDA belongs to a lease. When a new
+  tenant's lease is in effect, a status recorded for the former tenant no
+  longer counts: the lease follows the loan's rule again and the row is
+  marked "former tenant's SNDA on file". A status set (or a signed SNDA
+  applied) for the new tenant is recorded with that tenant's name. A
+  renewal keeps its tenant's SNDA.
+- **Lease documents (Leases tab).** A lease document's "rent roll matches"
+  flag compares it with the lease at purchase and with the lease today,
+  and uses whichever it agrees with better, so a renewal's document is not
+  flagged against the lease it replaced.
 
 
 Reference figures from each deal's rent roll (`inputs.units`), shown on the
@@ -2634,9 +2656,9 @@ date added.
 - Every change is in the change log (area Pipeline). Fictional sample files
   for testing: `docs/sample-pipeline/`.
 
-### 7.36 Deal Screener: pipeline deals and the fund summary line (phase M)
+### 7.36 Underwriter: pipeline deals and the fund summary line (phase M)
 
-**Deal Screener is for pipeline deals only** (11/23): deals with no fund, or
+**Underwriter is for pipeline deals only** (11/23): deals with no fund, or
 bought after today. A row of **Pipeline deals** at the top switches between
 them. With an owned asset selected, the tab says so and points to the Asset
 Management tabs instead of showing the screener. The app opens on
@@ -3439,7 +3461,7 @@ the report says where to upload them.
 ### 7.51 Acquisition Documents (`lib/acquisitionDocs.js`, 11/24)
 
 **Acquisitions → Acquisition Documents** holds every document from buying an
-asset, for Deal Screener deals, pipeline deals (their OM) and owned assets,
+asset, for Underwriter deals, pipeline deals (their OM) and owned assets,
 in the same store as Library → Documents (each file kept once; Claude reads
 the OM, rent roll, T-12, LOI, PSA, IC memo, closing statement and estoppels
 in there). Upload: choose the deal or asset and the document, then the PDF.
@@ -3516,7 +3538,7 @@ portfolio and By asset as before; Excel adds the consolidated block.
 Accounts) chooses what is reported on, then **Report on** the whole
 portfolio or one asset.
 
-**Deal Screener** (11/24): its picker is **Pipeline Deal** and lists only
+**Underwriter** (11/24): its picker is **Pipeline Deal** and lists only
 pipeline deals, never owned assets. Since 1.1.6 it reads the Pipeline
 directly (§7.61).
 
@@ -3748,7 +3770,7 @@ in one click.
 
 **From 1.1.6, Load Model Fund I builds the complete test fund:**
 - **Construction test data** (TI and capital jobs with invoices) on the rebuilt assets.
-- **The sample pipeline deals, pre-screened:** each gets its Deal Screener
+- **The sample pipeline deals, pre-screened:** each gets its Underwriter
   model, so it opens straight into the Screener (a deal already screened
   keeps its model).
 - **Sample documents** (LPA, PPM, asset, sale and lease documents, with their
@@ -3819,7 +3841,7 @@ $42.49/SF vs $42.49/SF".
 
 ### 7.61 Acquisitions flow: the Screener's Pipeline Deal dropdown (`lib/screenerPicker.js`, version 1.1.6)
 
-The **Deal Screener**'s **Pipeline Deal** dropdown reads **Acquisitions →
+The **Underwriter**'s **Pipeline Deal** dropdown reads **Acquisitions →
 Pipeline** directly, so every pipeline deal is listed, screened or not
 (designed with the user, 11/25):
 - **Active:** under contract (PSA), LOI, screening and watching, in that
@@ -4065,7 +4087,7 @@ the same figures.
 
 **Price per SF** = an amount ÷ the asset's SF (the SF entered on the asset,
 else the total of its units).
-- **Deal Screener:** purchase price per SF and all-in basis per SF.
+- **Underwriter:** purchase price per SF and all-in basis per SF.
 - **Disposition Candidates:** Value / SF (the latest mark on or before today)
   and Basis / SF, amber when the value is below the basis.
 - **Sell/Hold Analysis:** sale value per SF next to basis per SF.
@@ -4078,7 +4100,7 @@ year in progress, or year 1 for a deal not yet bought.
 - **Cushion** = occupancy − break-even, in points.
 - **Flag:** amber under 10 points, red under 5 (user, 11/27). Otherwise
   "Comfortable".
-- Shown on the Deal Screener, Disposition Candidates, Sell/Hold Analysis and
+- Shown on the Underwriter, Disposition Candidates, Sell/Hold Analysis and
   next to DSCR on Portfolio Debt.
 - Under net leases the tenants pay most operating costs, so the model's
   operating expenses are small and break-even occupancy is mostly the loan
@@ -4200,7 +4222,7 @@ Tests: `tests/node/facts1117.test.cjs`, `tests/node/sampleTieOut.test.cjs`
 
 ## 8. Worked example: the default deal
 
-The inputs are the Deal Screener defaults:
+The inputs are the Underwriter defaults:
 - $10.0M price, $400K closing costs, 30,000 SF, acquired 2/13/2026;
 - $650K year-1 NOI before PM, growing 35%/yr;
 - 4-year hold, 4.0% exit cap, 6% sale costs;
@@ -4325,7 +4347,7 @@ tag itself never changes). For a release older than 1.1.7 (built for GitHub
 Pages), put `main` back to the tag's code with a revert commit instead.
 
 **Refresh the forward curve:**
-- **In the app:** Deal Screener → Update from Pensford, then upload
+- **In the app:** Underwriter → Update from Pensford, then upload
   Pensford's Excel export (Table view → Download & Share → Excel).
 - **For everyone (new default snapshot):** replace the `FORWARD_CURVE` rows
   in `lib/forwardCurve.js` and update `FORWARD_CURVE_AS_OF`.
@@ -4416,11 +4438,11 @@ files hold the same object.
 | Field | Stored at (`workspaces.data`) | Type | Meaning |
 |---|---|---|---|
 | `id` | `deals[].id` | text | Unique id (`deal-1`, `sample-deal-1` … `sample-deal-9`, or generated) |
-| `linked` | `deals[].linked` | yes / no | Deal Screener drives every tab (§7.3) |
-| `quick` | `deals[].quick` | Deal Screener inputs (§11.3) | The deal's Deal Screener inputs |
+| `linked` | `deals[].linked` | yes / no | Underwriter drives every tab (§7.3) |
+| `quick` | `deals[].quick` | Underwriter inputs (§11.3) | The deal's Underwriter inputs |
 | `inputs` | `deals[].inputs` | Full-model inputs (§11.4) | Inputs to the full engine. For linked deals, rebuilt from `quick`. |
 
-### 11.3 Deal Screener inputs (`quick`)
+### 11.3 Underwriter inputs (`quick`)
 
 | Field | Stored at (`workspaces.data`) | Units | Default | Meaning |
 |---|---|---|---|---|
@@ -4461,7 +4483,7 @@ files hold the same object.
 
 ### 11.4 Full-model inputs (`inputs`)
 
-Fields set from Deal Screener on linked deals are marked **Q**.
+Fields set from Underwriter on linked deals are marked **Q**.
 
 **Property and fund:**
 
@@ -4827,7 +4849,7 @@ desc).
 | `user_email` | text | **database** (sign-in email) | Their email |
 | `area` | text | app | Deal, Saved deal, Fund terms, Capital activity, Valuation, Sales comps, Forward curve, Workspace, Members |
 | `item` | text | app | Deal, fund, asset or member |
-| `field` | text | app | What changed, e.g. "Deal Screener › Exit cap (%)" |
+| `field` | text | app | What changed, e.g. "Underwriter › Exit cap (%)" |
 | `path` | jsonb | app | Location in the workspace JSON |
 | `from_value` / `to_value` | jsonb | app | Old and new value |
 | `note` | text | app / function | Events: "Created workspace", "Added as editor", "Bulk change", imports … |
@@ -5251,7 +5273,7 @@ Every future release is checked against these:
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; patch **1.1.21**: sample Property Management data and documents, third-party research, the sample leases' rent steps; planned patches **1.1.22** and **1.1.23** (row below) |
-| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.25** the lease in effect today on the remaining screens (risk report, Tenant Credit, SNDA list, Leases tab, asset report); **1.1.26 onward** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
+| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.26 to 1.1.28** (1.1.28 is the last 1.1 patch; your decision, 11/27) a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5270,6 +5292,22 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.25
+
+The lease in effect today on every screen that lists leases (§7.19), and Deal Screener renamed Underwriter. No sample data in this patch.
+
+- **Screens now on the lease today.** For a unit with a lease signed since purchase: the risk report, the fund limits' largest-tenant figures, Tenant Credit, the SNDA list and its coverage on Portfolio Debt, the asset report and asset KPIs (occupancy, average rent, WALT), Vacant Units, aged rent and a prospect's downtime against the plan.
+- **SNDAs.** When a new tenant's lease is in effect, the former tenant's SNDA no longer counts and the row says so. A renewal keeps its SNDA.
+- **Leases tab.** A lease document is compared with the lease at purchase and the lease today, whichever it agrees with better.
+- **Deal Screener is now Underwriter** (your request, 11/27): the tab, its heading, and every message and label that named it. Nothing else about the tab changes. Notes on earlier releases below keep the name used at the time.
+- **Vercel Web Analytics** (your request, 11/27; §4): visit counts for the live site in the Vercel dashboard. No cookies, none of your firm's data. It starts counting once you switch it on in Vercel (Project → Analytics → Enable).
+- **Model Fund I: no figure changes.** None of its units has a signed lease, so each of these screens reads it exactly as before; the tie-out test confirms it.
+- **The model is untouched.** These are reading changes only.
+- **Numbering (your decision, 11/27):** 1.1.28 is the last 1.1 patch. 1.1.26 to 1.1.28 are the sample joint venture and separate account.
+- **Also recorded in the plan (your request, 11/27):** the Acquisitions workflow in 14 steps, for the workflow release; workflows for Dispositions, Leasing and Property Management are to come from you.
+- **Tests:** a new node suite (`leasetoday1125`, 31 checks) and a new browser suite (`leasetoday1125`, 10 checks).
+- **No database change.**
 
 ### What's in 1.1.24
 

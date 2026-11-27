@@ -1,6 +1,6 @@
 "use client";
 
-// Phase M: Deal Screener shows pipeline deals only, with a one-line summary
+// Phase M: Underwriter shows pipeline deals only, with a one-line summary
 // of the fund with vs. without this deal (modeling only; 1.1.20).
 import { useMemo } from "react";
 import { DEFAULT_FUND_TERMS } from "@/lib/fundTerms";
@@ -32,7 +32,7 @@ export function ScreenerPicker({ activeDeal, owned, pipelineRow = null, onSyncRo
     <div className="space-y-2" data-testid="screener-picker">
       {owned && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" data-testid="screener-owned">
-          <span className="font-semibold">{activeDeal.inputs.propertyName}</span> is an owned asset of {activeDeal.inputs.fundName} (acquired {usDate(activeDeal.inputs.acquisitionDate)}). Deal Screener is for pipeline deals; owned assets are on the Asset Management tabs. Choose a Pipeline Deal above.
+          <span className="font-semibold">{activeDeal.inputs.propertyName}</span> is an owned asset of {activeDeal.inputs.fundName} (acquired {usDate(activeDeal.inputs.acquisitionDate)}). Underwriter is for pipeline deals; owned assets are on the Asset Management tabs. Choose a Pipeline Deal above.
         </p>
       )}
       {/* 1.1.11 (UI review): no dead end: the active Pipeline deals to pick from. */}
@@ -76,7 +76,7 @@ function RowFigures({ row, dim = false }) {
 
 const linkBtn = "rounded-md border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-50";
 
-// Deal Screener (user, 11/25, 1.1.6): what the picked Pipeline row shows
+// Underwriter (user, 11/25, 1.1.6): what the picked Pipeline row shows
 // above the screener (lib/screenerPicker.js screenerState).
 export function ScreenerRowCard({ row, state, justScreened = false, canEdit = false, onImpact = null, onComps = null, onOpenAsset = null, onOpenPipeline = null }) {
   const kind = state?.kind;

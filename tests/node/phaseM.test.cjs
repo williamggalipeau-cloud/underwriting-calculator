@@ -49,7 +49,7 @@ ok(P.filterPipeline(r2.deals, { stage: "active" }).length === 5 && P.filterPipel
 const xl = P.pipelineXlsx(r2.deals);
 ok(xl.length === 7 && xl[0].includes("Probability %") && xl.some((r) => r.includes("LOI")), "Excel rows");
 ok(P.templateRows()[0].length === P.PIPELINE_FIELDS.length, "template has every column");
-ok(JSON.stringify(P.toQuickInputs(rb)) === JSON.stringify({ purchasePrice: 7315000, noiYear1: 494000, acquisitionDate: "2027-02-26" }), "Screen: price, NOI and close date to Deal Screener");
+ok(JSON.stringify(P.toQuickInputs(rb)) === JSON.stringify({ purchasePrice: 7315000, noiYear1: 494000, acquisitionDate: "2027-02-26" }), "Screen: price, NOI and close date to Underwriter");
 
 // ── Change log ──
 const a = auditSnapshot({ deals: [], savedDeals: [], funds: {}, comps: {}, valuations: {}, baseCurve: null, pipeline: { deals: r2.deals } });

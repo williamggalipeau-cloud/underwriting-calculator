@@ -1,7 +1,7 @@
 "use client";
 
 // Acquisitions → Acquisition Documents (user, 11/24): every document from
-// buying an asset, by deal stage, for Deal Screener deals, pipeline deals
+// buying an asset, by deal stage, for Underwriter deals, pipeline deals
 // and owned assets. The same store as Library → Documents (each file kept
 // once), where Claude reads them in. Loan, rate cap and insurance documents
 // are shown read-only (uploaded on Debt and Property Management).
@@ -35,13 +35,13 @@ export default function AcquisitionDocs({ workspaceId = null, email = null, deal
     <div className="space-y-3 text-gray-900" data-testid="acq-documents">
       <div>
         <h2 className="text-lg font-bold">Acquisition Documents</h2>
-        <p className="text-xs text-gray-500">{scopeName ? `${scopeName}: e` : "E"}very document from buying an asset, by deal stage, for Deal Screener deals, pipeline deals and owned assets. The same store as Library → Documents, where Claude reads them in. Loan, rate cap and insurance documents are shown here read-only; upload them on Debt and Insurance.</p>
+        <p className="text-xs text-gray-500">{scopeName ? `${scopeName}: e` : "E"}very document from buying an asset, by deal stage, for Underwriter deals, pipeline deals and owned assets. The same store as Library → Documents, where Claude reads them in. Loan, rate cap and insurance documents are shown here read-only; upload them on Debt and Insurance.</p>
       </div>
       {!workspaceId ? <p className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-500">Sign in to the firm to see and upload documents.</p> : (
         <>
           {canEdit && (
             <div className="flex flex-wrap items-end gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs" data-testid="acq-upload">
-              <label className="flex flex-col gap-0.5">Deal or asset<select aria-label="Upload for deal" value={up.deal} onChange={(e) => setUp({ ...up, deal: e.target.value })} className={sel}><option value="">Choose…</option>{dealOpts.map((d) => <option key={d.id} value={d.id}>{d.inputs.propertyName}{d.inputs.fundName ? ` · ${d.inputs.fundName}` : " · Deal Screener"}</option>)}</select></label>
+              <label className="flex flex-col gap-0.5">Deal or asset<select aria-label="Upload for deal" value={up.deal} onChange={(e) => setUp({ ...up, deal: e.target.value })} className={sel}><option value="">Choose…</option>{dealOpts.map((d) => <option key={d.id} value={d.id}>{d.inputs.propertyName}{d.inputs.fundName ? ` · ${d.inputs.fundName}` : " · Underwriter"}</option>)}</select></label>
               <label className="flex flex-col gap-0.5">Document<select aria-label="Upload type" value={up.type} onChange={(e) => setUp({ ...up, type: e.target.value })} className={sel}>{ACQ_STAGES.map(([s, sl, ts]) => <optgroup key={s} label={sl}>{ts.filter(([k]) => ACQ_UPLOAD_TYPES.some((t) => t.key === k)).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</optgroup>)}</select></label>
               <label className={`rounded-lg border px-3 py-1.5 font-medium ${up.deal && !busy ? "cursor-pointer border-blue-600 bg-blue-600 text-white hover:bg-blue-700" : "border-gray-200 bg-white text-gray-500"}`}>
                 {busy ? "Uploading…" : "Upload PDF"}
