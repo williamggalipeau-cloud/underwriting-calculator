@@ -40,7 +40,7 @@ ok(rep.some((x) => x.date === "2027-02-14" && /Quarterly statements due to Deser
 const ent = cal.filter((x) => x.kind === "entity");
 ok(ent.length === 11 && ent.every((x) => x.date === "2027-06-01") && ent.some((x) => x.asset === "Airport Flex Park" && /Runway Vista LLC \(DE\)/.test(x.text)), "legal entities' annual reports are on the calendar, each on its asset");
 const pmItems = cal.filter((x) => ["tax", "insurance", "contract"].includes(x.kind));
-ok(pmItems.every((x) => !x.dealId || x.owner === f.deals.find((d) => d.id === x.dealId).inputs.propertyManager) && cal.filter((x) => x.kind === "lease").every((x) => x.owner !== "Jamie Rivera" || true), `property management items are owned by the property manager (${pmItems.length} items)`);
+ok(pmItems.every((x) => !x.dealId || x.owner === f.deals.find((d) => d.id === x.dealId).inputs.propertyManager), `property management items are owned by the property manager (${pmItems.length} items)`);
 const noPm = H.actionsAndCalendar(snaps.map((d) => ({ ...d, inputs: { ...d.inputs, propertyManager: "" } })), { [SP.SAMPLE_FUND_NAME]: terms }, f.valuations, { todayISO: today }).calendar.filter((x) => ["tax", "insurance", "contract"].includes(x.kind));
 ok(noPm.every((x) => !x.dealId || x.owner === f.deals.find((d) => d.id === x.dealId).inputs.assetManager), "with no property manager they stay with the asset manager");
 
