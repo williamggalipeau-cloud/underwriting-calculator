@@ -69,7 +69,7 @@ import { ALL_FUNDS, workingOnOptions, validWorkingOn, scopeDeals, scopeFunds, sc
 import { isPipeline } from "@/lib/fundImpact";
 import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
-import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS } from "@/lib/samplePortfolio";
+import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob, parseCSV } from "@/lib/fundTerms";
@@ -1795,6 +1795,58 @@ export default function Home() {
     noteAudit(`Added construction test data (${jobs.length} jobs, ${invoices.length} invoices) to ${ids.length} sample asset${ids.length === 1 ? "" : "s"}`);
     setDeals((prev) => prev.map((d) => (r.updates[d.id] ? { ...d, inputs: { ...d.inputs, construction: r.updates[d.id] } } : d)));
   }
+
+  // 1.1.12 (user, 11/27): no manual loading. When an owner opens a firm that
+  // has Model Fund I and its sample material is behind SAMPLE_DATA_VERSION,
+  // add what's missing with the owner's own session: sample tenant credit and
+  // aged rent, the sample documents (credit report PDFs included) and the
+  // sample GP partners. Each step adds only what isn't there and keeps the
+  // user's own records; the fund's terms then record the version, so it runs
+  // once per release that adds sample material. Logged in the change log.
+  const sampleSyncRan = useRef(false);
+  async function syncSampleData() {
+    const cur = latestData.current, l = dbLinkRef.current;
+    if (!cur || !l?.id || l.role !== "owner" || lockedRef.current) return;
+    const terms = cur.funds?.[SAMPLE_FUND_NAME];
+    if (!terms || (terms.sampleDataVersion ?? 0) >= SAMPLE_DATA_VERSION || !cur.deals.some((d) => d.id.startsWith("sample-deal-"))) return;
+    const todayISO = new Date().toISOString().slice(0, 10);
+    const email = session?.user?.email ?? null;
+    setSampleDocMsg("Updating the Model Fund I sample data…");
+    try {
+      const credit = addSampleCredit(cur.deals, { todayISO, funds: cur.funds, fundName: SAMPLE_FUND_NAME });
+      const built = cur.deals.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d));
+      noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents, GP partners)");
+      setDeals((prev) => prev.map((d) => (credit.updates[d.id] ? { ...d, inputs: { ...d.inputs, ...credit.updates[d.id] } } : d)));
+      const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
+      const docs = await addSampleDocuments({
+        workspaceId: l.id, email, deals: built,
+        onSale: (dealId, sale) => updateDealInputs(dealId, (inp) => ({ ...inp, dispositions: [...(inp.dispositions ?? []), sale] })),
+        onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`),
+      });
+      const gpr = await addSampleGpPartners({ workspaceId: l.id, email, gp: cur.gpPartners, onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`) });
+      setGpPartners(gpr.gp);
+      const failed = [...docs.failed, ...gpr.failed];
+      // The version is recorded only when everything went in; otherwise the next open tries again.
+      setFunds((prev) => ({ ...prev, [SAMPLE_FUND_NAME]: { ...(prev[SAMPLE_FUND_NAME] ?? {}), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } }));
+      setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
+      setRecordNotice(failed.length
+        ? `Model Fund I sample data: ${failed.length} item${failed.length === 1 ? "" : "s"} couldn't be added (${failed[0].error}); it will try again the next time you open Baywise.`
+        : `Model Fund I sample data updated: tenant credit and aged rent, ${docs.done.length} sample document${docs.done.length === 1 ? "" : "s"} and ${gpr.done.length} GP agreement${gpr.done.length === 1 ? "" : "s"} added. See Tenant Credit; the GP agreements are in Finance → GP Partners to check.`);
+    } catch (e) {
+      setRecordNotice(`Model Fund I sample data couldn't be updated (${e.message || e}); it will try again the next time you open Baywise.`);
+    } finally {
+      setSampleDocMsg("");
+    }
+  }
+  const sampleSyncKey = session && dbLink?.id && dbLink.role === "owner" ? dbLink.id : null;
+  useEffect(() => {
+    if (!sampleSyncKey || sampleSyncRan.current) return;
+    // Automated browser tests opt in (window.__baywiseSampleSync), so the other suites keep their fixtures.
+    if (typeof navigator !== "undefined" && navigator.webdriver && !window.__baywiseSampleSync) return;
+    const t = setTimeout(() => { if (!sampleSyncRan.current) { sampleSyncRan.current = true; syncSampleData(); } }, 2500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sampleSyncKey]);
 
   // Sample data → Add sample GP partners (1.1.10): the fictional partners and
   // their agreement PDFs with Claude's abstracts, to check in GP Partners.
