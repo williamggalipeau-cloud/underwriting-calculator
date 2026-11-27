@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.18** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.19** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -2710,8 +2710,11 @@ On the **Change log** tab (working log or the database's verified log):
   only shown elsewhere: Asset Summary and its Excel, the Property Management
   tabs with their Excel and PDF, the asset quarterly report and the business
   plan PDF. The property manager is the owner of property tax, insurance and
-  contract items in Upcoming Events. An asset is flagged when its firm type
-  disagrees with who the fund's property management fee is paid to.
+  contract items in Upcoming Events. **Since 1.1.19 the firm type also decides
+  who is paid this asset's property management fee**: this firm, or the
+  servicer named here. The fund's terms are only the default for an asset
+  with nothing set, and a grey note under the field says when the asset
+  differs from that default (it is no longer a flag). See §7.55.
 
 The app opens on the **Dashboard**, the landing page. It shows the
 portfolio chosen in **Select Portfolio** (was Working on) (§7.40) and is computed from data already
@@ -3522,6 +3525,15 @@ sets up the portfolio):
   (outsourced)**, with the provider's name), acquisition and disposition fees
   (sponsor or GP). If the sponsor is this firm, every sponsor fee is the
   firm's.
+- **Property management fee, asset by asset (1.1.19):** each asset's fee is
+  paid to whoever manages that asset: the **Property management firm** in its
+  asset inputs (this firm, or a third-party servicer by name). The choice
+  here is the default for an asset with nothing set. So a portfolio can have
+  some assets managed by this firm and others by a servicer: the firm earns
+  the fee on the first and none on the second. By asset on Sponsor Economics
+  shows a servicer's fee in grey as "Third party (name)". The fee an asset
+  pays, its NOI, the investors' returns and the promote do not change; only
+  who receives the fee does.
 - **Outsourced fees** stay an expense of the asset (NOI, returns and the
   investor waterfall don't change) but are nobody's revenue: not counted for
   the sponsor, the GP or Revenue Yield.
@@ -3860,7 +3872,9 @@ Decided with the user (11/26):
   capital share) + the sponsor co-invest profit.
 - **Fees (counted once)** = every fee paid to the sponsor + the firm's
   capital share of any fee paid to the GP; a fee outsourced to a third
-  party is nobody's revenue. To date from actual dates, as on Sponsor
+  party is nobody's revenue. Since 1.1.19 the property management fee is
+  split asset by asset: the firm's on the assets it manages, nobody's on the
+  assets a servicer manages. To date from actual dates, as on Sponsor
   Economics.
 - **Total to the firm** = fees + promote + co-invest profit, with each
   one's share.
@@ -5151,8 +5165,8 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); planned patches **1.1.18** (lease rent steps in the model; property management fee paid asset by asset) and **1.1.19** (housekeeping) |
-| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.19** lease rent steps in the model and the property management fee paid asset by asset (figures change, so before and after are reviewed first); **1.1.20** housekeeping, and the Deal Screener's "Model in fund" section reduced to one summary line with a button to Portfolio Impact; **1.1.21** complete test data and documents for every tab (Property Management, third-party research, fuller acquisition, valuation, debt and leasing documents) with a test that fails when a tab has none; **1.1.22** a sample joint venture (two assets held, one sold, two pipeline deals) and a sample separate account (one asset), with large aged assets, complete documents and an outside GP equity partner each | Planned |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; planned patches **1.1.20** to **1.1.23** (row below) |
+| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.20** lease rent steps in the model (figures change, so before and after are reviewed first; where a lease and the unit's escalation disagree, the lease wins); **1.1.21** housekeeping, and the Deal Screener's "Model in fund" section reduced to one summary line with a button to Portfolio Impact; **1.1.22** complete test data and documents for every tab (Property Management, third-party research, fuller acquisition, valuation, debt and leasing documents) with a test that fails when a tab has none; **1.1.23** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5171,6 +5185,19 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.19
+
+The property management fee is paid asset by asset (§7.55, §7.63).
+
+- **Before:** one setting on the fund decided who received the property management fee for every asset. An asset whose Property management firm said otherwise only showed a flag.
+- **Now:** each asset's fee goes to whoever manages that asset, from **Property management firm** in its asset inputs: this firm, or the third-party servicer named there. The fund's setting is the default for an asset with nothing set.
+- **Where it shows:** Sponsor Economics (fees by type, by year, and By asset, where a servicer's fee is grey "Third party (name)"), Firm Economics (fee income, life and to date, by asset and by year), and their Excel exports. The flag in asset inputs is now a grey note.
+- **What does not change:** the fee each asset pays, NOI, investor returns, the waterfall and the promote. Only who receives the fee.
+- **Model Fund I (test copy) is unchanged**, because all nine sample assets are managed by this firm: property management fee $1,897,355, all to this firm; all fees $11,211,481; firm fee income to date $2,035,503, the same before and after.
+- **Worked example (test copy, not saved anywhere):** with Ridgeway Trade Center moved to a servicer, $195,267 of the fee goes to the servicer and $1,702,088 to this firm; the firm's fee income is $11,016,215 over the life and $2,023,337 to date. Fund fees, promote and investor returns are the same.
+- **Tests:** a new suite (`tests/node/pmfee1119.test.cjs`, 22 checks), a new section in the tie-out test (the firm's and the servicers' shares add back to the fee the assets pay, asset to fund to firm), and a browser check of By asset.
+- **No database change and no new sample data.**
 
 ### What's in 1.1.18
 
@@ -5213,7 +5240,7 @@ Correctness.
 - **Saving (§12.3).** A save can no longer replace a record that someone else created first; the two are merged. This needs the database script `supabase/release_1_1_15.sql`, run once by an owner in Supabase.
 - **Rate cap replacements (§7.5).** A year with no cost entered uses the flat replacement cost. Before, an empty list of yearly costs made the replacements free. Model Fund I is unchanged (test copy).
 - **GP Partners (§7.64).** The outside partners' shares of the GP capital and of the GP's promote can't pass 100% between them; the agreement is refused with the reason.
-- **Not in this patch:** paying the property management fee asset by asset (to this firm or a third-party servicer) changes Firm Economics figures, so it moves to 1.1.18 with the lease rent steps, where before and after are shown first. Until then the fee follows the fund's terms and an asset that disagrees shows a note.
+- **Not in this patch:** paying the property management fee asset by asset (to this firm or a third-party servicer) changes Firm Economics figures, so it moved out of this patch (built as 1.1.19, before and after shown first). Until then the fee follows the fund's terms and an asset that disagrees shows a note.
 
 ### What's in 1.1.14
 

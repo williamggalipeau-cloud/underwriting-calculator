@@ -330,5 +330,17 @@ for (const l of leaseIndex) {
   ok(unitsWithDoc === signedUnits, "every lease marked signed has its SNDA document, and no SNDA document is for a lease not marked signed");
 }
 
+// 14. 1.1.19: who is paid each asset's property management fee agrees from the asset to the fund to the firm.
+{
+  const G = j(R + "/lib/gpEconomics.js"), FE = j(R + "/lib/firmEconomics.js"), C = j(R + "/lib/calculations.js"), PMG = j(R + "/lib/propertyManager.js");
+  const SP2 = j(R + "/lib/samplePortfolio.js"), FT = j(R + "/lib/fundTerms.js");
+  const t = { ...FT.DEFAULT_FUND_TERMS, ...SP2.SAMPLE_FUND_FEE_TERMS, ...fund.termsPatch, name: "Model Fund I", targetEquity: SP2.SAMPLE_FUND_COMMITMENTS };
+  const g = G.fundGpEconomics("Model Fund I", fund.deals.map((d) => SP2.snapshotDeal(d.inputs, d.id)), t, { todayISO: AS_OF });
+  const offAsset = fund.deals.filter((d) => { const a = g.assets.find((x) => x.id === d.id); const u = C.underwrite(d.inputs); const pm = u.annualCashFlows.reduce((s2, y) => s2 + Math.max(0, y.managementFee ?? 0), 0); return !a || Math.abs(a.pm - pm) > 1 || a.pmPayee !== (PMG.pmFirmOf(d.inputs).type === "third" ? "third" : "sponsor") || a.pmThird !== 0; }).map((d) => d.id);
+  ok(offAsset.length === 0, `each asset's property management fee is its model's, and it is paid to the firm its asset setup names (all nine: this firm)${offAsset.length ? ": " + offAsset.join(", ") : ""}`);
+  const sumPm = g.assets.reduce((s2, a) => s2 + a.pm, 0), fe = FE.firmEconomics([g]);
+  ok(Math.abs(g.fees.pm - sumPm) < 1 && Math.abs(g.parties.sponsor.feesByType.pm - sumPm) < 1 && g.parties.third.fees === 0 && Math.abs(fe.feesByType.find((x) => x.key === "pm").life - sumPm) < 1 && Math.abs(fe.totals.fees - g.fees.total) < 1, "asset to fund to firm: the nine assets' fees are the fund's property management fee, the sponsor's, and the firm's in Firm Economics");
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);

@@ -5,7 +5,7 @@ import { US_STATES } from "@/lib/assetLocations";
 import { useState } from "react";
 import { computeConstructionCostPSF, computeSellingCosts } from "@/lib/calculations";
 import { fetchSofrCurve } from "@/lib/sofr";
-import { PM_FIRM_TYPES, pmFeeMismatch, pmFirmOf } from "@/lib/propertyManager";
+import { PM_FIRM_TYPES, pmFeeNote as pmFeeNoteOf, pmFirmOf } from "@/lib/propertyManager";
 
 
 function Field({ label, value, field, prefix, suffix, step = 1, min = 0, onChange }) {
@@ -711,7 +711,7 @@ function fmtK(n) {
 
 export default function DealInputsPanel({ inputs, onChange, fundNames = [], linked = false, fundTerms = null, docCtx = null }) {
   const set = (field, value) => onChange({ ...inputs, [field]: value });
-  const pmFeeNote = fundTerms ? pmFeeMismatch(inputs, fundTerms) : "";
+  const pmFeeNote = fundTerms ? pmFeeNoteOf(inputs, fundTerms) : "";
   const [curveLoading, setCurveLoading] = useState(false);
   const [curveError, setCurveError] = useState(null);
 
@@ -765,7 +765,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
             {pmFirmOf(inputs).type === "third" && (
               <input aria-label="Property management firm name" placeholder="Firm name" value={inputs.propertyManagementFirm?.name ?? ""} onChange={(e) => set("propertyManagementFirm", { type: "third", name: e.target.value })} className="rounded-md border border-gray-300 px-3 py-2 text-sm" />
             )}
-            {pmFeeNote && <p className="text-xs text-amber-700" data-testid="pm-fee-mismatch">{pmFeeNote}</p>}
+            {pmFeeNote && <p className="text-xs text-gray-500" data-testid="pm-fee-note">{pmFeeNote}</p>}
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Portfolio (fund, JV or SMA)</label>
