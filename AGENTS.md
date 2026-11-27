@@ -27,6 +27,13 @@ Sample material loads by itself (the automatic load in `app/page.jsx`, `SAMPLE_D
 - A load step changes only its own fields on an asset, applied to the asset as it is now (never a copy made earlier).
 - Everything a load adds is checked in the browser tests of the load (`tests/e2e/sampleSync*.e2e.cjs`) on what is actually saved, not only in the builder's tests (11/27: 1.1.13 and 1.1.17 each lost data this way).
 
+# Sample data for everything (user, 11/27)
+
+Every tab and every document type has sample data in the sample portfolios, so each screen can be tested without typing anything in.
+- `tests/node/coverage1122.test.cjs` lists every tab (`lib/tabs.js`) and every document type and fails when one has no sample data. A release that adds a tab, a data set on a tab or a document type adds its sample data, its load step and its line in that test in the same pull request.
+- What is still missing is listed in that test with the patch that closes it. Entries are only ever removed from those lists.
+- A sample record that a tab saves (a plan, a proposal, a report, a scenario) is made by the function the tab calls, from the fund as it is. It never carries a figure of its own.
+
 # Working rules (user, across sessions)
 
 - **Check before claiming.** Nothing is reported as done or correct until a test or a read of the live data confirms it.

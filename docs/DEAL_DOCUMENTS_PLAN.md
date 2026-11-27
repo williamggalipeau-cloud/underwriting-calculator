@@ -105,7 +105,19 @@ on the firm's own data warehouse 2.3.
   - The GP partner splits add up.
   - Cash is conserved from asset to fund.
 
-**In review: version 1.1.21, sample Property Management data, third-party research and the lease rent steps** (built 11/27; the user sees the rent-step figures again before it merges).
+**In review: version 1.1.22, fund-level sample data and the coverage test** (built 11/27; changes one displayed figure, Portfolio Summary "called", so the user sees it before it merges).
+- **Verified gap list.** The survey's list was checked by code, not by reading: `tests/node/coverage1122.test.cjs` lists every tab (`lib/tabs.js`, moved out of `app/page.jsx`) with the data sets it shows, and every document type list (library, acquisition checklist, disposition, leasing, fact, research, Property Management sections), against the sample fund and `public/sample-docs/manifest.json`. Corrections to the survey: marks only on two assets is by design (an asset is held at cost for six months).
+- **Fund-level records** (`lib/sampleFundData.js`, `sampleFundData`): capital activity (one sub line draw per purchase), the original plan (`freezePlan(fundProjection)`) and targets, Sell now decisions on the assets being sold, last quarter's internal report (`buildQuarterlyReport` → `issueReport`, with the benchmark section), a Portfolio Impact scenario (`fundImpact` → `saveScenarioVersion`) for the screened sample pipeline deal. Each only where the fund has none.
+- **Benchmark series** (`withSampleBenchmarks`, `lib/sampleBenchmarks.json` from `scripts/sample-benchmarks/make_benchmarks.cjs`, which runs the app's parsers on `docs/sample-benchmarks`; `--check` in the test).
+- **Figure that moves:** Portfolio Summary "called" was the model's purchase equity to date when there was no ledger ($34,042,042 on the test copy); with the ledger it is $0 called and that amount on the sub line. Returns, the quarterly projection, deployed capital and dry powder are identical (tested).
+- **Not sampled on Model Fund I, by its nature:** a distribution proposal (nothing distributable) and Track Record (nothing sold). Both come with the older vehicles.
+- **The load (sample data version 9):** the fund step runs after the asset steps, inside the same `setFunds` that records the version; the Load button adds the same records.
+- **Still missing, listed in the test:** 37 document types with no sample document. Several are a document the fund already has under another list (property condition report, Phase I, survey, SNDA, appraisal, BOV), so part of 1.1.23 is filing or linking, not writing.
+- **Numbering (Claude, 11/27; to confirm with the user):** **1.1.23** sample documents for the remaining types; **1.1.24** sample joint venture and separate account (was 1.1.23).
+- **Rule added to AGENTS.md:** "Sample data for everything".
+- **Tests:** `fund1122` (55), `coverage1122` (255); both browser tests of the load check the saved records.
+
+**Live: version 1.1.21, sample Property Management data, third-party research and the lease rent steps** (built 11/27; merged 11/27 as PR #127, `82fa417`, with the user's OK and green tests; GitHub Release v1.1.21 published by the user and checked 11/27 11:23 AM Pacific; the live read-back waits for the user to open Baywise).
 - **Split decided by Claude 11/27:** the test-data patch was cut in two after a read-only survey of every tab and document type (an Explore agent) found far more gaps than the audit of 11/27. 1.1.21 is what is built here; **1.1.22** is the rest with the coverage test and the AGENTS.md rule; **1.1.23** is the sample joint venture and separate account.
 - **Property Management** (`lib/samplePropertyMgmt.js`, `withSamplePropertyMgmt`): parcels, bills, appeals, policies, claims, findings and contracts on all nine sample assets, derived from the asset (budget lines through `budgetMonth`, purchase price, building and site facts). Fills only empty sections. Documents: `scripts/sample-deal-docs/pm_docs.cjs` writes nine (three assets) from `fund.json`, filed as `[pm:<section>]`.
 - **Third-party research** (`lib/sampleResearch.js`, `withSampleResearch`): a market report (the submarket's 2026-Q3 statistics) and a rent survey (`rentCompStats` of the asset's rent comps) per asset. `scripts/sample-deal-docs/research_docs.cjs` writes three market reports, filed as `[research:<id>]`; the Third-Party table now shows a file found by that title. The load skips a report whose research item is not on the asset.
@@ -204,6 +216,7 @@ on the firm's own data warehouse 2.3.
     - *An outside GP equity partner for each:* two different, new partners, each with its agreement and abstract.
     - *Decided at build:* promote and incentive terms; how Firm Economics and GP Economics show the two portfolio types.
   - Then 1.2 Workflow; 1.3 Chat and custom reports; 1.4 Demo firm (with a closed-sale example) and Yardi; 1.5 Construction; 1.6 Treasury (Kyriba first); 1.7 side letters and REIT tests, then the side-letter effect on the waterfall and fees (MFN).
+  - **IC Memos tabs (user, 11/27; to be scoped and built in 1.2 or later, nothing scoped or coded):** a new tab **IC Memos** in Acquisitions, right after Comps, and a new tab **IC Memos** in Dispositions, right after Sell/Hold Analysis.
 - **After merge:** the user opens Baywise once; Claude reads the live data back.
 
 **Live before it: version 1.1.13, sample data that ties out** (built 11/27; merged 11/27 as PR #119, `4746fd9`, with the user's OK and green tests; GitHub Release v1.1.13 published by the user and checked 11/27: tag `v1.1.13` on `4746fd9`).

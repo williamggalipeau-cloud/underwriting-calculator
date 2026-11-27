@@ -84,7 +84,23 @@ const removed = [], removedLeases = [];
   check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 8, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 9, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  {
+    // 1.1.22: the fund-level sample records, as actually saved.
+    const mf9 = sd?.funds?.["Model Fund I"] ?? {}, own = (sd?.deals ?? []).filter((d) => String(d.id).startsWith("sample-deal-") && d.inputs?.acquisitionDate <= new Date().toISOString().slice(0, 10));
+    const ca = mf9.capitalActivity ?? [];
+    check(ca.length === own.length && ca.every((a) => a.type === "draw" && a.amount > 0 && own.some((d) => a.purpose === `acq:${d.id}` && a.date === d.inputs.acquisitionDate)), `1.1.22: one sub line draw per purchase is saved (${ca.length} of ${own.length})`);
+    const selling = (sd?.deals ?? []).filter((d) => (d.inputs?.dispositions ?? []).some((x) => ["preparing", "marketing", "offers", "contract"].includes(x.stage))).map((d) => d.id).sort();
+    check(JSON.stringify(Object.keys(mf9.sellHold?.decisions ?? {}).sort()) === JSON.stringify(selling) && selling.length > 0, `1.1.22: Sell now is saved on the assets being sold (${Object.keys(mf9.sellHold?.decisions ?? {})})`);
+    const pv = mf9.fundPlan?.versions ?? [];
+    check(pv.length === 1 && pv[0].label === "Original plan" && Number.isFinite(pv[0].returns?.netLpIrr) && Math.abs((mf9.fundPlanTargets?.netIrrPct ?? NaN) - pv[0].returns.netLpIrr) < 0.006, `1.1.22: the original fund plan and its targets are saved (${pv.length} version, target ${mf9.fundPlanTargets?.netIrrPct})`);
+    const iss = mf9.reports?.issued ?? [];
+    check(iss.length === 1 && iss[0].kind === "internal" && (iss[0].report?.portfolio ?? []).length > 0 && !!iss[0].report?.benchmarks, `1.1.22: last quarter's internal report is saved as issued, with its benchmark section (${iss.length}, ${iss[0]?.quarter})`);
+    const bm = sd?.comps?.benchmarks ?? {};
+    check(Object.keys(bm.index ?? {}).length === 3 && Object.keys(bm.vintage ?? {}).length === 2 && Object.keys(bm.monthly ?? {}).length === 7, `1.1.22: the sample benchmark series are saved (${Object.keys(bm.index ?? {}).length} indexes, ${Object.keys(bm.vintage ?? {}).length} vintage sources, ${Object.keys(bm.monthly ?? {}).length} monthly)`);
+    const screened = (sd?.deals ?? []).some((d) => d.pipelineId === "sample-pl-1" && !d.inputs?.fundName);
+    check(((mf9.impactScenarios ?? []).length === 1) === screened, `1.1.22: a Portfolio Impact scenario is saved when the firm has the screened pipeline deal (${(mf9.impactScenarios ?? []).length} saved; screened: ${screened})`);
+  }
   const withCredit = (sd?.deals ?? []).filter((d) => (d.inputs?.units ?? []).some((u) => u.credit)).length;
   check(withCredit >= 5 && sd?.gpPartners?.partners?.length === 2 && gpa.length === 2 && (sd?.gpPartners?.agreements ?? []).filter((a) => a.status === "checked").length === 2, `tenant credit on ${withCredit} assets; 2 GP partners, their 2 agreements switched on`);
   const parties = (sd?.funds?.["Model Fund I"]?.gpParties ?? []).filter((x) => x.partnerId);
