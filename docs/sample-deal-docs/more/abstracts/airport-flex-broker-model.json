@@ -1,0 +1,52 @@
+{
+ "doc_type": "acquisition_broker_model",
+ "title": "Airport Flex Park broker underwriting",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Prepared by the seller's broker",
+ "fields": [
+  {
+   "key": "in_place_noi",
+   "value": 486000,
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Fictional Industrial Partners underwrites in-place net operating income of $486,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "price",
+   "value": 7200000,
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "At the price of $7,200,000 that is a capitalization rate of 6.75%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "buyer_noi",
+   "value": 462412,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The buyer's own underwriting has year-one net operating income of $462,412, a going-in capitalization rate of 6.42%.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-broker-model.pdf"
+  ]
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "doc_type": "acquisition_zoning",
+ "title": "Airport Flex Park zoning report",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Fictional Zoning Advisors",
+ "fields": [
+  {
+   "key": "zoning",
+   "value": "M-1 Light Industrial",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "The property is zoned M-1 Light Industrial.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "by_right",
+   "value": "yes",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Industrial use is permitted by right: yes.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "residential_adjacency",
+   "value": "None",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Residential adjacency: None.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "truck_restrictions",
+   "value": "None",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Truck restrictions on the access route: None.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-zoning-report.pdf"
+  ]
+ }
+}

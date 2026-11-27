@@ -1,0 +1,124 @@
+{
+ "doc_type": "leasing_approval_memo",
+ "title": "Example Bike Works LLC lease approval memo",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park Unit 012 · Example Bike Works LLC",
+ "fields": [
+  {
+   "key": "tenant",
+   "value": "Example Bike Works LLC",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Approval is requested for a lease to Example Bike Works LLC for Unit 012 at Airport Flex Park, 2,000 rentable square feet.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_psf",
+   "value": 38.85,
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Base rent: $38.85 per square foot per year, $77,700 a year.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "term_months",
+   "value": 60,
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "Term: 60 months from February 1, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "free_months",
+   "value": 2,
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "Free rent: 2 months.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "ti_psf",
+   "value": 6,
+   "status": "found",
+   "clause": "1.5",
+   "evidence": [
+    {
+     "quote": "Tenant improvement allowance: $6.00 per square foot.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "escalation_pct",
+   "value": 3,
+   "status": "found",
+   "clause": "1.6",
+   "evidence": [
+    {
+     "quote": "Annual increase: 3%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "net_effective_psf",
+   "value": 38.76,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Net effective rent is $38.76 per square foot per year after free rent and the allowance.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "vs_asking",
+   "value": "-2.0%",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "The base rent is -2.0% against the asking rent of $39.64.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "requested_by",
+   "value": "Casey Morgan",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "Requested by Casey Morgan, leasing manager.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-lease-approval-memo.pdf"
+  ]
+ }
+}

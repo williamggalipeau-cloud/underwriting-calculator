@@ -1,0 +1,40 @@
+{
+ "doc_type": "acquisition_current_leases",
+ "title": "Airport Flex Park schedule of leases",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Delivered by the seller in due diligence",
+ "fields": [
+  {
+   "key": "seller",
+   "value": "Sample Seller Holdings LLC",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "This schedule lists every lease at Airport Flex Park, delivered by Sample Seller Holdings LLC in due diligence.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "leases",
+   "value": 11,
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "There are 11 leases in effect, covering 22,000 of the 24,000 rentable square feet.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-current-leases.pdf"
+  ]
+ }
+}

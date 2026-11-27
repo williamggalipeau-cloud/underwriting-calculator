@@ -1,0 +1,52 @@
+{
+ "doc_type": "leasing_broker_report",
+ "title": "Example Bike Works LLC broker report",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park Unit 012 · Sample Commercial Brokers",
+ "fields": [
+  {
+   "key": "tenant",
+   "value": "Example Bike Works LLC",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Sample Commercial Brokers reports on Example Bike Works LLC, a prospect for Unit 012 at Airport Flex Park.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "stage",
+   "value": "Lease out",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The lease draft is out for signature.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "next_step",
+   "value": "Lease out for signature",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "Next step: Lease out for signature, by December 15, 2026.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-leasing-broker-report.pdf"
+  ]
+ }
+}

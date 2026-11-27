@@ -1,0 +1,76 @@
+{
+ "doc_type": "disposition_marketing",
+ "title": "Harbor Light Industrial offering memorandum",
+ "asset": "Harbor Light Industrial",
+ "summary": "Harbor Light Industrial · Offered for sale",
+ "fields": [
+  {
+   "key": "list_price",
+   "value": 10500000,
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Harbor Light Industrial is offered at $10,500,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "broker",
+   "value": "Sample Coastal Brokerage",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Offers are to be sent to Sample Coastal Brokerage.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "square_feet",
+   "value": 36000,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The property is 36,000 rentable square feet in 16 units at 2715 Pier Junction Avenue, Long Beach, CA 90810.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "occupancy",
+   "value": "14 of 16 units",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "14 of the 16 units are leased.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "noi",
+   "value": 652674,
+   "status": "found",
+   "clause": "2.3",
+   "evidence": [
+    {
+     "quote": "Year-one net operating income is $652,674.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "harbor-light-offering-memo.pdf"
+  ]
+ }
+}
