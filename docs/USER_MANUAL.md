@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.20** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.21** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -538,8 +538,11 @@ session record on 11/27.
   review behind 1.1.12 and parts of the sample-document rewrite in 1.1.13.
 - **fork** — copies of the main session that built parts of 1.1.13 in
   parallel (the sample fund pipeline, the property manager fields).
+- **Explore** — a read-only search agent, used once for 1.1.21 to list every
+  tab, the data each one shows and every document type, and which of them
+  Model Fund I has sample material for. It changed nothing.
 
-**Custom agents.** There are none. The three above are standard Claude Code
+**Custom agents.** There are none. The four above are standard Claude Code
 agent types. The repository defines no agents, skills or commands of its own
 (`.claude/` holds only `settings.json`, the list of pre-approved Supabase
 read tools). If one is ever added, for example an agent that runs the
@@ -1227,6 +1230,18 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 - **Legal entities:** the fund, the GP and nine property companies, with an
   ownership chart on Portfolio Summary; the documents use the same names.
 - **Property managers:** every sample asset has one, at the sponsor.
+- **Version 8 (1.1.21):** Property Management rows on all nine sample assets
+  (a parcel, tax bills, the owner's three policies, four condition findings,
+  four service contracts; one tax appeal and one insurance claim in the fund)
+  and nine documents on three assets (a tax statement, insurance
+  declarations and an HVAC service agreement each); third-party research on
+  every asset (a market report and a rent survey) with three market report
+  PDFs; and each sample lease's rent steps on its unit. A section or list you
+  have started is left alone. Five sample documents whose figures moved with
+  the rent steps are replaced, and the saved sample figures they state are
+  updated only where the asset still holds the earlier sample value
+  (`lib/sampleTermChanges.json`), so anything you changed is kept. A market
+  report is filed only on an asset that has its research item.
 - **Version 7 (1.1.18), a fix:** version 6 saved the two loans' SNDA rule
   but lost the status of each lease. The step that adds sample tenant credit
   put the unit list back as it was at the start of the load, which wiped
@@ -1257,7 +1272,7 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 
 **Sample material loads by itself (1.1.12).** When an owner opens a firm
 that has Model Fund I and its sample material is older than the app's
-(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13, 4 in 1.1.14, 5 in 1.1.16, 6 in 1.1.17 and 7 in 1.1.18), Baywise adds what is missing with no clicks:
+(`SAMPLE_DATA_VERSION`, 2 in 1.1.12, 3 in 1.1.13, 4 in 1.1.14, 5 in 1.1.16, 8 in 1.1.21, 6 in 1.1.17 and 7 in 1.1.18), Baywise adds what is missing with no clicks:
 sample tenant credit and aged rent, the sample documents (credit report
 PDFs included) and the two sample GP partners with their agreements. It adds
 only what isn't there, keeps your own records, logs the update in the Change
@@ -5167,8 +5182,8 @@ Every future release is checked against these:
 | Version | What it covers | Status |
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
-| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; planned patches **1.1.21** and **1.1.22** (row below) |
-| **1.1.x** | Remaining version 1.1 patches, in order (renumbered 11/27 when the lease rent steps were folded into the test-data patch at the user's choice): **1.1.21** complete test data and documents for every tab (Property Management, third-party research, fuller acquisition, valuation, debt and leasing documents) with a test that fails when a tab has none, **plus the sample leases' rent steps on their units** (year-one NOI moves by −$432 to +$505 per sample asset; IRR and multiples unchanged at the precision shown; two sample sale values move $50,000 through rounding; the figures are shown to the user again before it merges); **1.1.22** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
+| **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; patch **1.1.21**: sample Property Management data and documents, third-party research, the sample leases' rent steps; planned patches **1.1.22** and **1.1.23** (row below) |
+| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.22** sample data for the tabs and document types that still have none, found by a survey on 11/27 (capital calls and distributions, distribution proposals, saved Portfolio Impact scenarios, Sell/Hold decisions, issued reports, portfolio plan versions, benchmarks, valuation marks on seven more assets; a tenant billing document, leasing documents such as a proposal, letter of intent, lease draft and approval memo, further acquisition and sale document types), with a test that fails when a tab or a document type has none; **1.1.23** a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
 | **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5187,6 +5202,26 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.21
+
+Sample data for Property Management and third-party research, and the sample leases' rent steps (§7.13). It loads by itself the next time an owner opens Baywise.
+
+- **Property Management (all nine sample assets).** Property Taxes, Insurance, Property Condition and Service Contracts now have rows, each tied to the asset:
+  - tax bills add up to the tax line of the asset's budget, for the months it is owned;
+  - the three policies' premiums add up to a year of the budget's insurance line;
+  - the four service contracts cost three quarters of the budget's repairs line;
+  - the condition findings come from the asset's roof, paving and Phase I facts, and their open cost is inside the capital plan.
+  - Airport Flex Park's policies are the ones its sample insurance certificate states.
+- **Nine Property Management documents** on three assets: a property tax statement, the owner's insurance declarations and an HVAC service agreement each.
+- **Third-party research (Comps → Third-Party), all nine assets:** a market report written from the asset's submarket figures in Market Data, and a rent survey written from its rent comps in Active Leasing. Three assets also have the market report as a PDF. An item now shows its file whenever one is filed under it.
+- **Lease rent steps.** Each sample lease's rent steps are now on its tenant's unit, so the model pays the lease's rent on the lease's dates. Where a lease and the unit's escalation disagree, the lease wins.
+  - Year-one NOI moves between −$432 and +$505 per sample asset (+$1,958 on $5,440,891 for the fund). IRR, multiples and cash-on-cash are unchanged at the precision shown; loans, equity, exit values and marks do not move.
+  - Two sample sale values move $50,000, because a broker opinion rounds to the nearest $50,000: Harbor Light most likely value $10,150,000 → $10,200,000 and offer $10,050,000 → $10,100,000; Mill Creek $15,400,000 → $15,450,000 and offer $15,250,000 → $15,300,000. Airport Flex Park's IC memo states year-one NOI $462,412 (was $462,176).
+  - The load replaces those five documents and updates the saved figures only where they still hold the earlier sample value. A figure you changed, or a sale you started yourself, is kept.
+- **Not in this patch (now 1.1.22):** a survey of every tab and document type found more gaps than expected, listed in the roadmap row above. They and the coverage test follow in 1.1.22; the sample joint venture and separate account become 1.1.23.
+- **Tests:** three new suites (168 checks) and new checks in both browser tests of the load on what is actually saved. One of those caught a case before release: a firm with no market data got market report PDFs with no research item to file them under; the load now skips them.
+- **No database change.**
 
 ### What's in 1.1.20
 

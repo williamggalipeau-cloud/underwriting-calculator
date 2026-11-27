@@ -122,13 +122,19 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   const fund = findRow("fund", "Model Fund I");
   const assets = rows.filter((r) => r.kind === "deal" && r.key.startsWith("sample-deal-"));
   check(discarded, `the person moved to another tab during the load (${sawDialog ? "the unsaved-changes box appeared and they chose Discard" : "no unsaved-changes box: the asset changes were already saved"})`);
-  check(fund?.data?.sampleDataVersion === 7 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
+  check(fund?.data?.sampleDataVersion === 8 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
   const noPm = assets.filter((r) => !r.data.inputs.propertyManager).map((r) => r.key);
   check(assets.length === 9 && noPm.length === 0, `all nine assets are saved with their property manager${noPm.length ? " — missing on: " + noPm.join(", ") : ""}`);
   check(assets.every((r) => r.data.inputs.icApproved || r.data.inputs.lenderName) && ["sample-deal-2", "sample-deal-3", "sample-deal-6"].every((k) => (findRow("deal", k).data.inputs.dispositions ?? []).length === 1), "the document terms and the three sales in progress are saved on the assets");
   check(["sample-deal-2", "sample-deal-3", "sample-deal-6"].every((k) => { const i = findRow("deal", k).data.inputs; return (i.dispositions[0].comps?.comps ?? []).length > 0 && i.dispositions[0].comps.comps.length === (i.salesComps?.comps ?? []).length; }), "1.1.16: each sample sale is saved with its own comps, copied from the asset's acquisition comps");
   const snda = ["sample-deal-1", "sample-deal-2"].map((k) => { const i = findRow("deal", k).data.inputs; const st = (i.units ?? []).map((u) => u.snda?.status).filter(Boolean); return `${i.loanTerms?.sndaRule}:${st.filter((x) => x === "signed").length}/${st.filter((x) => x === "requested").length}`; }).join();
   check(snda === "all:2/2,all:2/2", `1.1.18: the two assets with a sample loan agreement are saved with the SNDA rule and each lease's status, two signed and two requested (${snda})`);
+  {
+    const pmOk = assets.filter((r) => ["parcels", "bills", "policies", "items", "contracts"].every((k) => (r.data.inputs.propertyMgmt?.[k] ?? []).length > 0)).length;
+    const rsOk = assets.filter((r) => (r.data.inputs.research ?? []).length > 0).length;
+    const steps = assets.filter((r) => (r.data.inputs.units ?? []).filter((u) => (u.rentSteps ?? []).length > 0).length === 1).length;
+    check(pmOk === 9 && rsOk === 9 && steps === 9, `1.1.21: all nine assets are saved with Property Management rows, third-party research and their lease's rent steps (${pmOk}, ${rsOk}, ${steps})`);
+  }
   check(assets.every((r) => Object.keys(r.data.inputs.building ?? {}).length >= 20 && Object.keys(r.data.inputs.site ?? {}).length >= 15), "1.1.17: all nine assets are saved with their building and site facts");
   check(blindSaves.length === 0, `no save tried to replace a live record without its version${blindSaves.length ? ` (${blindSaves.join(", ")})` : ""}`);
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);

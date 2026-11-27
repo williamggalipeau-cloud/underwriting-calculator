@@ -76,13 +76,15 @@ const removed = [], removedLeases = [];
   const credit = docs.filter((d) => /^\[leasing:tenant:/.test(d.title ?? ""));
   const saleDocs = docs.filter((d) => /^\[sale:/.test(d.title ?? ""));
   const facts = docs.filter((d) => /^\[(fact:[a-z0-9_]+|snda:[^\]]*)\] /.test(d.title ?? ""));
-  check(credit.length === 8 && gpa.length >= 1 && facts.length === 16 && facts.every((d) => d.abstract) && docs.length === 18 + 7 + credit.length + gpa.length + facts.length + 2, `18 fund and asset documents, 7 sale documents, 8 credit reports, ${gpa.length} GP agreement(s) and 16 asset documents and SNDAs (1.1.17, each with its abstract), with the user's 2, among ${docs.length} documents (the sample LOI is skipped: the user already has a document of that name)`);
+  const pmDocs = docs.filter((d) => /^\[pm:[a-z]+\] /.test(d.title ?? "")), rsDocs = docs.filter((d) => /^\[research:[^\]]+\] /.test(d.title ?? ""));
+  check(pmDocs.length === 9 && rsDocs.length === 0 && pmDocs.every((d) => d.abstract), `1.1.21: 9 Property Management documents, each with its abstract; no market report, because this firm holds no market data to write a research item from (${pmDocs.length}, ${rsDocs.length})`);
+  check(credit.length === 8 && gpa.length >= 1 && facts.length === 16 && facts.every((d) => d.abstract) && docs.length === 18 + 7 + credit.length + gpa.length + facts.length + pmDocs.length + rsDocs.length + 2, `18 fund and asset documents, 7 sale documents, 8 credit reports, ${gpa.length} GP agreement(s) and 16 asset documents and SNDAs (1.1.17, each with its abstract), with the user's 2, among ${docs.length} documents (the sample LOI is skipped: the user already has a document of that name)`);
   const names = (d) => (d.files ?? []).map((f) => f.name);
   check(removed.map((d) => d.id).sort().join() === "old-om,old-r9sale,old-sale-doc" && docs.some((d) => d.id === "mine-1") && docs.some((d) => d.id === "mine-2"), `the earlier sample copies were removed; the user's own documents were kept (removed: ${removed.map((d) => d.id).join(", ")})`);
   check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 7, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 8, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
   const withCredit = (sd?.deals ?? []).filter((d) => (d.inputs?.units ?? []).some((u) => u.credit)).length;
   check(withCredit >= 5 && sd?.gpPartners?.partners?.length === 2 && gpa.length === 2 && (sd?.gpPartners?.agreements ?? []).filter((a) => a.status === "checked").length === 2, `tenant credit on ${withCredit} assets; 2 GP partners, their 2 agreements switched on`);
   const parties = (sd?.funds?.["Model Fund I"]?.gpParties ?? []).filter((x) => x.partnerId);
@@ -90,6 +92,19 @@ const removed = [], removedLeases = [];
   check(fcp?.capitalPct === 40 && sfo?.terms?.[0]?.dealId && sfo.terms[0].capitalPct === 50, `the fund's GP parties match the agreements: Fictional Capital Partners 40% of GP capital fund-wide; Sample Family Office 50% on Granite Ave only (${JSON.stringify(parties.map((x) => [x.name, x.capitalPct]))})`);
   const snda = ["sample-deal-1", "sample-deal-2"].map((k) => { const i = sd?.deals?.find((d) => d.id === k)?.inputs ?? {}; const st = (i.units ?? []).map((u) => u.snda?.status).filter(Boolean); return `${i.loanTerms?.sndaRule}:${st.filter((x) => x === "signed").length}/${st.filter((x) => x === "requested").length}`; }).join();
   check(snda === "all:2/2,all:2/2", `1.1.18: the SNDA rule and each lease's status are saved on the two assets with a sample loan agreement (${snda})`);
+  {
+    // 1.1.21: what the load saved, not what the builder makes (AGENTS.md: no manual loading).
+    const sa = (sd?.deals ?? []).filter((d) => d.id.startsWith("sample-deal-"));
+    const pmOk = sa.filter((d) => ["parcels", "bills", "policies", "items", "contracts"].every((k) => (d.inputs.propertyMgmt?.[k] ?? []).length > 0)).length;
+    const rsOk = sa.filter((d) => (d.inputs.research ?? []).some((r) => r.type === "rent_survey" || r.type === "market")).length;
+    const steps = sa.filter((d) => (d.inputs.units ?? []).filter((u) => (u.rentSteps ?? []).length > 0).length === 1).length;
+    check(sa.length === 9 && pmOk === 9, `1.1.21: every sample asset is saved with its Property Management rows (${pmOk} of ${sa.length})`);
+    const canHave = sa.filter((d) => (d.inputs.leasing?.comps ?? []).length > 0 || (sd?.comps?.market?.stats ?? []).some((x) => x.submarketId === d.inputs.submarketId)).length;
+    check(rsOk === canHave, `1.1.21: third-party research is saved on every asset the firm holds rent comps or market data for (${rsOk} of ${canHave}; this firm has neither)`);
+    check(steps === 9, `1.1.21: every sample asset is saved with its sample lease's rent steps on one unit (${steps} of ${sa.length})`);
+    const rsFiles = sa.flatMap((d) => (d.inputs.research ?? []).filter((r) => r.fileName).map((r) => `[research:${r.id}] ${r.fileName}`));
+    check(rsFiles.length === rsDocs.length && rsFiles.every((t) => rsDocs.some((d) => d.title === t)), "1.1.21: a market report is filed only under a research item that names it");
+  }
   check((sd?.deals ?? []).filter((d) => d.id.startsWith("sample-deal-")).every((d) => Object.keys(d.inputs.building ?? {}).length >= 20 && Object.keys(d.inputs.site ?? {}).length >= 15), "1.1.17: every sample asset is saved with its building and site facts");
   const d1 = sd?.deals?.find((d) => d.id === "sample-deal-1")?.inputs, mf = sd?.funds?.["Model Fund I"];
   check(d1?.loanTerms?.lender === "Desert Mountain Bank" && d1?.dealTerms?.psaDate === "2025-11-14" && d1?.executedCaps?.[0]?.provider === "Atlas Derivatives Bank" && d1?.icApproved?.approval_date === "2025-12-18", "the terms the documents state are on the asset (lender, contract dates, executed cap, IC approval)");

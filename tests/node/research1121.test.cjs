@@ -44,6 +44,9 @@ for (const d of f.deals) {
   const manifest = require(R + "/public/sample-docs/manifest.json");
   const add = SD.sampleDocPlan(manifest, { deals: f.deals, docs: [], leases: [] }).add.filter((x) => x.kind === "research");
   check(add.length === 3 && add.every((x) => { const t = RS.parseResearchTitle(x.docTitle); return t && RS.researchOf(f.deals.find((d) => d.id === x.dealId).inputs).some((r) => r.id === t.researchId && r.fileName === t.name) && fs.existsSync(`${R}/public/sample-docs/${x.file}`); }), "the load files each PDF under its research item's id, so the item finds its file");
+  const noItems = f.deals.map((d) => ({ ...d, inputs: { ...d.inputs, research: [] } }));
+  const pl = SD.sampleDocPlan(manifest, { deals: noItems, docs: [], leases: [] });
+  check(pl.add.filter((x) => x.kind === "research").length === 0 && pl.skip.filter((x) => x.kind === "research" && /no research item/.test(x.reason)).length === 3, "an asset with no research item gets no market report");
   const stored = add.map((x, i) => ({ id: `d${i}`, deal_id: x.dealId, title: x.docTitle, files: [{ name: x.file.split("/").pop() }] }));
   check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "research").length === 0, "run again, nothing is uploaded twice");
 }
