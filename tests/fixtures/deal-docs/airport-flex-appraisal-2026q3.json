@@ -1,0 +1,136 @@
+{
+ "doc_type": "appraisal",
+ "title": "Airport Flex Park appraisal September 30, 2026",
+ "summary": "Fictional Valuation Advisors, MAI: as-is market value $7,650,000 as of September 30, 2026 at a 6.25% cap on $478,000 NOI.",
+ "fields": [
+  {
+   "key": "appraiser",
+   "value": "Fictional Valuation Advisors, MAI",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "This appraisal of Airport Flex Park was prepared by Fictional Valuation Advisors, MAI.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "effective_date",
+   "value": "September 30, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The effective date of value is September 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "report_date",
+   "value": "October 20, 2026",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The date of the report is October 20, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "interest",
+   "value": "Leased fee",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The interest appraised is the leased fee interest.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value",
+   "value": "$7,650,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The market value of the leased fee interest, as is, is $7,650,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cap_rate",
+   "value": "6.25%",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "A direct capitalization rate of 6.25% was applied to stabilized net operating income of $478,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "noi",
+   "value": "$478,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "A direct capitalization rate of 6.25% was applied to stabilized net operating income of $478,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_income",
+   "value": "$7,650,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Income capitalization approach: $7,650,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_sales",
+   "value": "$7,700,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Sales comparison approach: $7,700,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value_cost",
+   "value": "$6,900,000",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "Cost approach: $6,900,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "approaches",
+   "value": "Income capitalization and sales comparison; cost approach given little weight",
+   "status": "found",
+   "evidence": [
+    {
+     "quote": "The income capitalization and sales comparison approaches were developed; the cost approach was given little weight.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "validated": false,
+  "made_with": "Sample (fictional)",
+  "files": [
+   "airport-flex-appraisal-2026q3.pdf"
+  ]
+ }
+}

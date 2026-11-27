@@ -5,12 +5,12 @@ const c = j(R + "/lib/calculations.js"); const sp = j(R + "/lib/samplePortfolio.
 let fail = 0; const ok = (cnd, m) => { console.log((cnd ? "PASS " : "FAIL ") + m); if (!cnd) fail++; };
 const D = R + "/docs/sample-deal-docs/deals";
 const abs = (n) => JSON.parse(fs.readFileSync(`${D}/abstracts/${n}.json`));
-const doc = (n, extra = {}) => { const a = abs(n); return { id: "doc-" + n, doc_type: a.doc_type, deal_id: "D", fund_name: "Model Fund I", title: a.title, abstract: a, applied_fields: {}, ...extra }; };
+// 1.1.13: `abs` is the sample document as generated (it ties to Model Fund I: sampleTieOut.test.cjs)
+// and is used for the check against the PDF. The compare / apply tests below need documents that
+// differ from the model, so `doc` reads the test-only copies in tests/fixtures/deal-docs.
+const fx = (n) => JSON.parse(fs.readFileSync(`${R}/tests/fixtures/deal-docs/${n}.json`));
+const doc = (n, extra = {}) => { const a = fx(n); return { id: "doc-" + n, doc_type: a.doc_type, deal_id: "D", fund_name: "Model Fund I", title: a.title, abstract: a, applied_fields: {}, ...extra }; };
 const asOf = "2026-11-22";
-// 1.1.13: the sample documents tie to Model Fund I (tests/node/sampleTieOut.test.cjs),
-// so a difference a test needs is made here, in the test's own copy.
-const fixture = (n) => { const a = JSON.parse(fs.readFileSync(`${R}/tests/fixtures/${n}.json`)); return { id: "doc-" + n, doc_type: a.doc_type, deal_id: "D", fund_name: "Model Fund I", title: a.title, abstract: a, applied_fields: {} }; };
-const withFields = (d, set) => ({ ...d, abstract: { ...d.abstract, fields: [...d.abstract.fields.filter((f) => !(f.key in set)), ...Object.entries(set).map(([key, value]) => ({ key, value, status: "found", evidence: [] }))] } });
 
 // Local check against the PDF text, for every sample
 for (const f of fs.readdirSync(D + "/abstracts").sort()) {
@@ -29,12 +29,10 @@ const af = deals.find((d) => d.inputs.propertyName === "Airport Flex Park").inpu
 const r9 = deals.find((d) => d.inputs.propertyName === "Route 9 Small Bay").inputs;
 
 // OM
-ok(A.compareDoc(doc("airport-flex-om"), { inputs: af }).find((r) => r.target === "purchasePrice").differs === false, "the sample OM's price is the asset's price");
-const omDoc = withFields(doc("airport-flex-om"), { asking_price: "$7,500,000", occupancy: "91.7%" });
-const om = A.compareDoc(omDoc, { inputs: af });
+const om = A.compareDoc(doc("airport-flex-om"), { inputs: af });
 ok(om.find((r) => r.target === "purchasePrice").docValue === 7500000 && /\+\$300,000/.test(om.find((r) => r.target === "purchasePrice").note), "OM asking $7.5M vs underwritten $7.2M (+$300,000)");
 ok(!om.find((r) => r.target === "squareFootage").differs && om.find((r) => r.target === "vacancyPct").docValue === 8.3, "OM SF matches; vacancy from 91.7% occupancy = 8.3%");
-const omNew = A.applyDoc(omDoc, om.map((r) => r.key), { inputs: {} });
+const omNew = A.applyDoc(doc("airport-flex-om"), om.map((r) => r.key), { inputs: {} });
 ok(omNew.inputs.propertyName === "Airport Flex Park" && omNew.inputs.city === "Las Vegas" && omNew.inputs.purchasePrice === 7500000 && omNew.inputs.yearBuilt === 1998, "New deal from OM: name, city, price, year built");
 
 // T-12
@@ -66,8 +64,8 @@ ok(icB.inputs.icConditions.find((x) => x.text.startsWith("Lender")).done === tru
 // Closing statements
 const ca = A.applyDoc(doc("airport-flex-closing-acq"), A.compareDoc(doc("airport-flex-closing-acq"), { inputs: af }).map((r) => r.key), { inputs: af });
 ok(ca.inputs.actualBasis.equityFunded === 2424250 && ca.inputs.acquisitionDate === "2026-01-30" && Object.values(ca.inputs.closingCosts).reduce((a, b) => a + b, 0) === 288000, "acquisition closing: actual basis, date, closing costs total $288,000");
-const dRows = A.compareDoc(fixture("route9-closing-disp"), { inputs: r9 });
-const dA = A.applyDoc(fixture("route9-closing-disp"), dRows.map((r) => r.key), { inputs: r9 });
+const dRows = A.compareDoc(doc("route9-closing-disp"), { inputs: r9 });
+const dA = A.applyDoc(doc("route9-closing-disp"), dRows.map((r) => r.key), { inputs: r9 });
 ok(dA.inputs.realizedSalePrice === 14850000 && dA.inputs.realizedSellingCosts === 386100 && dA.inputs.realizedSaleDate === "2026-10-30" && dA.inputs.holdPeriodYears === 1, `disposition: realized sale, costs, date, hold ${dA.inputs.holdPeriodYears}`);
 const rSold = c.underwrite(dA.inputs);
 ok(rSold.returns.exitValue === 14850000 && Math.abs(rSold.returns.equityReversion - (14850000 - 386100 - rSold.annualCashFlows[0].loanBalance)) < 1, "engine uses the realized price and costs");
@@ -75,11 +73,11 @@ ok(c.underwrite(r9).returns.exitValue !== 14850000, "without a realized sale the
 
 // Rent roll
 const mk = (name, sf) => ({ id: "new-" + name, name, squareFeet: sf, leaseStatus: "occupied", currentRentPSF: 0, monthsRemaining: 12, newLeaseTerm: 24, renewalProbabilityPct: 60, leaseType: "NNN" });
-const rd = A.rentRollDiff(abs("airport-flex-rent-roll"), af.units, af, mk);
+const rd = A.rentRollDiff(fx("airport-flex-rent-roll"), af.units, af, mk);
 ok(rd.added.length === 1 && rd.added[0].tenantName === "Desert Aero Parts LLC" && rd.added[0].sicCode, `rent roll: Desert Aero is new (SIC ${rd.added[0].sicCode})`);
 ok(rd.changed.length >= 1 && rd.removed.length === af.units.length - 3, `changed ${rd.changed.length}, not in document ${rd.removed.length}`);
-const merge = A.applyRentRoll(abs("airport-flex-rent-roll"), af.units, af, mk, "merge");
-const repl = A.applyRentRoll(abs("airport-flex-rent-roll"), af.units, af, mk, "replace");
+const merge = A.applyRentRoll(fx("airport-flex-rent-roll"), af.units, af, mk, "merge");
+const repl = A.applyRentRoll(fx("airport-flex-rent-roll"), af.units, af, mk, "replace");
 ok(merge.units.length === af.units.length + 1 && repl.units.length === 4, `merge keeps the rest (${merge.units.length}); replace leaves the document's 4`);
 ok(repl.entries.some((e) => e.field === "Unit removed") && merge.entries.every((e) => e.field !== "Unit removed"), "change-log entries per unit");
 
