@@ -81,6 +81,12 @@ begin
       values (ws, it ->> 'kind', it ->> 'key', coalesce((it ->> 'sort')::integer, 0), coalesce(it -> 'data', '{}'::jsonb), coalesce((it ->> 'deleted')::boolean, false));
       newv := 1;
     else
+      -- 1.1.15: a save that believes the record is new (no expected_version)
+      -- while a live record exists is a conflict too; it used to replace it.
+      -- A deleted record may still be saved back without a version.
+      if ((it -> 'expected_version') is null or it -> 'expected_version' = 'null'::jsonb) and not cur.deleted then
+        raise exception 'conflict: %/% is at version %', cur.kind, cur.key, cur.version using errcode = '40001';
+      end if;
       if (it -> 'expected_version') is not null and it -> 'expected_version' <> 'null'::jsonb
          and (it ->> 'expected_version')::integer <> cur.version then
         raise exception 'conflict: %/% is at version %', cur.kind, cur.key, cur.version using errcode = '40001';

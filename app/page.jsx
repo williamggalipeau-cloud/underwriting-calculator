@@ -939,7 +939,7 @@ export default function Home() {
     if (row && !row.deleted) {
       const base = recBase.current.get(id);
       const mine = savableRecords(latestData.current ?? workspaceData()).find((r) => r.kind === c.kind && r.key === c.key);
-      const m = mine && base ? mergeData(base.data, mine.data, row.data) : { data: row.data, conflicts: [] };
+      const m = mine ? mergeData(base?.data ?? {}, mine.data, row.data) : { data: row.data, conflicts: [] }; // 1.1.15: with no earlier copy here (a record both people created), still merged
       recBase.current.set(id, row); // the retry saves the merged record on top of their version
       putRecord({ ...row, data: m.data });
       const both = [...new Set(m.conflicts.map((p) => p.split(".").slice(-1)[0].replace(/\[.*$/, "")))].slice(0, 4);
