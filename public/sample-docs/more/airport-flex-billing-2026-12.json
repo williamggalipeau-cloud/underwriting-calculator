@@ -1,0 +1,57 @@
+{
+ "doc_type": "billing",
+ "title": "Airport Flex Park billing Nov–Dec 2026",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · November and December 2026",
+ "fields": [
+  {
+   "key": "period",
+   "value": "November and December 2026",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Tenant invoices for November and December 2026 at Airport Flex Park.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-billing-2026-12.pdf"
+  ],
+  "lease_tenant": "Blue Mesa Fulfillment"
+ },
+ "charges": [
+  {
+   "tenant": "Blue Mesa Fulfillment",
+   "month": "2026-11",
+   "base_rent": 3365,
+   "cam_estimate": 442,
+   "total": 3807,
+   "evidence": [
+    {
+     "quote": "Blue Mesa Fulfillment, November 2026: base rent $3,365.00, CAM estimate $442.00, total $3,807.00.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "tenant": "Blue Mesa Fulfillment",
+   "month": "2026-12",
+   "base_rent": 3365,
+   "cam_estimate": 442,
+   "total": 3807,
+   "evidence": [
+    {
+     "quote": "Blue Mesa Fulfillment, December 2026: base rent $3,365.00, CAM estimate $442.00, total $3,807.00.",
+     "page": 1
+    }
+   ]
+  }
+ ]
+}

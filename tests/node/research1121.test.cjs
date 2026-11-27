@@ -42,13 +42,13 @@ for (const d of f.deals) {
     check(item && item.fileName === x.file && abs.title === item.title && abs.quarter === stat.quarter && abs.vacancy_pct === stat.vacancyPct && abs.small_bay_rent_psf === stat.askingRentSmallBayPSF && abs.cap_rate_pct === stat.capRatePct && abs.small_bay_rent_growth_pct === growthPct && abs.inventory_sf === stat.inventorySF, `${x.name}: its figures are the submarket's, and its research item names the file`);
   }
   const manifest = require(R + "/public/sample-docs/manifest.json");
-  const add = SD.sampleDocPlan(manifest, { deals: f.deals, docs: [], leases: [] }).add.filter((x) => x.kind === "research");
+  const add = SD.sampleDocPlan(manifest, { deals: f.deals, docs: [], leases: [] }).add.filter((x) => x.kind === "research" && x.file.startsWith("research/")); // the three market reports (1.1.23 added more, tested in docs1123)
   check(add.length === 3 && add.every((x) => { const t = RS.parseResearchTitle(x.docTitle); return t && RS.researchOf(f.deals.find((d) => d.id === x.dealId).inputs).some((r) => r.id === t.researchId && r.fileName === t.name) && fs.existsSync(`${R}/public/sample-docs/${x.file}`); }), "the load files each PDF under its research item's id, so the item finds its file");
   const noItems = f.deals.map((d) => ({ ...d, inputs: { ...d.inputs, research: [] } }));
   const pl = SD.sampleDocPlan(manifest, { deals: noItems, docs: [], leases: [] });
-  check(pl.add.filter((x) => x.kind === "research").length === 0 && pl.skip.filter((x) => x.kind === "research" && /no research item/.test(x.reason)).length === 3, "an asset with no research item gets no market report");
+  check(pl.add.filter((x) => x.kind === "research").length === 0 && pl.skip.filter((x) => x.kind === "research" && x.file.startsWith("research/") && /no research item/.test(x.reason)).length === 3, "an asset with no research item gets no market report");
   const stored = add.map((x, i) => ({ id: `d${i}`, deal_id: x.dealId, title: x.docTitle, files: [{ name: x.file.split("/").pop() }] }));
-  check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "research").length === 0, "run again, nothing is uploaded twice");
+  check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "research" && x.file.startsWith("research/")).length === 0, "run again, nothing is uploaded twice");
 }
 console.log(`${pass} passed${fail ? `, ${fail} failed` : ""}`);
 process.exit(fail ? 1 : 0);

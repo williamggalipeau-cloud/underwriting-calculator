@@ -22,13 +22,13 @@ import PropertyMgmt from "@/components/PropertyMgmt";
 import MarketData from "@/components/MarketData";
 import { importConstruction, parseInvoices, parseJobs } from "@/lib/construction";
 import { addSamplePlans } from "@/lib/samplePlans";
-import { addSampleLeasing } from "@/lib/sampleLeasing";
+import { addSampleLeasing, withSampleDocProspect } from "@/lib/sampleLeasing";
 import { addSampleMarketAndMarks } from "@/lib/sampleMarket";
 import { addSampleCredit, mergeCreditUpdate } from "@/lib/sampleCredit";
 import { DEFAULT_INPUTS } from "@/lib/defaultInputs";
 import { buildSampleFund, sampleEntities, samplePropertyManager } from "@/lib/sampleFund";
 import { withSampleLeaseSteps } from "@/lib/sampleLeaseSteps";
-import { withSampleResearch } from "@/lib/sampleResearch";
+import { withSampleResearch, withSampleResearchExtra } from "@/lib/sampleResearch";
 import { withSamplePropertyMgmt } from "@/lib/samplePropertyMgmt";
 import { withSampleAssetFacts, withSampleSnda } from "@/lib/sampleAssetFacts";
 import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale, withSampleSaleComps, withSampleTermChanges } from "@/lib/sampleDocTerms";
@@ -1618,6 +1618,8 @@ export default function Home() {
         inp = withSampleSnda(withSampleAssetFacts(inp, d.id), d.id, { repair: fromVersion === 6 }); // 1.1.17: building and site facts, and SNDA statuses (only where none is set; 1.1.18 repairs a version-6 load that lost them)
         inp = withSampleResearch(inp, d.id, latestData.current?.comps?.market ?? cur.comps?.market); // 1.1.21: third-party research, only where the asset has none
         inp = withSamplePropertyMgmt(inp, d.id); // 1.1.21: Property Management rows, only in the sections the asset has none in
+        inp = withSampleDocProspect(inp, d.id); // 1.1.23: the prospect with fixed terms the sample leasing documents are written for (only where the asset does not have it)
+        inp = withSampleResearchExtra(inp, d.id, { valuations: applySampleDocMarks(latestData.current?.valuations ?? cur.valuations ?? {}) }); // 1.1.23: research items of the remaining types, each only where the asset does not have it
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         return inp === d.inputs ? d : { ...d, inputs: inp };
       };

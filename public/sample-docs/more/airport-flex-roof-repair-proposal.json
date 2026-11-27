@@ -1,0 +1,52 @@
+{
+ "doc_type": "pm_items",
+ "title": "Airport Flex Park roof repair proposal",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Example Roofing Contractors",
+ "fields": [
+  {
+   "key": "system",
+   "value": "Roof",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "The property condition report of December 26, 2025 found: TPO installed 2018; about 12 years of its 20-year life left; seam and flashing repairs now.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cost",
+   "value": 10800,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Example Roofing Contractors will carry out the repairs for $10,800.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "urgency",
+   "value": "Within 1 year",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Recommended timing: within 1 year.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-roof-repair-proposal.pdf"
+  ]
+ }
+}

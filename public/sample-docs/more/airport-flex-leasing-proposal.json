@@ -1,0 +1,100 @@
+{
+ "doc_type": "leasing_proposal",
+ "title": "Example Bike Works LLC lease proposal",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park Unit 012 · Example Bike Works LLC",
+ "fields": [
+  {
+   "key": "asking_rent_psf",
+   "value": 39.64,
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "The asking rent for the unit is $39.64 per square foot per year.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tenant",
+   "value": "Example Bike Works LLC",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Landlord proposes the following terms to Example Bike Works LLC for Unit 012 at Airport Flex Park, 2,000 rentable square feet.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_psf",
+   "value": 38.85,
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "Base rent: $38.85 per square foot per year, $77,700 a year.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "term_months",
+   "value": 60,
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "Term: 60 months from February 1, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "free_months",
+   "value": 2,
+   "status": "found",
+   "clause": "1.5",
+   "evidence": [
+    {
+     "quote": "Free rent: 2 months.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "ti_psf",
+   "value": 6,
+   "status": "found",
+   "clause": "1.6",
+   "evidence": [
+    {
+     "quote": "Tenant improvement allowance: $6.00 per square foot.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "escalation_pct",
+   "value": 3,
+   "status": "found",
+   "clause": "1.7",
+   "evidence": [
+    {
+     "quote": "Annual increase: 3%.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-leasing-proposal.pdf"
+  ]
+ }
+}

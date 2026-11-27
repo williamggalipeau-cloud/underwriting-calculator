@@ -1,0 +1,76 @@
+{
+ "doc_type": "disposition_listing_agreement",
+ "title": "Harbor Light Industrial listing agreement",
+ "asset": "Harbor Light Industrial",
+ "summary": "Harbor Light Industrial · Sample Coastal Brokerage",
+ "fields": [
+  {
+   "key": "broker",
+   "value": "Sample Coastal Brokerage",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Model Fund I — Pier Junction LLC (\"Owner\") engages Sample Coastal Brokerage (\"Broker\") as its exclusive broker for the sale of Harbor Light Industrial.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "list_price",
+   "value": 10500000,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The list price is $10,500,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "fee_pct",
+   "value": 1,
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Broker's fee is 1.00% of the sale price, earned at closing.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "term_months",
+   "value": 6,
+   "status": "found",
+   "clause": "2.3",
+   "evidence": [
+    {
+     "quote": "The term of this Agreement is 6 months.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "exclusions",
+   "value": "None",
+   "status": "found",
+   "clause": "2.4",
+   "evidence": [
+    {
+     "quote": "No buyer is excluded from this Agreement.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "harbor-light-listing-agreement.pdf"
+  ]
+ }
+}

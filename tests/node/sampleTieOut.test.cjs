@@ -99,7 +99,9 @@ for (const n of names) {
 ok((termsWithDocs.limits ?? []).length === docOf("model-fund-i-lpa").abstract.limits.length, `Model Fund I holds the LPA's ${termsWithDocs.limits?.length} investment limits`);
 
 // 4. The copies the app uploads are these documents.
-const man = JSON.parse(fs.readFileSync(R + "/public/sample-docs/manifest.json", "utf8"));
+const man0 = JSON.parse(fs.readFileSync(R + "/public/sample-docs/manifest.json", "utf8"));
+// The documents of the deals/ and dispositions/ sets (1.1.23 added documents from docs/sample-deal-docs/more to the same lists; they are checked in docs1123).
+const man = { ...man0, deals: man0.deals.filter((d) => d.file.startsWith("deals/")), dispositions: man0.dispositions.filter((d) => d.file.startsWith("dispositions/")) };
 ok(man.deals.length === names.length && man.deals.every((d) => fs.readFileSync(`${R}/public/sample-docs/${d.file}`).equals(fs.readFileSync(`${dir}/${d.name}.pdf`)) && fs.readFileSync(`${R}/public/sample-docs/${d.abstract}`).equals(fs.readFileSync(`${dir}/abstracts/${d.name}.json`))), `the ${man.deals.length} bundled PDFs and abstracts are the generated ones (copy_public.cjs)`);
 
 // 5. GP partner agreements: the fund's GP parties are the agreements' terms.

@@ -1,0 +1,64 @@
+{
+ "doc_type": "pm_parcels",
+ "title": "Airport Flex Park 2026 assessment notice",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · Tax year 2026",
+ "fields": [
+  {
+   "key": "parcel",
+   "value": "101-021-001",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Parcel number: 101-021-001.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "owner",
+   "value": "Model Fund I — Runway Vista LLC",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Assessed owner: Model Fund I — Runway Vista LLC.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "assessed_value",
+   "value": 7200000,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Assessed value for tax year 2026: $7,200,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tax_rate_pct",
+   "value": 0.4,
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Combined tax rate: 0.4%.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-assessment-notice.pdf"
+  ]
+ }
+}

@@ -90,10 +90,10 @@ for (const d of f.deals) {
   const SD = j(R + "/lib/sampleDocs.js"), PD = j(R + "/lib/pmDocs.js");
   const manifest = require(R + "/public/sample-docs/manifest.json");
   const plan = SD.sampleDocPlan(manifest, { deals: f.deals, docs: [], leases: [] });
-  const pm = plan.add.filter((x) => x.kind === "pm");
+  const pm = plan.add.filter((x) => x.kind === "pm" && x.file.startsWith("property-mgmt/")); // the nine of 1.1.21 (1.1.23 added four more, tested in docs1123)
   check(pm.length === 9 && pm.every((x) => PD.parsePmTitle(x.docTitle)?.section === x.section && fs.existsSync(`${R}/public/sample-docs/${x.file}`) && fs.existsSync(`${R}/public/sample-docs/${x.abstract}`)), "the load files the nine documents under their Property Management section, and the published copies exist");
   const stored = pm.map((x, i) => ({ id: `d${i}`, deal_id: x.dealId, title: x.docTitle, files: [{ name: x.file.split("/").pop() }] }));
-  check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "pm").length === 0 && PD.pmDocs(stored).length === 9, "run again, nothing is uploaded twice; the Property Management tabs list all nine");
+  check(SD.sampleDocPlan(manifest, { deals: f.deals, docs: stored, leases: [] }).add.filter((x) => x.kind === "pm" && x.file.startsWith("property-mgmt/")).length === 0 && PD.pmDocs(stored).length === 9, "run again, nothing is uploaded twice; the Property Management tabs list all nine");
 }
 console.log(`${pass} passed${fail ? `, ${fail} failed` : ""}`);
 process.exit(fail ? 1 : 0);

@@ -1,0 +1,100 @@
+{
+ "doc_type": "leasing_loi",
+ "title": "Example Bike Works LLC letter of intent",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park Unit 012 · Example Bike Works LLC",
+ "fields": [
+  {
+   "key": "tenant",
+   "value": "Example Bike Works LLC",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "This non-binding letter sets out the terms agreed with Example Bike Works LLC for Unit 012 at Airport Flex Park, 2,000 rentable square feet.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "rent_psf",
+   "value": 38.85,
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "Base rent: $38.85 per square foot per year, $77,700 a year.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "term_months",
+   "value": 60,
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "Term: 60 months from February 1, 2027.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "free_months",
+   "value": 2,
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "Free rent: 2 months.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "ti_psf",
+   "value": 6,
+   "status": "found",
+   "clause": "1.5",
+   "evidence": [
+    {
+     "quote": "Tenant improvement allowance: $6.00 per square foot.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "escalation_pct",
+   "value": 3,
+   "status": "found",
+   "clause": "1.6",
+   "evidence": [
+    {
+     "quote": "Annual increase: 3%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "broker",
+   "value": "Sample Commercial Brokers",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Example Bike Works LLC is represented by Sample Commercial Brokers.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-leasing-loi.pdf"
+  ]
+ }
+}

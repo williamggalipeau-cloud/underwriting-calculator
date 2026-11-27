@@ -1,0 +1,64 @@
+{
+ "doc_type": "acquisition_listing_agreement",
+ "title": "Airport Flex Park seller's listing summary",
+ "asset": "Airport Flex Park",
+ "summary": "Airport Flex Park · The seller's broker",
+ "fields": [
+  {
+   "key": "seller",
+   "value": "Sample Seller Holdings LLC",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Sample Seller Holdings LLC has engaged Fictional Industrial Partners as its exclusive broker for the sale of Airport Flex Park.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "broker",
+   "value": "Fictional Industrial Partners",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "All offers are to be sent to Fictional Industrial Partners.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "square_feet",
+   "value": 24000,
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The property is 24,000 rentable square feet in 12 units at 6230 Runway Vista Drive, Las Vegas, NV 89119.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "commission",
+   "value": "Paid by the seller",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "The broker's commission is paid by the seller; the buyer pays no commission.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "airport-flex-broker-listing.pdf"
+  ]
+ }
+}
