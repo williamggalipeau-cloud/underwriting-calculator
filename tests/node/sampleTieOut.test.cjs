@@ -447,5 +447,43 @@ for (const l of leaseIndex) {
   ok(off2.length === 0 && withLease === man.leases.length, `Model Fund I's tenant insurance records follow its ${withLease} sample leases and its sample tenant certificate (in place for that tenant, requested from the others), and move no figure${off2.length ? " — " + off2.join("; ") : ""}`);
 }
 
+// 1.1.30: capital projects and the unit mix. On every sample asset the
+// projects total the Capex Budget, the business plan's Capital plan totals
+// the same budget, Model Fund I's spent is the sample construction file's
+// invoices (docs/sample-yardi, read here from the CSV itself), and the units'
+// office SF adds up to the building's Office SF. The portfolio's mix is the
+// SF-weighted sum of its assets'.
+{
+  const CP = j(R + "/lib/capitalProjects.js"), UM = j(R + "/lib/unitMix.js"), VD = j(R + "/lib/sampleVentureData.js"), V = j(R + "/lib/sampleVentures.js"), C = j(R + "/lib/construction.js");
+  const { buildSampleFund } = j(R + "/lib/sampleFund.js");
+  const { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js"), SAMPLE_FUND_NAME = SP.SAMPLE_FUND_NAME;
+  const T = "2026-11-27", f = buildSampleFund({ todayISO: T });
+  const ven = VD.sampleVenturesFull({ deals: f.deals, funds: {}, valuations: {}, gp: {}, pipeline: [] }, { baseInputs: DEFAULT_INPUTS, todayISO: T }, V.sampleVenturesToAdd);
+  const all = [...f.deals, ...ven.deals], off = [];
+  const jobsCsv = C.parseJobs(parseCSV(fs.readFileSync(R + "/docs/sample-yardi/construction-jobs-2026-10.csv", "utf8"))), invCsv = C.parseInvoices(parseCSV(fs.readFileSync(R + "/docs/sample-yardi/construction-invoices-2026-10.csv", "utf8")));
+  for (const d of all) {
+    const i = d.inputs, n = i.propertyName, plan = i.businessPlan.revisions.at(-1).plan, t = CP.capitalTieOut(i, plan);
+    if (CP.projectsTotal(i.capitalProjects ?? []) !== i.capexBudget) off.push(`${n}: projects ≠ Capex Budget`);
+    if (t.budget !== i.capexBudget || !t.ties) off.push(`${n}: plan ${t.budget} ≠ budget ${i.capexBudget}`);
+    if (d.id.startsWith("sample-deal-")) {
+      const mine = jobsCsv.filter((x) => x.propertyName === n && !C.isTI(x));
+      const file = mine.reduce((s, x) => s + invCsv.filter((v) => v.code === x.code).reduce((a, v) => a + v.amount, 0), 0);
+      if (Math.abs(file - t.spent) > 0.005) off.push(`${n}: spent ${t.spent} ≠ the file's capital invoices ${file}`);
+      if (!mine.every((x) => plan.capital.some((c) => c.project === x.name))) off.push(`${n}: a capital job is not a project of the plan`);
+      if (!mine.every((x) => Math.abs(invCsv.filter((v) => v.code === x.code).reduce((a, v) => a + v.amount, 0) - x.invoiced) < 0.005)) off.push(`${n}: a job's invoiced total is not its invoices`);
+    }
+    const ot = UM.officeTie(i);
+    if (!ot.ties || ot.unitsOffice !== Number(i.building.officeSF)) off.push(`${n}: units' office SF ${ot.unitsOffice} ≠ building ${i.building.officeSF}`);
+    const m = UM.mixToday(i, T);
+    if (Math.abs(m.rows.reduce((s, r) => s + r.pctSF, 0) - 100) > 1e-9 || m.totalSF !== i.units.reduce((s, u) => s + u.squareFeet, 0)) off.push(`${n}: the mix does not cover the rent roll`);
+  }
+  for (const name of [SAMPLE_FUND_NAME, V.SAMPLE_JV_NAME, V.SAMPLE_SMA_NAME]) {
+    const ds = all.filter((d) => d.inputs.fundName === name), pm = UM.portfolioMix(ds, T);
+    const sfSum = pm.assets.reduce((s, a) => s + a.mix.totalSF, 0), off1 = pm.assets.reduce((s, a) => s + a.mix.officeSF, 0);
+    if (!pm.assets.length || pm.total.totalSF !== sfSum || pm.total.officeSF !== off1 || Math.abs(pm.total.officeBuildoutPct - (off1 / sfSum) * 100) > 1e-9) off.push(`${name}: the portfolio mix is not the sum of its assets`);
+  }
+  ok(off.length === 0, `1.1.30: on all ${all.length} sample assets the capital projects, the plan and the Capex Budget agree; Model Fund I's spent is the construction file's invoices; the units' office SF is the building's; each portfolio's mix is the sum of its assets (${off.slice(0, 4).join("; ")})`);
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);

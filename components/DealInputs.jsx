@@ -1,5 +1,7 @@
 "use client";
 
+import CapitalProjectsEditor from "@/components/CapitalProjects";
+import { hasProjects } from "@/lib/capitalProjects";
 import AssetFacts from "@/components/AssetFacts";
 import { US_STATES } from "@/lib/assetLocations";
 import { useState } from "react";
@@ -895,7 +897,9 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
           </div>
         )}
         <div className="grid grid-cols-2 gap-3 mt-3">
-          <Field label="Capex Budget" value={inputs.capexBudget ?? 0} field="capexBudget" prefix="$" step={10000} onChange={set} />
+          {hasProjects(inputs)
+            ? <div className="flex flex-col gap-1"><span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Capex Budget</span><span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm" data-testid="capex-total" title="The total of the capital projects below">${Math.round(inputs.capexBudget ?? 0).toLocaleString("en-US")}</span></div>
+            : <Field label="Capex Budget" value={inputs.capexBudget ?? 0} field="capexBudget" prefix="$" step={10000} onChange={set} />}
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Capex Funded By</label>
             <select
@@ -908,6 +912,7 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
             </select>
           </div>
         </div>
+        <CapitalProjectsEditor inputs={inputs} onChange={onChange} />
       </div>
 
       {/* Closing Costs */}

@@ -3,6 +3,7 @@
 // Phase N: Portfolio Summary tab (Portfolio Management, first). One page of key
 // facts about a fund, with links to the tabs that hold performance, the
 // portfolio and upcoming dates.
+import { PortfolioMix } from "@/components/UnitMix";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { fundOptionLabel, fundType } from "@/lib/fundTypes";
@@ -127,6 +128,8 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
           </tbody></table>
         </Box>
       )}
+
+      {fundDeals.length > 0 && <Box title="Office and industrial mix" testId="fs-mix-box"><PortfolioMix deals={fundDeals} asOf={today} /></Box>}
 
       <Box title="Key terms" testId="fs-terms" right={<span className="text-[11px] text-gray-500">From the fund&apos;s terms (Setup &amp; Maintenance → Edit Portfolio; its agreement on the Documents tab)</span>}>
         <table className="w-full text-xs"><tbody>
