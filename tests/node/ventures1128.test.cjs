@@ -130,7 +130,7 @@ for (const [name, terms] of Object.entries(v.funds)) {
   check(Object.keys(VD.sampleVentureFundData(V.SAMPLE_JV_NAME, deals, have, { todayISO: T })).length === 0, "a portfolio that has aged receivables and a proposal keeps its own");
   const full = VD.sampleVenturesFull({ deals: [], funds: {}, valuations: {}, gp: null, pipeline: [] }, { baseInputs: DEFAULT_INPUTS, todayISO: T }, V.sampleVenturesToAdd);
   check(full.deals.filter((d) => V.isSampleVentureDeal(d.id)).every((d) => d.inputs.businessPlan?.revisions?.length === 1) && Object.values(full.funds).every((t) => t.distributions?.proposals?.filter((x) => x.status === "proposed").length === 1 && Object.keys(t.delinquency?.months ?? {}).length === 2), "a firm that has neither portfolio gets them with all of this data");
-  check(SP.SAMPLE_DATA_VERSION === 14, "the sample data version is 14 (1.1.29 raised it)");
+  check(SP.SAMPLE_DATA_VERSION === 15, "the sample data version is 15 (1.1.30 raised it)");
 }
 
 console.log(`ventures1128: ${pass} passed, ${fail} failed`);

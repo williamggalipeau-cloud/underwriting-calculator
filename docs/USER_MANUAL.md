@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.29** (2026-11-28). The version shows next to the Baywise
+Version: **1.1.30** (2026-11-28). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -516,7 +516,7 @@ connectors are installed in the Claude Code environment (finance, legal,
 design and others), among them Acquirepad, Corbis, Gamma, RiskModels and
 TradingCalc, which show in Claude Code's tools panel; none of them was
 called for Baywise (checked against the session record, 11/27 and again
-for 1.1.27, 1.1.28 and 1.1.29; no new connector, skill or agent was used in any of them,
+for 1.1.27, 1.1.28, 1.1.29 and 1.1.30; no new connector, skill or agent was used in any of them,
 and the live database was only read) and none
 is listed in the table. Claude also used its built-in tools (reading and editing files,
 running commands and tests, web search and web fetch), which are not
@@ -1262,6 +1262,12 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
   sample certificate (Blue Mesa Fulfillment, Airport Flex Park) shows as in
   place; the other eight as proof requested; every other tenant as no lease
   on file.
+- **Version 15 (1.1.30):** on all 13 sample assets, the Capex Budget as a
+  list of capital projects (the same total, to the dollar; in the closing
+  model and in the business plan's Capital plan), and a use and office SF on
+  every unit, adding up to the building's Office SF, with mix targets. Model
+  Fund I also gets the sample capital jobs its plans' "Spent" is read from
+  (§7.67).
 
 **Model Fund I's construction management fee (1.1.27).** The fund's nine
 assets now charge construction management at 1.5% of construction spending
@@ -4460,6 +4466,99 @@ every stated fact and quote.
 Tests: `tests/node/facts1117.test.cjs`, `tests/node/sampleTieOut.test.cjs`
 (section 13), `tests/e2e/facts1117.e2e.cjs`.
 
+### 7.67 Capital projects and the office and industrial mix (`lib/capitalProjects.js`, `lib/unitMix.js`, version 1.1.30)
+
+Two pieces of underwriting detail that carry into the Asset Business Plan.
+Neither moves a return: the model still sees one Capex Budget, funded at
+purchase, and the mix is recorded and shown.
+
+**Capital projects at underwriting.** Asset inputs → Capital projects, below
+Capex Budget. Each project has a name, a type, a scope, a budget, a start
+month, a number of months and an expected return.
+
+- **The Capex Budget is the list's total.** Once there is a list the budget
+  is no longer typed; changing a project changes it. An asset with no list
+  keeps its single figure, shown as one line with a **Split into projects**
+  button.
+- **Types:** Roof, Parking lot / paving, HVAC, Electrical, Plumbing,
+  Structure, Fire / life safety, Interior, Demise / Combine, Painting,
+  Landscaping, Signage, Site, Contingency, Other.
+- **Contingency is a line of its own**, not a percentage on each project.
+- **Tenant improvements for new leases are not in this list.** They stay per
+  unit in the leasing assumptions.
+- **Start month and months** date the project in the plan. They do not move
+  the cash flow: the whole budget is funded at purchase, as before.
+
+**The Capital plan in the Asset Business Plan.** A new plan (revision 1)
+carries the projects one by one. Columns: Project, Type, Source, Scope,
+Budget, Spent, Remaining, Start, End, Status, Expected return.
+
+- **Source** is **Underwriting** for a project from the list and
+  **Unbudgeted** for one added afterwards (with Add project, or from a
+  Property Condition finding with "Add to the capital plan"). A plan saved
+  before 1.1.30 counts a project as Underwriting when revision 1 held it.
+- **Spent** = the construction invoices booked to the project's jobs
+  (Property Condition → construction upload). A job belongs to a project
+  when the job is linked to it, when a finding in the project names the job,
+  or when the job and the project have the same name. Tenant-improvement
+  jobs are never counted. A project with no job shows the figure typed in,
+  marked "entered", or "no job linked" when nothing is entered.
+- **Remaining** = Budget − Spent (red when negative).
+- **Status:** Complete when every job is complete; Under way when something
+  is spent or a job is in progress; otherwise Not started.
+- **The tie-out line** compares the plan's total budget with the Capex
+  Budget: "Ties to the underwritten budget of $X", or "$Y above the
+  underwritten budget of $X" with the number of unbudgeted projects. A
+  saving on one project cannot be moved to another without showing here.
+- **The Dashboard** raises an action for an asset whose plan is above its
+  underwritten budget or holds an unbudgeted project.
+- **Not built yet:** approving an unbudgeted project (Workflow, 1.2), and
+  portfolio-wide views by project and construction manager (Construction
+  Management, 1.5).
+
+**Office and industrial mix.** Rent Roll → Office and industrial mix (below
+the unit table).
+
+- **On each unit:** its **Use** (Industrial, Flex, Office, Retail, Other)
+  and its **Office SF**, the finished office inside the unit whatever its
+  use. A unit with no use entered counts as Industrial and is marked "not
+  confirmed"; an Office unit with no office SF entered counts in full.
+- **Mix by use:** units, SF, % of SF and % of rent. % of rent = the use's
+  in-place annual rent ÷ all in-place rent, so a vacant unit counts in SF
+  and not in rent.
+- **Office build-out** = the units' office SF ÷ the units' total SF.
+- **The office SF tie:** the units' office SF must add up to the building's
+  Office SF (asset setup → Building, §7.66). A difference is stated in SF.
+- **Targets:** a target % of SF and a target % of rent for each use, and a
+  target office build-out. A set that does not add up to 100% is flagged.
+- **Asset Business Plan → Office and industrial mix:** at purchase, today
+  and target, with the points to go (target − today). At purchase is the
+  closing model's rent roll where the asset has one, else the rent roll on
+  the acquisition date. Today is the rent roll as of today, so it moves when
+  a lease is signed, a tenant moves out or a unit's use is changed.
+- **Asset Summary → Details** shows the mix in one line. **Portfolio
+  Summary** lists each held asset and the portfolio weighted by SF.
+- **Restrictions:** "Office use, % of portfolio SF" and "Office build-out,
+  % of portfolio SF" are measured restrictions, so an agreement's limit on
+  either is checked against actual on Portfolio Limits (§7.32c).
+
+**Worked example.** Four units: 12,000 SF industrial with 900 SF of office,
+8,000 SF flex with 2,400, 3,000 SF office (all office) and a vacant 6,000 SF
+industrial unit with 600. Total 29,000 SF. Industrial = 18,000 ÷ 29,000 =
+62.1% of SF; office = 3,000 ÷ 29,000 = 10.3%. Office build-out = (900 +
+2,400 + 3,000 + 600) ÷ 29,000 = 6,900 ÷ 29,000 = 23.8%. With a building
+Office SF of 6,900 the units tie; at 8,100 they are 1,200 below.
+
+**Sample data.** Every sample asset has a project list that totals its Capex
+Budget and a mix that ties to its building. Model Fund I's projects carry
+no spent figure of their own: the sample construction file has a capital job
+for each project under way, and the plan reads its invoices. The totals are
+what the plans showed before (about a third of the budget; Harbor Light 22%
+over), except the three assets bought after August 2026, which have no job
+yet and show nothing spent. The joint venture's and separate account's
+assets have no construction file, so their plans keep the figure entered
+(complete, on budget), split across the projects.
+
 ## 8. Worked example: the default deal
 
 The inputs are the Underwriter defaults:
@@ -4751,6 +4850,9 @@ Fields set from Underwriter on linked deals are marked **Q**.
 | `cmFeeBasis` **Q** | `deals[].inputs.cmFeeBasis` | `value` / `spend` | `value` | 1.1.26: `value` = % of the purchase price every year; `spend` = % of construction spending (the capital budget in year 1 and each year's tenant improvements; not leasing commissions or free rent) |
 | `moveOut` | `deals[].inputs.units[].moveOut` | `{ date, tenantName, reason, note, by, at }` | none | 1.1.27: a tenant that moved out with no replacement. `date` is its last day; `reason` is `expired`, `terminated`, `default` or `other`. The lease running that day ends then and the unit is vacant from the next day |
 | `tenantInsurance` | `deals[].inputs.tenantInsurance` | `{ [tenant]: { requested, received, notes } }` | none | 1.1.29: when proof of insurance was requested from and received from each tenant, and a note (Insurance tab → Tenant insurance). Keyed by the tenant's name in lower case with hyphens. The lease's requirements, the certificate and its expiry are read from the documents, not stored here |
+| `capitalProjects` | `deals[].inputs.capitalProjects` | `[{ id, project, type, scope, budget, startMonth, months, expectedReturn }]` | none | 1.1.30: the capital projects of the underwriting. `capexBudget` is kept equal to the total of `budget`. Absent or empty: the asset has a single Capex Budget |
+| `mixTargets` | `deals[].inputs.mixTargets` | `{ sf: { use: % }, rent: { use: % }, officeBuildoutPct }` | none | 1.1.30: the target office and industrial mix by SF and by rent, and the target office build-out. Uses: `industrial`, `flex`, `office`, `retail`, `other` |
+| plan `capital[]` | `deals[].inputs.businessPlan.revisions[].plan.capital[]` | `{ id, project, type, scope, budget, start, end, spent, expectedReturn, source }` | — | 1.1.30 adds `type` and `source` (`underwriting` or `unbudgeted`). `spent` is used only when the project has no construction job |
 | `sampleCreditStory` | `deals[].inputs.units[].sampleCreditStory` | `true` | none | 1.1.28: marks the unit carrying a sample tenant credit story on the sample joint venture and separate account, so the load adds the story once. Not used by any calculation |
 
 **Rent roll and operations** (used when direct NOI is off):
@@ -4826,6 +4928,8 @@ also accepted (case, spaces and symbols ignored).
 | `squareFeet` | `deals[].inputs.units[].squareFeet` | **sf** [squarefeet, sqft, size] | SF | required | Unit size (rows without SF are skipped) |
 | `tenantName` | `deals[].inputs.units[].tenantName` | tenant [tenantname, lessee] | text | | Tenant |
 | `businessDescription` | `deals[].inputs.units[].businessDescription` | business [description, use] | text | | Tenant's business |
+| `use` | `deals[].inputs.units[].use` | not imported | `industrial` / `flex` / `office` / `retail` / `other` | none (counts as industrial, "not confirmed") | 1.1.30: how the unit is leased or meant to be leased |
+| `officeSF` | `deals[].inputs.units[].officeSF` | not imported | SF | none (the whole unit when its use is office, else 0) | 1.1.30: finished office area inside the unit. The units' total should equal the building's Office SF |
 | `creditRating` | `deals[].inputs.units[].creditRating` | credit [creditrating, rating] | text | | Credit rating |
 | `sicCode` | `deals[].inputs.units[].sicCode` | SIC [sic, siccode] | text | 4-digit SIC, e.g. 3444 | Tenant industry (SIC); suggested from the business (§7.19) |
 | `naicsCode` | `deals[].inputs.units[].naicsCode` | NAICS [naics, naicscode, industry] | text | | NAICS industry code (optional) |
@@ -5525,7 +5629,7 @@ Every future release is checked against these:
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; patch **1.1.21**: sample Property Management data and documents, third-party research, the sample leases' rent steps; planned patches **1.1.22** and **1.1.23** (row below) |
 | **1.1.29** | New Portfolio Setup and Edit Portfolio for the three portfolio types; the Insurance tab in two sections, property and tenant (your requests, 11/28) | ✅ Released 2026-11-28 (tag `v1.1.29`) |
-| **1.1.30** | Capital projects listed at underwriting and carried into the Asset Business Plan project by project, tied to the underwritten budget; the office / industrial mix by unit (use and office SF), at purchase, target and today (agreed 11/28) | Next |
+| **1.1.30** | Capital projects listed at underwriting and carried into the Asset Business Plan project by project, tied to the underwritten budget; the office / industrial mix by unit (use and office SF), at purchase, target and today (agreed 11/28) | In review |
 | **1.1.31** | A clean-up patch after an end-to-end review of the whole app; nothing new (agreed 11/28) | Planned |
 | **1.1.x** | 1.1.28 was to be the last 1.1 patch (your decision, 11/27); 1.1.29 was added at your request on 11/28. 1.1.26 the sample joint venture and separate account, their terms, four assets and figures; 1.1.27 their documents, a tenant that moved out and Model Fund I's construction management fee on construction spending; 1.1.28 their business plans, leasing, tenant credit, property management data and distribution proposals | Done with 1.1.28 |
 | **1.2** | Workflow: approvals, reminders and gating (phase V); the Acquisitions and Dispositions workflows you set out; your Leasing workflow of 11/28 (Unit Lease Up, your 15 steps and the added steps you accepted); five Property Management workflows (Tenant Onboarding, Tenant Offboarding, Rent collection and delinquency, Tenant requests needing consent, Repairs and maintenance; steps to be defined at scoping); approval of an unbudgeted capital project; and, by your decision of 11/28: IC Memos tabs in Acquisitions and Dispositions, a closing calendar for each deal in process (milestones to review with you first), a home page section of acquisitions and dispositions in process, two quarterly reports (Quarterly Asset Performance, Quarterly Portfolio Performance) and locking a sold asset from further editing | Planned |
@@ -5547,6 +5651,29 @@ Every future release is checked against these:
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
 
+### What's in 1.1.30
+
+Two pieces of underwriting detail that carry into the Asset Business Plan (§7.67), agreed with you on 11/28. No database change, and no return figure moves. Sample data version 15 loads by itself.
+
+- **Capital projects.** Asset inputs now hold a list of capital projects where the Capex Budget was. The budget is the list's total.
+  - **In the Asset Business Plan,** the Capital plan carries the projects one by one and states whether it ties to the underwritten budget.
+  - **A project added after underwriting** is marked Unbudgeted and counted. A Property Condition finding added to the plan is one.
+  - **Spent** is read from the construction invoices booked to the project's jobs. A project with no job keeps the figure typed in.
+  - **The Dashboard** flags an asset whose plan is above its underwritten budget.
+- **Office and industrial mix.** Each unit has a use (Industrial, Flex, Office, Retail, Other) and an office SF. Rent Roll → Office and industrial mix.
+  - **The mix** is shown by units, SF and rent, with targets by SF and by rent and a target office build-out.
+  - **The units' office SF is checked** against the building's Office SF.
+  - **The Asset Business Plan** compares purchase, today and target. Asset Summary and Portfolio Summary show the mix.
+  - **Office use and office build-out** are now restrictions that can be measured on Portfolio Limits.
+- **Your decisions (11/28):** the project types you added; contingency as its own line; tenant improvements stay per unit; Retail added as a use; targets by SF and by rent; a unit with no use counts as industrial, marked "not confirmed"; the portfolio weighted by SF.
+- **Three choices by Claude, for you to confirm:**
+  - A project with no construction job keeps the figure typed in, marked "entered". The mockup said it would show $0. This keeps what is already entered in your plans.
+  - Your "no" on moving a saving between projects is read as: the tie-out shows it.
+  - The mix "at purchase" is the closing model's rent roll, so no separate snapshot is typed.
+- **Sample data that changed:** the three Model Fund I assets bought after August 2026 now show nothing spent on capital (they showed 35% before, with no invoice behind it).
+- **Not in this patch:** approving an unbudgeted project (Workflow, 1.2); portfolio-wide capital views (Construction Management, 1.5); listing the projects in the IC memo and the business plan PDF.
+- **Next:** an end-to-end review of the whole app, with a clean-up patch (1.1.31), before version 1.2.
+
 ### What's in 1.1.29
 
 Two things you asked for on 11/28. No database change, and no return figure moves. Sample data version 14 loads by itself.
@@ -5558,7 +5685,7 @@ Two things you asked for on 11/28. No database change, and no return figure move
 - **The Insurance tab in two sections (§7.46).** Property insurance (the sponsor's policies and claims) is as before. Tenant insurance is new on the tab: one row per tenant with what the lease requires, the proof on file, when it expires, any shortfall, and when proof was requested and received.
   - **A tenant only on the rent roll** has a row and raises a Dashboard action to upload its lease (your request).
   - **Actions Needed** also gets missing proof and cover below the lease, one line per asset, and each certificate's expiry is on Upcoming Events.
-- **Decided by Claude, for you to confirm:**
+- **Decided by Claude, confirmed by you on 11/28:**
   - The Dashboard actions are one line per asset, not one per tenant, so a rent roll with dozens of tenants does not bury everything else. The tab lists every tenant.
   - The target return in setup is the same set of targets the portfolio plan already tracked, so the two cannot disagree.
   - A separate account's fee on value, which the mockup showed as a choice, is not built: it would change the fee calculation. Say if you want it.
