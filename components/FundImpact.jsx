@@ -41,7 +41,7 @@ export default function FundImpact({ deals, funds, curve, canEdit, email, presel
   const scenarios = terms?.impactScenarios ?? [];
   const shown = view ? scenarios.find((s) => s.id === view.sid)?.versions.find((x) => x.v === view.v) : null;
 
-  if (!names.length) return <p className="text-sm text-gray-500">Set up a fund first (Portfolio Return → New fund).</p>;
+  if (!names.length) return <p className="text-sm text-gray-500">Set up a portfolio first (Setup &amp; Maintenance → New Portfolio Setup).</p>;
   const toggle = (id) => setSel((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const run = (id, kind) => {
     const c = cands.find((x) => x.id === id);

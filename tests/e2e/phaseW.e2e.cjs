@@ -117,14 +117,17 @@ const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new D
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(800);
   await FX.openSetup(p);
-  await p.getByTestId("setup-buttons").getByLabel("Edit fund").selectOption("Model Fund I");
+  await p.getByTestId("setup-buttons").getByLabel("Edit portfolio").selectOption("Model Fund I");
   await p.waitForTimeout(800);
+  await FX.setupStep(p, "investor");
   const parties = p.getByTestId("parties");
   if (await parties.count()) {
     check((await parties.getByLabel("Sponsor / operator: who").count()) === 0 && (await parties.getByLabel("Sponsor co-invest").count()) === 0 && /always this firm/.test(await parties.getByTestId("party-table").innerText()), "the sponsor is always this firm: no outside-operator choice, no separate sponsor co-invest");
+    await FX.setupStep(p, "capital");
     check(/Sponsor \(this firm\)/.test(await parties.getByLabel("Asset management: paid to").innerText()) && (await parties.getByLabel("Property management: paid to").locator("option").allInnerTexts()).join("|") === "Sponsor (this firm)|Third party (outsourced)", "fees: the sponsor (this firm) or, for PM / CM, a third party; never the GP");
     await parties.getByLabel("Property management: paid to").selectOption("third");
     // A second GP party (no partner in GP Partners yet: shares entered here)
+    await FX.setupStep(p, "investor");
     await parties.getByTestId("add-gp-party").click();
     check((await parties.getByLabel("GP 2: partner").locator("option").allInnerTexts()).join("|") === "Choose a GP partner…" && /added in Finance → GP Partners/.test(await parties.innerText()), "an outside GP is picked from GP Partners (none yet)");
     await parties.getByLabel("GP 1: share of GP capital").fill("70");

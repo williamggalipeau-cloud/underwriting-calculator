@@ -111,11 +111,13 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(800);
   await FX.openSetup(p);
-  await p.getByTestId("setup-buttons").getByLabel("Edit fund").selectOption("Model Fund I");
+  await p.getByTestId("setup-buttons").getByLabel("Edit portfolio").selectOption("Model Fund I");
   await p.waitForTimeout(800);
+  await FX.setupStep(p, "investor");
   const parties = p.getByTestId("parties");
   check((await parties.getByTestId("gp-party-from-agreement").count()) === 2 && /This firm/.test(await parties.innerText()) && (await parties.getByLabel("Sponsor / operator: who").count()) === 0 && (await parties.getByLabel("Sponsor co-invest").count()) === 0, "Parties: the two partners from their agreements; the sponsor is this firm (no outside-sponsor choice, no sponsor co-invest)");
   check((await parties.getByLabel("GP 2: partner").locator("option:checked").innerText()) === "Fictional Capital Partners LP", "the partner is picked from GP Partners, not typed");
+  await FX.setupStep(p, "capital");
   check(/Sponsor \(this firm\)/.test(await parties.getByTestId("fee-payees").innerText()) && (await parties.getByLabel("Property management: paid to").locator("option").allInnerTexts()).join("|") === "Sponsor (this firm)|Third party (outsourced)", "fees: the sponsor or a third party; never the GP");
   await p.keyboard.press("Escape");
 

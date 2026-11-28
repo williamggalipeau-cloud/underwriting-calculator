@@ -9,6 +9,8 @@ import { PM_TABS, addToCapitalPlan, blankRow, pmDates, pmXlsx, rowsOf, setSectio
 import { addRevision } from "@/lib/businessPlan";
 import { pmDocs, uploadPmDoc } from "@/lib/pmDocs";
 import { dealFileLink, listDealDocs } from "@/lib/dealDocs";
+import { listLeases } from "@/lib/leaseDocs";
+import { TI_STATUS, setTenantInsurance, summaryLabel, tenantInsuranceRows, tenantInsuranceSheet, tenantInsuranceSummary } from "@/lib/tenantInsurance";
 import TiSpend from "@/components/TiSpend";
 import { downloadBlob } from "@/lib/fundTerms";
 import { writeXlsx } from "@/lib/xlsx";
@@ -60,13 +62,14 @@ const summaryText = (tab, inputs, year) => {
   const s = contractsSummary(inputs); return `${s.contracts} contracts, ${money(s.annualCost)}/yr, ${s.autoRenew} auto-renew`;
 };
 
-export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null }) {
+export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, onUpdate, todayISO = new Date().toISOString().slice(0, 10), scopeName = "", workspaceId = null, email = null, onOpenTab = null }) {
   const T = PM_TABS[tab];
   const [scope, setScope] = useState("asset");
   const [year, setYear] = useState(todayISO.slice(0, 4));
   const [allDocs, setAllDocs] = useState([]);
   const [planMsg, setPlanMsg] = useState(null);
-  const reload = () => (workspaceId ? listDealDocs(workspaceId).then(setAllDocs).catch(() => {}) : Promise.resolve());
+  const [leases, setLeases] = useState([]);
+  const reload = () => (workspaceId ? Promise.all([listDealDocs(workspaceId).then(setAllDocs).catch(() => {}), tab === "insurance" ? listLeases(workspaceId).then(setLeases).catch(() => {}) : null]) : Promise.resolve());
   useEffect(() => { reload(); }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!deal) return <p className="text-xs text-gray-500">Choose an asset.</p>;
   const list = scope === "fund" ? deals : [deal];
@@ -103,6 +106,7 @@ export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, o
 
       {tab === "condition" && scope === "asset" && <TiSpend deal={deal} deals={deals.some((d) => d.id === deal.id) ? deals : [deal, ...deals]} canEdit={canEdit} onUpdate={onUpdate} />}
       {planMsg && <p role="status" className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs text-blue-900" data-testid="pm-plan-msg">{planMsg}</p>}
+      {tab === "insurance" && <h3 className="border-b border-gray-200 pb-1 text-base font-bold" data-testid="ins-property-heading">Property insurance <span className="text-xs font-normal text-gray-500">· the sponsor&apos;s policies on the asset, and its claims</span></h3>}
       {T.sections.map((s) => {
         const rows = list.flatMap((d) => rowsOf(d.inputs, s.key).map((r) => ({ d, r })));
         return (
@@ -126,6 +130,62 @@ export default function PropertyMgmt({ tab, deal, deals = [], canEdit = false, o
           </section>
         );
       })}
+      {tab === "insurance" && <TenantInsurance list={list} scope={scope} ed={ed} leases={leases} certs={allDocs} todayISO={todayISO} signedIn={!!workspaceId} onUpdate={onUpdate} onOpenTab={onOpenTab} />}
     </div>
+  );
+}
+
+// Tenant insurance (1.1.29; user, 11/28): each tenant's own liability cover,
+// which the lease requires and the tenant proves with a certificate. One row
+// per tenant in place today; the checks are the Risk Report's.
+function TenantInsurance({ list, scope, ed, leases, certs, todayISO, signedIn, onUpdate, onOpenTab }) {
+  const per = list.map((d) => ({ d, rows: tenantInsuranceRows(d.inputs, { dealId: d.id, leases, certs, asOf: todayISO }) }));
+  const all = per.flatMap(({ d, rows }) => rows.map((r) => ({ d, r })));
+  const sum = tenantInsuranceSummary(all.map((x) => x.r));
+  const [only, setOnly] = useState(false);
+  const shown = only ? all.filter((x) => x.r.status !== "ok") : all;
+  const set = (d, r, patch) => onUpdate(d.id, (cur) => setTenantInsurance(cur, r.key, patch));
+  return (
+    <section className="space-y-2" data-testid="tenant-insurance">
+      <h3 className="border-b border-gray-200 pb-1 text-base font-bold">Tenant insurance <span className="text-xs font-normal text-gray-500">· each tenant&apos;s own liability cover, which the lease requires and the tenant must prove</span></h3>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs" data-testid="ti-summary">
+        <span>{summaryLabel(sum)}</span>
+        <span className="flex items-center gap-3">
+          <label className="flex items-center gap-1"><input type="checkbox" aria-label="Only tenants needing attention" checked={only} onChange={(e) => setOnly(e.target.checked)} />Only tenants needing attention</label>
+          <button type="button" onClick={async () => downloadBlob(await writeXlsx(tenantInsuranceSheet(list, { leases, certs, asOf: todayISO }), { sheetName: "Tenant insurance" }), `tenant-insurance-${todayISO}.xlsx`)} className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 font-medium">Excel</button>
+        </span>
+      </div>
+      {!signedIn && <p className="text-xs text-gray-500" data-testid="ti-signed-out">Leases and certificates are your firm&apos;s documents: sign in to check each tenant against them. Until then every tenant shows as having no lease on file.</p>}
+      {sum.noLease > 0 && signedIn && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-900" data-testid="ti-no-lease-note">
+          {sum.noLease} tenant{sum.noLease === 1 ? " is" : "s are"} on the rent roll with no lease on file, so what insurance {sum.noLease === 1 ? "it" : "they"} must carry is unknown. This is on the Dashboard as an action.{" "}
+          {onOpenTab && <button type="button" onClick={() => onOpenTab("leases")} className="font-medium text-blue-700 hover:underline" data-testid="ti-upload-lease">Upload leases</button>}
+        </p>
+      )}
+      {shown.length === 0 ? <p className="rounded-lg border border-dashed border-gray-300 p-3 text-center text-xs text-gray-500">{all.length ? "Every tenant's insurance is in place." : "No tenants in place."}</p> : (
+        <div className="overflow-x-auto rounded-xl border border-gray-200"><table className="w-full text-xs">
+          <thead className="bg-gray-50 text-gray-500"><tr>
+            {scope === "fund" && <th className="px-1.5 py-1.5 text-left font-medium">Asset</th>}
+            {["Tenant", "Units", "Status", "The lease requires", "Proof on file", "Expires", "Shortfall", "Proof requested", "Proof received", "Notes"].map((h) => <th key={h} className="px-1.5 py-1.5 text-left font-medium whitespace-nowrap">{h}</th>)}
+          </tr></thead>
+          <tbody>{shown.map(({ d, r }) => (
+            <tr key={d.id + r.key} className="border-t border-gray-100 align-top" data-testid="ti-row">
+              {scope === "fund" && <td className="px-1.5 py-1">{d.inputs.propertyName}</td>}
+              <td className="px-1.5 py-1 font-medium">{r.tenant}</td>
+              <td className="px-1.5 py-1 text-gray-600">{r.units.join(", ")}</td>
+              <td className="px-1.5 py-1"><span className={`whitespace-nowrap rounded px-1.5 py-0.5 ${TI_STATUS[r.status].cls}`} data-testid="ti-status">{TI_STATUS[r.status].label}</span></td>
+              <td className="px-1.5 py-1 text-gray-700">{r.requirementsLabel}</td>
+              <td className="px-1.5 py-1">{r.certId ? <>{r.certTitle || "Certificate"}{!r.certRead && <span className="text-gray-500"> (not read in yet)</span>}</> : <span className="text-gray-500">None</span>}</td>
+              <td className={`px-1.5 py-1 whitespace-nowrap tabular-nums ${r.status === "expired" ? "font-medium text-red-700" : r.status === "expiring" ? "text-amber-800" : ""}`}>{usDate(r.expiry) || "—"}</td>
+              <td className="px-1.5 py-1 text-red-700">{r.shortfalls.map((x) => x.text).join("; ")}</td>
+              <td className="px-1.5 py-1"><input type="date" aria-label={`Proof requested: ${r.tenant}`} value={r.requested} disabled={!ed} onChange={(e) => set(d, r, { requested: e.target.value })} className={inp} /></td>
+              <td className="px-1.5 py-1"><input type="date" aria-label={`Proof received: ${r.tenant}`} value={r.received} disabled={!ed} onChange={(e) => set(d, r, { received: e.target.value })} className={inp} /></td>
+              <td className="px-1.5 py-1"><input aria-label={`Notes: ${r.tenant}`} value={r.notes} disabled={!ed} onChange={(e) => set(d, r, { notes: e.target.value })} className={`${inp} w-36`} /></td>
+            </tr>
+          ))}</tbody>
+        </table></div>
+      )}
+      <p className="text-[11px] text-gray-500">A tenant&apos;s certificate is uploaded below (Insurance certificates) and linked to its lease. Expiry dates are on the Dashboard&apos;s Upcoming Events; missing proof and shortfalls are in Actions Needed.</p>
+    </section>
   );
 }

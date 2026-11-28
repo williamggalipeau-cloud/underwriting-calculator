@@ -114,8 +114,9 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(800);
   await FX.openSetup(p);
-  await p.getByTestId("setup-buttons").getByLabel("Edit fund").selectOption("Model Fund I");
+  await p.getByTestId("setup-buttons").getByLabel("Edit portfolio").selectOption("Model Fund I");
   await p.waitForTimeout(800);
+  await FX.setupStep(p, "restrictions");
   const mf = p.getByTestId("market-flags");
   check((await mf.getByRole("spinbutton").count()) === 5 && (await mf.getByRole("spinbutton").first().inputValue()) === "50", "fund terms: the five flag levels, 50 bp by default");
   await mf.getByRole("spinbutton").first().fill("25");

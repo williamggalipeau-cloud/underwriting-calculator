@@ -29,6 +29,18 @@
    ]
   },
   {
+   "key": "investor_type",
+   "value": "Pension fund",
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "The Investor Member is a pension fund.",
+     "page": 1
+    }
+   ]
+  },
+  {
    "key": "commitments",
    "value": "$80,000,000",
    "status": "found",
@@ -204,6 +216,133 @@
    "evidence": [
     {
      "quote": "Each extension is for 1 year.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "agreement_date",
+   "value": "March 31, 2022",
+   "status": "found",
+   "clause": "5.5",
+   "evidence": [
+    {
+     "quote": "This Agreement is dated March 31, 2022, and its term runs from that date.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "buy_sell_date",
+   "value": "March 31, 2025",
+   "status": "found",
+   "clause": "5.6",
+   "evidence": [
+    {
+     "quote": "Either member may start the buy-sell procedure on or after March 31, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "outside_sale_date",
+   "value": "March 31, 2031",
+   "status": "found",
+   "clause": "5.7",
+   "evidence": [
+    {
+     "quote": "Every property is to be sold by March 31, 2031, the outside sale date.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "target_irr_pct",
+   "value": "13%",
+   "status": "found",
+   "clause": "6.1",
+   "evidence": [
+    {
+     "quote": "The Sponsor Member targets a net internal rate of return to the Investor Member of 13%. The target is not a promise.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "target_multiple",
+   "value": "1.7x",
+   "status": "found",
+   "clause": "6.2",
+   "evidence": [
+    {
+     "quote": "The Sponsor Member targets a net equity multiple to the Investor Member of 1.7x.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "target_cash_yield_pct",
+   "value": "6%",
+   "status": "found",
+   "clause": "6.3",
+   "evidence": [
+    {
+     "quote": "The Sponsor Member targets an average cash yield to the Investor Member of 6% per year on the capital called.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "limits": [
+  {
+   "key": "asset_ltv_pct",
+   "label": "Leverage on any one property",
+   "limit": 80,
+   "unit": "%",
+   "basis": "of the property's value",
+   "clause": "7.1",
+   "evidence": [
+    {
+     "quote": "Leverage on any one property: borrowing secured by any one property may not exceed 80% of the property's value.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "property_type",
+   "label": "Permitted property types",
+   "limit": "Industrial and flex properties only",
+   "unit": "text",
+   "clause": "7.2",
+   "evidence": [
+    {
+     "quote": "Permitted property types: industrial and flex properties only.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "other",
+   "label": "Major decisions",
+   "limit": "A sale or refinancing of a property needs the Investor Member's consent",
+   "unit": "text",
+   "clause": "7.3",
+   "evidence": [
+    {
+     "quote": "Major decisions: a sale or refinancing of a property needs the Investor Member's consent.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "other",
+   "label": "Exclusivity",
+   "limit": "The Sponsor Member offers the venture every industrial investment in Arizona, Nevada and Utah first",
+   "unit": "text",
+   "clause": "7.4",
+   "evidence": [
+    {
+     "quote": "Exclusivity: the Sponsor Member offers the venture every industrial investment in Arizona, Nevada and Utah first.",
      "page": 1
     }
    ]

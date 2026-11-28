@@ -69,10 +69,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(od === "yes" && !/red/.test(odCls) && soon === "no" && /text-gray-900/.test(soonCls) && !/red/.test(soonCls), "1.1.11: red only on the status chip (overdue marked by its Past Due chip), not the text");
   // Done: the overdue item leaves Actions Needed and shows done on the Calendar
   const nAct = await att.getByTestId("action-row").count();
+  const total = async () => Number((await att.locator("h3").first().innerText()).match(/Actions Needed\s*(\d+)/)?.[1] ?? NaN); // the count beside the heading (the table may show only the first rows)
+  const nTotal = await total();
   check((await att.getByRole("button", { name: /^Done/ }).count()) === 0, "no Done button: Status marks it");
   await att.getByRole("combobox", { name: /^Status: .*without a \d{4}-\d{2}-\d{2} mark/ }).selectOption("Completed");
   await p.waitForTimeout(500);
-  check((await att.getByTestId("action-row").count()) === nAct - 1 && !/without a \d{4}-\d{2}-\d{2} mark/.test(await att.innerText()), "Status set to Completed: it leaves Actions Needed");
+  check((await total()) === nTotal - 1 && (await att.getByTestId("action-row").count()) <= nAct && !/without a \d{4}-\d{2}-\d{2} mark/.test(await att.innerText()), "Status set to Completed: it leaves Actions Needed");
   await p.getByTestId("calendar").getByRole("button", { name: /Show the past 12 months/ }).click();
   await p.waitForTimeout(300);
   const doneRow = p.getByTestId("calendar-item").filter({ hasText: /without a \d{4}-\d{2}-\d{2} mark/ });
@@ -125,14 +127,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
   await FX.openSetup(p);
-  await p.getByTestId("quick-actions").getByRole("button", { name: "New fund setup" }).click();
+  await p.getByTestId("quick-actions").getByRole("button", { name: "New Portfolio Setup" }).click();
   await p.waitForTimeout(600);
-  check((await p.getByRole("dialog", { name: "New fund" }).count()) === 1, "quick action: New fund setup opens the fund editor");
-  await p.getByRole("dialog", { name: "New fund" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
+  check((await p.getByRole("dialog", { name: "New portfolio setup" }).count()) === 1, "quick action: New Portfolio Setup opens the setup window");
+  await p.getByRole("dialog", { name: "New portfolio setup" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
   await p.waitForTimeout(400);
   await FX.openSetup(p);
   const qa = await p.getByTestId("quick-actions").innerText();
-  check(["New asset", "New fund setup", "Upload rent roll", "Upload Yardi actuals", "Import marks", "Record capital activity", "New report"].every((x) => qa.includes(x)), "all seven quick actions");
+  check(["New asset", "New Portfolio Setup", "Upload rent roll", "Upload Yardi actuals", "Import marks", "Record capital activity", "New report"].every((x) => qa.includes(x)), "all seven quick actions");
 
   // ── Working on: the JV only ──
   await p.getByTestId("working-on").selectOption(JV);

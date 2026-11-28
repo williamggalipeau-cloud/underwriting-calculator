@@ -29,6 +29,8 @@ leases.push({ id: "old-lease", workspace_id: "w1", deal_id: "sample-deal-1", ten
 docs.push(old("old-sale-doc", "sample-deal-2", "route9-closing-disp.pdf", { doc_type: "closing_disp", title: "[sale:oldsale] Closing statement: route9-closing-disp.pdf" }));
 const r9 = data.deals.find((d) => d.id === "sample-deal-2");
 r9.inputs.dispositions = [{ id: "oldsale", scope: "whole", unitIds: [], reason: "plan_complete", targetPrice: null, targetCapPct: null, targetClose: "", stage: "marketing", withdrawnReason: "", bovs: [], brokerChosen: "", listing: { feePct: null, termMonths: null, exclusions: "" }, marketing: { casSigned: 0, tours: 0, callForOffers: "" }, contract: { psaDate: "", deposit: null, depositDue: "", hardDate: "", ddStart: "", ddDeadline: "", loanClosing: "", closingDate: "", priceLog: [] }, closing: null, offers: [], startedFrom: "Sample sale (fictional)", createdAt: "2026-11-25T00:00:00.000Z" }];
+// 1.1.29: the joint venture's agreement as 1.1.27 wrote it (without the target return, dates and restrictions) is replaced by the rewritten one.
+docs.push(old("old-jva", null, "sample-industrial-venture-i-jva.pdf", { fund_name: "Sample Industrial Venture I", title: "[jva] Sample Industrial Venture I JVA (excerpt)", abstract: { doc_type: "jva", fields: [], app: { made_with: "Sample (fictional)" } } }));
 const removed = [], removedLeases = [];
 (async () => {
   const b = await chromium.launch();
@@ -69,7 +71,7 @@ const removed = [], removedLeases = [];
   const notice = () => p.getByText(/Model Fund I sample data updated:/).first();
   for (let i = 0; i < 120 && !(await notice().isVisible().catch(() => false)); i++) await p.waitForTimeout(500);
   const msg = (await notice().innerText().catch(() => "")) || "";
-  check(/tenant credit and aged rent, \d+ sample documents and \d+ GP agreements? added, 4 earlier sample documents and leases replaced/.test(msg), `the update ran by itself: ${msg.slice(0, 240)}`);
+  check(/tenant credit and aged rent, \d+ sample documents and \d+ GP agreements? added, 5 earlier sample documents and leases replaced/.test(msg), `the update ran by itself: ${msg.slice(0, 240)}`);
   check(leases.length === 10 && leaseAbs.length === 9 && leases.some((l) => l.id === "my-lease"), `the 9 sample leases with abstracts, and the user's own lease (${leases.length}, ${leaseAbs.length})`);
   check(removedLeases.map((l) => l.id).join() === "old-lease" && leases.some((l) => l.deal_id === "sample-deal-1" && l.tenant === "Blue Mesa Fulfillment") && !leases.some((l) => /Desert Aero/.test(l.tenant)), "the earlier sample lease (a tenant not on the rent roll) is replaced by the lease of a tenant that is; the user's lease is kept");
   // 1.1.27: the joint venture's and separate account's documents are counted on their own, below.
@@ -93,11 +95,24 @@ const removed = [], removedLeases = [];
   check(dlp.length === 1 && dlp[0].stage === "leaseout" && lsgDocs.length === 5 && lsgDocs.every((d) => d.title.startsWith("[leasing:sample-dlp-airport-flex-park-1] ") && d.abstract), `1.1.23: the prospect with fixed terms is saved once, with its 5 documents; no rent comp report, because this firm has no rent comps (${dlp.length} prospect, ${lsgDocs.length} documents)`);
   check(credit.length === 8 && gpa.length >= 1 && facts.length === 16 && facts.every((d) => d.abstract) && mfDocs.length === 18 + 10 + credit.length + gpa.length + facts.length + pmDocs.length + rsDocs.length + acqDocs.length + lsgDocs.length + billDocs.length + 2, `18 fund and asset documents, 10 sale documents, 8 credit reports, ${gpa.length} GP agreement(s), 16 asset documents and SNDAs (1.1.17, each with its abstract) and 1.1.23's, with the user's 2, among ${mfDocs.length} documents (the sample LOI is skipped: the user already has a document of that name)`);
   const names = (d) => (d.files ?? []).map((f) => f.name);
-  check(removed.map((d) => d.id).sort().join() === "old-om,old-r9sale,old-sale-doc" && docs.some((d) => d.id === "mine-1") && docs.some((d) => d.id === "mine-2"), `the earlier sample copies were removed; the user's own documents were kept (removed: ${removed.map((d) => d.id).join(", ")})`);
+  check(removed.map((d) => d.id).sort().join() === "old-jva,old-om,old-r9sale,old-sale-doc" && docs.some((d) => d.id === "mine-1") && docs.some((d) => d.id === "mine-2"), `the earlier sample copies were removed; the user's own documents were kept (removed: ${removed.map((d) => d.id).join(", ")})`);
   check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 13, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 14, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  {
+    // 1.1.29: what this version adds, as actually saved and stored.
+    const jv = sd?.funds?.["Sample Industrial Venture I"], sma = sd?.funds?.["Sample Separate Account A"];
+    check(jv?.investorType === "Pension fund" && jv.investorEntity && jv.fundPlanTargets?.netIrrPct === 13 && jv.fundPlanTargets.netMultiple === 1.7 && jv.fundPlanTargets.cashYieldPct === 6 && jv.buySellDate === "2025-03-31" && jv.outsideSaleDate === "2031-03-31", `1.1.29 saved: the joint venture's investor, target return and dates (${jv?.investorType}, ${jv?.fundPlanTargets?.netIrrPct}%, ${jv?.outsideSaleDate})`);
+    check(sma?.investorType === "Insurance company" && sma.authority === "approval" && sma.terminationNoticeDays === 90 && sma.fundPlanTargets?.netIrrPct === 11, `1.1.29 saved: the separate account's client, authority, notice and target (${sma?.authority}, ${sma?.terminationNoticeDays} days)`);
+    check(jv?.limits?.length === 4 && sma?.limits?.length === 3 && [jv, sma].every((t) => t.limits.some((l) => l.key === "asset_ltv_pct" && l.unit === "%") && t.limits.some((l) => l.unit === "text")), `1.1.29 saved: each portfolio's restrictions, measured and for reference (${jv?.limits?.length}, ${sma?.limits?.length})`);
+    check(jv?.partnerName === "Example Pension Fund" && jv.prefPct === 8 && jv.tiers?.length === 2 && (jv.distributions?.proposals ?? []).length === 2, "1.1.29 saved: the venture's earlier terms and records are as they were");
+    const agr = docs.filter((d) => !d.deal_id && ["jva", "sma"].includes(d.abstract?.doc_type));
+    const fk = (d) => (d.abstract?.fields ?? []).map((f) => f.key);
+    check(agr.length === 2 && agr.every((d) => ["target_irr_pct", "target_multiple", "target_cash_yield_pct", "investor_type", "agreement_date"].every((k) => fk(d).includes(k)) && (d.abstract.limits ?? []).length >= 3), `1.1.29 stored: one joint venture agreement and one separate account agreement, each stating the target return and restrictions (${agr.length})`);
+    const mf = (sd?.deals ?? []).filter((d) => /^sample-deal-\d+$/.test(d.id)), recs = mf.flatMap((d) => Object.values(d.inputs.tenantInsurance ?? {}));
+    check(mf.length === 9 && mf.every((d) => Object.keys(d.inputs.tenantInsurance ?? {}).length === 1) && recs.filter((r) => r.received).length === 1 && recs.every((r) => r.requested) && mf.find((d) => d.id === "sample-deal-1").inputs.tenantInsurance["blue-mesa-fulfillment"]?.received === "2026-05-04", `1.1.29 saved: a tenant insurance record on each of Model Fund I's nine assets, one with proof received (${recs.length} records)`);
+  }
   {
     // 1.1.28: the two portfolios' remaining tab data, as actually saved.
     const va = (sd?.deals ?? []).filter((d) => /^sample-(jv|sma)-\d+$/.test(d.id)), heldA = va.filter((d) => d.id !== "sample-jv-1"), soldA = va.find((d) => d.id === "sample-jv-1")?.inputs;

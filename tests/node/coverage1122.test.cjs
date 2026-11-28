@@ -41,6 +41,9 @@ const VD = j(R + "/lib/sampleVentureData.js");
 const venDeals = VEN.deals.map((d) => ({ ...d, inputs: VD.withSampleVentureData(d.inputs, d.id, { todayISO: "2026-11-27" }) }));
 const venAssets = venDeals.map((d) => d.inputs), venHeld = venAssets.filter((a) => !a.realizedSaleDate);
 const venFunds = Object.fromEntries(Object.entries(VEN.funds).map(([name, t]) => [name, { ...t, ...VD.sampleVentureFundData(name, venDeals, t, { todayISO: "2026-11-27" }) }]));
+const PSETUP = j(R + "/lib/portfolioSetup.js"), VNAMES = j(R + "/lib/sampleVentures.js").SAMPLE_VENTURE_NAMES;
+// 1.1.29: the Insurance tab's tenant section, on the sample leases and the sample tenant certificate.
+const TINS = j(R + "/lib/tenantInsurance.js");
 const pipeline = samplePipelineDeals(T);
 // The sample pipeline deal under contract, screened as Load Model Fund I screens it (app/page.jsx pipelineToDeal).
 const pl = pipeline.find((r) => r.id === SFD.SAMPLE_IMPACT_PIPELINE_ID);
@@ -95,7 +98,19 @@ const DATA = [
   ["returns", "returns", deals.length > 0],
   ["sensitivity", "sensitivities", deals.length > 0],
   ...PM.PM_TAB_IDS.flatMap((tab) => PM.PM_TABS[tab].sections.map((s) => [tab, s.label ?? s.key, any((a) => PM.rowsOf(a, s.key).length > 0)])),
+  // 1.1.29: Tenant insurance: every tenant in place has a row; the sample leases, certificate and request dates give each status.
+  ["insurance", "tenant insurance (a lease with proof, leases awaiting proof, tenants with no lease on file; proof requested and received)", (() => {
+    const fsx = require("fs"), rd = (rel) => JSON.parse(fsx.readFileSync(`${R}/public/sample-docs/${rel}`, "utf8"));
+    const byName = (nm) => deals.find((d) => d.inputs.propertyName === nm);
+    const leases = manifest.leases.map((m, i) => ({ id: `L${i}`, deal_id: byName(m.asset)?.id, tenant: m.tenant, unit_ids: [], abstract: rd(m.abstract) }));
+    const certs = manifest.deals.filter((m) => m.docType === "insurance_cert" && m.leaseTenant).map((m) => ({ id: m.name, doc_type: "insurance_cert", deal_id: byName(m.asset)?.id, lease_id: leases.find((l) => l.tenant === m.leaseTenant && l.deal_id === byName(m.asset)?.id)?.id, title: m.title, created_at: "2026-05-04T00:00:00Z", abstract: rd(m.abstract) }));
+    const rows = deals.flatMap((d) => TINS.tenantInsuranceRows(d.inputs, { dealId: d.id, leases, certs, asOf: T }));
+    const st = (x) => rows.filter((r) => r.status === x).length;
+    return st("ok") >= 1 && st("noProof") >= 1 && st("noLease") >= 1 && rows.some((r) => r.requested && r.received) && rows.some((r) => r.requested && !r.received && r.status === "noProof") && deals.every((d) => n(d.inputs.tenantInsurance) > 0);
+  })()],
   ["fundsummary", "fund terms", Number(terms.mgmtFeePct) > 0],
+  // 1.1.29: what New Portfolio Setup records on a joint venture and a separate account.
+  ["fundsummary", "investor, target return, agreement dates and restrictions (joint venture, separate account)", Object.values(venFunds).every((t) => t.investorType && PSETUP.targetReturn(t).set && PSETUP.restrictionsOf(t).some((r) => r.measured) && PSETUP.restrictionsOf(t).some((r) => !r.measured)) && !!venFunds[VNAMES[0]].outsideSaleDate && !!venFunds[VNAMES[0]].buySellDate && venFunds[VNAMES[1]].authority === "approval" && venFunds[VNAMES[1]].terminationNoticeDays > 0],
   ["fund", "capital activity", n(terms.capitalActivity) > 0],
   ["fund", "fund plan versions", n(terms.fundPlan?.versions) > 0],
   ["funddebt", "asset loans", any((a) => Number(a.ltvPct) > 0)],

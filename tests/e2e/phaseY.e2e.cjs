@@ -23,6 +23,7 @@ const jwt = `${b64({ alg: "HS256" })}.${b64({ sub: "u1", email: "t@example.com",
 const sess = { access_token: jwt, token_type: "bearer", expires_in: 3600, expires_at: now + 3600, refresh_token: "r", user: { id: "u1", email: "t@example.com" } };
 const ws = { id: "w1", name: "Model Fund I", version: 1, data, updated_at: new Date().toISOString(), updated_by_email: "t@example.com" };
 let saved = null;
+const docs = []; // the documents store (1.1.29: the Dashboard reads it for tenant insurance; this was never defined, and nothing read the list before)
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1700, height: 1200 }, acceptDownloads: true });
