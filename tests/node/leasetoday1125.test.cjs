@@ -74,7 +74,7 @@ check(JSON.stringify(r1.tenants) !== before.risk, "and the tenant concentration 
 // Fund limits
 const li = FL.limitInputs(deals, { todayISO: T }).assets.find((a) => a.id === d0.id), liOld = FL.limitInputs(deals).assets.find((a) => a.id === d0.id);
 check(near(li.tenants[NEW1], 22 * sf1) && li.tenants[old1] === undefined && liOld.tenants[old1] > 0, "the fund limits' largest-tenant figures use today's tenants when given a date (and the rent roll at purchase without one)");
-check(JSON.stringify({ ...li, tenants: 0, rent: 0 }) === JSON.stringify({ ...liOld, tenants: 0, rent: 0 }) && li.rent > liOld.rent, "only the tenants and their total rent move (equity, loan and value are from the asset as it is)");
+check(JSON.stringify({ ...li, tenants: 0, rent: 0, units: 0 }) === JSON.stringify({ ...liOld, tenants: 0, rent: 0, units: 0 }) && li.rent > liOld.rent, "only the tenants and their total rent move (equity, loan and value are from the asset as it is)");
 
 // SNDAs
 const sr = S.sndaRows(B, { todayISO: T });

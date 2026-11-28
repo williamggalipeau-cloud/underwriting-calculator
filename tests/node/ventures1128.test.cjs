@@ -118,9 +118,9 @@ for (const [name, terms] of Object.entries(v.funds)) {
   for (const d of v.deals) {
     const a = VD.withSampleVentureData(d.inputs, d.id, { todayISO: T });
     const changed = Object.keys(a).filter((k) => a[k] !== d.inputs[k]).sort().join();
-    check(changed === (d.id === "sample-jv-1" ? "businessPlan" : "businessPlan,leasing,leasingManager,propertyMgmt,units") && VD.withSampleVentureData(a, d.id, { todayISO: T }) === a, `${d.inputs.propertyName}: the load adds only ${changed}, once`);
+    check(changed === (d.id === "sample-jv-1" ? "businessPlan,capitalProjects,mixTargets,units,uwBaseline" : "businessPlan,capitalProjects,leasing,leasingManager,mixTargets,propertyMgmt,units,uwBaseline") /* 1.1.30: capital projects and the unit mix */ && VD.withSampleVentureData(a, d.id, { todayISO: T }) === a, `${d.inputs.propertyName}: the load adds only ${changed}, once`);
     const before = d.inputs.units, after = a.units;
-    check(after.every((u, k) => Object.keys(u).filter((f) => u[f] !== before[k][f]).every((f) => ["credit", "sampleCreditStory", "securityDeposit", "vacantSince"].includes(f))) && underwrite(a).returns.irr === underwrite(d.inputs).returns.irr, `${d.inputs.propertyName}: on a unit only credit, the deposit of a tenant in arrears and Vacant since change; the model does not move`);
+    check(after.every((u, k) => Object.keys(u).filter((f) => u[f] !== before[k][f]).every((f) => ["credit", "sampleCreditStory", "securityDeposit", "vacantSince", "use", "officeSF"].includes(f))) && underwrite(a).returns.irr === underwrite(d.inputs).returns.irr, `${d.inputs.propertyName}: on a unit only credit, the deposit of a tenant in arrears and Vacant since change; the model does not move`);
   }
   const mine = { ...raw("sample-jv-2"), businessPlan: { revisions: [{ by: "me" }] }, propertyMgmt: { parcels: [{ id: "x" }] }, leasing: { prospects: [{ id: "sample-lp-kept" }], comps: [] } };
   const kept = VD.withSampleVentureData(mine, "sample-jv-2", { todayISO: T });

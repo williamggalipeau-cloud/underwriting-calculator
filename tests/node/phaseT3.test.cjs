@@ -28,11 +28,11 @@ const deals = [
 const r = C.importConstruction(deals, { jobs, invoices, asOf: "2026-10-31", source: "sample" });
 ok(Object.keys(r.updates).length === 3 && r.unmatched.includes("Harbor Light Industrial") && r.unmatched.includes("Mill Creek Business Park"), "jobs matched to assets by name; the rest reported as not matched");
 const a1 = r.updates["sample-deal-1"];
-ok(a1.jobs.length === 4 && a1.asOf === "2026-10-31" && a1.jobs.find((x) => x.code === "mf1-01-J01").unitId === "sample-deal-1-u001" && a1.jobs.find((x) => x.code === "mf1-01-J04").unitId === null && a1.jobs[0].source === "sample", "units matched by name; a capital job has no unit");
+ok(a1.jobs.length === 5 && a1.asOf === "2026-10-31" && a1.jobs.find((x) => x.code === "mf1-01-J01").unitId === "sample-deal-1-u001" && a1.jobs.find((x) => x.code === "mf1-01-J04").unitId === null && a1.jobs[0].source === "sample", "units matched by name; a capital job has no unit");
 ok(a1.jobs.find((x) => x.code === "mf1-01-J01").invoices.length === 2, "each job carries its invoices");
 const again = C.importConstruction([{ ...deals[0], inputs: { ...deals[0].inputs, construction: { jobs: a1.jobs.map((x) => (x.code === "mf1-01-J01" ? { ...x, notes: "keep me" } : x)) } } }], { jobs: [{ ...jobs[0], invoiced: 18000 }], invoices: [] });
 const j1 = again.updates["sample-deal-1"].jobs;
-ok(j1.length === 4 && j1.find((x) => x.code === "mf1-01-J01").invoiced === 18000 && j1.find((x) => x.code === "mf1-01-J01").notes === "keep me", "a second upload updates by job code (no duplicates, notes kept)");
+ok(j1.length === 5 && j1.find((x) => x.code === "mf1-01-J01").invoiced === 18000 && j1.find((x) => x.code === "mf1-01-J01").notes === "keep me", "a second upload updates by job code (no duplicates, notes kept)");
 
 // ── TI by unit ──
 const inp1 = { ...deals[0].inputs, construction: a1 };
@@ -50,7 +50,7 @@ ok(C.overrunFlag(3) === "" && C.overrunFlag(8) === "amber" && C.overrunFlag(25) 
 // ── Capital jobs and links ──
 const linked = { ...inp1, propertyMgmt: { items: [{ id: "i1", system: "Roof", yardiJob: "mf1-01-J04" }] } };
 const cj = C.capitalJobs(linked);
-ok(cj.length === 1 && cj[0].code === "mf1-01-J04" && cj[0].finding?.id === "i1", "a capital job links to the condition finding with its job code");
+ok(cj.length === 2 && cj[0].code === "mf1-01-J04" && cj[0].finding?.id === "i1" && !cj[1].finding /* 1.1.30: the LED lighting job */, "a capital job links to the condition finding with its job code");
 const x = C.constructionXlsx([{ id: "sample-deal-1", inputs: inp1 }]);
 ok(x.some((row) => row[1] === "001" && row[12] === "amber") && x.some((row) => row[12] === "INV-1001"), "Excel: TI by unit with flags, and jobs with invoices");
 
