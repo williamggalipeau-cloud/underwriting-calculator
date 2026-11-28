@@ -348,5 +348,28 @@ for (const l of leaseIndex) {
   ok(Math.abs(g.fees.pm - sumPm) < 1 && Math.abs(g.parties.sponsor.feesByType.pm - sumPm) < 1 && g.parties.third.fees === 0 && Math.abs(fe.feesByType.find((x) => x.key === "pm").life - sumPm) < 1 && Math.abs(fe.totals.fees - g.fees.total) < 1, "asset to fund to firm: the nine assets' fees are the fund's property management fee, the sponsor's, and the firm's in Firm Economics");
 }
 
+// 1.1.27: the sample joint venture's and separate account's documents say
+// what the two portfolios hold (the full checks are in ventures1127.test.cjs;
+// here every abstract is read through the app's compare functions, with no
+// exceptions list).
+{
+  const V = j(R + "/lib/sampleVentures.js"), AF = j(R + "/lib/assetFacts.js"), { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js");
+  const v = V.buildSampleVentures({ baseInputs: DEFAULT_INPUTS, todayISO: V.SAMPLE_VENTURE_AS_OF });
+  const at = (name) => v.deals.find((d) => d.inputs.propertyName === name), read = (m) => JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${m.abstract}`, "utf8"));
+  const ven = (list) => list.filter((m) => m.file.startsWith("ventures/")), off = [];
+  const man = JSON.parse(fs.readFileSync(`${R}/public/sample-docs/manifest.json`, "utf8")); // the whole manifest (the one above is Model Fund I's)
+  for (const m of ven(man.deals)) {
+    const a = read(m), d = m.asset ? at(m.asset) : null;
+    if (m.docType === "appraisal") { const r = DA.appraisalMark({ id: "x", title: m.title, abstract: a }, d.inputs, v.valuations[d.id]); if (!r || r.rows.some((x) => x.differs)) off.push(m.name); continue; }
+    const rows = DA.compareDoc({ doc_type: m.docType, abstract: a }, { inputs: d?.inputs ?? {}, terms: v.funds[m.fund ?? d?.inputs.fundName] });
+    if (!rows.length || rows.some((x) => x.differs)) off.push(`${m.name}: ${rows.filter((x) => x.differs).map((x) => x.docKey).join()}`);
+  }
+  for (const m of ven(man.dispositions).filter((x) => x.docType === "closing_disp")) { const r = DISP.dispositionRows(at(m.asset).inputs, { saleId: m.saleId, offerId: null, type: m.docType }, read(m)); if (!r.rows.length || r.rows.some((x) => x.differs)) off.push(m.name); }
+  for (const m of ven(man.assetFacts)) { const rs = AF.factDocRows(read(m), at(m.asset).inputs); if (!rs.length || rs.some((x) => x.differs || x.now == null)) off.push(m.name); }
+  for (const m of ven(man.gpAgreements)) { const a = read(m), d = GP.agreementFromAbstract(a, { gp: v.gp, funds: v.funds, deals: v.deals }), have = v.gp.agreements.find((x) => x.partnerId === d.partnerId && x.portfolio === d.portfolio); if (!have || Number(d.capitalPct) !== have.capitalPct || Number(d.gpSideSharePct) !== have.gpSideSharePct || d.effective !== have.effective) off.push(m.file); }
+  const n = ven(man.deals).length + ven(man.dispositions).length + ven(man.assetFacts).length + ven(man.gpAgreements).length;
+  ok(n === 13 && off.length === 0, `the joint venture's and separate account's ${n} documents state what the two portfolios hold${off.length ? " — " + off.join("; ") : ""}`);
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);

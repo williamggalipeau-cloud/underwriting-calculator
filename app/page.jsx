@@ -1743,7 +1743,7 @@ export default function Home() {
     const { addSampleGpPartners } = await import("@/lib/sampleDocs");
     setSampleDocMsg("Adding sample GP partners…");
     try {
-      const r = await addSampleGpPartners({ workspaceId: dbLink.id, email: session?.user?.email ?? null, gp: gpPartners, onProgress: (x) => setSampleDocMsg(`Adding sample GP partners… ${x}`) });
+      const r = await addSampleGpPartners({ workspaceId: dbLink.id, email: session?.user?.email ?? null, gp: gpPartners, funds, onProgress: (x) => setSampleDocMsg(`Adding sample GP partners… ${x}`) });
       setGpPartners(r.gp);
       setSampleDocMsg("");
       setActiveTab("gppartners");
