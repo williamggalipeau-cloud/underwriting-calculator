@@ -1,0 +1,135 @@
+# Baywise 1.1.30: dead code and test coverage review (read-only)
+
+Method: a script listed every `export` in `lib/*.js` (1,224) and searched the whole repo for each name; every "unused" hit was re-searched with `grep -rIw` across the repo (0 hits outside the defining file for all 170). Coverage came from `NODE_V8_COVERAGE` over the 75 node suites (all pass, 22 s), merged across processes. Because the code is loaded through jiti, line figures are approximate (an upper bound, since a line counts as hit if any part ran). The "never-run regions" are the reliable part. Browser suites were not run, so anything covered only by them shows as uncovered here. CI timings come from GitHub run 46118881950 (main, 2026-11-28, green). Lint: 0 errors, 80 warnings. Regression: all pass. Scratch files are in `/tmp/claude-0/-home-user-underwriting-calculator/35575dbe-b549-510c-b85a-27c9d8d4e33d/scratchpad/cov/`.
+
+## Part 1. Dead code, ranked
+
+| # | Item | Where | Verdict |
+|---|------|-------|---------|
+| 1 | The same formatter is defined 20-30 times and the copies disagree (detail below). The same figure prints differently on different screens. | `components/*.jsx`, `lib/*Pdf.js`, `lib/*.js` | Extract `lib/format.js`, one behaviour per helper. Not dead, but the biggest tie-out risk. |
+| 2 | `components/CapitalAnalysis.jsx` (216 lines) is imported nowhere; the manual (USER_MANUAL.md:645) says "not currently shown on any tab". Last touched 11/26. | `components/CapitalAnalysis.jsx` | Safe to delete (also drop its 4 formatter copies at :3, :10, :11 and `fmtM`). |
+| 3 | Old one-JSON save mode: still reachable only when the firm's `workspaces.storage` is `'json'` (default, `supabase/firm_records.sql:26`; flipped to `'records'` by the migration at `firm_records.sql:153`). Entry: `app/page.jsx:593` (`openDbWorkspace`, defined :791), save at :938, "Open latest / Keep mine" banner :2011-2012 and `overwriteDb` :991. In records mode `conflict` is never set (set only at :946), so the banner and `overwriteDb` cannot appear there. | `app/page.jsx`, `lib/cloud.js:112-131` | Check first. Production is on records, but about 26 of 50 browser suites still mock the JSON workspace (they sleep ~21 s for its 20 s autosave); only `phaseQ` and `sampleSyncRecords` use records. Delete the code and port the suites together. `loadLegacyJson`/`importFromOldApp` (:897) is a one-time import, reachable only if `firm.version > records_from_version`. |
+| 4 | 26 exports with only their declaration in the repo (nothing else, own file included). | see list below | Safe to delete. |
+| 5 | 144 more exports used only inside their own file (only the `export` keyword is surplus), and 97 used only by tests. | exports.json | Un-export (low value). |
+| 6 | Tested but never shown on screen: `fundCards` (`lib/home.js:324`), `recentActivity` (`:409`), `firmGpEconomics` (`lib/gpEconomics.js:463`), `gpEconomicsXlsx` (`:510`), `capitalSheet` (`lib/capitalProjects.js:122`), `mixSheet` (`lib/unitMix.js:110`), `remainingInputs` (`lib/dispositions.js:66`). Their only callers are tests. | as listed | Check first: half-built features (the two Excel exports for 1.1.30 capital and unit mix look unwired). |
+| 7 | Five `create-next-app` leftovers in `public/`: `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`. Nothing references them. | `public/` | Safe to delete. |
+| 8 | `scripts/sample-leases/abstract_07.py` ("first draft of the pilot abstract", only mentioned in its own docstring; the committed JSON is the final one). | scripts | Safe to delete. |
+| 9 | `supabase/deal_documents_fund_audit.sql` is referenced nowhere; it says "same function as in deal_documents.sql". | supabase | Check first: it may have been run on the live database. |
+| 10 | `lib/calculations.js:544, 549` (`interestRatePct`, `sellingCostsPct` destructured and unused); `lib/testScenario.js:40` (`buildUnits` unused); `lib/distributions.js:128` (`events`). Also unread props: `Home` gets `curve`/`actions` (`components/Home.jsx:77`), `RiskReport` gets `onApplyDeal` (`RiskReport.jsx:79`, passed from `Reports.jsx:~238`), `FundDebt` gets `funds` (`FundDebt.jsx:20`, passed `app/page.jsx:2440`), `StressTest` declares `onStressedDealsChange` (:121, never passed). `components/StateTileMap.jsx:14 TILE_STATES` is unused. | lint list in `cov/lint.txt` | Safe to delete. |
+| 11 | Test hooks live in production code: `window.__BAYWISE_TEST__` (`app/page.jsx:610`), `navigator.webdriver` branches at :128 (record autosave is 1 s for browsers under automation, 120 s for users), :1741 (sample auto-load skipped), :1956 (leave dialog). | `app/page.jsx` | Check first: the browser suites never run the 120 s timing or the real leave dialog that users get. |
+| 12 | Old-sample-version branches: `sampleDocChanges.json` (versions 3, 8, 12, 14) and `sampleTermChanges.json` (8, 12), `OLD_SAMPLE_FUND_NAME` (`app/page.jsx:1488`). All still reachable for any firm whose `sampleDataVersion` is below 15. | lib | Keep until the live firm is confirmed at 15. |
+
+Not found: feature flags (none), literal TODO/FIXME (none; only `lib/construction.js:2` "for now", 2026-11-23). The whole git history is April to November 2026, so no marker is older than seven months. `lib/calculations.js:71` (legacy `%` closing-cost fields, blamed 2026-04-16) and `lib/workspace.js:6-50` (legacy browser keys, 2026-11-22) are the oldest compatibility branches, and the `*Pct` fallbacks at `calculations.js:72-76` never run in any node test.
+
+Declaration-only exports (item 4): `lib/assetFacts.js:15-18` (SPRINKLER_TYPES, ROOF_TYPES, PAVING_SURFACES, ESA_RESULTS), `lib/assetLocations.js:31 locationLabel`, `lib/assetMedia.js:12 EMPTY_MEDIA`, `lib/businessPlan.js:32 LINE_LABEL`, `lib/capitalProjects.js:53 startLabel`, `lib/cloud.js:107 createWorkspace`, `:127 deleteWorkspace`, `lib/fundExpenses.js:42 FEE_BASES`, `lib/fundTimeline.js:100 mergeByDate`, `lib/leaseAbstract.js:87 connectorTemplate`, `lib/leasing.js:23 EMPTY_LEASING`, `lib/quarterlyReport.js:24 REPORT_KINDS`, `lib/riskReport.js:81 ENV_FIELDS`, `:92 LEVELS`, `lib/sampleDocTerms.js:70 sampleDocTermPaths`, `lib/sampleRiskData.js:10 RISK_TEST_MODEL`, `lib/sampleVentures.js:126 SAMPLE_VENTURE_DEAL_IDS`, `:229 SAMPLE_PHASE2`, `:344 sampleLaterLeaseCount`, `lib/sicCodes.js:259 sampleBusiness`, `lib/stressSigma.js:16 VOL_SOURCE_DEFAULT`, `lib/subLine.js:29 DEFAULT_SUB_LINE`, `lib/workspace.js:18 readLegacyWorkspace`. The full 170-name list is in `cov/exports.out`.
+
+Whole files: no `lib/` file is unreferenced. Every npm dependency is used (`jspdf`, `jspdf-autotable`, `@supabase/supabase-js`, both `@vercel/*`, tailwind, eslint-config-next). `jiti` is not declared in `package.json`: every node test depends on it through eslint and tailwind, which is fragile. Playwright is also not a project dependency (CI installs it with `--no-save`), so the browser suites need a separate install. `tests/fixtures/**` and `docs/sample-*` are all reached (by name, manifest or `index.json`). `docs/review-1.1.30/` is output, referenced by nothing.
+
+Tabs: all 39 ids in `lib/tabs.js` have a rendering branch in `app/page.jsx`, and no rendered component lacks a tab. Every component other than `CapitalAnalysis` is rendered (some under a different local alias).
+
+### Duplicate helpers (item 1): all copies and where they differ
+
+| Helper | Copies | Behaviours that differ |
+|---|---|---|
+| `fmtM` (money, short) | 22 (`AssetReportPanel:17, AssetSummary:17, CapitalActivity:7, DistributionAnalysis:30, FirmEconomics:15, FundAnalysis:44, FundNav:12, FundPlan:25, FundSummary:16, GpEconomics:17, GpPartners:19, Pipeline:30, Reports:22, ReturnsAnalysis:18, RiskReport:16, SalesComps:27, StressTest:16, TenantCreditTab:19, UwVsActual:11, Valuations:25, DebtSizing:23`, `CapitalAnalysis:11`) | $1,500 prints `$1,500` (DistributionAnalysis, Reports, RiskReport, Pipeline, AssetReportPanel), `$2k` (FundPlan, UwVsActual, Valuations, AssetSummary, CapitalActivity), `$1.5k` (FundAnalysis, StressTest), always `$x.xxM` (FundSummary, FirmEconomics, GpEconomics, GpPartners) or full dollars (TenantCreditTab). Negatives print `(x)`, `-x` or `-$x.xxM`. |
+| `money` | 29 (UI, 10 PDF modules, `lib/assetReport.js:105`, `lib/home.js:402`, 2 scripts) | Blank shows `—`, `-`, `n/a`, empty or `$0`. The plain `$${Math.round(v).toLocaleString()}` form prints a negative as `$-1,234` (`UnitRoll:136`, `capitalProjects.js:102`, `tenantInsurance.js:27`, `CapitalProjects.jsx:8`). `Dispositions`, `PropertyMgmt`, `SaleComps`, `TiSpend` return `—` for null; `UnitRoll` returns `$0` (its `isFinite(null)` is true). `ScreenerFundImpact:64` hides zero and negatives. `home.js:402` scales to K/M/B. |
+| `usd` | 9 | Minus sign `−` (Delinquency), `(x)` (CashFlowAnalysis), `−$x` (QuickUnderwrite), `—` (LoanAgreement). |
+| `fmt(n, d)` | 22 | `DebtSizing:5` and `ReturnsAnalysis:9` have no null guard: `isFinite(null)` is true, so `null.toLocaleString` throws if a null reaches them. `FundAnalysis:38`, `StressTest:10` and `CapitalAnalysis:3` do guard. The PDF `fmt`s switch to `$` at 1,000. |
+| `fmtPct`/`pct` | 35+ | 0, 1 or 2 decimals; `—`, `-`, `n/a`; signed `+`/`−` (BusinessPlan:18, valuationPdf:11, Leasing:47); `fundSummary:26` trims `.00`. |
+| `usDate` | 32 | Blank shows `""` (11 files), `—` (13 files), `-` (5 PDF files) or the input text. 4-digit year in these, 2-digit year in `fmtDate` of `SellHold:18`, `UnitRoll:137`, `AssetSummary:25`, `fmtISO` of `Leases:51` and `LeaseViews:8` (`LeaseViews` shows "On request" for blank), `fmtWhen`/`fmt` in `Documents:17`, `WorkflowDocs:16`. `FundTermsEditor:24` and `QuickUnderwrite:10` print "undefined/undefined/0" for an empty string and throw for null. Also `fmtDate` x8, `fmtISO` x4, `fmtD` x3 (`fmtD` is a signed difference, not a date). |
+| `today` | 8 (`BusinessPlan:22, DistributionAnalysis:38, FundPlan:41, UwVsActual:10, AssetMedia:33, SellHold:19, businessPlan.js:197, leases.js:12`) plus about 15 `= new Date().toISOString().slice(0,10)` defaults | All use the UTC date, so after about 7 pm US Eastern "today" is tomorrow on screen. `lib/gpEconomics.js:362` reads the real clock inside a GP promote split instead of taking `todayISO`. |
+| `addMonths` | `assetReport.js:22`, `dispositionCandidates.js:16`, `sampleMarket.js:52`, `assetMedia.js:72` (raw `setUTCMonth`: Jan 31 + 1 month = Mar 3) vs `capPricer.js:41`, `leases.js:15`, `valuations.js:66`, `businessPlan.js:251`, `capitalProjects.js:25`, `sampleCapital.js:72` (clamped to month end: Feb 28) | The first group overflows at month end. `businessPlan.js:44` is a different helper (year-month strings). |
+| `addYears` | `fundTimeline.js:30` and `forwardCurve.js:149`/`quickUnderwrite.js:176`/`RateCapSchedule.jsx:14` (Feb 29 goes to Feb 28); `tenantCredit.js:41`, `home.js:38` (Feb 29 goes to Mar 1); `samplePropertyMgmt.js:26`, `sampleVentures.js:62`, `sampleVentureData.js:44` (string edit, can make "2025-02-29") | Leap-day dates split three ways. |
+| `monthsBetween` | `fundDebt.js:14` (days / 30.4375), `riskReport.js:97`, `leases.js:26`, `dispositionCandidates.js:21` (calendar months + days / 30), `businessPlan.js:49` (whole months, ignores day), `forwardCurve.js:156` (whole months, floored at 0) | Four different answers for the same two dates. |
+| `yearsBetween` | `dispositions.js:32` and `sellHold.js:32` | Both 365.25 days; identical. |
+| `addDays` | 14 copies, noon-UTC in some, midnight in others, `Math.round(k)` in two | Same result for whole days; harmless. |
+| `num` (parse) | 24 | Blank returns `null` (most), `0` (`businessPlan:35`, `delinquency:36`, `samplePlans`) or `NaN` (`tenantCredit:36`, `leases:211`). A figure in parentheses, `(1,234)`, is read as negative only in `delinquency`, `businessPlan`, `capitalActivity`; `comps`, `pipeline`, `valuations`, `benchmarks`, `market`, `construction` turn it into null. |
+| `sum` | 18 | `sellHold.js:186`, `snda.js:69`, `distributions.js:44`, `fundDebt.js:15`, `fundPlan.js:33`, `assetFees.js:41` do not guard NaN or null; the rest coerce to 0. |
+| `r2`, `fin`, `n0` | 20+ / 6 / 4 | Equivalent apart from blank handling (`dispositions.js:201`, `assetMetrics.js:104`, `leasing.js:197`, `fundDebt.js:140` return `""`). |
+| `clamp` | none named; 19 inline `Math.min(.., Math.max(..))` and `assetMedia.js:113 clamp01` | Fine. |
+
+## Part 2. Test coverage
+
+### 2a. Gaps to close, ranked by money at risk
+
+1. **`underwrite` throws for `holdPeriodYears` 0 or fractional** (probe: 0 and 4.5 both give "Cannot read properties of undefined (reading 'noi')"). The input at `DealInputs.jsx:1493` has `min=1`, but its `onChange` (`DealInputs.jsx:~33`) stores `parseFloat(v) || 0`, so clearing the box to retype gives 0. `app/page.jsx:1267` calls `underwrite` in a bare `useMemo`, and `app/` has no error boundary. Likely reachable by a user; confirm in the browser. Add a test in `tests/node/` that calls `underwrite` with hold 0, 0.5 and 4.5 and asserts a clean result or a clear error, and a browser test that clears the Hold Period field.
+2. **Blank, zero and all-cash inputs give NaN or Infinity with no test** (probe, `cov/edge.cjs`): zero SF, zero rent, 100% vacancy: IRR NaN. Exit cap 0: NaN multiple and NPV. Purchase price 0: cap rate and DSCR Infinity. Blank strings in rent, vacancy or price: cap rate -Infinity. `ltvPct: 0` is finite but `debt.loanConstant` is NaN and DSCR Infinity (`review1112.test.cjs:22-24` only asserts IRR finite). `amortizationYears: 0` gives `debt.monthlyPayment = Infinity`. Add `tests/node/edgeInputs.test.cjs` over these cases, asserting every number the screens print is finite or null.
+3. **Zero-rate loan maths never runs**: `lib/calculations.js:7` and `:14` (`monthlyPayment` and `remainingBalance` when the rate is 0) and the `calcIRR` non-convergence returns (`:~38-48`) have no test. Add a case with `interestRatePct: 0` and `floatingRate: false` checking balance and payment against `principal / (years * 12)`.
+4. **Sell/Hold fund result**: `lib/sellHold.js:211-221` (a "sell" decision) and `:255-270` (a "refi" decision) inside `fundScenario`, plus `:50`/`:54` (pipeline and past-term status) and `:76-79`, never run in a node suite (82% lines; only browser suites touch it). Add `tests/node/sellHoldScenario.test.cjs` with one sell, one refi and one hold decision on the sample fund, checking fund IRR and proceeds against a hand calculation.
+5. **`lib/quickUnderwrite.js` (61%)**: `quickUnderwrite` (:183), `quickSensitivity` (:303), `capSettingsFor` (:341), `allInRateForYear` (:110), `sofrForYear` (:75), `debtYear` (:118) are never called in node. This is the Underwriter tab, which prices acquisitions and the rate cap. Add a test that builds a deal from a screener row and ties it to `underwrite()` on the resulting inputs.
+6. **Valuation marks and NAV trend (`lib/valuations.js`, 60%)**: `valueTrend` (:322), `valuationImpact` (:381), `marksFromGrid` (:477), `gridFromMarksFile` (:470), `marksTemplateXlsx` (:523), `valuationHistoryXlsx` (:534) are never run in node (no e2e mentions `valueTrend`/`valuationImpact` either). Marks files write values that feed fund NAV: add a marks CSV round-trip test and a NAV trend test on the sample fund.
+7. **Money maths inside component files has no node test**: `components/CashFlowAnalysis.jsx:32 buildCashFlowStatement` (sources and uses, sale, payoff) and `components/UnitRoll.jsx:78 generateUnits` (no test imports any component). Move them to `lib/` and tie sources = uses and statement NOI = `annualCashFlows` NOI.
+8. **`lib/cashYield.js` has no test at all** (node or browser): `assetCashYield` and `fundCashYield` (time-weighted equity, gross and net yield) feed the Asset Return and Portfolio Return screens. Add a test with one asset bought mid-year and sold early, checking the equity-year weights and `netAverage` against the distributions.
+9. **Data-import writers**: `lib/capitalActivity.js` (54%): `activityFromFile` (:138), `withRunningTotals` (:173), `activityXlsx` (:188); `lib/fundTerms.js` (63%): `termsFromFile` (:241), `validateTerms` (:256), `rowsToTerms` (:190); `lib/comps.js` (72%): `compsFromGrid` (:108), `detectMapping` (:32); `lib/leases.js:283 parseRentRollRows` and `:314 rentRollRows`; `lib/distributions.js:265 cashReportFromFile`. Each parses a user file into money fields; add one CSV and one XLSX fixture per importer, including a parenthesised negative and a blank cell (see the `num` table above).
+10. **Early sale, partial years and shared assets**: node tests exist for a sale before the end of the hold (`phaseP`, `phaseS`) and for partial-year actuals (`phaseJ.test.cjs:52`), but none for a sale mid-quarter on the fund waterfall, for `hold` with a fractional year, or for an asset in two portfolios. The last is not representable (`inputs.fundName` is one string; `fundNames.js` groups by it); add a test that documents what a duplicate asset id does to the fund totals.
+11. **Floating rate beyond the forward curve**: no node test sets `sofrForwardCurve` on an `underwrite` input, so the fall-back to the flat index when the curve is shorter than the hold (`calculations.js:489-492`) has no assertion. Probe: a one-year curve with a five-year hold runs without NaN. Add a test comparing years 2-5 with the flat-index result.
+12. **Fund with no commitments**: only `phaseW.test.cjs:58` (the fallback to total equity). `hasCapitalActivity` branches `fundFlows.js:56`, `:155-158` (line switched off with draws outstanding) and `fundTimeline.js:239` (no-events fee loop) never run; add a no-commitments fund through `computeDatedWaterfall`.
+13. **Report workbooks**: `lib/riskReport.js` `riskXlsx` (:523-564), the LTV, rate-shock and refinance-gap flags (:401-420, "LTV above limit", "Rate shock", "Refinance gap"), `gpEconomics.js:548 partySections`/`:572 partyXlsx`, `quarterlyReport.js:288`. The risk flags are the figures lenders ask about; assert each flag fires on a deal built to breach.
+14. **Files not loaded by any node suite** (26): the 22 PDF modules (`assetReportPdf`, `benchmarkPdf`, `businessPlanPdf`, `dispositionsPdf`, `distributionPdf`, `fundDebtPdf`, `fundImpactPdf`, `fundPlanPdf`, `fundSummaryPdf`, `gpEconomicsPdf`, `leasingPdf`, `marketPdf`, `pmPdf`, `quarterlyReportPdf`, `researchPdf`, `riskReportPdf`, `uwActualPdf`, `valuationPdf`, `leaseReportPdf` partly) are reached only by browser download steps (20 suites download files; the PDFs' figures are not compared with the screen). The rest: `cashYield`, `creditDocs`, `fundNames`, `nyfed`, `sofr`, `pensfordImport`, `workspace`, `version`. Ranked by money: `cashYield` > `fundNames` (decides which assets roll into which portfolio) > `pensfordImport`/`sofr`/`nyfed` (rate inputs; `sofr.js` is live-fetch only) > PDFs. Add one test that runs each PDF builder on the sample fund and compares the text of the PDF with the same function the screen uses.
+15. **Supabase I/O**: `cloud.js` 25%, `dealDocs.js` 26%, `leaseDocs.js` 33%, `assetPhotos.js` 31%, `records.js` 75% (`saveRecords`, `loadRecords`, `loadFirm`) are tested only through mocked network calls in the browser suites (`phaseQ`, `sampleSyncRecords`). No test exercises a real conflict response, a rejected upload or a partial failure. Add node tests with a fake client for `saveRecords` (version conflict, retry).
+16. **No test on the SQL files** (`supabase/*.sql`, including the migration at `firm_records.sql:140-165`).
+
+### Per-file coverage for the calculation modules (node suites only; line % approximate)
+
+| File | Lines | Never-run exported functions or blocks |
+|---|---|---|
+| `calculations.js` | 96.2% | `buildSensitivityTable` :1033, `sensitivityRange` :1047, zero-rate maths (:7, :14), `calcIRR` NaN returns, `*Pct` closing-cost fallbacks :72-76, per-item custom cost branches |
+| `fundTimeline.js` | 96.7% | `mergeByDate` :100 (dead), `addYears` leap-day branch :34, fee loop :239, `payout` policy string :124 |
+| `fundFlows.js` | 95.8% | line-interest purpose :56, switched-off line with draws :155-158 |
+| `distributions.js` | 97.5% | `cashReportFromFile` :265, unmatched Yardi code :249, zero-split returns |
+| `fundExpenses.js` | 99.2% | bridge repayment :233, ledger filter :269, `lineCost`/`lineHeadroom`/`cashAt`/`expenseDrawsAt` (inner helpers) |
+| `fundPlan.js` | 99.7% | `planToDate` ratio branch, `prefThenROC` default |
+| `gpEconomics.js` | 90.1% | `partySections`, `partyXlsx`, external-GP promote splits :288, :363-365, `ryBasisLabel` labels |
+| `valuations.js` | 59.9% | `valueTrend`, `valuationImpact`, marks import and XLSX (see gap 6) |
+| `sellHold.js` | 81.9% | sell and refi scenario branches (gap 4), `refiDsDelta` |
+| `dispositions.js` | 99.7% | `remainingInputs` (tests only), error fallbacks |
+| `businessPlan.js` | 99.6% | NOI-mismatch warning :131, no-header warning :103 |
+| `fundDebt.js` | 100% lines | `extensionTest` "no term" :90, `refinance` rate branches |
+| `fundLimits.js` | 97.9% | `hold_years` limit :88, `limitLabel` :35 |
+| `leases.js` | 88.2% | rent roll import (`parseRentRollRows` :283), renewal and termination notice dates :181-184 |
+| `quarterlyReport.js` | 98.4% | issue history rows :239-240, `reportXlsx` rows |
+| `riskReport.js` | 95.7% | concentration flags :168-178, valuation flag :255, LTV, rate shock, refinance-gap flags :401-420, `riskXlsx` |
+
+Other low files: `cloud.js` 25%, `dealDocs.js` 26%, `assetPhotos.js` 31%, `leaseDocs.js` 33%, `capitalActivity.js` 54%, `sampleDocs.js` 59%, `audit.js` 60%, `quickUnderwrite.js` 61%, `leaseAbstract.js` 63%, `fundTerms.js` 63%, `comps.js` 72%, `records.js` 75%, `pipelineReport.js` 76%. All other `lib/` files are above 88%.
+
+### 2b. Tests that cannot fail or fail to show failures
+
+| File:line | Problem |
+|---|---|
+| `tests/e2e/phaseQ.e2e.cjs:128` | `check(/saved/i.test(...) \|\| /saved/i.test(head) \|\| true, ...)` is always true. |
+| `tests/e2e/phaseC.e2e.cjs:65` | `check(... === "Suite 105" \|\| true, ...)` is always true. |
+| `tests/run-node.cjs:10-15` | A suite passes if its exit code is 0 and counts only lines starting `PASS`; 14 suites (`capitalMix1130, coverage1122, docs1123, fund1122, leasehist1124, leasetoday1125, pmdata1121, research1121, setup1129, steps1121, tenantIns1129, ventures1126-8`) print `N passed` instead and show "0 passed" in the log. They do call `process.exit(1)` on failure, but a suite that ran no checks would look the same. Make the runner read their summary line. |
+| `tests/node/phaseT.test.cjs:75`, `phaseP.test.cjs:116` | `if (false) console.log(...)` dead lines; the real exit code is set in the async block above, so they are harmless. |
+| `tests/node/fund1122.test.cjs:70, 84, 92` and `sampleTieOut.test.cjs` | Compare a stored sample record with the same function re-run on the same fund. That is the intended tie-out, but it only catches drift if the stored copy was made earlier, so it cannot catch a bug in the shared function. |
+| `tests/e2e/phaseH.e2e.cjs:98`, `sampleSyncRecords.e2e.cjs:115`, `phaseF.e2e.cjs:100` | `.catch(() => {})` on tab or select steps; a missing tab is ignored, but each is followed by a check that would fail. |
+| `tests/regression/regression.test.cjs` | Compares exact JSON strings of IRR, multiple and flows for the nine sample deals only (`underwrite()`); no fund, waterfall or report figure is pinned. `expected.json` was regenerated on 2026-11-28. |
+
+Node assertions are otherwise strong: a search for single-term "exists", "is a number", `>= 0` or self-equality assertions found one (`dispositionDocs.test.cjs:61`, `typeof ... === "function"`). No skipped, `.only` or commented-out tests were found.
+
+### 2c. Date and timing
+
+- No failure when the clock moves: the 48 node suites that do not pin the clock all passed with the clock set to 2026-12-31 and to 2027-06-30 (`-r tests/e2e/fixture.cjs`), and the regression passed at 2026-12-31, 2027-06-30 and 2028-01-15. Unpinned real-clock uses remain at `tests/node/phaseR.test.cjs:84-85`; `lib/gpEconomics.js:362` reads the real clock in a calculation.
+- Browser suites run with the fixed date 2026-11-27 (`tests/e2e/clock.cjs`, loaded by `tests/run-e2e.cjs`). The plan doc item (T1) "browser tests fail from 2027-01-01" is out of date for the runner; item (T4) "lint isn't run in CI" is also out of date (CI runs lint).
+- Fixed sleeps: 644 `waitForTimeout` calls totalling about 1,279 s across 50 browser files. 26 are 20-23 s and wait for the legacy 20 s autosave (`app/page.jsx:134 DB_SAVE_SECONDS = 20`), about 569 s in all; the records mode already uses 1 s under automation (`:128`). 519 more are 1.5 s or less (394 s). Setting `DB_SAVE_SECONDS` to 1 under `navigator.webdriver` would remove about 9.5 minutes. Suites with the most sleeping: `phaseM` (63 s), `phaseL` (43 s), `phaseC` (42 s), `metrics1116` (39 s).
+
+### 2d. CI (`.github/workflows/tests.yml`)
+
+| Step | Fails the job on failure? | Last run |
+|---|---|---|
+| Lint (`npm run lint`) | Errors only; the 80 warnings (unused variables, hook dependencies, `<img>`) do not fail it | 19 s |
+| Node checks (`npm test`) | Yes (exit 1 on any failed suite) | 27 s (75 suites, slowest 2 s) |
+| Regression | Yes | under 1 s |
+| Build (`npm run build`) | Yes | 6 s |
+| Browser (`npm run test:e2e:built`) | Yes (exit 1 on any failed suite); 51 runs, 1,095 PASS lines | 1,523 s (25.4 min of a 28 min job; `timeout-minutes: 40`) |
+| Screenshots upload | `if: always()` | 4 s |
+
+Slowest browser suites: `phaseO` 70 s (16 checks), `phaseM` 66 s (43), `phaseL` 47 s (75); median 33 s; they run one after another in one job. Runs on every pull request and every push to `main`, plus manual dispatch; `cancel-in-progress` cancels a running push if another follows (several recent runs show "cancelled"). Not in CI: any schedule (a nightly run would catch date drift), `npm audit`, a check of the SQL files, the Python generators (`scripts/sample-leases/*.py`, `deal_docs.py`, `disposition_docs.py`; their output is only checked through the `--check` runs in the node tests), a Vercel preview check, and the Playwright version is installed unpinned in `package.json`. All seven `--check` generator scripts are run by node tests.
+
+## What I did not get to
+
+- Browser suites were not run, so the coverage figures ignore everything only they exercise; a per-suite browser coverage run (Playwright with V8 coverage) would settle the "no test" list for the PDF modules, rent roll import and valuation marks.
+- Line and branch percentages are approximations from V8 ranges over jiti output, not c8 numbers; `c8` is not installed.
+- The "unused export" scan cannot see access through a computed name (`mod[name]`); I found none, but did not read all 71 components for it.
+- I did not confirm the hold-period crash (gap 1) in a browser, only that `underwrite` throws and that nothing guards the call.
+- I did not read the rest of `app/page.jsx` (2,900+ lines) for further unreachable branches beyond the save modes, and did not check every prop passed to every component, only those the linter flagged.
+- Part-1 duplicate tables list the helpers I extracted by pattern; copies written as inline expressions (not named functions) are not counted.

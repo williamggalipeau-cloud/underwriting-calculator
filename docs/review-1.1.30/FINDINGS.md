@@ -1,14 +1,12 @@
-# End-to-end review of Baywise 1.1.30: ranked findings (first half)
+# End-to-end review of Baywise 1.1.30: ranked findings
 
-Reviewed 11/28/2026 at version 1.1.30. Four reviews: calculations, tie-out, loading and saving, design and user flow. Nothing in the app or in your firm's data was changed.
+Reviewed 11/28/2026 at version 1.1.30. Seven reviews: calculations, tie-out, loading and saving, design and user flow, security, the manual against the screens, test coverage and dead code. Nothing in the app or in your firm's data was changed.
 
-**Every figure quoted is test copy** (the fictional sample portfolios), not your firm's data. Your firm's live data was not read for this review.
+**Every figure quoted is test copy** (the fictional sample portfolios), not your firm's data. Your firm's records were not read for this review. For the security review I read the live database's rules and settings only (which tables are protected, which file stores are private, how many accounts are confirmed).
 
 **How to read this.** Each line has an ID. Reply with the IDs you want fixed in 1.1.31 (or "all of A and B"). The full detail behind each line, with file and line numbers and the numbers each reviewer ran, is in the four reports in this folder.
 
-**Checked by me:** I read the code behind A1 to A4, B1 to B5, B9, B10, B12, B13 and D1, and looked at the screenshots behind E2 and the mockup. They hold. The others were reproduced by the reviewers with scripts on the sample data; I have not re-run each one.
-
-Still to come (second half): security, the manual against the screens, test coverage and dead code.
+**Checked by me:** I read the code behind A1 to A4, B1 to B5, B9, B10, B12, B13, D1, F1, F3, G1, G2 and H3, ran B19 (it fails as described), ran the security checks against the live database's rules (F2 to F4 and the "sound" list), and looked at the screenshots behind E2 and the mockup. They hold. The others were reproduced by the reviewers with scripts on the sample data; I have not re-run each one.
 
 ---
 
@@ -105,6 +103,56 @@ The reviewer's judgment: it reads as a capable internal tool, not yet as a finis
 
 Mockup of Home in the proposed look: `mockup-home-desktop.png` and `mockup-home-phone.png` in this folder. The small sub-lines on its cards are placeholders, not figures from the app.
 
+
+## F. Security
+
+**The main result: the database rules are sound.** Confirmed on the live database: all 10 tables are protected by row-level rules, no rule is open to everyone, the three file stores are private, viewers cannot write, the rule keeping viewers out of tenant credit files is in place, all 3 accounts have confirmed emails, and there are no pending invites. No secret or key is in the repository, its history or the built site.
+
+| ID | Risk | Condition | Size |
+|---|---|---|---|
+| F1 | The "save directly" step: the prompt the app gives you tells a Claude session to read an outside party's document and then write to the database with full rights and no approval prompt. A document with planted instructions could misuse that. | A hostile document, and a Claude session with the Supabase connector | Small: always use the paste route; you set the connector to read-only |
+| F2 | An invite can be claimed by an account whose email was never confirmed. Safe today (all accounts are confirmed), but it rests on a Supabase setting staying on. | "Confirm email" switched off in Supabase | Small (SQL for you to run) |
+| F3 | One owner sign-in can delete the whole firm, history and change log included, in one call. The app no longer uses this; the rule still exists live. | A stolen or careless owner sign-in | Two lines of SQL for you to run |
+| F4 | The change log records what the browser says changed. An editor going around the app could save with no log entry or a made-up one. | An editor using the database directly | Small (SQL): the database writes its own row per save |
+| F5 | Tenant credit: running `leases.sql` again would reopen credit files to viewers (the live rule is correct today). Credit scores kept on the rent roll are readable by viewers, which matches your 11/27 decision but not the file's own header. | Re-running an old script | Small |
+| F6 | The green "Validated by the connector" tick shows whatever the pasted text says. Figures still only enter the model field by field with your tick. | A careless paste or a hostile document | Small: reword the tick |
+| F7 | A stranger who signs up sees none of your data, but can create their own firm; a new employee not yet added could land in it. | New sign-ups allowed in Supabase | You: switch sign-ups off |
+| F8 | No security headers (the app could be shown inside another site). | | Small, tried on a preview first |
+| F9 | Smaller: the old whole-file save still works on the archived firms; a fund name starting with "=" becomes a formula in one CSV export; forward rates can come through two public relay sites; library updates (Next 16.4.6 now, jsPDF 4 scheduled); real firm ids sit in one SQL file. | | Small |
+
+**Two settings only you can check**, in Supabase → Authentication → Sign In / Providers: "Confirm email" is on, and "Allow new users to sign up" is off.
+
+## G. The manual against the app
+
+| ID | What the manual gets wrong | Size |
+|---|---|---|
+| G1 | Says the waterfall tier is chosen once from the overall IRR; the default is marginal tiers (and the manual says so elsewhere). | Small |
+| G2 | The worked example says "Underwriter defaults" but includes a 1.5% asset management fee; the default is 0%, so its results do not reproduce (year 1 is +$10,773, not -$48,340). | Small |
+| G3 | Describes a left panel with asset tabs and a "+" that no longer exists. | Small |
+| G4 | The Sample data menu: wrong place, and "three actions" where there are 14. | Small |
+| G5 | Where your firm's data is stored, the example queries and the "restore an earlier version" steps describe the old format. Following the restore steps would restore an old copy. | Medium |
+| G6 | Database setup lists 2 of the 12 SQL files. | Small |
+| G7 | Names database buttons that do not exist ("Save to database", "Your workspaces", "Refresh"). | Small |
+| G8 | Section 3 understates what Claude changed in the live database on 11/22 to 11/25 (tables created, sample rows added, three test leases deleted). The tool lists match the record exactly. I need you to confirm those were at your request before the text says so. | Small |
+| G9 | Old names throughout: "Dashboard" for Home, "Deal Screener" for Underwriter, "Unit Roll" for Rent Roll, "Fund Plan", "New fund", "All funds"; Home "lanes" that no longer exist. | Medium |
+| G10 | Save timing given as 0.4 seconds, 20 seconds and 2 minutes in different places (it is 2 minutes). | Small |
+| G11 | The construction management fee formula leaves out the "spend" basis the sample portfolios use; nine document types have a validator, not four; the sample lease table describes leases replaced in 1.1.13. | Small |
+| G12 | The roadmap has no rows for 1.1.22 to 1.1.28; the data dictionary and the file list are incomplete; "workspace" appears on 159 lines. | Medium |
+
+What was checked and is right: every tab name and area, every formula in sections 7.1 to 7.23 and the newer sections it read in depth, the default inputs, and all internal links.
+
+## H. Tests and dead code
+
+| ID | What | Size |
+|---|---|---|
+| H1 | Number and date helpers are copied about 80 times and disagree: $1,500 prints as $1,500, $2k, $1.5k or $0.00M depending on the screen; negatives four ways; four different month-count formulas. This is the root of D10. | Medium |
+| H2 | "Today" is taken from UTC in 8 places, so after about 4 pm Pacific those screens use tomorrow's date. One is inside a promote calculation. | Small |
+| H3 | Two browser tests end in "or true" and cannot fail; 14 node suites report "0 passed" in the summary though they do run. | Small |
+| H4 | About half the browser suites test the old save mode your firm no longer uses; only two test record-by-record saving. Moving them also removes about 9 of the 28 minutes the test run takes. | Medium |
+| H5 | No test at all: the Underwriter tab's maths, cash yield, the sell and refinance branches of portfolio Sell/Hold, valuation entries and the NAV trend, the file importers, the Risk report's LTV and rate flags. Blank and zero inputs (zero SF, zero price, exit cap of 0) are untested and give blank or infinite figures. | Medium |
+| H6 | Dead code, safe to delete: one unused screen (`CapitalAnalysis.jsx`), 26 unused functions, five leftover image files, one old script. Six half-built features have tests but no screen (check before deleting). | Small |
+| H7 | The old one-file save mode can no longer be reached by your firm; remove it together with H4. Test-only branches in the app make the browser tests save every second where real users wait 2 minutes. | Medium |
+
 ---
 
 ## Decisions I need from you
@@ -119,15 +167,15 @@ These are definitions, not bugs, so the fix depends on your answer. My recommend
 6. **Covenants (B11):** the loan document's covenants first, then the tests switched on in the Debt tab; never the sizing limits.
 7. **Cost (B22):** keep three figures, name them differently: "Cost (price plus capex)", "All-in basis", "Total capitalization".
 8. **"All portfolios" (D5):** on a portfolio screen, show "Choose a portfolio" with no figures, until a true roll-up is built.
-9. **Expected downtime (reviewer's item, not listed above):** the model rounds expected vacant months to whole months at each lease rollover (60% renewal and 2 months gives 1 month, not 0.8). Leave as is, or book the fraction? I would leave it and say so in the manual.
+9. **Hold Period left empty (B19):** treat as 1 year and show a note, rather than an error.
+10. **Section 3 of the manual (G8):** confirm the 11/22 to 11/25 database changes were at your request.
+11. **Expected downtime (reviewer's item, not listed above):** the model rounds expected vacant months to whole months at each lease rollover (60% renewal and 2 months gives 1 month, not 0.8). Leave as is, or book the fraction? I would leave it and say so in the manual.
 
-## What I recommend for 1.1.31
+## What I recommend
 
-- **All of A** (data safety), with a browser test for each.
-- **All of B**, once you have answered the decisions above.
-- **All of C**, including the screen-to-screen tie-out test (C6) so section B cannot come back.
-- **From D:** D1, D3, D4, D7, D8, D9, D11, D12, D16: small and plainly wrong. D2 with them if you want the phone fixed now.
-- **Leave for a design release** (with a mockup first): D5, D6, D10, D13 to D15, D17 and all of E.
-- Plus the two items already agreed: capital projects in the IC memo and the business plan PDF, and trimming the plan document.
+Three patches, each small enough to test properly, before any v1.2 work:
 
-That is a large patch. It could be split: 1.1.31 for A and the small B items, 1.1.32 for the definitions (B6, B8 to B12, B22) and C6.
+- **1.1.31, safety:** all of A; F1 to F4 and F8 (with the SQL for you to run); B1 to B5, B7, B13, B15, B17 to B21 and B24 (wrong figures that need no decision); D1, D3, D4, D7, D8, D11, D12; H2, H3.
+- **1.1.32, one definition each:** B6, B8 to B12, B14, B16, B22, B23 after your answers above; C1 to C6 including the screen-to-screen tie-out test so section B cannot come back; H1 (one set of number and date helpers, which also fixes D10); H5.
+- **1.1.33, tidy:** all of G (the manual), D9 and D16 (names and wording, done with the manual so they match), H4, H6, H7, the rest of F, plus the two items already agreed: capital projects in the IC memo and the business plan PDF, and trimming the plan document.
+- **A design release later, with a mockup first:** D2, D5, D6, D13 to D15, D17 and all of E.
