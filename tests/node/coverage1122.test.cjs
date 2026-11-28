@@ -36,7 +36,11 @@ const { QUICK_DEFAULTS, toMainInputs } = j(R + "/lib/quickUnderwrite.js");
 const { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js");
 // 1.1.26: the sample joint venture and separate account (lib/sampleVentures.js).
 const VEN = j(R + "/lib/sampleVentures.js").buildSampleVentures({ baseInputs: DEFAULT_INPUTS });
-const venAssets = VEN.deals.map((d) => d.inputs);
+// 1.1.28: with their remaining tab data (lib/sampleVentureData.js).
+const VD = j(R + "/lib/sampleVentureData.js");
+const venDeals = VEN.deals.map((d) => ({ ...d, inputs: VD.withSampleVentureData(d.inputs, d.id, { todayISO: "2026-11-27" }) }));
+const venAssets = venDeals.map((d) => d.inputs), venHeld = venAssets.filter((a) => !a.realizedSaleDate);
+const venFunds = Object.fromEntries(Object.entries(VEN.funds).map(([name, t]) => [name, { ...t, ...VD.sampleVentureFundData(name, venDeals, t, { todayISO: "2026-11-27" }) }]));
 const pipeline = samplePipelineDeals(T);
 // The sample pipeline deal under contract, screened as Load Model Fund I screens it (app/page.jsx pipelineToDeal).
 const pl = pipeline.find((r) => r.id === SFD.SAMPLE_IMPACT_PIPELINE_ID);
@@ -71,6 +75,12 @@ const DATA = [
   ["units", "rent rolls", all((a) => n(a.units) > 0)],
   ["units", "a tenant that moved out with no replacement", venAssets.some((a) => (a.units ?? []).some((u) => u.moveOut?.date))],
   ["assets", "building and site facts on the joint venture's and separate account's assets", venAssets.every((a) => n(a.building) > 0 && n(a.site) > 0)],
+  ["plan", "business plans with actuals on the joint venture's and separate account's assets", venAssets.every((a) => n(a.businessPlan?.revisions) > 0 && n(a.businessPlan?.actuals) > 0)],
+  ["leasing", "leasing prospects on their held assets", venHeld.length === 3 && venHeld.every((a) => n(a.leasing?.prospects) > 0)],
+  ["credit", "tenant credit stories on their held assets", venHeld.every((a) => a.units.some((u) => u.sampleCreditStory))],
+  ["credit", "aged receivables on the joint venture and separate account", Object.values(venFunds).every((t) => n(t.delinquency?.months) > 0)],
+  ...PM.PM_TAB_IDS.flatMap((tab) => PM.PM_TABS[tab].sections.filter((s) => !["appeals", "claims"].includes(s.key)).map((s) => [tab, `${s.label ?? s.key} on their held assets`, venHeld.every((a) => PM.rowsOf(a, s.key).length > 0)])),
+  ["distributions", "distribution proposals on the joint venture and separate account", Object.values(venFunds).every((t) => n(t.distributions?.proposals) > 0)],
   ["units", "leases signed since purchase", venAssets.every((a) => (a.units ?? []).some((u) => n(u.laterLeases) > 0))],
   ["fund", "joint venture and separate account", Object.values(VEN.funds).map((t) => t.type).sort().join() === "Joint Venture,Separate Account"],
   ["gppartners", "outside GP partners of the joint venture and separate account", VEN.gp.agreements.length === 2],

@@ -78,7 +78,8 @@ import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { TAB_GROUPS, TABS, TAB_COUNT_TITLES, DEAL_TABS } from "@/lib/tabs";
 import { sampleFundData, samplePipelineCandidate, withSampleBenchmarks, SAMPLE_IMPACT_PIPELINE_ID } from "@/lib/sampleFundData";
-import { isSampleVentureDeal, sampleVenturesToAdd, withSampleMoveOut, withSampleVentureFacts } from "@/lib/sampleVentures";
+import { isSampleVentureDeal, sampleVenturesToAdd, withSampleMoveOut, withSampleVentureFacts, SAMPLE_VENTURE_NAMES } from "@/lib/sampleVentures";
+import { sampleVentureFundData, sampleVenturesFull, withSampleVentureData } from "@/lib/sampleVentureData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION, withSampleCmFeeBasis } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
@@ -1498,7 +1499,7 @@ export default function Home() {
       return { ...p, deals: [...cur.map(link), ...add] };
     });
     // 1.1.26: the sample joint venture and separate account load with it (only what is missing).
-    const ven = sampleVenturesToAdd({ deals, funds, valuations, gp: gpPartners, pipeline: pipeline?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
+    const ven = sampleVenturesFull({ deals, funds, valuations, gp: gpPartners, pipeline: pipeline?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal }, sampleVenturesToAdd); // 1.1.28: with their plans, leasing, credit and property management data
     setGpPartners(ven.gp);
     addSampleVentures(ven);
     setActiveTab("fund");
@@ -1625,7 +1626,7 @@ export default function Home() {
       const fromVersion = terms.sampleDataVersion ?? 0;
       const withDocs = (d) => {
         // 1.1.27: the joint venture's and separate account's assets: building and site facts (only where none) and the tenant that moved out (only where the asset has no move-out).
-        if (isSampleVentureDeal(d.id)) { const v = withSampleMoveOut(withSampleVentureFacts(d.inputs, d.id), d.id); return v === d.inputs ? d : { ...d, inputs: v }; }
+        if (isSampleVentureDeal(d.id)) { const v = withSampleVentureData(withSampleMoveOut(withSampleVentureFacts(d.inputs, d.id), d.id), d.id, { todayISO }); return v === d.inputs ? d : { ...d, inputs: v }; } // 1.1.28: and the business plan, leasing, tenant credit story and Property Management rows, each only where the asset has none
         if (!d.id.startsWith("sample-deal-")) return d;
         let inp = mergeCreditUpdate(d.inputs, credit.updates[d.id]);
         inp = withSampleCmFeeBasis(inp, d.id); // 1.1.27: construction management on construction spending, only where the asset still holds the earlier sample fee // 1.1.18: only the credit fields, onto the asset as it is now
@@ -1654,7 +1655,7 @@ export default function Home() {
       // 1.1.26: the sample joint venture and separate account (their terms,
       // four assets, marks, outside GP partners and two pipeline deals),
       // each piece only where the firm does not have it.
-      const ven = sampleVenturesToAdd({ deals: latestData.current?.deals ?? cur.deals, funds: latestData.current?.funds ?? cur.funds, valuations: latestData.current?.valuations ?? cur.valuations, gp: cur.gpPartners, pipeline: (latestData.current?.pipeline ?? cur.pipeline)?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
+      const ven = sampleVenturesFull({ deals: latestData.current?.deals ?? cur.deals, funds: latestData.current?.funds ?? cur.funds, valuations: latestData.current?.valuations ?? cur.valuations, gp: cur.gpPartners, pipeline: (latestData.current?.pipeline ?? cur.pipeline)?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal }, sampleVenturesToAdd);
       addSampleVentures(ven); // 1.1.27: before the save below, so they are stored before the uploads start
       // 1.1.27: their documents are added with Model Fund I's, so the assets and portfolios just added are in the lists the documents are filed against.
       const allDeals = [...built, ...ven.deals.filter((d) => !built.some((x) => x.id === d.id))];
@@ -1713,7 +1714,9 @@ export default function Home() {
       const fundRecords = (t) => { try { return sampleFundData(dealsNow, t, { todayISO, valuations: applySampleDocMarks(now.valuations ?? {}), curve: effectiveCurve(baseCurveRef.current, anchorToLive, live), candidates: cand ? [cand] : [], benchmarks: benchmarksNow }); } catch { return {}; } };
       setFunds((prev) => {
         const t = { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...sampleFundTermsPatch(prev[SAMPLE_FUND_NAME] ?? {}, { keepExisting: true }), ...((prev[SAMPLE_FUND_NAME]?.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}) };
-        return { ...prev, [SAMPLE_FUND_NAME]: { ...t, ...fundRecords(t), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } };
+        // 1.1.28: the joint venture's and separate account's aged receivables and last quarter's distribution proposal, each only where the portfolio has none.
+        const venRecords = Object.fromEntries(SAMPLE_VENTURE_NAMES.filter((n) => prev[n]).map((n) => { try { return [n, { ...prev[n], ...sampleVentureFundData(n, dealsNow, prev[n], { todayISO, curve: effectiveCurve(baseCurveRef.current, anchorToLive, live) }) }]; } catch { return [n, prev[n]]; } }));
+        return { ...prev, ...venRecords, [SAMPLE_FUND_NAME]: { ...t, ...fundRecords(t), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } };
       });
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data
       setRecordNotice(failed.length
