@@ -371,5 +371,30 @@ for (const l of leaseIndex) {
   ok(n === 13 && off.length === 0, `the joint venture's and separate account's ${n} documents state what the two portfolios hold${off.length ? " — " + off.join("; ") : ""}`);
 }
 
+// 1.1.28: the two portfolios' remaining tab data is their own figures (the
+// full checks are in ventures1128.test.cjs).
+{
+  const V = j(R + "/lib/sampleVentures.js"), VD = j(R + "/lib/sampleVentureData.js"), { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js"), DIST = j(R + "/lib/distributions.js"), { lastCompletedQuarterEnd } = j(R + "/lib/valuations.js");
+  const T = V.SAMPLE_VENTURE_AS_OF, v = V.buildSampleVentures({ baseInputs: DEFAULT_INPUTS, todayISO: T });
+  const deals = v.deals.map((d) => ({ ...d, inputs: VD.withSampleVentureData(d.inputs, d.id, { todayISO: T }) })), off = [];
+  for (const d of deals) {
+    const bp = d.inputs.businessPlan, uw = underwrite(d.inputs.uwBaseline.inputs), now = underwrite(v.deals.find((x) => x.id === d.id).inputs), months = Object.keys(bp.actuals), start = bp.revisions[0].budget.start;
+    const yr = (m) => Math.floor((Number(m.slice(0, 4)) * 12 + Number(m.slice(5, 7)) - Number(start.slice(0, 4)) * 12 - Number(start.slice(5, 7))) / 12);
+    if (!bp.revisions[0].budget.years.every((y, k) => Math.abs(y.lines.noi - uw.annualCashFlows[k].noi) < 0.01)) off.push(`${d.inputs.propertyName}: budget`);
+    if (!months.every((m) => Math.abs(bp.actuals[m].noi - now.annualCashFlows[yr(m)].noi / 12) < 0.01)) off.push(`${d.inputs.propertyName}: actuals`);
+    const pm = d.inputs.propertyMgmt;
+    if (pm && pm.policies.reduce((s, p) => s + p.premium, 0) !== Math.round(d.inputs.insurancePSF * d.inputs.squareFootage)) off.push(`${d.inputs.propertyName}: insurance`);
+  }
+  for (const [name, terms] of Object.entries(v.funds)) {
+    const mine = deals.filter((d) => d.inputs.fundName === name), rec = VD.sampleVentureFundData(name, deals, terms, { todayISO: T }), p = rec.distributions?.proposals?.find((x) => x.status === "proposed"), paid = rec.distributions?.proposals?.find((x) => x.status === "paid");
+    // The sale's proceeds: its closing's net, all of it to the partners.
+    const cl = mine.flatMap((d) => d.inputs.dispositions ?? []).find((x) => x.stage === "closed")?.closing;
+    if (!!cl !== !!paid || (cl && (Math.abs(paid.amount - cl.net) > 0.01 || Math.abs(paid.lp + paid.gp - paid.amount) > 0.02))) off.push(`${name}: sale distribution`);
+    const calc = DIST.distributable(mine.map((d) => SP.snapshotDeal(d.inputs, d.id)), terms, lastCompletedQuarterEnd(T), { todayISO: T });
+    if (!p || Math.abs(p.amount - calc.total) > 0.01) off.push(`${name}: proposal`);
+  }
+  ok(off.length === 0, `the two portfolios' plans are their closing models, their actuals their models today, their insurance their own expense, and each proposal what Distribution Analysis computes${off.length ? " — " + off.join("; ") : ""}`);
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);

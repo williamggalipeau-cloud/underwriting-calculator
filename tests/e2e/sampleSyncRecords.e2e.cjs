@@ -131,7 +131,7 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
     const sold = va.find((r) => r.key === "sample-jv-1"); const si = sold?.data?.inputs ?? sold?.data;
     check(si?.dispositions?.[0]?.stage === "closed" && si.realizedSaleDate === "2026-06-30", "the sold asset's closing is saved");
   }
-  check(fund?.data?.sampleDataVersion === 12 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
+  check(fund?.data?.sampleDataVersion === 13 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
   {
     // 1.1.22: the fund-level sample records, in the saved fund record.
     const fd = fund?.data ?? {};

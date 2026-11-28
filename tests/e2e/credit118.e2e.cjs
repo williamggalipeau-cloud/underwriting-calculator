@@ -58,9 +58,10 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await tc.getByRole("button", { name: "All assets" }).click();
   await p.waitForTimeout(600);
   const filt = await tc.getByRole("tablist", { name: "Tenant Credit filter" }).innerText();
-  check(/Needs attention 5/.test(filt) && /All tenants \d{2,}/.test(filt), `filters: ${filt.replace(/\s+/g, " ")}`);
+  // 1.1.28: with the joint venture's and separate account's three credit stories (two to watch, one with no record).
+  check(/Needs attention 8/.test(filt) && /All tenants \d{2,}/.test(filt), `filters: ${filt.replace(/\s+/g, " ")}`);
   const statuses = await tc.getByTestId("credit-status").allInnerTexts();
-  check(statuses.filter((x) => x === "Weak").length === 4 && statuses.filter((x) => x === "Missing").length === 1, `needs attention: 4 Weak, 1 Missing (${statuses.join(", ")})`);
+  check(statuses.filter((x) => x === "Weak").length === 6 && statuses.filter((x) => x === "Missing").length === 2, `needs attention: 6 Weak, 2 Missing (Model Fund I's 4 and 1, the two portfolios' 2 and 1) (${statuses.join(", ")})`);
   const hl = tc.getByTestId("credit-row").filter({ hasText: "Harbor Light Industrial" });
   check(/Credit change: Lost its largest customer/.test(await hl.innerText()) && /Rent 60\+ days late/.test(await hl.innerText()) && /Paydex 74 \/ 70/.test(await hl.innerText()), "Harbor Light: score passes, but a credit-change flag and rent 60+ days late → Weak");
   check(/Consumer 612 \/ 650/.test(await tc.getByTestId("credit-row").filter({ hasText: "Airport Flex Park" }).innerText()), "Airport Flex: score 612 below 650, shown in red");

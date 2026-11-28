@@ -161,7 +161,7 @@ check(["pref_pct", "catch_up_pct", "promote", "tier_method"].every((k) => FIELDS
   check(b.returns.irr > a.returns.irr && Math.abs(b.annualCashFlows[0].noi - a.annualCashFlows[0].noi) < 1e-6, "the fee is below NOI: the return rises, NOI does not move");
   const DOCS = require(R + "/lib/sampleDocChanges.json"), TERMS = require(R + "/lib/sampleTermChanges.json");
   check(DOCS["12"].join() === "airport-flex-ic-memo.pdf,airport-flex-ic-presentation.pdf" && TERMS["12"].length === 2 && TERMS["12"].every(([id, field]) => id === "sample-deal-1" && field.startsWith("icApproved.")), "the two documents that state a return are replaced, and the IC approval's return follows");
-  check(SP.SAMPLE_DATA_VERSION === 12, "the sample data version is 12");
+  check(SP.SAMPLE_DATA_VERSION >= 12, "the sample data version is 12 or later");
 }
 
 console.log(`ventures1127: ${pass} passed, ${fail} failed`);

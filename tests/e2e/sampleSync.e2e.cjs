@@ -97,7 +97,21 @@ const removed = [], removedLeases = [];
   check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 12, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 13, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  {
+    // 1.1.28: the two portfolios' remaining tab data, as actually saved.
+    const va = (sd?.deals ?? []).filter((d) => /^sample-(jv|sma)-\d+$/.test(d.id)), heldA = va.filter((d) => d.id !== "sample-jv-1"), soldA = va.find((d) => d.id === "sample-jv-1")?.inputs;
+    check(va.length === 4 && va.every((d) => (d.inputs.businessPlan?.revisions ?? []).length === 1 && Object.keys(d.inputs.businessPlan.actuals ?? {}).length > 30 && d.inputs.businessPlan.revisions[0].budget?.years?.length === 4), `1.1.28 saved: each of the four assets has its business plan, closing budget and monthly actuals (${va.map((d) => Object.keys(d.inputs.businessPlan?.actuals ?? {}).length).join()})`);
+    check(heldA.length === 3 && heldA.every((d) => (d.inputs.leasing?.prospects ?? []).filter((p) => String(p.id).startsWith("sample-lp-")).length > 3 && d.inputs.leasingManager) && !(soldA?.leasing?.prospects ?? []).length, `1.1.28 saved: leasing prospects and a leasing manager on the three held assets, none on the sold one (${heldA.map((d) => d.inputs.leasing?.prospects?.length).join()})`);
+    check(heldA.every((d) => d.inputs.units.filter((u) => u.sampleCreditStory).length === 1) && heldA.find((d) => d.id === "sample-jv-2").inputs.units.find((u) => u.sampleCreditStory).credit.flags.some((f) => f.status === "open") && heldA.find((d) => d.id === "sample-jv-3").inputs.units.find((u) => u.sampleCreditStory).credit.records.some((r) => r.result === "conditional"), "1.1.28 saved: one tenant credit story on each held asset (an open flag, a conditional screening, a missing record)");
+    check(heldA.every((d) => { const pm = d.inputs.propertyMgmt ?? {}; return pm.parcels?.length === 1 && pm.bills?.length === 3 && pm.policies?.length === 3 && pm.items?.length === 4 && pm.contracts?.length === 4; }) && !soldA?.propertyMgmt, "1.1.28 saved: Property Management rows on the three held assets, none on the sold one");
+    const vf = ["Sample Industrial Venture I", "Sample Separate Account A"].map((n) => sd?.funds?.[n]);
+    const prop = (t) => (t?.distributions?.proposals ?? []).filter((x) => x.status === "proposed");
+    check(vf.every((t) => Object.keys(t?.delinquency?.months ?? {}).length === 2 && prop(t).length === 1 && prop(t)[0].amount > 100000), `1.1.28 saved: each portfolio has two months of aged receivables and last quarter's distribution proposal (${vf.map((t) => Math.round(prop(t)[0]?.amount ?? 0)).join()})`);
+    const paidP = (vf[0]?.distributions?.proposals ?? []).filter((x) => x.status === "paid"), act = (vf[0]?.capitalActivity ?? []).filter((a) => a.type === "distribution"), cl = soldA?.dispositions?.[0]?.closing;
+    check(paidP.length === 1 && act.length === 1 && act[0].id === paidP[0].activityId && Math.abs(paidP[0].amount - cl.net) < 0.01 && Math.abs(paidP[0].lp + paidP[0].gp - paidP[0].amount) < 0.02 && paidP[0].paidDate === "2026-07-15" && !(vf[1]?.capitalActivity ?? []).length, `1.1.28 saved: the sale's net proceeds are recorded as paid to the partners per the waterfall, on the joint venture only (LP ${Math.round(paidP[0]?.lp ?? 0)}, GP ${Math.round(paidP[0]?.gp ?? 0)})`);
+    check(va.every((d) => d.inputs.uwBaseline?.inputs && (d.inputs.units ?? []).some((u) => (u.laterLeases ?? []).length)) && va.find((d) => d.id === "sample-jv-3").inputs.units.filter((u) => u.moveOut).length === 1, "1.1.28 saved: what earlier versions added is still there (the closing model, the leases signed since, the move-out)");
+  }
   {
     // 1.1.27: what this version adds, as actually stored and saved.
     const title = (d) => d.title ?? "", onAsset = (id) => venDocs.filter((d) => d.deal_id === id);
