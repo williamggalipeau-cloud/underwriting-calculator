@@ -1,5 +1,6 @@
 "use client";
 
+import { UnitMixEditor } from "@/components/UnitMix";
 import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/fundTerms";
 import { SIC_CODES, sicLabel, sicTitle, suggestSic } from "@/lib/sicCodes";
@@ -329,7 +330,7 @@ const COL_HEADERS = [
   { key: "tiConcR",   label: "TI Conc R", width: "w-20", tip: "TI concession $/SF — renewal (income-side deduction)" },
 ];
 
-export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId, delinquencyByUnit, email = "" }) {
+export default function UnitRoll({ units, inputs, onChange, onInputs = () => {}, workspaceId, dealId, delinquencyByUnit, email = "" }) {
   const headerId  = useId();
   const fileInput = useRef(null);
   const [csvError, setCsvError] = useState(null);
@@ -816,6 +817,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
           <div className="p-3 pt-0"><LeaseSummary la={la} /></div>
         </details>
       )}
+      {units.length > 0 && <UnitMixEditor inputs={inputs} units={units} onUnits={onChange} onInputs={onInputs} />}
       {la.leases > 0 && la.industryMix?.length > 0 && (
         <details className="rounded-xl border border-gray-200 bg-white" data-testid="rr-industry-section">
           <summary className="cursor-pointer px-3 py-2 text-sm"><b>Tenant industries (SIC)</b><span className="text-gray-600"> · {la.industryMix.length} industr{la.industryMix.length === 1 ? "y" : "ies"}, largest {la.industryMix[0].pctSF.toFixed(0)}% of leased SF{la.industryMix[0].title ? ` (${la.industryMix[0].title})` : ""}</span></summary>

@@ -7,6 +7,8 @@ import {
   LINES, PERIODS, addRevision, budgetFromModel, budgetRows, diffPlans, fundVariance, kpiActuals, matchProperties,
   milestoneStatus, modelChanges, modelFingerprint, parseIncomeStatement, periodKey, seedPlan, varianceReport, varianceRows,
 } from "@/lib/businessPlan";
+import { PROJECT_STATUS, PROJECT_TYPES, capitalTieOut } from "@/lib/capitalProjects";
+import { MixCompare } from "@/components/UnitMix";
 import { downloadBlob, parseCSV, safeFileName } from "@/lib/fundTerms";
 import { readXlsxGrid, writeXlsx } from "@/lib/xlsx";
 
@@ -222,15 +224,38 @@ export default function BusinessPlan({ dealId, inputs, fundName, fundType = "", 
         {(inputs?.construction?.jobs ?? []).length > 0 && <div className="mt-2"><p className="mb-1 text-xs font-semibold text-gray-600">TI spend by unit (construction jobs; upload on Property Condition)</p><TiByUnitTable inputs={inputs} compact /></div>}
       </Section>
 
-      <Section title="Capital plan" right={editing && <button type="button" className={`${btn} border-gray-300`} onClick={() => addRow("capital", { id: `c${Date.now()}`, project: "", scope: "", budget: 0, start: "", end: "", spent: 0, expectedReturn: "" })}>Add project</button>}>
-        <Table testid="plan-capital" head={["Project", "Scope", "Budget", "Spent", "Start", "End", "Expected return", ""]} rows={(p.capital ?? []).length ? p.capital.map((c, i) => (
-          <tr key={c.id} className="border-t border-gray-100">
-            {[["project", "text", "w-40"], ["scope", "text", "w-40"], ["budget", "number", "w-24"], ["spent", "number", "w-24"], ["start", "date", "w-32"], ["end", "date", "w-32"], ["expectedReturn", "text", "w-28"]].map(([f, ty, w]) => <td key={f} className="px-2 py-1">{field(["capital", i, f], ty, w)}</td>)}
-            <td className="px-2 py-1">{editing && <button type="button" className="text-gray-500 hover:text-red-600" onClick={() => delRow("capital", i)} aria-label="Remove project">✕</button>}</td>
-          </tr>
-        )) : [<tr key="n"><td colSpan={8} className="px-2 py-1 text-gray-500">No capital projects</td></tr>]} />
-        {(p.capital ?? []).length > 0 && <p className="text-[11px] text-gray-500">Spent {money(p.capital.reduce((s, c) => s + (Number(c.spent) || 0), 0))} of {money(p.capital.reduce((s, c) => s + (Number(c.budget) || 0), 0))} budgeted.</p>}
+      {/* 1.1.30: the underwriting's capital projects, project by project;
+          a project added later is Unbudgeted and counted against the
+          underwritten budget. Spent is the invoices of the project's
+          construction jobs, else the figure entered. */}
+      <Section title="Capital plan" right={editing && <button type="button" className={`${btn} border-gray-300`} onClick={() => addRow("capital", { id: `c${Date.now()}`, project: "", type: "Other", scope: "", budget: 0, start: "", end: "", spent: 0, expectedReturn: "", source: "unbudgeted" })}>Add project</button>}>
+        {(() => {
+          const tie = capitalTieOut(inputs, p, bp);
+          return (<>
+            <Table testid="plan-capital" head={["Project", "Type", "Source", "Scope", "Budget", "Spent", "Remaining", "Start", "End", "Status", "Expected return", ""]} rows={tie.rows.length ? tie.rows.map((c, i) => (
+              <tr key={c.id} className="border-t border-gray-100" data-testid="plan-capital-row" data-source={c.source}>
+                <td className="px-2 py-1">{field(["capital", i, "project"], "text", "w-40")}</td>
+                <td className="px-2 py-1">{editing ? <select value={c.type ?? "Other"} onChange={(e) => set(["capital", i, "type"], e.target.value)} className={inp} aria-label={`capital ${i} type`}>{PROJECT_TYPES.map((t) => <option key={t}>{t}</option>)}</select> : c.type ?? "—"}</td>
+                <td className="px-2 py-1"><span className={`whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[10px] ${c.source === "unbudgeted" ? "border-amber-300 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`} data-testid="plan-capital-source">{c.source === "unbudgeted" ? "Unbudgeted" : "Underwriting"}</span></td>
+                <td className="px-2 py-1">{field(["capital", i, "scope"], "text", "w-40")}</td>
+                <td className="px-2 py-1">{field(["capital", i, "budget"], "number", "w-24")}</td>
+                <td className="px-2 py-1 whitespace-nowrap" data-testid="plan-capital-spent">{c.spentFrom === "invoices" ? <span title={`From the construction invoices of ${c.jobs.join(", ")}`}>{money(c.spent)} <span className="text-[10px] text-gray-500">invoices</span></span> : <>{field(["capital", i, "spent"], "number", "w-24")}{!editing && <span className="text-[10px] text-gray-500"> {c.spent ? "entered" : "no job linked"}</span>}</>}</td>
+                <td className={`px-2 py-1 whitespace-nowrap ${c.remaining < 0 ? "text-red-700" : ""}`}>{money(c.remaining)}</td>
+                <td className="px-2 py-1">{field(["capital", i, "start"], "date", "w-32")}</td>
+                <td className="px-2 py-1">{field(["capital", i, "end"], "date", "w-32")}</td>
+                <td className="px-2 py-1 whitespace-nowrap">{c.type === "Contingency" ? "" : PROJECT_STATUS[c.status]}</td>
+                <td className="px-2 py-1">{field(["capital", i, "expectedReturn"], "text", "w-28")}</td>
+                <td className="px-2 py-1">{editing && <button type="button" className="text-gray-500 hover:text-red-600" onClick={() => delRow("capital", i)} aria-label="Remove project">✕</button>}</td>
+              </tr>
+            )) : [<tr key="n"><td colSpan={12} className="px-2 py-1 text-gray-500">No capital projects</td></tr>]} />
+            {tie.rows.length > 0 && <p className="text-[11px] text-gray-500">Spent {money(tie.spent)} of {money(tie.budget)} budgeted.</p>}
+            {(tie.rows.length > 0 || tie.underwritten > 0) && <p className={`rounded-lg border px-2.5 py-1.5 text-xs ${tie.ties ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-300 bg-amber-50 text-amber-900"}`} data-testid="plan-capital-tie">{tie.text}{!tie.ties && tie.unbudgetedCount ? " The approval step comes with Workflow in version 1.2; until then it is marked and counted." : ""}</p>}
+            <p className="text-[11px] text-gray-500">Spent is read from the construction invoices booked to a project&apos;s jobs (Property Condition → construction upload; a job is matched by its name, its link to a finding in the project, or a link set on the job). A project with no job shows the figure entered here.</p>
+          </>);
+        })()}
       </Section>
+
+      <Section title="Office and industrial mix"><MixCompare inputs={inputs} /></Section>
 
       <Section title="Operating, financing and exit">
         <div className="grid gap-2 md:grid-cols-2">

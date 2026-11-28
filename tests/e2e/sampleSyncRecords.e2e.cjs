@@ -131,7 +131,23 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
     const sold = va.find((r) => r.key === "sample-jv-1"); const si = sold?.data?.inputs ?? sold?.data;
     check(si?.dispositions?.[0]?.stage === "closed" && si.realizedSaleDate === "2026-06-30", "the sold asset's closing is saved");
   }
-  check(fund?.data?.sampleDataVersion === 14 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
+  // 1.1.30 (version 15): capital projects and the unit mix, on what is saved.
+  {
+      const sum = (xs, f) => xs.reduce((s, x) => s + (Number(f(x)) || 0), 0);
+      const bad = rows.filter((r) => r.kind === "deal" && /^sample-(deal|jv|sma)-\d+$/.test(r.key)).map((r) => r.data?.inputs ?? r.data).filter((i) => {
+        const cp = i.capitalProjects ?? [], units = i.units ?? [], cap = i.businessPlan?.revisions?.at(-1)?.plan?.capital ?? null;
+        if (Number(i.capexBudget) > 0 && (cp.length < 3 || sum(cp, (x) => x.budget) !== i.capexBudget || cp.filter((x) => x.type === "Contingency").length !== 1)) return true;
+        if (cap && (cap.length !== cp.length || sum(cap, (x) => x.budget) !== i.capexBudget || cap.some((x) => x.source !== "underwriting"))) return true;
+        if (units.length && (!units.every((u) => u.use && u.officeSF != null) || sum(units, (u) => u.officeSF) !== Number(i.building?.officeSF) || !i.mixTargets?.sf || !i.mixTargets?.rent)) return true;
+        return false;
+      });
+      check(rows.filter((r) => r.kind === "deal" && /^sample-(deal|jv|sma)-\d+$/.test(r.key)).map((r) => r.data?.inputs ?? r.data).length === 13 && bad.length === 0, `1.1.30 saved: on all 13 sample assets the capital projects total the Capex Budget (in the plan too), every unit has a use and office SF adding up to the building's, and the mix targets are set (${rows.filter((r) => r.kind === "deal" && /^sample-(deal|jv|sma)-\d+$/.test(r.key)).map((r) => r.data?.inputs ?? r.data).length} assets${bad.length ? `; off: ${bad.map((i) => i.propertyName).join(", ")}` : ""})`);
+      const a1 = rows.filter((r) => r.kind === "deal" && /^sample-(deal|jv|sma)-\d+$/.test(r.key)).map((r) => r.data?.inputs ?? r.data).find((i) => i.propertyName === "Airport Flex Park"), capJobs = (a1?.construction?.jobs ?? []).filter((x) => x.category === "Capital Improvements");
+      check(capJobs.some((x) => x.name === "LED lighting" && x.invoiced === 6000 && (x.invoices ?? []).length > 0) && capJobs.some((x) => x.name === "Roof replacement, Building B" && x.invoiced === 99000), "1.1.30 saved: the sample capital jobs the plan's spent is read from (Airport Flex Park: roof $99,000 and LED lighting $6,000)");
+      const ven = rows.filter((r) => r.kind === "deal" && /^sample-(deal|jv|sma)-\d+$/.test(r.key)).map((r) => r.data?.inputs ?? r.data).filter((i) => i.sampleVenture);
+      check(ven.length === 4 && ven.every((i) => sum(i.uwBaseline?.inputs?.capitalProjects ?? [], (x) => x.budget) === i.uwBaseline?.inputs?.capexBudget && (i.uwBaseline?.inputs?.units ?? []).every((u) => u.use)), "1.1.30 saved: the joint venture's and separate account's closing models hold the projects and the unit mix too");
+    }
+  check(fund?.data?.sampleDataVersion === 15 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
   {
     // 1.1.22: the fund-level sample records, in the saved fund record.
     const fd = fund?.data ?? {};

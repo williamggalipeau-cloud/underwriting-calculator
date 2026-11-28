@@ -128,6 +128,15 @@ const JOBS = [
   ["Ridgeway Trade Center", "014", "Unit 014 lease-up TI", "Tenant Improvements", "new", "", null, 1.344, 1.344, 0.85, "Complete", "2026-07-20", "2026-10-09", "2026-10-09"], // 34% over
   ["Mill Creek Business Park", "021", "Unit 021 lease-up TI", "Tenant Improvements", "new", "", null, 0.6, 0.25, 1, "In progress", "2026-10-05", "", "2027-01-08"],
 ];
+// 1.1.30: the capital projects of each asset's underwriting (lib/sampleCapital.js
+// sampleCapitalJobs) as jobs named after the projects, so the Asset Business
+// Plan's Capital plan reads what was spent from these invoices. The two
+// capital jobs above are kept as they were; the rest follow, in asset order.
+const { sampleCapitalJobs } = j(R + "/lib/sampleCapital.js");
+for (const d of deals) for (const cj of sampleCapitalJobs(d.inputs, d.id)) {
+  if (JOBS.some((x) => x[0] === d.inputs.propertyName && x[2] === cj.name)) continue;
+  JOBS.push([d.inputs.propertyName, "", cj.name, "Capital Improvements", "capex", "", cj.budget, cj.committed / cj.budget, cj.invoiced / cj.budget, cj.status === "Complete" ? 1 : 0.9, cj.status, cj.start, cj.completion, cj.scheduled]);
+}
 const VENDORS = { "Tenant Improvements": ["Example Builders Inc.", "Sample Electric Co.", "Fictional HVAC Services"], "Capital Improvements": ["Test Roofing & Paving LLC", "Example Builders Inc."] };
 const jobRows = [["Job Code", "Property", "Property Name", "Unit", "Job Name", "Category", "Tenant", "Original Budget", "Revisions", "Revised Budget", "Committed", "Invoiced to Date", "Paid to Date", "Retainage Held", "Remaining Budget", "Status", "Start Date", "Completion Date", "Scheduled Completion"]];
 const invRows = [["Job Code", "Property", "Unit", "Vendor", "Invoice Number", "Invoice Date", "Cost Code", "Description", "Amount", "Status"]];

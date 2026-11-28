@@ -99,7 +99,7 @@ const removed = [], removedLeases = [];
   check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 14, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 15, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
   {
     // 1.1.29: what this version adds, as actually saved and stored.
     const jv = sd?.funds?.["Sample Industrial Venture I"], sma = sd?.funds?.["Sample Separate Account A"];
@@ -112,6 +112,22 @@ const removed = [], removedLeases = [];
     check(agr.length === 2 && agr.every((d) => ["target_irr_pct", "target_multiple", "target_cash_yield_pct", "investor_type", "agreement_date"].every((k) => fk(d).includes(k)) && (d.abstract.limits ?? []).length >= 3), `1.1.29 stored: one joint venture agreement and one separate account agreement, each stating the target return and restrictions (${agr.length})`);
     const mf = (sd?.deals ?? []).filter((d) => /^sample-deal-\d+$/.test(d.id)), recs = mf.flatMap((d) => Object.values(d.inputs.tenantInsurance ?? {}));
     check(mf.length === 9 && mf.every((d) => Object.keys(d.inputs.tenantInsurance ?? {}).length === 1) && recs.filter((r) => r.received).length === 1 && recs.every((r) => r.requested) && mf.find((d) => d.id === "sample-deal-1").inputs.tenantInsurance["blue-mesa-fulfillment"]?.received === "2026-05-04", `1.1.29 saved: a tenant insurance record on each of Model Fund I's nine assets, one with proof received (${recs.length} records)`);
+    // 1.1.30 (version 15): capital projects and the unit mix, on what is saved.
+    {
+      const sum = (xs, f) => xs.reduce((s, x) => s + (Number(f(x)) || 0), 0);
+      const bad = (sd?.deals ?? []).filter((d) => /^sample-(deal|jv|sma)-\d+$/.test(d.id)).map((d) => d.inputs).filter((i) => {
+        const cp = i.capitalProjects ?? [], units = i.units ?? [], cap = i.businessPlan?.revisions?.at(-1)?.plan?.capital ?? null;
+        if (Number(i.capexBudget) > 0 && (cp.length < 3 || sum(cp, (x) => x.budget) !== i.capexBudget || cp.filter((x) => x.type === "Contingency").length !== 1)) return true;
+        if (cap && (cap.length !== cp.length || sum(cap, (x) => x.budget) !== i.capexBudget || cap.some((x) => x.source !== "underwriting"))) return true;
+        if (units.length && (!units.every((u) => u.use && u.officeSF != null) || sum(units, (u) => u.officeSF) !== Number(i.building?.officeSF) || !i.mixTargets?.sf || !i.mixTargets?.rent)) return true;
+        return false;
+      });
+      check((sd?.deals ?? []).filter((d) => /^sample-(deal|jv|sma)-\d+$/.test(d.id)).map((d) => d.inputs).length === 13 && bad.length === 0, `1.1.30 saved: on all 13 sample assets the capital projects total the Capex Budget (in the plan too), every unit has a use and office SF adding up to the building's, and the mix targets are set (${(sd?.deals ?? []).filter((d) => /^sample-(deal|jv|sma)-\d+$/.test(d.id)).map((d) => d.inputs).length} assets${bad.length ? `; off: ${bad.map((i) => i.propertyName).join(", ")}` : ""})`);
+      const a1 = (sd?.deals ?? []).filter((d) => /^sample-(deal|jv|sma)-\d+$/.test(d.id)).map((d) => d.inputs).find((i) => i.propertyName === "Airport Flex Park"), capJobs = (a1?.construction?.jobs ?? []).filter((x) => x.category === "Capital Improvements");
+      check(capJobs.some((x) => x.name === "LED lighting" && x.invoiced === 6000 && (x.invoices ?? []).length > 0) && capJobs.some((x) => x.name === "Roof replacement, Building B" && x.invoiced === 99000), "1.1.30 saved: the sample capital jobs the plan's spent is read from (Airport Flex Park: roof $99,000 and LED lighting $6,000)");
+      const ven = (sd?.deals ?? []).filter((d) => /^sample-(deal|jv|sma)-\d+$/.test(d.id)).map((d) => d.inputs).filter((i) => i.sampleVenture);
+      check(ven.length === 4 && ven.every((i) => sum(i.uwBaseline?.inputs?.capitalProjects ?? [], (x) => x.budget) === i.uwBaseline?.inputs?.capexBudget && (i.uwBaseline?.inputs?.units ?? []).every((u) => u.use)), "1.1.30 saved: the joint venture's and separate account's closing models hold the projects and the unit mix too");
+    }
   }
   {
     // 1.1.28: the two portfolios' remaining tab data, as actually saved.

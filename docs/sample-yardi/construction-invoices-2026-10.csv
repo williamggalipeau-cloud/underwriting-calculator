@@ -25,3 +25,34 @@ mf1-04-J10,mf1-04,014,Sample Electric Co.,INV-1020,2026-08-17,TI-200,"Unit 014 l
 mf1-04-J10,mf1-04,014,Fictional HVAC Services,INV-1021,2026-08-31,TI-200,"Unit 014 lease-up TI, draw 3",7164,Approved
 mf1-06-J11,mf1-06,021,Example Builders Inc.,INV-1022,2026-10-19,TI-200,"Unit 021 lease-up TI, draw 1",2250,Paid
 mf1-06-J11,mf1-06,021,Sample Electric Co.,INV-1023,2026-10-31,TI-200,"Unit 021 lease-up TI, draw 2",2250,Paid
+mf1-01-J12,mf1-01,,Test Roofing & Paving LLC,INV-1024,2026-09-15,CAP-100,"LED lighting, draw 1",3000,Paid
+mf1-01-J12,mf1-01,,Example Builders Inc.,INV-1025,2026-09-29,CAP-100,"LED lighting, draw 2",3000,Approved
+mf1-02-J13,mf1-02,,Test Roofing & Paving LLC,INV-1026,2026-04-30,CAP-100,"LED lighting, draw 1",91670,Paid
+mf1-02-J13,mf1-02,,Example Builders Inc.,INV-1027,2026-05-14,CAP-100,"LED lighting, draw 2",91670,Paid
+mf1-02-J13,mf1-02,,Test Roofing & Paving LLC,INV-1028,2026-05-28,CAP-100,"LED lighting, draw 3",91660,Paid
+mf1-02-J14,mf1-02,,Test Roofing & Paving LLC,INV-1029,2026-06-30,CAP-100,"Landscaping and irrigation, draw 1",25000,Paid
+mf1-02-J14,mf1-02,,Example Builders Inc.,INV-1030,2026-07-14,CAP-100,"Landscaping and irrigation, draw 2",25000,Paid
+mf1-02-J14,mf1-02,,Test Roofing & Paving LLC,INV-1031,2026-07-28,CAP-100,"Landscaping and irrigation, draw 3",25000,Approved
+mf1-03-J15,mf1-03,,Test Roofing & Paving LLC,INV-1032,2026-08-13,CAP-100,"Roof and dock repairs, draw 1",131000,Paid
+mf1-03-J15,mf1-03,,Example Builders Inc.,INV-1033,2026-08-27,CAP-100,"Roof and dock repairs, draw 2",131000,Paid
+mf1-03-J15,mf1-03,,Test Roofing & Paving LLC,INV-1034,2026-09-10,CAP-100,"Roof and dock repairs, draw 3",131000,Approved
+mf1-04-J16,mf1-04,,Test Roofing & Paving LLC,INV-1035,2026-07-29,CAP-100,"Monument and tenant signage, draw 1",16670,Paid
+mf1-04-J16,mf1-04,,Example Builders Inc.,INV-1036,2026-08-12,CAP-100,"Monument and tenant signage, draw 2",16670,Paid
+mf1-04-J16,mf1-04,,Test Roofing & Paving LLC,INV-1037,2026-08-26,CAP-100,"Monument and tenant signage, draw 3",16660,Paid
+mf1-04-J17,mf1-04,,Test Roofing & Paving LLC,INV-1038,2026-08-29,CAP-100,"Fire sprinkler upgrades, draw 1",2500,Paid
+mf1-04-J17,mf1-04,,Example Builders Inc.,INV-1039,2026-09-12,CAP-100,"Fire sprinkler upgrades, draw 2",2500,Approved
+mf1-04-J18,mf1-04,,Test Roofing & Paving LLC,INV-1040,2026-07-29,CAP-100,"Dock and slab repairs, draw 1",51670,Paid
+mf1-04-J18,mf1-04,,Example Builders Inc.,INV-1041,2026-08-12,CAP-100,"Dock and slab repairs, draw 2",51670,Paid
+mf1-04-J18,mf1-04,,Test Roofing & Paving LLC,INV-1042,2026-08-26,CAP-100,"Dock and slab repairs, draw 3",51660,Paid
+mf1-05-J19,mf1-05,,Test Roofing & Paving LLC,INV-1043,2026-07-29,CAP-100,"Demise the corner unit, draw 1",13330,Paid
+mf1-05-J19,mf1-05,,Example Builders Inc.,INV-1044,2026-08-12,CAP-100,"Demise the corner unit, draw 2",13330,Paid
+mf1-05-J19,mf1-05,,Test Roofing & Paving LLC,INV-1045,2026-08-26,CAP-100,"Demise the corner unit, draw 3",13340,Paid
+mf1-05-J20,mf1-05,,Test Roofing & Paving LLC,INV-1046,2026-07-29,CAP-100,"Spec suites in the vacant units, draw 1",15830,Paid
+mf1-05-J20,mf1-05,,Example Builders Inc.,INV-1047,2026-08-12,CAP-100,"Spec suites in the vacant units, draw 2",15830,Paid
+mf1-05-J20,mf1-05,,Test Roofing & Paving LLC,INV-1048,2026-08-26,CAP-100,"Spec suites in the vacant units, draw 3",15840,Approved
+mf1-06-J21,mf1-06,,Test Roofing & Paving LLC,INV-1049,2026-09-15,CAP-100,"Roof replacement, draw 1",81670,Paid
+mf1-06-J21,mf1-06,,Example Builders Inc.,INV-1050,2026-09-29,CAP-100,"Roof replacement, draw 2",81670,Paid
+mf1-06-J21,mf1-06,,Test Roofing & Paving LLC,INV-1051,2026-10-13,CAP-100,"Roof replacement, draw 3",81660,Approved
+mf1-06-J22,mf1-06,,Test Roofing & Paving LLC,INV-1052,2026-09-28,CAP-100,"LED lighting, draw 1",58330,Paid
+mf1-06-J22,mf1-06,,Example Builders Inc.,INV-1053,2026-10-12,CAP-100,"LED lighting, draw 2",58330,Paid
+mf1-06-J22,mf1-06,,Test Roofing & Paving LLC,INV-1054,2026-10-26,CAP-100,"LED lighting, draw 3",58340,Paid

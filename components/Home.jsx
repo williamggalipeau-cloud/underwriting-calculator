@@ -22,6 +22,7 @@ const KIND = {
   tax: ["Property tax", "bg-orange-50 text-orange-800"],
   insurance: ["Insurance", "bg-teal-50 text-teal-800"],
   tenantins: ["Tenant insurance", "bg-teal-50 text-teal-800"], // 1.1.29
+  capital: ["Capital plan", "bg-amber-50 text-amber-800"], // 1.1.30
   contract: ["Contract", "bg-gray-100 text-gray-700"],
   condition: ["Repair", "bg-red-50 text-red-700"],
   extension: ["Extension", "bg-amber-50 text-amber-800"],

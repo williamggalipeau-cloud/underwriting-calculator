@@ -32,6 +32,8 @@ import { withSampleResearch, withSampleResearchExtra } from "@/lib/sampleResearc
 import { withSamplePropertyMgmt } from "@/lib/samplePropertyMgmt";
 import { withSampleAssetFacts, withSampleSnda } from "@/lib/sampleAssetFacts";
 import { applySampleDocMarks, applySampleDocTerms, sampleFundTermsPatch, withSampleSale, withSampleSaleComps, withSampleTermChanges } from "@/lib/sampleDocTerms";
+import { withSample1130 } from "@/lib/sampleCapital";
+import { withSampleCapitalJobs } from "@/lib/sampleConstructionLoad";
 import { SAMPLE_CONSTRUCTION_AS_OF, SAMPLE_CONSTRUCTION_INVOICES_CSV, SAMPLE_CONSTRUCTION_JOBS_CSV } from "@/lib/sampleConstruction";
 import { ACTIVE_SALE_STAGES, makeSale } from "@/lib/dispositions";
 import Leases from "@/components/Leases";
@@ -1641,6 +1643,7 @@ export default function Home() {
         inp = withSampleDocProspect(inp, d.id); // 1.1.23: the prospect with fixed terms the sample leasing documents are written for (only where the asset does not have it)
         inp = withSampleResearchExtra(inp, d.id, { valuations: applySampleDocMarks(latestData.current?.valuations ?? cur.valuations ?? {}) }); // 1.1.23: research items of the remaining types, each only where the asset does not have it
         inp = withSampleTenantInsurance(inp, d.id); // 1.1.29: when proof of insurance was requested and received, for the tenants with a sample lease (only where the asset has no record for the tenant)
+        inp = withSampleCapitalJobs(withSample1130(inp, d.id), d.id); // 1.1.30: the Capex Budget as capital projects (in the plan too), the sample capital jobs their spending is read from (only jobs the asset does not have), and a use and office SF on every unit with mix targets, each only where the asset has none
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         const q = d.quick ? withSampleCmFeeBasis(d.quick, d.id) : d.quick; // the asset's screening copy follows, by the same rule
         return inp === d.inputs && q === d.quick ? d : { ...d, inputs: inp, ...(q !== d.quick ? { quick: q } : {}) };
@@ -2466,6 +2469,7 @@ export default function Home() {
                 inputs={inputs}
                 email={session?.user?.email ?? ""}
                 onChange={(units) => setInputs((prev) => ({ ...prev, units }))}
+                onInputs={(fn) => setInputs(fn)}
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
                 dealId={activeDeal.id}
                 delinquencyByUnit={(() => {

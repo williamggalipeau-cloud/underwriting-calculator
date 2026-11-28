@@ -1,5 +1,7 @@
 "use client";
 
+import { hasProjects } from "@/lib/capitalProjects";
+import { mixLine, mixToday } from "@/lib/unitMix";
 import UwVsActual from "@/components/UwVsActual";
 import FundTypeBadge from "@/components/FundTypeBadge";
 import { fundOptionLabel } from "@/lib/fundTypes";
@@ -215,13 +217,16 @@ function AssetDetail({ row, onOpenDeal, onOpenLeases, onClose, canEdit, email, o
         </p>
       )}
 
+      {/* 1.1.30: the office and industrial mix of the rent roll today */}
+      {(() => { const line = mixLine(mixToday(inp, new Date().toISOString().slice(0, 10))); return line ? <p className="text-xs" data-testid="as-mix"><span className="font-medium text-gray-500">Mix:</span> {line}</p> : null; })()}
+
       {/* Terms */}
       <div className="grid gap-x-6 gap-y-3 text-xs md:grid-cols-2 xl:grid-cols-4">
         <div>
           <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Acquisition</h4>
           <Fact label="Purchase price" value={fmtM(row.price)} sub={`$${fmt(row.pricePSF)}/SF`} />
           <Fact label="Closing costs" value={fmtM(closingCosts)} />
-          <Fact label="Capex budget" value={fmtM(capex)} sub={capex ? (inp.capexLenderFunded ? "lender-funded" : "equity-funded") : ""} />
+          <Fact label="Capex budget" value={fmtM(capex)} sub={capex ? `${inp.capexLenderFunded ? "lender-funded" : "equity-funded"}${hasProjects(inp) ? `; ${inp.capitalProjects.length} projects` : ""}` : ""} />
           <Fact label="Rate cap premium" value={fmtM(capPremium)} />
           <Fact label="Total cost" value={fmtM(totalCost)} />
           <Fact label="Year-1 NOI" value={fmtM(row.noi1)} sub={`${fmtPct(row.goingInCap, 2)} cap`} />

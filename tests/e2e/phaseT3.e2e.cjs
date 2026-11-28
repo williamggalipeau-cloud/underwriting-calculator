@@ -91,7 +91,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   ]);
   await p.waitForTimeout(800);
   const msg = await p.getByTestId("construction-msg").innerText();
-  check(/Imported 11 jobs and 23 invoices into [2-9] assets/.test(msg), `upload: ${msg.slice(0, 110)}`);
+  check(/Imported 22 jobs and 54 invoices into [2-9] assets/ /* 1.1.30: the file also holds the capital projects' jobs */.test(msg), `upload: ${msg.slice(0, 110)}`);
   check((await p.getByTestId("construction").getByTestId("ti-row").count()) === 3, "re-upload updates by job code (still 3 units)");
   const [dl] = await Promise.all([p.waitForEvent("download"), p.getByTestId("construction").getByRole("button", { name: "Excel" }).click()]);
   check(/construction-ti\.xlsx$/.test(dl.suggestedFilename()), "Excel export");
@@ -100,7 +100,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(22000);
   const sd = saved?.new_data ?? saved?.data;
   const c1 = sd?.deals?.find((d) => d.id === "sample-deal-1")?.inputs?.construction;
-  check(c1?.jobs?.length === 4 && c1.jobs.find((j) => j.code === "mf1-01-J01").invoices.length === 2 && c1.asOf, "saved on the asset: jobs with invoices");
+  check(c1?.jobs?.length === 5 && c1.jobs.find((j) => j.code === "mf1-01-J01").invoices.length === 2 && c1.asOf, "saved on the asset: jobs with invoices");
   await p.screenshot({ path: `${S}/construction.png` });
   check(errs.length === 0, `no page errors${errs.length ? ": " + errs.slice(0, 2).join(" / ") : ""}`);
   await b.close();

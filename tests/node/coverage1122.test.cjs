@@ -108,6 +108,10 @@ const DATA = [
     const st = (x) => rows.filter((r) => r.status === x).length;
     return st("ok") >= 1 && st("noProof") >= 1 && st("noLease") >= 1 && rows.some((r) => r.requested && r.received) && rows.some((r) => r.requested && !r.received && r.status === "noProof") && deals.every((d) => n(d.inputs.tenantInsurance) > 0);
   })()],
+  // 1.1.30: capital projects (underwriting and the plan) and the office and industrial mix.
+  ["quick", "capital projects (a list on every asset, one contingency line each)", all((a) => (a.capitalProjects ?? []).length >= 3 && a.capitalProjects.some((p) => p.type === "Contingency"))],
+  ["plan", "capital plan by project (spent from construction invoices on some, none yet on others)", (() => { const CP = j(R + "/lib/capitalProjects.js"); const rows = deals.flatMap((d) => CP.capitalRows(d.inputs, d.inputs.businessPlan?.revisions?.at(-1)?.plan)); return rows.some((r) => r.spentFrom === "invoices" && r.status === "complete") && rows.some((r) => r.status === "underway") && rows.some((r) => r.status === "notStarted") && rows.some((r) => r.remaining < 0); })()],
+  ["units", "unit use and office SF on every unit, with mix targets", all((a) => (a.units ?? []).every((u) => u.use && u.officeSF != null) && !!a.mixTargets?.sf && !!a.mixTargets?.rent)],
   ["fundsummary", "fund terms", Number(terms.mgmtFeePct) > 0],
   // 1.1.29: what New Portfolio Setup records on a joint venture and a separate account.
   ["fundsummary", "investor, target return, agreement dates and restrictions (joint venture, separate account)", Object.values(venFunds).every((t) => t.investorType && PSETUP.targetReturn(t).set && PSETUP.restrictionsOf(t).some((r) => r.measured) && PSETUP.restrictionsOf(t).some((r) => !r.measured)) && !!venFunds[VNAMES[0]].outsideSaleDate && !!venFunds[VNAMES[0]].buySellDate && venFunds[VNAMES[1]].authority === "approval" && venFunds[VNAMES[1]].terminationNoticeDays > 0],
