@@ -367,7 +367,35 @@ on the firm's own data warehouse 2.3.
     25. The asset is added to the Dispositions Track Record, and once all documents have been uploaded and saved (**[added]** and the true-up is complete) the asset is locked down and prevented from further editing.
 
     Placed by Claude, to confirm when the workflow is built: the broker opinions before the preliminary memo (step 3).
-  - **Still to come from the user (11/27):** workflows for Leasing and Property Management, to be recorded here the same way.
+  - **Leasing workflow: Unit Lease Up (user, 11/28; a draft "to be captured, no decision yet"; for v1.2; nothing scoped or coded).** The user's 15 steps, in their words and order:
+    1. Tenant notification received.
+    2. Type of event: Planned Roll, Lease Expiration, Abandonment, Surrender, Dark, Eviction.
+    3. Unit inspection and security deposit review.
+    4. Unit vacated.
+    5. Demise and rebuild: start and complete.
+    6. Asking rent determined (PSF).
+    7. Unit available for rent.
+    8. Listing agreement executed.
+    9. Unit listed.
+    10. Unit shown.
+    11. Offers received.
+    12. Effective rent.
+    13. Tenant screening: documents received, credit analysis performed.
+    14. Lease executed.
+    15. Tenant move-in.
+
+    **What Baywise holds today for these steps (11/28, from the code):** a move-out with its reason (1.1.27: expired, terminated, defaulted, bought out, other; not the user's six event types); Vacant since on a unit; prospects by stage (inquiry, tour, proposal, LOI, lease out, signed, lost) with asking, proposed and effective rent; tenant screening and credit review (1.1.8); a lease signed after purchase (1.1.24); construction jobs and TI spend. Not held: the notification and its date, the inspection, the security deposit review, the make-ready as a dated step, the listing agreement and listing dates, showings as events, move-in.
+
+    **Proposed by Claude, not accepted (the user has made no decision; to discuss when the workflow is scoped):**
+    - **Before step 1:** the renewal decision. The lease's renewal notice date is already a critical date; if the tenant renews, the workflow ends with a lease amendment and none of the steps below run.
+    - **With step 3:** the security deposit statement and refund, due within the state's deadline.
+    - **Before step 5:** the make-ready scope and budget approved, tied to the asset's capital plan.
+    - **With step 6:** a check of the asking rent against the business plan's rent and the submarket; an approval when a deal's effective rent is below the plan.
+    - **Between steps 11 and 14:** the letter of intent negotiated and signed.
+    - **Before step 14:** approvals the deal needs (the joint venture partner or client where the agreement requires it; the lender where the loan does).
+    - **Before step 15:** the tenant's certificate of insurance on file (the Insurance tab's Tenant insurance, 1.1.29), the first month's rent and deposit received, the tenant's work complete.
+    - **After step 15:** the lease uploaded and read in, the rent roll updated, the leasing commission paid, rent commencement recorded, and the listing closed.
+  - **Still to come from the user (11/27):** the workflow for Property Management, to be recorded here the same way.
 - **After merge:** the user opens Baywise once; Claude reads the live data back.
 
 **Live before it: version 1.1.13, sample data that ties out** (built 11/27; merged 11/27 as PR #119, `4746fd9`, with the user's OK and green tests; GitHub Release v1.1.13 published by the user and checked 11/27: tag `v1.1.13` on `4746fd9`).
