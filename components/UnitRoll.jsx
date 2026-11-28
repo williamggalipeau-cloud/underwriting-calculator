@@ -582,9 +582,9 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                         const owned = /^\d{4}-\d{2}-\d{2}$/.test(inputs.acquisitionDate ?? "") && inputs.acquisitionDate <= todayISO();
                         if (!owned) return null;
                         const t = leaseToday(u, { ...inputs, units }, todayISO());
-                        if (t.status === "purchase" || t.status === "vacant") return null;
+                        if (t.status === "purchase" || (t.status === "vacant" && !t.movedOut)) return null;
                         const cls = t.status === "ended" ? "bg-amber-100 text-amber-900" : t.status === "later" ? "bg-emerald-50 text-emerald-800" : "bg-gray-100 text-gray-700";
-                        return <span className={`mt-0.5 block whitespace-nowrap rounded px-1 text-[10px] font-medium ${cls}`} title={t.status === "ended" ? "This lease has ended and no newer lease is recorded. Open the unit (the arrow on the left) to add the lease signed since; until then the model uses your rollover assumptions." : laterLeasesOf(u).length ? "A lease signed since purchase. Open the unit to see the history." : ""} data-testid="unit-lease-today">{t.status === "ended" ? "⚠ " : ""}{leaseTodayLabel(t)}</span>;
+                        return <span className={`mt-0.5 block whitespace-nowrap rounded px-1 text-[10px] font-medium ${cls}`} title={t.status === "ended" ? "This lease has ended and no newer lease is recorded. Open the unit (the arrow on the left) to add the lease signed since, or record that the tenant moved out; until then the model uses your rollover assumptions." : laterLeasesOf(u).length ? "A lease signed since purchase. Open the unit to see the history." : ""} data-testid="unit-lease-today">{t.status === "ended" ? "⚠ " : ""}{leaseTodayLabel(t)}</span>;
                       })()}
                       {(() => {
                         const l = leases.find((x) => (x.unit_ids ?? []).includes(u.id));

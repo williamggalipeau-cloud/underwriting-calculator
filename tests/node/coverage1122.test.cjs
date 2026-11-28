@@ -99,10 +99,7 @@ const DATA = [
   ["reports", "issued reports", n(terms.reports?.issued) > 0],
 ];
 // Still missing, with the patch that adds it.
-const PENDING_DATA = {
-  // Model Fund I bought its assets in 2026 on the subscription line: no capital is called and nothing is distributable yet.
-  "distributions / distribution proposals": "1.1.28 (the sample joint venture's sale proceeds)",
-};
+const PENDING_DATA = {};
 for (const t of TABS) check(DATA.some(([tab]) => tab === t.id), `tab "${t.label}" (${t.id}) has no sample data set listed in this test`);
 for (const [tab, name, has] of DATA) {
   const key = `${tab} / ${name}`, pending = PENDING_DATA[key];

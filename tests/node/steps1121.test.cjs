@@ -85,7 +85,10 @@ check(stepped === 9 && f.deals.every((d) => d.inputs.units.filter((u) => u.rentS
     { id: "e", deal_id: "sample-deal-2", title: "[sale:s2] BOV: route9-bov.pdf", abstract: sample, files: [{ name: "route9-bov.pdf" }] },
   ];
   const gone = [...SD.supersededSampleDocs(stored, DOCS, { fromVersion: 7 }), ...SD.supersededSampleSaleDocs(stored, DOCS, { fromVersion: 7 })].map((x) => x.id).sort().join();
-  check(gone === "a,c" && SD.supersededSampleDocs(stored, DOCS, { fromVersion: 8 }).length + SD.supersededSampleSaleDocs(stored, DOCS, { fromVersion: 8 }).length === 0, `from version 7 the earlier IC memo and broker opinion are removed; a document read by Claude, an unchanged document and a firm at version 8 are not (${gone})`);
+  check(gone === "a,c" && SD.supersededSampleDocs(stored, DOCS, { fromVersion: 12 }).length + SD.supersededSampleSaleDocs(stored, DOCS, { fromVersion: 8 }).length === 0, `from version 7 the earlier IC memo and broker opinion are removed; a document read by Claude, an unchanged document and a firm at the latest version are not (${gone})`);
+  // 1.1.27 (version 12): the IC memo and IC presentation state the return on the new construction management fee basis.
+  const v12 = SD.supersededSampleDocs([...stored, { id: "f", deal_id: "sample-deal-1", title: "[acq] IC presentation: airport-flex-ic-presentation.pdf", abstract: sample, files: [{ name: "airport-flex-ic-presentation.pdf" }] }], DOCS, { fromVersion: 11 }).map((x) => x.id).sort().join();
+  check(v12 === "a,f", `from version 11 the IC memo and the IC presentation are replaced (${v12})`);
 }
 console.log(`${pass} passed${fail ? `, ${fail} failed` : ""}`);
 process.exit(fail ? 1 : 0);
