@@ -117,7 +117,7 @@ const removed = [], removedLeases = [];
     const moved = venA.flatMap((d) => d.inputs.units.filter((u) => u.moveOut).map((u) => `${d.id}:${u.moveOut.date}`));
     check(moved.join() === "sample-jv-3:2026-08-31", `1.1.27 saved: one tenant moved out with no replacement, on the asset behind plan (${moved.join()})`);
     const mfA = (sd?.deals ?? []).filter((d) => d.id.startsWith("sample-deal-"));
-    check(mfA.length === 9 && mfA.every((d) => d.inputs.cmFeeBasis === "spend" && (!d.quick || (d.quick.cmFeeBasis ?? "spend") === "spend")) && mfA.find((d) => d.id === "sample-deal-1").inputs.icApproved?.irr === 33.7, `1.1.27 saved: Model Fund I's nine assets charge construction management on construction spending, and the IC approval states the return on that basis (${mfA.filter((d) => d.inputs.cmFeeBasis === "spend").length} of 9; IC ${mfA.find((d) => d.id === "sample-deal-1")?.inputs.icApproved?.irr}%)`);
+    check(mfA.length === 9 && mfA.every((d) => d.inputs.cmFeeBasis === "spend" && (!d.quick || d.quick.cmFeeBasis === "spend")) && mfA.find((d) => d.id === "sample-deal-1").inputs.icApproved?.irr === 33.7, `1.1.27 saved: Model Fund I's nine assets charge construction management on construction spending, and the IC approval states the return on that basis (${mfA.filter((d) => d.inputs.cmFeeBasis === "spend").length} of ${mfA.length}; screening copies ${mfA.map((d) => d.quick?.cmFeeBasis ?? "none").join()}; IC ${mfA.find((d) => d.id === "sample-deal-1")?.inputs.icApproved?.irr}%)`);
     const icDocs = mfDocs.filter((d) => (d.files ?? []).some((f) => /airport-flex-ic-(memo|presentation)\.pdf/.test(f.name)));
     check(icDocs.length === 2, `1.1.27: one IC memo and one IC presentation (${icDocs.length})`);
   }

@@ -1639,7 +1639,8 @@ export default function Home() {
         inp = withSampleDocProspect(inp, d.id); // 1.1.23: the prospect with fixed terms the sample leasing documents are written for (only where the asset does not have it)
         inp = withSampleResearchExtra(inp, d.id, { valuations: applySampleDocMarks(latestData.current?.valuations ?? cur.valuations ?? {}) }); // 1.1.23: research items of the remaining types, each only where the asset does not have it
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
-        return inp === d.inputs ? d : { ...d, inputs: inp, ...(d.quick && inp.cmFeeBasis !== d.inputs.cmFeeBasis ? { quick: { ...d.quick, cmFeeBasis: inp.cmFeeBasis } } : {}) };
+        const q = d.quick ? withSampleCmFeeBasis(d.quick, d.id) : d.quick; // the asset's screening copy follows, by the same rule
+        return inp === d.inputs && q === d.quick ? d : { ...d, inputs: inp, ...(q !== d.quick ? { quick: q } : {}) };
       };
       const built = cur.deals.map(withDocs);
       noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents and the terms they state, property managers, legal entities, GP partners)");
