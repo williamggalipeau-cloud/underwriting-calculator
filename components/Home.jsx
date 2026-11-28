@@ -42,7 +42,7 @@ const shortText = (a) => (a.asset ? a.text.replace(` (${a.asset})`, "").replace(
 const STATUS_CLS = { "Past Due": "bg-red-50 text-red-700", "Due now": "bg-gray-900 text-white", Completed: "bg-emerald-50 text-emerald-700", Upcoming: "bg-gray-100 text-gray-600" };
 const Status = ({ s }) => <span className={`inline-block whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-semibold ${STATUS_CLS[s] ?? ""}`} data-testid="status">{s}</span>;
 const Kind = ({ k }) => <span className={`inline-block w-24 shrink-0 rounded px-1.5 py-0.5 text-center text-[10px] font-semibold ${KIND[k]?.[1] ?? ""}`}>{KIND[k]?.[0] ?? k}</span>;
-const Owner = ({ o }) => (o ? <span>{o}</span> : <span className="text-gray-500" title="Set the asset manager on the asset (Edit asset) or the portfolio manager on the fund (Edit fund)">Unassigned</span>);
+const Owner = ({ o }) => (o ? <span>{o}</span> : <span className="text-gray-500" title="Set the asset manager on the asset (Edit asset) or the portfolio manager on the portfolio (Edit Portfolio)">Unassigned</span>);
 const TH = "px-2 py-1.5 text-left text-[11px] font-semibold text-gray-600"; // 1.1.11: title case, like every other table
 const Head = () => (
   <thead className="border-b border-gray-200 bg-gray-50">

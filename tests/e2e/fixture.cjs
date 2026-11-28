@@ -109,6 +109,8 @@ module.exports.docPortfolio = async (main, name) => {
 };
 // Setup & Maintenance (1.1.1): the last Functions area; open it to reach the
 // setup actions (New asset, Edit asset / fund, uploads, …).
+// Portfolio setup (1.1.29): open a step of the setup window.
+module.exports.setupStep = async (p, id) => { await p.getByTestId(`step-${id}`).click(); await p.waitForTimeout(200); };
 module.exports.openSetup = async (p) => {
   const b = p.getByTestId("setup-area");
   if ((await b.getAttribute("aria-expanded")) !== "true") { await b.click(); await p.waitForTimeout(150); }

@@ -30,7 +30,7 @@ export default function MarketCheck({ check, title = "Market check", valueLabel 
           </tr>
         ))}</tbody>
       </table>
-      <p className="text-[10px] text-gray-500">Amber past the portfolio&apos;s flag level, red past {check.redMultiple ?? 1.5}× it. The levels are on the portfolio&apos;s terms (Edit fund / JV / SMA → Market check flag levels).</p>
+      <p className="text-[10px] text-gray-500">Amber past the portfolio&apos;s flag level, red past {check.redMultiple ?? 1.5}× it. The levels are on the portfolio&apos;s terms (Edit Portfolio → step 5, Market check flag levels).</p>
     </div>
   );
 }

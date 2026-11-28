@@ -86,7 +86,7 @@ export default function GpEconomics({ deals = [], funds = {}, curve, scopeName =
           <h2 className="text-lg font-bold text-gray-900">{name} <span className="text-sm font-normal text-gray-500">· {title}</span></h2>
           <p className="text-xs text-gray-500">{isGp
             ? "The GP side (capital partners): its return on invested capital and its share of the promote, plus any fee the portfolio's setup pays to the GP. Shown in total, then split by GP party. Capital gains, counted in the year each asset is sold."
-            : "The sponsor / operator: the fees it earns for managing the assets (outsourced property or construction management is nobody's revenue) and its share of the promote."} Each portfolio&apos;s parties, fees and promote split are set on its terms (Edit fund / JV / SMA → Parties and economics). Internal.</p>
+            : "The sponsor / operator: the fees it earns for managing the assets (outsourced property or construction management is nobody's revenue) and its share of the promote."} Each portfolio&apos;s parties, fees and promote split are set on its terms (Edit Portfolio → step 2, Parties and economics). Internal.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <select aria-label="Fund type" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5"><option value="">All portfolio types</option>{FUND_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}</select>

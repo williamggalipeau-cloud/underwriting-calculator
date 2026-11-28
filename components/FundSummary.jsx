@@ -5,7 +5,8 @@
 // portfolio and upcoming dates.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_FUND_TERMS, downloadBlob, safeFileName } from "@/lib/fundTerms";
-import { fundOptionLabel } from "@/lib/fundTypes";
+import { fundOptionLabel, fundType } from "@/lib/fundTypes";
+import { investorSummary } from "@/lib/portfolioSetup";
 import { writeXlsx } from "@/lib/xlsx";
 import { createDealDoc, dealFileLink, deleteDealDoc, listDealDocs } from "@/lib/dealDocs";
 import { DOC_CATEGORIES, ENTITY_ROLES, capitalSummary, einLast4, keyDates, keyTerms, ownershipTree, roleLabel, suggestAssetEntities, summaryXlsx } from "@/lib/fundSummary";
@@ -79,7 +80,7 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
   const fundDeals = useMemo(() => deals.filter((d) => d.inputs.fundName?.trim() === fund), [deals, fund]);
   const dates = useMemo(() => (terms ? keyDates(terms, today) : null), [terms, today]);
   const cap = useMemo(() => (terms ? capitalSummary(terms, fundDeals, today) : null), [terms, fundDeals, today]);
-  if (!terms) return <p className="text-sm text-gray-500">Set up a fund first (Portfolio Return → New fund).</p>;
+  if (!terms) return <p className="text-sm text-gray-500">Set up a portfolio first (Setup &amp; Maintenance → New Portfolio Setup).</p>;
   const entities = terms.entities ?? [];
   const setT = (patch) => canEdit && onFundTermsChange(fund, patch);
   const setEnt = (id, patch) => setT({ entities: entities.map((e) => (e.id === id ? { ...e, ...patch } : e)) });
@@ -119,7 +120,15 @@ export default function FundSummary({ deals, funds, canEdit, email, workspaceId,
         </Box>
       </div>
 
-      <Box title="Key terms" testId="fs-terms" right={<span className="text-[11px] text-gray-500">From the fund&apos;s terms (Portfolio Return → Edit fund; the LPA / PPM on the Documents tab)</span>}>
+      {investorSummary(terms).length > 0 && (
+        <Box title={fundType(terms.type) === "Joint Venture" ? "Capital partner and agreement" : "Client and agreement"} testId="fs-investor" right={<span className="text-[11px] text-gray-500">Setup &amp; Maintenance → Edit Portfolio</span>}>
+          <table className="w-full text-xs"><tbody>
+            {investorSummary(terms).map(([k, v]) => <tr key={k} className="border-t border-gray-100 first:border-0"><td className="w-48 py-1 align-top text-gray-500">{k}</td><td className="py-1">{v}</td></tr>)}
+          </tbody></table>
+        </Box>
+      )}
+
+      <Box title="Key terms" testId="fs-terms" right={<span className="text-[11px] text-gray-500">From the fund&apos;s terms (Setup &amp; Maintenance → Edit Portfolio; its agreement on the Documents tab)</span>}>
         <table className="w-full text-xs"><tbody>
           {keyTerms(terms).filter(([k]) => k !== "Key person" && k !== "GP removal").map(([k, v]) => <tr key={k} className="border-t border-gray-100 first:border-0"><td className="w-48 py-1 align-top text-gray-500">{k}</td><td className="py-1">{v}</td></tr>)}
           {[["keyPerson", "Key person"], ["removal", "GP removal"]].map(([k, l]) => (

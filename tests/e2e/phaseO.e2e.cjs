@@ -41,7 +41,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check((await p.getByTestId("setup-buttons").count()) === 0 && (await p.getByTestId("setup-area").getAttribute("aria-expanded")) === "false", "Setup & Maintenance is closed until you open it (1.1.1)");
   const sb = p.getByTestId("setup-buttons");
   await FX.openSetup(p);
-  check((await sb.getByRole("button", { name: "New asset" }).count()) === 1 && (await sb.getByLabel("Edit asset").count()) === 1 && (await sb.getByRole("button", { name: "New fund" }).count()) === 1 && (await sb.getByLabel("Edit fund").count()) === 1, "Setup & Maintenance (the last Functions area): New asset, Edit asset, New fund, Edit fund");
+  check((await sb.getByRole("button", { name: "New asset" }).count()) === 1 && (await sb.getByLabel("Edit asset").count()) === 1 && (await sb.getByRole("button", { name: "New Portfolio Setup" }).count()) === 1 && (await sb.getByLabel("Edit portfolio").count()) === 1 && (await sb.getByRole("button", { name: /New fund/ }).count()) === 0, "Setup & Maintenance (the last Functions area): New asset, Edit asset, New Portfolio Setup, Edit Portfolio");
   check((await p.getByTestId("setup-maintenance").getByTestId("setup-buttons").count()) === 1 && (await p.getByRole("navigation", { name: "Functions" }).getByTestId("setup-maintenance").count()) === 1, "the setup controls are the Setup & Maintenance row inside Functions");
   for (const t of ["Asset Summary", "Rent Roll", "Portfolio Return", "Underwriter", "Documents"]) {
     await FX.openTab(p, new RegExp(`^${t}`));
@@ -102,15 +102,15 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(500);
   await FX.openSetup(p);
-  await sb.getByRole("button", { name: "New fund" }).click();
+  await sb.getByRole("button", { name: "New Portfolio Setup" }).click();
   await p.waitForTimeout(600);
-  check((await p.getByRole("dialog", { name: "New fund" }).count()) === 1, "New fund opens the fund editor");
-  await p.getByRole("dialog", { name: "New fund" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
+  check((await p.getByRole("dialog", { name: "New portfolio setup" }).count()) === 1, "New Portfolio Setup opens the setup window");
+  await p.getByRole("dialog", { name: "New portfolio setup" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
   await p.waitForTimeout(400);
   await FX.openSetup(p);
-  await sb.getByLabel("Edit fund").selectOption("Model Fund I");
+  await sb.getByLabel("Edit portfolio").selectOption("Model Fund I");
   await p.waitForTimeout(600);
-  check((await p.getByRole("dialog").filter({ hasText: "Model Fund I" }).count()) >= 1, "Edit fund opens Model Fund I's terms");
+  check((await p.getByRole("dialog").filter({ hasText: "Model Fund I" }).count()) >= 1, "Edit Portfolio opens Model Fund I's terms");
   await p.screenshot({ path: S + "/phaseO.png" });
 
   await p.waitForTimeout(22000);

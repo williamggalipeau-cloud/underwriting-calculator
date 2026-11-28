@@ -125,14 +125,14 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByRole("button", { name: "Home", exact: true }).click();
   await p.waitForTimeout(800);
   await FX.openSetup(p);
-  await p.getByTestId("quick-actions").getByRole("button", { name: "New fund setup" }).click();
+  await p.getByTestId("quick-actions").getByRole("button", { name: "New Portfolio Setup" }).click();
   await p.waitForTimeout(600);
-  check((await p.getByRole("dialog", { name: "New fund" }).count()) === 1, "quick action: New fund setup opens the fund editor");
-  await p.getByRole("dialog", { name: "New fund" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
+  check((await p.getByRole("dialog", { name: "New portfolio setup" }).count()) === 1, "quick action: New Portfolio Setup opens the setup window");
+  await p.getByRole("dialog", { name: "New portfolio setup" }).getByRole("button", { name: /Cancel|Close/ }).first().click();
   await p.waitForTimeout(400);
   await FX.openSetup(p);
   const qa = await p.getByTestId("quick-actions").innerText();
-  check(["New asset", "New fund setup", "Upload rent roll", "Upload Yardi actuals", "Import marks", "Record capital activity", "New report"].every((x) => qa.includes(x)), "all seven quick actions");
+  check(["New asset", "New Portfolio Setup", "Upload rent roll", "Upload Yardi actuals", "Import marks", "Record capital activity", "New report"].every((x) => qa.includes(x)), "all seven quick actions");
 
   // ── Working on: the JV only ──
   await p.getByTestId("working-on").selectOption(JV);

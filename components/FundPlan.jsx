@@ -117,7 +117,7 @@ export default function FundPlan({ deals, funds = {}, marks = {}, curve, canEdit
   const actual = lastQ && !lastQ.net?.nm
     ? { called: lastQ.net.contrib, distributed: lastQ.net.dist, nav: lastQ.net.lpNav, deployed: bought.reduce((s, a) => s + a.equity, 0), acquired: bought.length }
     : { called: 0, distributed: 0, nav: lastQ?.net?.lpNav ?? null, deployed: bought.reduce((s, a) => s + a.equity, 0), acquired: bought.length };
-  const tgt = { netIrr: targets.netIrrPct ?? null, tvpi: targets.netMultiple ?? null, grossIrr: targets.grossIrrPct ?? null };
+  const tgt = { netIrr: targets.netIrrPct ?? null, tvpi: targets.netMultiple ?? null, grossIrr: targets.grossIrrPct ?? null, cashYield: targets.cashYieldPct ?? null };
 
   const freeze = () => {
     if (!canEdit || !current) return;
@@ -188,6 +188,7 @@ export default function FundPlan({ deals, funds = {}, marks = {}, curve, canEdit
         {[
           ["netIrrPct", "Net LP IRR %"],
           ["netMultiple", "Net LP multiple x"],
+          ["cashYieldPct", "Cash yield %"],
           ["grossIrrPct", "Gross IRR %"],
         ].map(([k, l]) => (
           <label key={k} className="flex items-center gap-1">

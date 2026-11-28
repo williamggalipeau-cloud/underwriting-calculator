@@ -59,7 +59,7 @@ import DistributionAnalysis from "@/components/DistributionAnalysis";
 import Reports from "@/components/Reports";
 import AssetMedia from "@/components/AssetMedia";
 import { FundUwTable } from "@/components/UwVsActual";
-import { fundType } from "@/lib/fundTypes";
+import { fundOptionLabel, fundType } from "@/lib/fundTypes";
 import Valuations from "@/components/Valuations";
 import AssetSummary from "@/components/AssetSummary";
 import { QUICK_DEFAULTS, capEngineFields, capSettingsFor, toMainInputs } from "@/lib/quickUnderwrite";
@@ -1924,9 +1924,9 @@ export default function Home() {
   // Setup & Maintenance (under Functions on every page, 11/24).
   const setupActions = [
       { label: "New asset", primary: true, disabled: locked, run: () => { handleAddDeal(); setPanelOpen(true); } },
-      { label: "New fund setup", disabled: locked, run: () => setFundEditor({ mode: "new" }) },
+      { label: "New Portfolio Setup", disabled: locked, run: () => setFundEditor({ mode: "new" }) },
       { label: "Edit asset", kind: "select", placeholder: "Edit asset…", options: deals.filter((d) => !scope || d.inputs.fundName === scope).sort((x, y) => (x.inputs.propertyName || "").localeCompare(y.inputs.propertyName || "")).map((d) => ({ value: d.id, label: `${d.inputs.propertyName || "Unnamed deal"}${d.inputs.fundName ? ` · ${d.inputs.fundName}` : " · pipeline"}` })), run: (id) => { setActiveDealId(id); setPanelOpen(true); } },
-      { label: "Edit fund", kind: "select", placeholder: "Edit fund…", options: Object.keys(funds).filter((n) => !scope || n === scope).sort().map((n) => ({ value: n, label: n })), run: (name) => setFundEditor({ mode: "edit", name }) },
+      { label: "Edit portfolio", kind: "select", placeholder: "Edit Portfolio…", options: Object.keys(funds).filter((n) => !scope || n === scope).sort().map((n) => ({ value: n, label: fundOptionLabel(n, funds) })), run: (name) => setFundEditor({ mode: "edit", name }) },
       { label: "Upload rent roll", title: "Rent Roll tab: upload a rent roll for the asset", run: () => setActiveTab("units") },
       { label: "Upload Yardi actuals", title: "Asset Business Plan tab: upload monthly actuals", run: () => setActiveTab("plan") },
       { label: "Import marks", title: "Valuation tab: import quarterly marks", run: () => setActiveTab("valuations") },
