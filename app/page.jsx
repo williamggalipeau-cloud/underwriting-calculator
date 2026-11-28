@@ -2423,6 +2423,7 @@ export default function Home() {
                 deals={viewDeals.filter((d) => d.inputs.fundName?.trim())}
                 canEdit={!locked}
                 onUpdate={updateDealInputs}
+                onOpenTab={goTab}
                 scopeName={scope ? scopeLabel(scope, funds) : ""}
               />
             )}

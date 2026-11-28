@@ -10,6 +10,7 @@ import InfoNote from "@/components/InfoNote";
 import { useEffect, useMemo, useState } from "react";
 import { actionsAndCalendar, planWatchList } from "@/lib/home";
 import { listLeases } from "@/lib/leaseDocs";
+import { listDealDocs } from "@/lib/dealDocs";
 
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "");
 const KIND = {
@@ -20,6 +21,7 @@ const KIND = {
   covenant: ["Covenant", "bg-red-50 text-red-700"],
   tax: ["Property tax", "bg-orange-50 text-orange-800"],
   insurance: ["Insurance", "bg-teal-50 text-teal-800"],
+  tenantins: ["Tenant insurance", "bg-teal-50 text-teal-800"], // 1.1.29
   contract: ["Contract", "bg-gray-100 text-gray-700"],
   condition: ["Repair", "bg-red-50 text-red-700"],
   extension: ["Extension", "bg-amber-50 text-amber-800"],
@@ -75,13 +77,15 @@ export default function Home({ deals = [], funds = {}, valuations = {}, curve, s
   const todayISO = new Date().toISOString().slice(0, 10);
   // Lease abstracts (critical dates) when signed in to the firm's workspace.
   const [leases, setLeases] = useState(null);
+  const [dealDocs, setDealDocs] = useState(null); // 1.1.29: insurance certificates, for tenant insurance
   useEffect(() => {
     if (!workspaceId) return;
     let live = true;
     listLeases(workspaceId).then((l) => live && setLeases(l)).catch(() => {});
+    listDealDocs(workspaceId).then((l) => live && setDealDocs(l.filter((x) => x.doc_type === "insurance_cert"))).catch(() => {});
     return () => { live = false; };
   }, [workspaceId]);
-  const ac = useMemo(() => actionsAndCalendar(deals, funds, valuations, { todayISO, pipeline, leases, done }), [deals, funds, valuations, todayISO, pipeline, leases, done]);
+  const ac = useMemo(() => actionsAndCalendar(deals, funds, valuations, { todayISO, pipeline, leases, dealDocs, done }), [deals, funds, valuations, todayISO, pipeline, leases, dealDocs, done]);
   const [showPast, setShowPast] = useState(false);
   const pastItems = ac.calendar.filter((x) => x.days < 0);
   // Default view: the next three months (user, 11/24); Show all goes to a year out.
