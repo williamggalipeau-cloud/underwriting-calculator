@@ -1,0 +1,76 @@
+{
+ "doc_type": "closing_disp",
+ "title": "Example Gateway Industrial Park closing statement (sale)",
+ "asset": "Example Gateway Industrial Park",
+ "summary": "Example Gateway Industrial Park · Sale closed June 30, 2026",
+ "fields": [
+  {
+   "key": "closing_date",
+   "value": "June 30, 2026",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "The sale of Example Gateway Industrial Park, 4100 Example Gateway Pkwy, Phoenix, AZ, by Example Gateway Industrial Park Owner LLC to Example Logistics REIT closed on June 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "sale_price",
+   "value": "$85,650,000",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The sale price is $85,650,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "selling_costs",
+   "value": "$5,139,000",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Selling costs (the broker's commission to Example Industrial Advisors, title, transfer tax and legal fees) total $5,139,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "loan_payoff",
+   "value": "$34,543,544",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "The payoff of the seller's loan is $34,543,544.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "net_proceeds",
+   "value": "$45,967,456",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "Net proceeds to the seller are $45,967,456.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "example-gateway-industrial-park-closing-disp.pdf"
+  ]
+ }
+}

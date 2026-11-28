@@ -69,6 +69,8 @@ const DATA = [
   ["assets", "owned assets", deals.length === 9],
   ["plan", "business plans", all((a) => n(a.businessPlan?.revisions) > 0)],
   ["units", "rent rolls", all((a) => n(a.units) > 0)],
+  ["units", "a tenant that moved out with no replacement", venAssets.some((a) => (a.units ?? []).some((u) => u.moveOut?.date))],
+  ["assets", "building and site facts on the joint venture's and separate account's assets", venAssets.every((a) => n(a.building) > 0 && n(a.site) > 0)],
   ["units", "leases signed since purchase", venAssets.every((a) => (a.units ?? []).some((u) => n(u.laterLeases) > 0))],
   ["fund", "joint venture and separate account", Object.values(VEN.funds).map((t) => t.type).sort().join() === "Joint Venture,Separate Account"],
   ["gppartners", "outside GP partners of the joint venture and separate account", VEN.gp.agreements.length === 2],
@@ -131,16 +133,7 @@ const LISTS = {
   "property management": PM.PM_TAB_IDS.flatMap((tab) => PM.PM_TABS[tab].sections.map((s) => s.key)),
 };
 // Still missing, with the patch that adds it.
-const PENDING_DOCS = {
-  "library": { closing_disp: "1.1.27 (the sold asset's documents)", jva: "1.1.27 (the sample joint venture's documents)", sma: "1.1.27 (the sample separate account's documents)" },
-  "acquisition": {},
-  "disposition": { closing_disp: "1.1.27 (the sold asset's documents)", post_closing: "1.1.27 (the sold asset's documents)", distribution_notice: "1.1.27 (the sold asset's documents)" },
-  "leasing": {},
-  // No Model Fund I asset needed a Phase II (every Phase I is clean); one of the sample joint venture's assets does (its documents come in 1.1.27).
-  "fact": { phase2: "1.1.27" },
-  "research": {},
-  "property management": {},
-};
+const PENDING_DOCS = { "library": {}, "acquisition": {}, "disposition": {}, "leasing": {}, "fact": {}, "research": {}, "property management": {} };
 for (const [list, ids] of Object.entries(LISTS)) {
   for (const id of ids) {
     const has = have[list].has(id), pending = PENDING_DOCS[list][id];

@@ -112,6 +112,18 @@ for (const [researchId, kind, asset, file, abstract, title] of [
   if (!fs.existsSync(path.join(OUT, file))) throw new Error(`research copy: ${file} is not among the sample documents`);
   manifest.research.push({ name: `${researchId}-copy`, kind, researchId, asset, file, abstract, title, copy: true });
 }
+// 1.1.27: the sample joint venture's and separate account's documents
+// (scripts/sample-deal-docs/venture_docs.cjs), each into the list it belongs to.
+const venDir = path.join(R, "docs", "sample-deal-docs", "ventures");
+for (const d of JSON.parse(fs.readFileSync(path.join(venDir, "index.json"), "utf8"))) {
+  copy(path.join(venDir, d.file), path.join(OUT, "ventures", d.file));
+  copy(path.join(venDir, "abstracts", `${d.name}.json`), path.join(OUT, "ventures", `${d.name}.json`));
+  const base = { name: d.name, file: `ventures/${d.file}`, abstract: `ventures/${d.name}.json`, title: d.title };
+  if (d.list === "library") manifest.deals.push({ ...base, docType: d.type, asset: d.asset, fund: d.asset ? null : d.fund, leaseTenant: null });
+  else if (d.list === "disposition") manifest.dispositions.push({ ...base, docType: d.type, asset: d.asset, fund: null, leaseTenant: null, saleId: d.saleId });
+  else if (d.list === "fact") manifest.assetFacts.push({ ...base, kind: d.type, asset: d.asset, unit: null, tenant: null });
+  else if (d.list === "gp") manifest.gpAgreements.push({ partner: d.partner, portfolio: d.portfolio, deal: null, file: base.file, abstract: base.abstract });
+}
 fs.writeFileSync(path.join(OUT, "manifest.json"), JSON.stringify(manifest, null, 1));
-fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional Model Fund I sample documents (docs/sample-deal-docs, docs/sample-leases, and the sample credit reports) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
+fs.writeFileSync(path.join(OUT, "README.md"), "Copies of the fictional sample documents of Model Fund I and of the sample joint venture and separate account (docs/sample-deal-docs, docs/sample-leases, and the sample credit reports) for Sample data → Add sample documents. Regenerate with node scripts/sample-deal-docs/copy_public.cjs; do not edit here.\n");
 console.log(`deals ${manifest.deals.length}, dispositions ${manifest.dispositions.length}, leases ${manifest.leases.length}, credit ${manifest.credit.length}, GP agreements ${manifest.gpAgreements.length}`);

@@ -1,0 +1,64 @@
+{
+ "doc_type": "disposition_distribution_notice",
+ "title": "Sample Industrial Venture I distribution notice (Example Gateway Industrial Park sale)",
+ "asset": "Example Gateway Industrial Park",
+ "summary": "Sample Industrial Venture I · July 15, 2026",
+ "fields": [
+  {
+   "key": "distribution_date",
+   "value": "July 15, 2026",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "Sample Industrial Venture I will make a distribution on July 15, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "amount",
+   "value": "$45,967,456",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The amount distributed is $45,967,456.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "source",
+   "value": "Sale of Example Gateway Industrial Park",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "The distribution is the net proceeds of the sale of Example Gateway Industrial Park, which closed on June 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "recipient",
+   "value": "Example Pension Fund",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The distribution is allocated between Example Pension Fund and the Sponsor Member under the distribution provisions of the joint venture agreement.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "example-gateway-industrial-park-distribution-notice.pdf"
+  ]
+ }
+}

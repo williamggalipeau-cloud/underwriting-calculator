@@ -1,0 +1,139 @@
+[
+ {
+  "name": "sample-industrial-venture-i-jva",
+  "list": "library",
+  "type": "jva",
+  "asset": null,
+  "fund": "Sample Industrial Venture I",
+  "dealId": null,
+  "file": "sample-industrial-venture-i-jva.pdf",
+  "title": "Sample Industrial Venture I JVA (excerpt)"
+ },
+ {
+  "name": "sample-separate-account-a-sma",
+  "list": "library",
+  "type": "sma",
+  "asset": null,
+  "fund": "Sample Separate Account A",
+  "dealId": null,
+  "file": "sample-separate-account-a-sma.pdf",
+  "title": "Sample Separate Account A SMA (excerpt)"
+ },
+ {
+  "name": "gp-co-investment-agreement-placeholder-capital-partners-lp",
+  "list": "gp",
+  "type": "gp_agreement",
+  "asset": null,
+  "fund": "Sample Industrial Venture I",
+  "dealId": null,
+  "file": "gp-co-investment-agreement-placeholder-capital-partners-lp.pdf",
+  "title": "GP Co-Investment Agreement (Placeholder Capital Partners LP)",
+  "partner": "Placeholder Capital Partners LP",
+  "portfolio": "Sample Industrial Venture I"
+ },
+ {
+  "name": "gp-co-investment-agreement-demo-holdings-family-office",
+  "list": "gp",
+  "type": "gp_agreement",
+  "asset": null,
+  "fund": "Sample Separate Account A",
+  "dealId": null,
+  "file": "gp-co-investment-agreement-demo-holdings-family-office.pdf",
+  "title": "GP Co-Investment Agreement (Demo Holdings Family Office)",
+  "partner": "Demo Holdings Family Office",
+  "portfolio": "Sample Separate Account A"
+ },
+ {
+  "name": "example-gateway-industrial-park-closing-disp",
+  "list": "disposition",
+  "type": "closing_disp",
+  "asset": "Example Gateway Industrial Park",
+  "fund": null,
+  "dealId": "sample-jv-1",
+  "file": "example-gateway-industrial-park-closing-disp.pdf",
+  "title": "Example Gateway Industrial Park closing statement (sale)",
+  "saleId": "sample-jv-1-sale-1"
+ },
+ {
+  "name": "example-gateway-industrial-park-post-closing-true-up",
+  "list": "disposition",
+  "type": "post_closing",
+  "asset": "Example Gateway Industrial Park",
+  "fund": null,
+  "dealId": "sample-jv-1",
+  "file": "example-gateway-industrial-park-post-closing-true-up.pdf",
+  "title": "Example Gateway Industrial Park post-closing true-up",
+  "saleId": "sample-jv-1-sale-1"
+ },
+ {
+  "name": "example-gateway-industrial-park-distribution-notice",
+  "list": "disposition",
+  "type": "distribution_notice",
+  "asset": "Example Gateway Industrial Park",
+  "fund": null,
+  "dealId": "sample-jv-1",
+  "file": "example-gateway-industrial-park-distribution-notice.pdf",
+  "title": "Sample Industrial Venture I distribution notice (Example Gateway Industrial Park sale)",
+  "saleId": "sample-jv-1-sale-1"
+ },
+ {
+  "name": "example-foundry-flex-park-phase1",
+  "list": "fact",
+  "type": "phase1",
+  "asset": "Example Foundry Flex Park",
+  "fund": null,
+  "dealId": "sample-jv-3",
+  "file": "example-foundry-flex-park-phase1.pdf",
+  "title": "Example Foundry Flex Park Phase I Environmental Site Assessment"
+ },
+ {
+  "name": "example-foundry-flex-park-phase2",
+  "list": "fact",
+  "type": "phase2",
+  "asset": "Example Foundry Flex Park",
+  "fund": null,
+  "dealId": "sample-jv-3",
+  "file": "example-foundry-flex-park-phase2.pdf",
+  "title": "Example Foundry Flex Park Phase II Environmental Site Assessment"
+ },
+ {
+  "name": "example-gateway-industrial-park-appraisal-2025q4",
+  "list": "library",
+  "type": "appraisal",
+  "asset": "Example Gateway Industrial Park",
+  "fund": null,
+  "dealId": "sample-jv-1",
+  "file": "example-gateway-industrial-park-appraisal-2025q4.pdf",
+  "title": "Example Gateway Industrial Park appraisal December 31, 2025"
+ },
+ {
+  "name": "example-summit-business-center-appraisal-2025q4",
+  "list": "library",
+  "type": "appraisal",
+  "asset": "Example Summit Business Center",
+  "fund": null,
+  "dealId": "sample-jv-2",
+  "file": "example-summit-business-center-appraisal-2025q4.pdf",
+  "title": "Example Summit Business Center appraisal December 31, 2025"
+ },
+ {
+  "name": "example-foundry-flex-park-appraisal-2025q4",
+  "list": "library",
+  "type": "appraisal",
+  "asset": "Example Foundry Flex Park",
+  "fund": null,
+  "dealId": "sample-jv-3",
+  "file": "example-foundry-flex-park-appraisal-2025q4.pdf",
+  "title": "Example Foundry Flex Park appraisal December 31, 2025"
+ },
+ {
+  "name": "example-orchard-commerce-center-appraisal-2025q4",
+  "list": "library",
+  "type": "appraisal",
+  "asset": "Example Orchard Commerce Center",
+  "fund": null,
+  "dealId": "sample-sma-1",
+  "file": "example-orchard-commerce-center-appraisal-2025q4.pdf",
+  "title": "Example Orchard Commerce Center appraisal December 31, 2025"
+ }
+]

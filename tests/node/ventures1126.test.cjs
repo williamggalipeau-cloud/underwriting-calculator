@@ -141,7 +141,7 @@ const mf1 = buildSampleFund({ todayISO: T }).deals[0].inputs;
   const cf = underwrite(mf1).annualCashFlows, asValue = underwrite({ ...mf1, cmFeeBasis: "value" }).annualCashFlows;
   check(mf1.cmFeeBasis === "spend" && cf[0].constructionMgmtFee >= 0.015 * mf1.capexBudget - 1 && cf.every((y) => y.constructionMgmtFee <= 0.015 * (mf1.capexBudget + y.tiAndLeasing) + 1) && asValue.every((y) => near(y.constructionMgmtFee, (mf1.cmFeePct / 100) * mf1.purchasePrice)), "Model Fund I charges its fee on construction spending (1.1.27); on asset value it would be 1.5% of the price a year");
 }
-check(SP.SAMPLE_DATA_VERSION === 11, "the sample data version is 11");
+check(SP.SAMPLE_DATA_VERSION >= 11, "the sample data version is 11 or later");
 
 console.log(`ventures1126: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

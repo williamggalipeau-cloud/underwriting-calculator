@@ -90,7 +90,7 @@ ok(S.sndaByLoan(loans).length === loans.length && S.sndaByLoan(loans).filter((r)
 const mine = { ...fund.deals[0].inputs, building: { clearHeightFt: 99 }, site: {} };
 ok(SA.withSampleAssetFacts(mine, "sample-deal-1").building.clearHeightFt === 99 && Object.keys(SA.withSampleAssetFacts(mine, "sample-deal-1").site).length > 10, "the load fills only a section with nothing in it");
 ok(SA.withSampleSnda(fund.deals[0].inputs, "sample-deal-1") === fund.deals[0].inputs && SA.withSampleSnda({ ...fund.deals[0].inputs, loanTerms: { sndaRule: "min_sf" }, units: fund.deals[0].inputs.units.map((u) => ({ ...u, snda: undefined })) }, "sample-deal-1").loanTerms.sndaRule === "min_sf", "SNDA statuses are added once; a rule the user set is kept");
-ok(SAMPLE_DATA_VERSION === 11, "the automatic load's version is 11 (1.1.26)");
+ok(SAMPLE_DATA_VERSION === 12, "the automatic load's version is 12 (1.1.27)");
 // 1.1.18: the load as app/page.jsx runs it, twice over (the second pass is the
 // safety step of 1.1.14). The credit step must not put back the units as they
 // were at the start, or the SNDA statuses set by the first pass are lost.
@@ -120,7 +120,9 @@ ok(SAMPLE_DATA_VERSION === 11, "the automatic load's version is 11 (1.1.26)");
 }
 
 // ── The sample documents say what the fund holds ──
-const man = require(R + "/public/sample-docs/manifest.json");
+const manAll = require(R + "/public/sample-docs/manifest.json");
+// Model Fund I's fact documents; the joint venture's Phase I and Phase II are checked in ventures1127.test.cjs.
+const man = { ...manAll, assetFacts: manAll.assetFacts.filter((m) => !m.file.startsWith("ventures/")) };
 const dir = R + "/public/sample-docs/";
 ok(man.assetFacts.length === 16 && man.assetFacts.filter((m) => m.kind === "snda").length === 4 && [...new Set(man.assetFacts.filter((m) => m.kind !== "snda").map((m) => m.asset))].length === 3 && man.assetFacts.every((m) => fs.existsSync(dir + m.file) && fs.existsSync(dir + m.abstract)), "16 documents: four each on three assets and four signed SNDAs, every file there");
 const dealOf = (name) => fund.deals.find((d) => d.inputs.propertyName === name);

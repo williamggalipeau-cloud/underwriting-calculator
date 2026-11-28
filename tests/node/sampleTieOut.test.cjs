@@ -108,21 +108,23 @@ ok(man.deals.length === names.length && man.deals.every((d) => fs.readFileSync(`
 {
   let gp = GP.EMPTY_GP_PARTNERS;
   const funds = { [SP.SAMPLE_FUND_NAME]: termsWithDocs };
-  for (const a of man.gpAgreements) {
+  // Model Fund I's agreements; the joint venture's and separate account's are checked in ventures1127.test.cjs.
+  const gpMan = man.gpAgreements.filter((a) => a.portfolio === SP.SAMPLE_FUND_NAME);
+  for (const a of gpMan) {
     const abs = JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${a.abstract}`, "utf8"));
     if (!gp.partners.some((p) => p.name === abs.partner_name)) gp = GP.addPartner(gp, abs.partner_name).gp;
     const r = GP.saveAgreement(gp, GP.agreementFromAbstract(abs, { gp, funds, deals: fund.deals, docId: "x" }));
     if (r.error) ok(false, `${a.file}: ${r.error}`); else gp = r.gp;
   }
   const applied = GP.applyAgreements(termsWithDocs, SP.SAMPLE_FUND_NAME, gp, { todayISO: AS_OF });
-  const good = man.gpAgreements.every((a) => {
+  const good = gpMan.every((a) => {
     const abs = JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${a.abstract}`, "utf8"));
     const party = (applied.gpParties ?? []).find((p) => p.name === abs.partner_name);
     const t = party?.terms?.find((x) => x.effective === abs.effective_date);
     const deal = abs.deal ? dealOf(abs.deal) : null;
     return t && t.capitalPct === abs.capital_pct && t.gpSideSharePct === abs.promote_pct_of_gp_side && (abs.deal ? t.dealId === deal?.id : !t.dealId);
   });
-  ok(good, `GP agreements: each partner's share of the GP capital and promote, its date and its asset are the agreement's (${man.gpAgreements.length} agreements)`);
+  ok(good, `GP agreements: each partner's share of the GP capital and promote, its date and its asset are the agreement's (${gpMan.length} agreements)`);
 }
 
 // 5b. Legal entities: the documents name the entities the app holds.
@@ -137,7 +139,7 @@ ok(man.deals.length === names.length && man.deals.every((d) => fs.readFileSync(`
   const landlords = man.leases.map((l) => [l.asset, String(JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${l.abstract}`, "utf8")).fields.find((f) => f.key === "landlord")?.value ?? "")]);
   const offL = landlords.filter(([asset, v]) => !v.startsWith(company(asset) ?? "\u0000"));
   ok(offL.length === 0, `each lease's landlord is its asset's property company${offL.length ? " — " + offL.map(([a, v]) => `${a}: ${v}`).join("; ") : ""}`);
-  const gpText = man.gpAgreements.map((a) => JSON.stringify(JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${a.abstract}`, "utf8")).quotes));
+  const gpText = man.gpAgreements.filter((a) => a.portfolio === SP.SAMPLE_FUND_NAME).map((a) => JSON.stringify(JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${a.abstract}`, "utf8")).quotes));
   ok(gpText.every((t) => t.includes(gpEnt)), `the GP partner agreements are made with the fund's GP (${gpEnt})`);
 }
 

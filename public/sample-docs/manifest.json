@@ -199,6 +199,66 @@
    "docType": "billing",
    "fund": null,
    "leaseTenant": "Blue Mesa Fulfillment"
+  },
+  {
+   "name": "sample-industrial-venture-i-jva",
+   "file": "ventures/sample-industrial-venture-i-jva.pdf",
+   "abstract": "ventures/sample-industrial-venture-i-jva.json",
+   "title": "Sample Industrial Venture I JVA (excerpt)",
+   "docType": "jva",
+   "asset": null,
+   "fund": "Sample Industrial Venture I",
+   "leaseTenant": null
+  },
+  {
+   "name": "sample-separate-account-a-sma",
+   "file": "ventures/sample-separate-account-a-sma.pdf",
+   "abstract": "ventures/sample-separate-account-a-sma.json",
+   "title": "Sample Separate Account A SMA (excerpt)",
+   "docType": "sma",
+   "asset": null,
+   "fund": "Sample Separate Account A",
+   "leaseTenant": null
+  },
+  {
+   "name": "example-gateway-industrial-park-appraisal-2025q4",
+   "file": "ventures/example-gateway-industrial-park-appraisal-2025q4.pdf",
+   "abstract": "ventures/example-gateway-industrial-park-appraisal-2025q4.json",
+   "title": "Example Gateway Industrial Park appraisal December 31, 2025",
+   "docType": "appraisal",
+   "asset": "Example Gateway Industrial Park",
+   "fund": null,
+   "leaseTenant": null
+  },
+  {
+   "name": "example-summit-business-center-appraisal-2025q4",
+   "file": "ventures/example-summit-business-center-appraisal-2025q4.pdf",
+   "abstract": "ventures/example-summit-business-center-appraisal-2025q4.json",
+   "title": "Example Summit Business Center appraisal December 31, 2025",
+   "docType": "appraisal",
+   "asset": "Example Summit Business Center",
+   "fund": null,
+   "leaseTenant": null
+  },
+  {
+   "name": "example-foundry-flex-park-appraisal-2025q4",
+   "file": "ventures/example-foundry-flex-park-appraisal-2025q4.pdf",
+   "abstract": "ventures/example-foundry-flex-park-appraisal-2025q4.json",
+   "title": "Example Foundry Flex Park appraisal December 31, 2025",
+   "docType": "appraisal",
+   "asset": "Example Foundry Flex Park",
+   "fund": null,
+   "leaseTenant": null
+  },
+  {
+   "name": "example-orchard-commerce-center-appraisal-2025q4",
+   "file": "ventures/example-orchard-commerce-center-appraisal-2025q4.pdf",
+   "abstract": "ventures/example-orchard-commerce-center-appraisal-2025q4.json",
+   "title": "Example Orchard Commerce Center appraisal December 31, 2025",
+   "docType": "appraisal",
+   "asset": "Example Orchard Commerce Center",
+   "fund": null,
+   "leaseTenant": null
   }
  ],
  "dispositions": [
@@ -301,6 +361,39 @@
    "docType": "estoppel",
    "fund": null,
    "leaseTenant": "Copper Canyon Tile & Stone"
+  },
+  {
+   "name": "example-gateway-industrial-park-closing-disp",
+   "file": "ventures/example-gateway-industrial-park-closing-disp.pdf",
+   "abstract": "ventures/example-gateway-industrial-park-closing-disp.json",
+   "title": "Example Gateway Industrial Park closing statement (sale)",
+   "docType": "closing_disp",
+   "asset": "Example Gateway Industrial Park",
+   "fund": null,
+   "leaseTenant": null,
+   "saleId": "sample-jv-1-sale-1"
+  },
+  {
+   "name": "example-gateway-industrial-park-post-closing-true-up",
+   "file": "ventures/example-gateway-industrial-park-post-closing-true-up.pdf",
+   "abstract": "ventures/example-gateway-industrial-park-post-closing-true-up.json",
+   "title": "Example Gateway Industrial Park post-closing true-up",
+   "docType": "post_closing",
+   "asset": "Example Gateway Industrial Park",
+   "fund": null,
+   "leaseTenant": null,
+   "saleId": "sample-jv-1-sale-1"
+  },
+  {
+   "name": "example-gateway-industrial-park-distribution-notice",
+   "file": "ventures/example-gateway-industrial-park-distribution-notice.pdf",
+   "abstract": "ventures/example-gateway-industrial-park-distribution-notice.json",
+   "title": "Sample Industrial Venture I distribution notice (Example Gateway Industrial Park sale)",
+   "docType": "distribution_notice",
+   "asset": "Example Gateway Industrial Park",
+   "fund": null,
+   "leaseTenant": null,
+   "saleId": "sample-jv-1-sale-1"
   }
  ],
  "leases": [
@@ -620,6 +713,20 @@
    "deal": "Granite Ave Industrial",
    "file": "gp-agreements/gp-participation-agreement-sample-family-office-granite-ave.pdf",
    "abstract": "gp-agreements/gp-participation-agreement-sample-family-office-granite-ave.json"
+  },
+  {
+   "partner": "Placeholder Capital Partners LP",
+   "portfolio": "Sample Industrial Venture I",
+   "deal": null,
+   "file": "ventures/gp-co-investment-agreement-placeholder-capital-partners-lp.pdf",
+   "abstract": "ventures/gp-co-investment-agreement-placeholder-capital-partners-lp.json"
+  },
+  {
+   "partner": "Demo Holdings Family Office",
+   "portfolio": "Sample Separate Account A",
+   "deal": null,
+   "file": "ventures/gp-co-investment-agreement-demo-holdings-family-office.pdf",
+   "abstract": "ventures/gp-co-investment-agreement-demo-holdings-family-office.json"
   }
  ],
  "assetFacts": [
@@ -782,6 +889,26 @@
    "file": "asset-facts/harbor-light-roof-warranty.pdf",
    "abstract": "asset-facts/harbor-light-roof-warranty.json",
    "title": "Harbor Light Industrial roof warranty"
+  },
+  {
+   "name": "example-foundry-flex-park-phase1",
+   "file": "ventures/example-foundry-flex-park-phase1.pdf",
+   "abstract": "ventures/example-foundry-flex-park-phase1.json",
+   "title": "Example Foundry Flex Park Phase I Environmental Site Assessment",
+   "kind": "phase1",
+   "asset": "Example Foundry Flex Park",
+   "unit": null,
+   "tenant": null
+  },
+  {
+   "name": "example-foundry-flex-park-phase2",
+   "file": "ventures/example-foundry-flex-park-phase2.pdf",
+   "abstract": "ventures/example-foundry-flex-park-phase2.json",
+   "title": "Example Foundry Flex Park Phase II Environmental Site Assessment",
+   "kind": "phase2",
+   "asset": "Example Foundry Flex Park",
+   "unit": null,
+   "tenant": null
   }
  ],
  "propertyMgmt": [

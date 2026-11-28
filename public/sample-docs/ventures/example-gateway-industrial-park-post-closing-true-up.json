@@ -1,0 +1,76 @@
+{
+ "doc_type": "disposition_post_closing",
+ "title": "Example Gateway Industrial Park post-closing true-up",
+ "asset": "Example Gateway Industrial Park",
+ "summary": "Example Gateway Industrial Park · As of September 28, 2026",
+ "fields": [
+  {
+   "key": "closing_date",
+   "value": "June 30, 2026",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "This statement settles the prorations of the sale of Example Gateway Industrial Park that closed on June 30, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "sale_price",
+   "value": "$85,650,000",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The sale price was $85,650,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "true_up_date",
+   "value": "September 28, 2026",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Rents, operating expense recoveries and real estate taxes have been reprorated as of September 28, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "amount_due",
+   "value": "$0",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "No further payment is due from either party: the amount due is $0.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "holdback",
+   "value": "None",
+   "status": "found",
+   "clause": "2.3",
+   "evidence": [
+    {
+     "quote": "No funds were held back at closing. The holdback is: None.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "example-gateway-industrial-park-post-closing-true-up.pdf"
+  ]
+ }
+}
