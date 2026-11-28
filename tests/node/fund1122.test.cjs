@@ -38,7 +38,9 @@ const after = { ...terms, ...p };
 
 // ── What is added ──
 check(["capitalActivity", "impactScenarios", "sellHold", "fundPlan", "fundPlanTargets", "reports"].every((k) => p[k]), `the patch holds capital activity, a scenario, decisions, the plan, targets and a report (${Object.keys(p)})`);
-check(!p.distributions, "no distribution proposal: nothing is distributable while every purchase is on the sub line");
+// 1.1.27: with the construction management fee on construction spending the assets' cash covers their reserves, so last quarter has cash to distribute.
+const dp = p.distributions?.proposals ?? [];
+check(dp.length === 1 && dp[0].status === "proposed" && dp[0].quarter === "2026-Q3" && dp[0].amount > 0 && Math.abs(dp[0].amount - dp[0].distributable) < 0.01, `one distribution proposal, for last quarter, at all of the distributable cash (${JSON.stringify(dp.map((x) => [x.quarter, Math.round(x.amount)]))})`);
 
 // ── Capital activity: one sub line draw per purchase, for its equity ──
 const ca = p.capitalActivity;

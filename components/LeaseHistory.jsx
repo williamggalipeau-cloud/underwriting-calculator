@@ -3,7 +3,7 @@
 //   LeasesToday: every unit with the lease in effect today (read-only).
 //   UnitLeaseHistory: one unit's history and the form to add a lease.
 import { useState } from "react";
-import { LATER_LEASE_KINDS, addLaterLease, endedLeases, laterLeaseKindLabel, laterLeasesOf, leaseHistory, leaseToday, removeLaterLease } from "@/lib/leaseHistory";
+import { LATER_LEASE_KINDS, MOVE_OUT_REASONS, addLaterLease, endedLeases, laterLeaseKindLabel, laterLeasesOf, leaseHistory, leaseToday, moveOutOf, moveOutReasonLabel, recordMoveOut, removeLaterLease, removeMoveOut } from "@/lib/leaseHistory";
 const usDate = (iso) => (iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}/${iso.slice(0, 4)}` : "");
 
 const psf = (v) => (v > 0 ? `$${Number(v).toFixed(2)}` : "—");
@@ -15,6 +15,7 @@ export function leaseTodayLabel(t) {
   if (t.status === "purchase") return "At purchase";
   if (t.status === "ended") return "Ended, no lease recorded";
   if (t.status === "gap") return "Vacant, next lease recorded";
+  if (t.movedOut) return "Vacant, tenant moved out";
   return "Vacant";
 }
 
@@ -23,7 +24,7 @@ export function leaseTodayLabel(t) {
 export function LeasesToday({ inputs, units, todayISO, onOpen }) {
   const inp = { ...inputs, units };
   const owned = /^\d{4}-\d{2}-\d{2}$/.test(inputs.acquisitionDate ?? "") && inputs.acquisitionDate <= todayISO;
-  const anyLater = units.some((u) => laterLeasesOf(u).length), ended = owned ? endedLeases(inp, todayISO) : [];
+  const anyLater = units.some((u) => laterLeasesOf(u).length || moveOutOf(u, inp)), ended = owned ? endedLeases(inp, todayISO) : [];
   if (!owned || (!anyLater && !ended.length)) return null;
   const rows = units.map((u) => ({ u, t: leaseToday(u, inp, todayISO) }));
   const onLater = rows.filter((r) => r.t.status === "later").length;
@@ -44,7 +45,7 @@ export function LeasesToday({ inputs, units, todayISO, onOpen }) {
             {rows.map(({ u, t }) => (
               <tr key={u.id} data-testid="lease-today-row">
                 <td className="px-2 py-1"><button type="button" onClick={() => onOpen?.(u.id)} className="text-blue-700 hover:underline">{u.name || u.id}</button></td>
-                <td className="px-2 py-1">{t.tenantName || "—"}</td>
+                <td className="px-2 py-1">{t.tenantName || (t.movedOut?.tenantName ? <span className="text-gray-500">Was {t.movedOut.tenantName}</span> : "—")}</td>
                 <td className="px-2 py-1 text-right">{(Number(u.squareFeet) || 0).toLocaleString("en-US")}</td>
                 <td className="px-2 py-1 text-right">{t.status === "gap" || t.status === "vacant" ? "—" : psf(t.rentPSF)}</td>
                 <td className="px-2 py-1">{t.start ? usDate(t.start) : "—"}</td>
@@ -75,14 +76,23 @@ export function UnitLeaseHistory({ unit, inputs, units, canEdit = true, onUnits,
     onUnits(res.inputs.units);
     setForm(null); setErr("");
   };
-  const start = () => { setErr(""); setForm({ ...BLANK, kind: unit.leaseStatus === "occupied" ? "renewal" : "new", tenantName: unit.leaseStatus === "occupied" ? unit.tenantName ?? "" : "" }); };
+  const [out, setOut] = useState(null); // the move-out form
+  const mv = moveOutOf(unit, inp);
+  const saveOut = () => {
+    const res = recordMoveOut(inp, unit.id, out, { by: email });
+    if (res.error) { setErr(res.error); return; }
+    onUnits(res.inputs.units);
+    setOut(null); setErr("");
+  };
+  const start = () => { setErr(""); setOut(null); setForm({ ...BLANK, kind: unit.leaseStatus === "occupied" ? "renewal" : "new", tenantName: unit.leaseStatus === "occupied" ? unit.tenantName ?? "" : "" }); };
   return (
     <div className="border-t border-blue-100 px-3 py-3" data-testid="unit-lease-history">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-xs font-semibold text-gray-800">Leases signed since purchase</h4>
         {canEdit && !form && <button type="button" onClick={start} className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50" data-testid="add-later-lease">+ Add lease</button>}
+        {canEdit && !form && !out && !mv && <button type="button" onClick={() => { setErr(""); setOut({ date: "", reason: "expired", note: "" }); }} className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50" data-testid="add-move-out">Tenant moved out</button>}
       </div>
-      {hist.filter((h) => h.type !== "purchase").length === 0 && !form && <p className="text-xs text-gray-500">None recorded. The model uses your rollover assumptions when the lease at purchase ends.</p>}
+      {hist.filter((h) => h.type !== "purchase").length === 0 && !form && !out && <p className="text-xs text-gray-500">None recorded. The model uses your rollover assumptions when the lease at purchase ends.</p>}
       {hist.some((h) => h.type !== "purchase") && (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[620px] text-xs">
@@ -90,6 +100,9 @@ export function UnitLeaseHistory({ unit, inputs, units, canEdit = true, onUnits,
             <tbody className="divide-y divide-gray-100">
               {hist.map((h, i) => h.type === "gap" ? (
                 <tr key={i} className="text-gray-500" data-testid="lease-history-row"><td className="px-2 py-1">Vacant</td><td className="px-2 py-1">{h.months} month{h.months === 1 ? "" : "s"}</td><td className="px-2 py-1">{usDate(h.start)}</td><td className="px-2 py-1">{usDate(h.end)}</td><td colSpan={6} className="px-2 py-1">Downtime</td></tr>
+              ) : h.type === "moveout" ? (
+                <tr key={i} className="bg-amber-50 text-amber-900" data-testid="lease-history-row"><td className="px-2 py-1 font-medium">Moved out</td><td className="px-2 py-1">{h.tenantName || "—"}</td><td className="px-2 py-1">—</td><td className="px-2 py-1" data-testid="move-out-date">{usDate(h.date)}</td><td colSpan={5} className="px-2 py-1">{moveOutReasonLabel(h.reason)}{h.note ? `: ${h.note}` : ""}. Vacant from the next day.</td>
+                  <td className="px-2 py-1 text-right">{canEdit && <><button type="button" onClick={() => { setErr(""); setForm(null); setOut({ date: h.date, reason: h.reason, note: h.note ?? "" }); }} className="mr-2 text-blue-700 hover:underline">Edit</button><button type="button" onClick={() => window.confirm("Remove the move-out? The model goes back to the lease's own end date and your rollover assumptions.") && onUnits(removeMoveOut(inp, unit.id).units)} className="text-red-700 hover:underline" aria-label="Remove the move-out">Remove</button></>}</td></tr>
               ) : h.type === "purchase" ? (
                 <tr key={i} className="text-gray-600" data-testid="lease-history-row"><td className="px-2 py-1">At purchase</td><td className="px-2 py-1">{h.tenantName || "—"}</td><td className="px-2 py-1">—</td><td className="px-2 py-1">{h.end ? usDate(h.end) : "—"}</td><td className="px-2 py-1">{psf(h.rentPSF)}</td><td colSpan={5} className="px-2 py-1">The rent roll row above</td></tr>
               ) : (
@@ -101,6 +114,21 @@ export function UnitLeaseHistory({ unit, inputs, units, canEdit = true, onUnits,
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {out && (
+        <div className="mt-2 rounded-lg border border-blue-200 bg-white p-2" data-testid="move-out-form">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <label className="text-[11px] text-gray-600">Tenant&apos;s last day<input aria-label="Move-out date" type="date" value={out.date} onChange={(e) => setOut({ ...out, date: e.target.value })} className={field} /></label>
+            <label className="text-[11px] text-gray-600">Reason<select aria-label="Move-out reason" value={out.reason} onChange={(e) => setOut({ ...out, reason: e.target.value })} className={field}>{MOVE_OUT_REASONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+            <label className="text-[11px] text-gray-600">Note<input aria-label="Move-out note" value={out.note} onChange={(e) => setOut({ ...out, note: e.target.value })} className={field} /></label>
+          </div>
+          {err && <p role="alert" className="mt-2 rounded border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-900" data-testid="move-out-error">{err}</p>}
+          <div className="mt-2 flex gap-2">
+            <button type="button" onClick={saveOut} className="rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700" data-testid="save-move-out">Save move-out</button>
+            <button type="button" onClick={() => { setOut(null); setErr(""); }} className="rounded-md border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 hover:bg-gray-50">Cancel</button>
+          </div>
+          <p className="mt-1 text-[11px] text-gray-500">The lease running on that day ends then. The unit is vacant from the next day and the model re-lets it after the unit&apos;s downtime as a new lease, with no renewal chance. Add a lease when one is signed.</p>
         </div>
       )}
       {form && (

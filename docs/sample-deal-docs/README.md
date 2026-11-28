@@ -59,6 +59,13 @@ app builds it**, so a document and the app never disagree. To rebuild:
    `lib/sampleFund.js` (on the fixed date) and the leases' `index.json`;
    `--check` exits 1 when they are stale. Run it after the documents above,
    because it reads the sales and terms they add to the fund.
+8a. **The joint venture's and separate account's documents** (`ventures/`, 1.1.27):
+   `node scripts/sample-deal-docs/venture_docs.cjs` writes the JVA, the SMA,
+   the two outside GP partners' agreements, the sold asset's closing
+   statement, post-closing true-up and distribution notice, a Phase I and a
+   Phase II, and four appraisals. It reads the two portfolios through
+   `lib/sampleVentures.js` (on its fixed date); `--check` exits 1 when they
+   are stale.
 9. `node scripts/sample-deal-docs/copy_public.cjs` refreshes the copies the
    app uploads.
 10. When a document is rewritten or retired, add its file name to

@@ -1,0 +1,220 @@
+{
+ "doc_type": "jva",
+ "title": "Sample Industrial Venture I JVA (excerpt)",
+ "fund": "Sample Industrial Venture I",
+ "summary": "Sample Industrial Venture I · Joint venture · effective March 31, 2022",
+ "fields": [
+  {
+   "key": "fund_name",
+   "value": "Sample Industrial Venture I",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "This Agreement governs Sample Industrial Venture I, a joint venture between the Investor Member and the Sponsor Member.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "partner_name",
+   "value": "Example Pension Fund",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The Investor Member is Example Pension Fund.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "commitments",
+   "value": "$80,000,000",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "Total equity commitments are $80,000,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "gp_commit_pct",
+   "value": "10%",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "The Sponsor Member commits 10% of the total equity and the Investor Member the balance.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "mgmt_fee_pct",
+   "value": "0.75%",
+   "status": "found",
+   "clause": "3.1",
+   "evidence": [
+    {
+     "quote": "The Sponsor Member is paid an asset management fee of 0.75% per year of invested equity.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "mgmt_fee_basis",
+   "value": "Invested equity",
+   "status": "found",
+   "clause": "3.2",
+   "evidence": [
+    {
+     "quote": "The Sponsor Member is paid an asset management fee of 0.75% per year of invested equity.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "am_fee_paid_to",
+   "value": "The Sponsor Member (the sponsor)",
+   "status": "found",
+   "clause": "3.3",
+   "evidence": [
+    {
+     "quote": "The asset management fee is paid to the Sponsor Member, the sponsor.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "pm_fee_paid_to",
+   "value": "The Sponsor Member (the sponsor)",
+   "status": "found",
+   "clause": "3.4",
+   "evidence": [
+    {
+     "quote": "Property management is carried out by the Sponsor Member, the sponsor, for a fee of 5% of each property's revenue.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "cm_fee_paid_to",
+   "value": "The Sponsor Member (the sponsor)",
+   "status": "found",
+   "clause": "3.5",
+   "evidence": [
+    {
+     "quote": "Construction management is carried out by the Sponsor Member, the sponsor, for a fee of 1.5% of construction spending.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "pref_pct",
+   "value": "8%",
+   "status": "found",
+   "clause": "4.1",
+   "evidence": [
+    {
+     "quote": "Distributions are made first to the parties in proportion to their capital until each has received a preferred return of 8% per year and the return of its capital.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "catch_up_pct",
+   "value": "0%",
+   "status": "found",
+   "clause": "4.2",
+   "evidence": [
+    {
+     "quote": "There is no catch-up to the Sponsor Member: the catch-up is 0%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "promote",
+   "value": "80/20 to a 14% IRR; 70/30 thereafter",
+   "status": "found",
+   "clause": "4.3",
+   "evidence": [
+    {
+     "quote": "Distributions are then split 80% to the capital and 20% to the Sponsor Member as promote until the Investor Member has achieved a 14% IRR, and thereafter 70% and 30%.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "tier_method",
+   "value": "Marginal",
+   "status": "found",
+   "clause": "4.4",
+   "evidence": [
+    {
+     "quote": "Each split applies only to the distributions made within its tier, and no split applies retroactively to distributions already made.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "investment_period_years",
+   "value": "3 years",
+   "status": "found",
+   "clause": "5.1",
+   "evidence": [
+    {
+     "quote": "The investment period is 3 years from March 31, 2022.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "term_years",
+   "value": "7 years",
+   "status": "found",
+   "clause": "5.2",
+   "evidence": [
+    {
+     "quote": "The term is 7 years from March 31, 2022.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "extension_count",
+   "value": "2",
+   "status": "found",
+   "clause": "5.3",
+   "evidence": [
+    {
+     "quote": "The term may be extended 2 times with the Investor Member's consent.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "extension_years",
+   "value": "1 year",
+   "status": "found",
+   "clause": "5.4",
+   "evidence": [
+    {
+     "quote": "Each extension is for 1 year.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "sample-industrial-venture-i-jva.pdf"
+  ]
+ }
+}

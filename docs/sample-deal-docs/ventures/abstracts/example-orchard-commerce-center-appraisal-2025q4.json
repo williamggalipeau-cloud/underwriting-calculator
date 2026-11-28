@@ -1,0 +1,88 @@
+{
+ "doc_type": "appraisal",
+ "title": "Example Orchard Commerce Center appraisal December 31, 2025",
+ "asset": "Example Orchard Commerce Center",
+ "summary": "Example Orchard Commerce Center · As of December 31, 2025",
+ "fields": [
+  {
+   "key": "appraiser",
+   "value": "Example Valuation Advisors",
+   "status": "found",
+   "clause": "1.1",
+   "evidence": [
+    {
+     "quote": "This appraisal of Example Orchard Commerce Center, 6300 Example Orchard Ave, Denver, CO, was prepared by Example Valuation Advisors.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "effective_date",
+   "value": "December 31, 2025",
+   "status": "found",
+   "clause": "1.2",
+   "evidence": [
+    {
+     "quote": "The effective date of value is December 31, 2025.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "report_date",
+   "value": "January 22, 2026",
+   "status": "found",
+   "clause": "1.3",
+   "evidence": [
+    {
+     "quote": "The date of this report is January 22, 2026.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "interest",
+   "value": "Leased fee",
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "The interest appraised is the leased fee interest.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "value",
+   "value": "$69,600,000",
+   "status": "found",
+   "clause": "2.1",
+   "evidence": [
+    {
+     "quote": "The market value of the property, as is, is $69,600,000.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "approaches",
+   "value": "Income capitalization and sales comparison",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "The income capitalization and sales comparison approaches were used for the 290,000 square feet in 68 units.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "critical_dates": [],
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false,
+  "files": [
+   "example-orchard-commerce-center-appraisal-2025q4.pdf"
+  ]
+ }
+}

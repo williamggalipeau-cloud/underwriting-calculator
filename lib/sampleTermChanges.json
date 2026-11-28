@@ -1,5 +1,5 @@
 {
- "_note": "By sample data version (lib/samplePortfolio.js SAMPLE_DATA_VERSION): figures the Model Fund I sample documents state that changed in that version, as [asset, field, old value, new value]. The automatic load (lib/sampleDocTerms.js withSampleTermChanges) writes the new value only where the asset still holds the old one, so anything the user changed is kept. A field under \"sale.\" is on the asset's sample sale. Version 8 (1.1.21): the sample leases' rent steps moved year-one NOI by a few hundred dollars, and two broker opinions (rounded to the nearest $50,000) with it.",
+ "_note": "By sample data version (lib/samplePortfolio.js SAMPLE_DATA_VERSION): figures the Model Fund I sample documents state that changed in that version, as [asset, field, old value, new value]. The automatic load (lib/sampleDocTerms.js withSampleTermChanges) writes the new value only where the asset still holds the old one, so anything the user changed is kept. A field under \"sale.\" is on the asset's sample sale. Version 8 (1.1.21): the sample leases' rent steps moved year-one NOI by a few hundred dollars, and two broker opinions (rounded to the nearest $50,000) with it. Version 12 (1.1.27): the construction management fee moved to construction spending, so the IC memo states a higher return.",
  "8": [
   [
    "sample-deal-1",
@@ -28,8 +28,8 @@
   [
    "sample-deal-3",
    "sale.bovs.0.notes",
-   "Value range $9,850,000–$10,450,000; list $10,450,000; $282/SF; ten weeks; BOV dated 2026-11-02",
-   "Value range $9,900,000–$10,500,000; list $10,500,000; $283/SF; ten weeks; BOV dated 2026-11-02"
+   "Value range $9,850,000\u2013$10,450,000; list $10,450,000; $282/SF; ten weeks; BOV dated 2026-11-02",
+   "Value range $9,900,000\u2013$10,500,000; list $10,500,000; $283/SF; ten weeks; BOV dated 2026-11-02"
   ],
   [
    "sample-deal-3",
@@ -58,14 +58,28 @@
   [
    "sample-deal-6",
    "sale.bovs.0.notes",
-   "Value range $14,950,000–$15,850,000; list $15,850,000; $308/SF; eight weeks; BOV dated 2026-11-02",
-   "Value range $15,000,000–$15,900,000; list $15,900,000; $309/SF; eight weeks; BOV dated 2026-11-02"
+   "Value range $14,950,000\u2013$15,850,000; list $15,850,000; $308/SF; eight weeks; BOV dated 2026-11-02",
+   "Value range $15,000,000\u2013$15,900,000; list $15,900,000; $309/SF; eight weeks; BOV dated 2026-11-02"
   ],
   [
    "sample-deal-6",
    "sale.offers.0.price",
    15250000,
    15300000
+  ]
+ ],
+ "12": [
+  [
+   "sample-deal-1",
+   "icApproved.irr",
+   31,
+   33.7
+  ],
+  [
+   "sample-deal-1",
+   "icApproved.multiple",
+   2.91,
+   3.06
   ]
  ]
 }

@@ -1,0 +1,19 @@
+{
+ "doc_type": "phase2",
+ "title": "Example Foundry Flex Park Phase II environmental report",
+ "asset": "Example Foundry Flex Park",
+ "report_date": "2023-10-31",
+ "prepared_by": "Fictional Environmental Services, LLC",
+ "site": {
+  "phase2Date": "2023-10-31",
+  "phase2Result": "Clean"
+ },
+ "quotes": {
+  "phase2Date": "This Phase II Environmental Site Assessment was completed on October 31, 2023. Soil and groundwater were sampled at six borings along the northern boundary.",
+  "phase2Result": "No chlorinated solvents or other contaminants were detected above the applicable screening levels in any sample."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

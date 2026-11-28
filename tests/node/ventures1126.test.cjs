@@ -136,8 +136,12 @@ for (const d of v.deals) {
   check(i.cmFeeBasis === "spend" && d.quick.cmFeeBasis === "spend" && cf[0].constructionMgmtFee >= 0.015 * i.capexBudget - 1 && cf.every((y) => y.constructionMgmtFee >= 0 && y.constructionMgmtFee <= 0.015 * (i.capexBudget + y.tiAndLeasing) + 1) && cf.reduce((s, y) => s + y.constructionMgmtFee, 0) < 0.1 * asValue.reduce((s, y) => s + y.constructionMgmtFee, 0) && asValue.every((y) => near(y.constructionMgmtFee, 0.015 * i.purchasePrice)), `${i.propertyName}: the fee is 1.5% of the capital budget (year 1) and each year's tenant improvements, not 1.5% of the price every year`);
 }
 const mf1 = buildSampleFund({ todayISO: T }).deals[0].inputs;
-check((mf1.cmFeeBasis ?? "value") === "value" && underwrite(mf1).annualCashFlows.every((y) => near(y.constructionMgmtFee, (mf1.cmFeePct / 100) * mf1.purchasePrice)), "Model Fund I keeps its fee on asset value, as before");
-check(SP.SAMPLE_DATA_VERSION === 11, "the sample data version is 11");
+// 1.1.27 (user, 11/27): Model Fund I is on construction spending too.
+{
+  const cf = underwrite(mf1).annualCashFlows, asValue = underwrite({ ...mf1, cmFeeBasis: "value" }).annualCashFlows;
+  check(mf1.cmFeeBasis === "spend" && cf[0].constructionMgmtFee >= 0.015 * mf1.capexBudget - 1 && cf.every((y) => y.constructionMgmtFee <= 0.015 * (mf1.capexBudget + y.tiAndLeasing) + 1) && asValue.every((y) => near(y.constructionMgmtFee, (mf1.cmFeePct / 100) * mf1.purchasePrice)), "Model Fund I charges its fee on construction spending (1.1.27); on asset value it would be 1.5% of the price a year");
+}
+check(SP.SAMPLE_DATA_VERSION >= 11, "the sample data version is 11 or later");
 
 console.log(`ventures1126: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

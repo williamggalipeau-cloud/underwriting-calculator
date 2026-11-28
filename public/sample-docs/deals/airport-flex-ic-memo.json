@@ -1,7 +1,7 @@
 {
  "doc_type": "ic_memo",
  "title": "Airport Flex Park final IC memo",
- "summary": "IC approved Airport Flex Park on December 18, 2025 at $7,200,000 (31.0% IRR, 2.91x) subject to four conditions.",
+ "summary": "IC approved Airport Flex Park on December 18, 2025 at $7,200,000 (33.7% IRR, 3.06x) subject to four conditions.",
  "fields": [
   {
    "key": "approval_date",
@@ -104,22 +104,22 @@
   },
   {
    "key": "irr",
-   "value": "31.0%",
+   "value": "33.7%",
    "status": "found",
    "evidence": [
     {
-     "quote": "Projected IRR: 31.0%.",
+     "quote": "Projected IRR: 33.7%.",
      "page": 1
     }
    ]
   },
   {
    "key": "multiple",
-   "value": "2.91x",
+   "value": "3.06x",
    "status": "found",
    "evidence": [
     {
-     "quote": "Projected equity multiple: 2.91x.",
+     "quote": "Projected equity multiple: 3.06x.",
      "page": 1
     }
    ]

@@ -78,8 +78,8 @@ import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { TAB_GROUPS, TABS, TAB_COUNT_TITLES, DEAL_TABS } from "@/lib/tabs";
 import { sampleFundData, samplePipelineCandidate, withSampleBenchmarks, SAMPLE_IMPACT_PIPELINE_ID } from "@/lib/sampleFundData";
-import { sampleVenturesToAdd } from "@/lib/sampleVentures";
-import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION } from "@/lib/samplePortfolio";
+import { isSampleVentureDeal, sampleVenturesToAdd, withSampleMoveOut, withSampleVentureFacts } from "@/lib/sampleVentures";
+import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION, withSampleCmFeeBasis } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
 import { DEFAULT_FUND_TERMS, downloadBlob, parseCSV } from "@/lib/fundTerms";
@@ -1504,7 +1504,9 @@ export default function Home() {
     setActiveTab("fund");
     // The sample documents and tenant-named leases (database only; skipped
     // signed out). Runs after the deals above are set.
-    handleAddSampleDocs({ deals: built }).catch(() => {});
+    // 1.1.27: the joint venture's and separate account's documents go on the assets and portfolios just added (or already there).
+    const venAssets = [...deals.filter((d) => isSampleVentureDeal(d.id)), ...ven.deals.filter((d) => isSampleVentureDeal(d.id))];
+    handleAddSampleDocs({ deals: [...built, ...venAssets.filter((d, i, all) => all.findIndex((x) => x.id === d.id) === i)], funds: { ...ven.funds, ...funds, [SAMPLE_FUND_NAME]: funds[SAMPLE_FUND_NAME] ?? {} } }).catch(() => {});
   }
 
   // Drawn photos and floor plans for the sample assets (phase L), added to
@@ -1541,7 +1543,7 @@ export default function Home() {
       const removed = fromLoad ? await removeBlankSampleLeases(dbLink.id) : 0;
       if (removed) noteAudit(`Removed ${removed} sample lease record${removed === 1 ? "" : "s"} with no tenant name (replaced by the named sample leases)`);
       const r = await addSampleDocuments({
-        workspaceId: dbLink.id, email: session?.user?.email ?? null, deals: fromLoad?.deals ?? deals,
+        workspaceId: dbLink.id, email: session?.user?.email ?? null, deals: fromLoad?.deals ?? deals, funds: fromLoad?.funds ?? funds,
         onSale: (dealId, sale) => updateDealInputs(dealId, (inp) => ({ ...inp, dispositions: [...(inp.dispositions ?? []), sale] })),
         onProgress: (t) => setSampleDocMsg(`Adding sample documents… ${t}`),
       });
@@ -1622,8 +1624,11 @@ export default function Home() {
       // entered is replaced.
       const fromVersion = terms.sampleDataVersion ?? 0;
       const withDocs = (d) => {
+        // 1.1.27: the joint venture's and separate account's assets: building and site facts (only where none) and the tenant that moved out (only where the asset has no move-out).
+        if (isSampleVentureDeal(d.id)) { const v = withSampleMoveOut(withSampleVentureFacts(d.inputs, d.id), d.id); return v === d.inputs ? d : { ...d, inputs: v }; }
         if (!d.id.startsWith("sample-deal-")) return d;
-        let inp = mergeCreditUpdate(d.inputs, credit.updates[d.id]); // 1.1.18: only the credit fields, onto the asset as it is now
+        let inp = mergeCreditUpdate(d.inputs, credit.updates[d.id]);
+        inp = withSampleCmFeeBasis(inp, d.id); // 1.1.27: construction management on construction spending, only where the asset still holds the earlier sample fee // 1.1.18: only the credit fields, onto the asset as it is now
         inp = withSampleSale(applySampleDocTerms(inp, d.id, { keepExisting: true }), d.id); // the sales in progress, as their documents state them
         inp = withSampleTermChanges(inp, d.id, { fromVersion }); // 1.1.21: sample figures that changed, only where the asset still holds the earlier sample value
         inp = withSampleLeaseSteps(inp, d.id); // 1.1.21: each sample lease's rent steps, on its tenant's unit (only where the unit has none)
@@ -1634,7 +1639,8 @@ export default function Home() {
         inp = withSampleDocProspect(inp, d.id); // 1.1.23: the prospect with fixed terms the sample leasing documents are written for (only where the asset does not have it)
         inp = withSampleResearchExtra(inp, d.id, { valuations: applySampleDocMarks(latestData.current?.valuations ?? cur.valuations ?? {}) }); // 1.1.23: research items of the remaining types, each only where the asset does not have it
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
-        return inp === d.inputs ? d : { ...d, inputs: inp };
+        const q = d.quick ? withSampleCmFeeBasis(d.quick, d.id) : d.quick; // the asset's screening copy follows, by the same rule
+        return inp === d.inputs && q === d.quick ? d : { ...d, inputs: inp, ...(q !== d.quick ? { quick: q } : {}) };
       };
       const built = cur.deals.map(withDocs);
       noteAudit("Model Fund I sample data updated automatically (tenant credit, aged rent, sample documents and the terms they state, property managers, legal entities, GP partners)");
@@ -1645,6 +1651,14 @@ export default function Home() {
         for (const id of Object.keys(next)) for (const q of Object.keys(next[id] ?? {})) if (prev[id]?.[q] && prev[id][q].source !== "internal") next[id] = { ...next[id], [q]: prev[id][q] };
         return next;
       });
+      // 1.1.26: the sample joint venture and separate account (their terms,
+      // four assets, marks, outside GP partners and two pipeline deals),
+      // each piece only where the firm does not have it.
+      const ven = sampleVenturesToAdd({ deals: latestData.current?.deals ?? cur.deals, funds: latestData.current?.funds ?? cur.funds, valuations: latestData.current?.valuations ?? cur.valuations, gp: cur.gpPartners, pipeline: (latestData.current?.pipeline ?? cur.pipeline)?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
+      addSampleVentures(ven); // 1.1.27: before the save below, so they are stored before the uploads start
+      // 1.1.27: their documents are added with Model Fund I's, so the assets and portfolios just added are in the lists the documents are filed against.
+      const allDeals = [...built, ...ven.deals.filter((d) => !built.some((x) => x.id === d.id))];
+      const allFunds = { ...ven.funds, ...(latestData.current?.funds ?? cur.funds) };
       // 1.1.14: save the asset changes now, before the uploads (about a
       // minute). Left unsaved, moving to another tab showed the unsaved-changes
       // box, and Discard changes threw them away while the load carried on.
@@ -1654,11 +1668,11 @@ export default function Home() {
       const replaced = (await removeSupersededSampleDocs(l.id, { fromVersion, fundName: SAMPLE_FUND_NAME })).total; // earlier sample documents, sale documents and leases, by their file names
       const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
       const docs = await addSampleDocuments({
-        workspaceId: l.id, email, deals: built,
+        workspaceId: l.id, email, deals: allDeals, funds: allFunds,
         onSale: (dealId, sale) => updateDealInputs(dealId, (inp) => ({ ...inp, dispositions: [...(inp.dispositions ?? []), sale] })),
         onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`),
       });
-      const gpr = await addSampleGpPartners({ workspaceId: l.id, email, gp: cur.gpPartners, onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`) });
+      const gpr = await addSampleGpPartners({ workspaceId: l.id, email, gp: ven.gp, funds: allFunds, onProgress: (x) => setSampleDocMsg(`Updating the Model Fund I sample data… ${x}`) });
       // The agreements are switched on (user, 11/27): each one Claude's
       // abstract gives complete terms for is saved as checked, and the
       // fund's GP parties are rebuilt from them.
@@ -1667,19 +1681,17 @@ export default function Home() {
       let gp = gpr.gp, switched = 0;
       for (const d of (await listDealDocs(l.id)).filter((x) => x.abstract?.doc_type === "gp_agreement")) {
         if ((gp.agreements ?? []).some((a) => a.docId === d.id)) continue;
-        const draft = agreementFromAbstract(d.abstract, { gp, funds: cur.funds, deals: built, docId: d.id, fileName: d.files?.[0]?.name ?? "" });
+        const draft = agreementFromAbstract(d.abstract, { gp, funds: allFunds, deals: allDeals, docId: d.id, fileName: d.files?.[0]?.name ?? "" });
+        // 1.1.27: an agreement already on the list with no document (the joint venture's and separate account's, added as records in 1.1.26) is linked to its document.
+        const bare = draft && (gp.agreements ?? []).find((a) => !a.docId && a.partnerId === draft.partnerId && a.portfolio === draft.portfolio && (a.dealId || null) === (draft.dealId || null) && a.effective === draft.effective);
+        if (bare) gp = { ...gp, agreements: gp.agreements.map((a) => (a.id === bare.id ? { ...a, docId: d.id, fileName: d.files?.[0]?.name ?? "" } : a)) };
         const dup = draft && (gp.agreements ?? []).some((a) => a.partnerId === draft.partnerId && a.portfolio === draft.portfolio && (a.dealId || null) === (draft.dealId || null) && a.effective === draft.effective);
         if (!draft || dup) continue;
         const r = saveAgreement(gp, draft, { by: email ?? "" });
         if (!r.error) { gp = r.gp; switched++; }
       }
-      // 1.1.26: the sample joint venture and separate account (their terms,
-      // four assets, marks, outside GP partners and two pipeline deals),
-      // each piece only where the firm does not have it.
-      const ven = sampleVenturesToAdd({ deals: latestData.current?.deals ?? cur.deals, funds: latestData.current?.funds ?? cur.funds, valuations: latestData.current?.valuations ?? cur.valuations, gp, pipeline: (latestData.current?.pipeline ?? cur.pipeline)?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
-      gp = ven.gp;
       setGpPartners(gp);
-      addSampleVentures(ven);
+      addSampleVentures(ven); // again, in case the data was reloaded during the uploads (adds only what is missing)
       const failed = [...docs.failed, ...gpr.failed];
       // 1.1.14: the asset changes are applied again here, to whatever the
       // assets are now, in case they were discarded or reloaded during the
@@ -1731,7 +1743,7 @@ export default function Home() {
     const { addSampleGpPartners } = await import("@/lib/sampleDocs");
     setSampleDocMsg("Adding sample GP partners…");
     try {
-      const r = await addSampleGpPartners({ workspaceId: dbLink.id, email: session?.user?.email ?? null, gp: gpPartners, onProgress: (x) => setSampleDocMsg(`Adding sample GP partners… ${x}`) });
+      const r = await addSampleGpPartners({ workspaceId: dbLink.id, email: session?.user?.email ?? null, gp: gpPartners, funds, onProgress: (x) => setSampleDocMsg(`Adding sample GP partners… ${x}`) });
       setGpPartners(r.gp);
       setSampleDocMsg("");
       setActiveTab("gppartners");
@@ -2445,6 +2457,7 @@ export default function Home() {
               <UnitRoll
                 units={inputs.units}
                 inputs={inputs}
+                email={session?.user?.email ?? ""}
                 onChange={(units) => setInputs((prev) => ({ ...prev, units }))}
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
                 dealId={activeDeal.id}

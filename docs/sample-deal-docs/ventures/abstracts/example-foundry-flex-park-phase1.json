@@ -1,0 +1,19 @@
+{
+ "doc_type": "phase1",
+ "title": "Example Foundry Flex Park Phase I environmental report",
+ "asset": "Example Foundry Flex Park",
+ "report_date": "2023-10-10",
+ "prepared_by": "Fictional Environmental Services, LLC",
+ "site": {
+  "phase1Date": "2023-10-10",
+  "phase1Result": "Recognized environmental condition"
+ },
+ "quotes": {
+  "phase1Date": "This Phase I Environmental Site Assessment was completed on October 10, 2023 in accordance with ASTM E1527-21.",
+  "phase1Result": "This assessment has revealed a recognized environmental condition in connection with the property: a former dry cleaner operated on the adjoining parcel to the north."
+ },
+ "app": {
+  "made_with": "Sample (fictional)",
+  "validated": false
+ }
+}

@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.26** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.27** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -515,7 +515,9 @@ The tool names are the ones recorded in the build sessions. Many more
 connectors are installed in the Claude Code environment (finance, legal,
 design and others), among them Acquirepad, Corbis, Gamma, RiskModels and
 TradingCalc, which show in Claude Code's tools panel; none of them was
-called for Baywise (checked against the session record, 11/27) and none
+called for Baywise (checked against the session record, 11/27 and again
+for 1.1.27; no new connector, skill or agent was used in 1.1.27, and the
+live database was only read) and none
 is listed in the table. Claude also used its built-in tools (reading and editing files,
 running commands and tests, web search and web fetch), which are not
 connectors. This table is updated with each release.
@@ -1244,6 +1246,22 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
   research file only on a research item the asset holds.
 - **Version 11 (1.1.26):** the sample joint venture and separate account
   (below).
+- **Version 12 (1.1.27):** their 13 documents, building and site facts on
+  their four assets, and a tenant that moved out (below); Model Fund I's
+  construction management fee moves to construction spending, and its IC
+  memo and IC presentation are replaced with copies that state the return
+  on that basis.
+
+**Model Fund I's construction management fee (1.1.27).** The fund's nine
+assets now charge construction management at 1.5% of construction spending
+(the capital budget and tenant improvements), as the joint venture and
+separate account do, instead of 1.5% of the purchase price every year. The
+fee is below NOI, so NOI and values do not move; cash flow and returns rise
+(test copy: Airport Flex Park 31.0% to 33.7%; the fund's fee over the holds
+$5,184,000 to $121,068). The load switches an asset only where it still
+holds the earlier sample fee (1.5% on asset value): a fee or basis you
+changed is left alone. With the lower fee the fund has cash to distribute
+for last quarter, so Distribution Analysis now has a sample proposal.
 
 **Sample joint venture and separate account (1.1.26, `lib/sampleVentures.js`).**
 Two more fictional portfolios load beside Model Fund I, so the joint venture
@@ -1270,7 +1288,7 @@ assets owned for several years can be tested without typing anything in.
   |---|---|---|---|---|---|
   | Example Gateway Industrial Park, Phoenix | Joint venture | 6/15/2022 | 72 | $49,500,000 | Sold 6/30/2026 for $85,650,000 (Track Record): 23.6% IRR against 20.2% underwritten |
   | Example Summit Business Center, Las Vegas | Joint venture | 2/28/2023 | 64 | $51,000,000 | On plan: 18.8% against 15.9% underwritten |
-  | Example Foundry Flex Park, Salt Lake City | Joint venture | 11/15/2023 | 78 | $48,000,000 | Behind plan: bought 68% leased to reach about 92%, now 76%; −15.4% against 18.4% underwritten; marked $47,650,000 against a cost of $51,500,000 |
+  | Example Foundry Flex Park, Salt Lake City | Joint venture | 11/15/2023 | 78 | $48,000,000 | Behind plan: bought 68% leased to reach about 92%, now about 76%; −15.3% against 18.4% underwritten; marked $47,650,000 against a cost of $51,500,000; one tenant moved out with no replacement (1.1.27) |
   | Example Orchard Commerce Center, Denver | Separate account | 6/30/2023 | 68 | $50,500,000 | On plan: 18.0% against 15.4% underwritten |
 
 - **How each is built.** First as it was underwritten at purchase, which is
@@ -1289,9 +1307,9 @@ assets owned for several years can be tested without typing anything in.
   late rent) come with the rest of the tab data in 1.1.28.
 - **Pipeline.** Two joint venture deals: Example Ironworks Distribution
   Center (under contract) and Example Prairie Commerce Park (LOI).
-- **Not yet (1.1.27 and 1.1.28):** their documents (agreements, leases,
-  closing documents, a Phase II), and their business plans, leasing
-  pipeline, tenant credit and property management data.
+- **Not yet (1.1.28):** their business plans, leasing pipeline, tenant
+  credit stories and property management data, and the distribution of the
+  sale proceeds. Their documents came in 1.1.27 (below).
 - **Loading.** Automatic, like the rest of the sample data: a firm that has
   Model Fund I gets them the next time an owner opens Baywise. Only what is
   missing is added; a portfolio, asset or mark you already have is left
@@ -1659,6 +1677,32 @@ Cells are colored by their difference from the base case.
 
 ### 7.19 Units and leases (`lib/leases.js`)
 
+**The two portfolios' documents (1.1.27, `scripts/sample-deal-docs/venture_docs.cjs`).**
+Thirteen fictional documents load with the two portfolios, each with its
+abstract, and each written from the portfolios as the app builds them:
+
+| Document | Filed on | Where it shows |
+|---|---|---|
+| Joint venture agreement (JVA) | Sample Industrial Venture I | Document Library; Portfolio Summary → the governing document |
+| Separate account agreement (SMA) | Sample Separate Account A | The same |
+| GP co-investment agreement, one per outside GP partner (2) | Each portfolio | Finance → GP Partners, linked to the agreement already on the list |
+| Closing statement, post-closing true-up, distribution notice (3) | Example Gateway Industrial Park's closed sale | Dispositions → Disposition Documents; the closing statement also in the Document Library |
+| Phase I and Phase II environmental reports (2) | Example Foundry Flex Park | Asset Summary → building and site facts |
+| Appraisal as of 12/31/2025 (4) | Each of the four assets | Valuation: the 12/31/2025 mark |
+
+- **Building and site facts** are on all four assets. Example Foundry Flex
+  Park's Phase I recognized a condition (a former dry cleaner next door);
+  its Phase II came back clean. A clean Phase II closes the condition, so
+  the asset is not flagged for an open environmental item.
+- **The separate account agreement** carries a preferred return and promote
+  (the SMA document type gained those fields in 1.1.27).
+- **The distribution notice** states the amount, which is the sale's net
+  proceeds, and that it is allocated under the JVA. It gives no split
+  between the partner and the sponsor: the distribution record comes in
+  1.1.28.
+- **Not included:** a broker opinion, offer or P&S for the sold asset (the
+  sale record holds none), and leases for the four assets.
+
 **Leases signed since purchase (1.1.24, `lib/leaseHistory.js`).** The rent
 roll rows are the leases in place on the day the asset was bought: the model
 counts each one down from the purchase date and then applies the rollover
@@ -1688,6 +1732,19 @@ assumptions. A lease signed afterwards is added to its unit's history:
 - **Ended, no lease recorded.** A lease that has ended with nothing newer
   recorded is flagged on its rent roll row, and the Dashboard lists one
   action per asset ("N leases have ended with no newer lease recorded").
+- **Tenant moved out (1.1.27).** When a tenant leaves and no lease replaces
+  it: Rent Roll → open the unit (▸) → **Tenant moved out**. Enter the
+  tenant's last day, the reason (lease expired, early termination, default
+  or eviction, other) and a note. The lease running that day ends then,
+  whether that is early or after holding over. The unit shows **Vacant,
+  tenant moved out** and names who left; it is no longer flagged as an
+  ended lease. In the model the unit is vacant from the next month, with no
+  renewal chance, and is re-let after the unit's downtime as a new lease
+  (new-lease TI and commission, at market rent). A lease added later takes
+  over from its start date. Because a re-let is at market rent, a move-out
+  from a below-market lease can raise later income while lowering the
+  months it is vacant. The move-out can be edited or removed, which puts
+  the model back exactly as it was.
   Until a lease is added the model keeps using the rollover assumptions.
 - **Active Leasing.** Marking a prospect **Signed** adds its lease to its
   unit automatically, with the prospect's start, term, rent, increase, free
@@ -4563,6 +4620,7 @@ Fields set from Underwriter on linked deals are marked **Q**.
 | `pmFeePct`, `pmFeeBasis` **Q** | `deals[].inputs.pmFeePct`<br>`deals[].inputs.pmFeeBasis` | %, `noi`/`value` | 5, noi | PM fee in direct-NOI mode |
 | `cmFeePct` **Q** | `deals[].inputs.cmFeePct` | % of `cmFeeBasis` | 1.5 | Construction management, below NOI |
 | `cmFeeBasis` **Q** | `deals[].inputs.cmFeeBasis` | `value` / `spend` | `value` | 1.1.26: `value` = % of the purchase price every year; `spend` = % of construction spending (the capital budget in year 1 and each year's tenant improvements; not leasing commissions or free rent) |
+| `moveOut` | `deals[].inputs.units[].moveOut` | `{ date, tenantName, reason, note, by, at }` | none | 1.1.27: a tenant that moved out with no replacement. `date` is its last day; `reason` is `expired`, `terminated`, `default` or `other`. The lease running that day ends then and the unit is vacant from the next day |
 
 **Rent roll and operations** (used when direct NOI is off):
 
@@ -5329,8 +5387,8 @@ Every future release is checked against these:
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; patch **1.1.21**: sample Property Management data and documents, third-party research, the sample leases' rent steps; planned patches **1.1.22** and **1.1.23** (row below) |
-| **1.1.x** | Remaining version 1.1 patches, in order: **1.1.26 to 1.1.28** (1.1.28 is the last 1.1 patch; your decision, 11/27) a sample joint venture (set up 2022: two assets held, one sold in 2026 after its four-year plan, two pipeline deals; one held asset well behind its targets) and a sample separate account (set up 2023: one asset), each asset about $50,000,000 with 60 to 80 units, fixed past dates, complete documents and its own new outside GP equity partner | Planned |
-| **1.2** | Workflow: approvals, reminders and gating (phase V) | Planned |
+| **1.1.x** | The last version 1.1 patch: **1.1.28** (your decision, 11/27): the sample joint venture's and separate account's business plans, leasing pipeline, tenant credit stories and property management data, and the distribution of the sale proceeds. Done: 1.1.26 (the two portfolios, their terms, four assets and figures) and 1.1.27 (their documents, a tenant that moved out, Model Fund I's construction management fee on construction spending) | Planned |
+| **1.2** | Workflow: approvals, reminders and gating (phase V); the Acquisitions and Dispositions workflows you set out (Leasing and Property Management to come); and, by your decision of 11/28: IC Memos tabs in Acquisitions and Dispositions, a closing calendar for each deal in process (milestones to review with you first), a home page section of acquisitions and dispositions in process, two quarterly reports (Quarterly Asset Performance, Quarterly Portfolio Performance) and locking a sold asset from further editing | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
 | **1.5** | Construction Management: capital project budgets, costs to date and changes; schedules and milestones; contractor bids and contracts; draw requests and lien waivers; the status of each project underway. Imported from Yardi Construction Manager or entered and updated by hand. A new **Construction Management** button in Functions opens on a list of every project underway, tied to its asset and unit (building on the construction jobs and invoices the app tracks today) | Planned (added 11/25) |
@@ -5348,6 +5406,18 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.27
+
+The sample joint venture's and separate account's documents (§7.13), a way to record a tenant that moved out, and Model Fund I's construction management fee on construction spending. The remaining tab data follows in 1.1.28, the last 1.1 patch.
+
+- **Thirteen documents** for the two portfolios, each with its abstract: the JVA and SMA, the two outside GP partners' agreements, the sold asset's closing statement, post-closing true-up and distribution notice, a Phase I and Phase II, and four appraisals. They load by themselves. Every document type and every tab now has sample data.
+- **Building and site facts** on the four assets. A clean Phase II now closes the condition its Phase I recognized (before, the asset stayed flagged).
+- **Tenant moved out.** Rent Roll → open a unit → **Tenant moved out** records a tenant that left with no replacement. The unit is vacant from the next day and the model re-lets it after its downtime as a new lease. The sample asset behind plan has one.
+- **Model Fund I's construction management fee** is now 1.5% of construction spending, not 1.5% of the purchase price each year. Returns rise (test copy: Airport Flex Park 31.0% to 33.7%); NOI and values do not move. Its IC memo and IC presentation are replaced with copies stating the return on that basis, and Distribution Analysis gains a sample proposal.
+- **Fixed:** a lease or move-out entered on the Rent Roll now records who entered it.
+- **Decided by Claude, for you to confirm:** the Phase II rule above; a separate account agreement can carry a preferred return and promote; the distribution notice gives the amount with no partner and sponsor split until 1.1.28; no broker opinion, offer or P&S for the sold asset; no sample leases for the four assets.
+- **Numbering:** 1.1.28 is the last 1.1 patch: the two portfolios' business plans, leasing, credit, Property Management data and the distribution of the sale proceeds.
 
 ### What's in 1.1.26
 

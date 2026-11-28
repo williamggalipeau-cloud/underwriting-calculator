@@ -1,0 +1,19 @@
+{
+ "doc_type": "gp_agreement",
+ "title": "GP Co-Investment Agreement",
+ "partner_name": "Demo Holdings Family Office",
+ "portfolio": "Sample Separate Account A",
+ "deal": null,
+ "capital_pct": 50,
+ "promote_pct_of_gp_side": 25,
+ "fees": "None",
+ "effective_date": "2023-03-31",
+ "quotes": {
+  "partner_name": "This GP Co-Investment Agreement is entered into as of March 31, 2023 between Example Sponsor LLC (the \"Sponsor\") and Demo Holdings Family Office (the \"Partner\"). (p.1)",
+  "scope": "This Agreement governs the Sponsor's co-investment in Sample Separate Account A and every investment it makes. (§1.1)",
+  "capital_pct": "The Partner shall fund fifty percent (50%) of the Sponsor's capital commitment to Sample Separate Account A, and the Sponsor shall fund the balance. (§2.1)",
+  "promote_pct_of_gp_side": "The Partner shall be entitled to twenty-five percent (25%) of the promote distributed to the Sponsor by Sample Separate Account A. (§3.1)",
+  "fees": "The Partner shall not be entitled to any fee. All asset management, property management, construction management and other fees are payable to the Sponsor. (§4.1)",
+  "effective_date": "This Agreement is effective as of March 31, 2023. (§5.1)"
+ }
+}

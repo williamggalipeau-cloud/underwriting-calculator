@@ -22,7 +22,7 @@ ok(g.gpPromote <= g.gpProfit + 1e-6 && g.gpPromote >= -1e-6, `GP promote ${(g.gp
 ok(close(g.gpRoe, (g.gpProfit / r.waterfall.gpEquity) * 100), `GP ROE ${g.gpRoe.toFixed(1)}% = profit ÷ GP equity`);
 
 // ── Fee revenue ──
-const inputs = { ...d.inputs, cmFeePct: 0.5 };
+const inputs = { ...d.inputs, cmFeePct: 0.5, cmFeeBasis: "value" };
 const r2 = underwrite(inputs);
 const fr = F.feeRevenue(r2.annualCashFlows, 8);
 ok(fr.rows.length === r2.annualCashFlows.length && fr.rows.every((x) => close(x.total, x.pm + x.cm)), "one row per hold year: PM + CM");
