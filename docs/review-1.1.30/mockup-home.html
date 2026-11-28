@@ -1,0 +1,57 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Baywise mockup</title>
+<style>
+@font-face{font-family:Geist;src:url(geist.woff2) format("woff2");font-weight:100 900}
+:root{--ink:#0F2A43;--primary:#1D4ED8;--primary-soft:#EEF4FF;--pos:#0F7B4F;--pos-soft:#E8F5EE;--neg:#B42318;--neg-soft:#FEECEB;--warn:#B54708;--warn-soft:#FFF4E5;--page:#F6F7F9;--card:#fff;--subtle:#F2F4F7;--line:#E4E7EC;--line-strong:#D0D5DD;--t1:#101828;--t2:#475467;--t3:#667085}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--t1);font:13px/20px Geist,Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.top{background:var(--ink);color:#fff;display:flex;align-items:center;gap:20px;padding:0 24px;height:52px}
+.brand{font-weight:600;font-size:15px;letter-spacing:.01em}.top nav{display:flex;gap:2px;flex:1;overflow:auto}
+.top nav a{color:#C9D3DF;padding:6px 10px;border-radius:6px;white-space:nowrap;text-decoration:none;font-size:13px}.top nav a.on{background:rgba(255,255,255,.14);color:#fff}
+.top .right{display:flex;gap:14px;align-items:center;font-size:12px;color:#C9D3DF}
+.sub{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:10px 24px}
+select,button{font:inherit}.sel{border:1px solid var(--line-strong);border-radius:6px;padding:6px 10px;background:#fff;min-width:220px;height:34px}
+.saved{margin-left:auto;color:var(--t3);font-size:12px}
+main{max-width:1392px;margin:0 auto;padding:24px}
+h1{font-size:22px;line-height:28px;font-weight:600;margin:0}.lede{color:var(--t2);margin:2px 0 18px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}.kpi .l{font-size:12px;line-height:16px;color:var(--t2)}.kpi .v{font-size:24px;line-height:30px;font-weight:600;font-variant-numeric:tabular-nums}.kpi .s{font-size:12px;line-height:16px;color:var(--t3)}.kpi .s b{font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.card h2{font-size:16px;line-height:24px;font-weight:600;margin:0}.hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.count{font-size:12px;color:var(--t2)}.tabs{margin-left:auto;display:flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden}.tabs span{padding:5px 10px;font-size:12px;color:var(--t2);border-left:1px solid var(--line-strong)}.tabs span:first-child{border:0}.tabs .on{background:var(--subtle);color:var(--t1);font-weight:500}
+table{width:100%;border-collapse:collapse}th{text-align:left;font-size:12px;line-height:16px;font-weight:500;color:var(--t2);background:var(--subtle);padding:8px 16px}td{padding:10px 16px;border-top:1px solid var(--line);vertical-align:top}
+.num{text-align:right;font-variant-numeric:tabular-nums}.muted{color:var(--t3);font-size:12px}
+.chip{display:inline-block;font-size:12px;line-height:16px;font-weight:500;padding:2px 8px;border-radius:999px}.neg{background:var(--neg-soft);color:var(--neg)}.warn{background:var(--warn-soft);color:var(--warn)}.neu{background:var(--subtle);color:var(--t2)}.pos{background:var(--pos-soft);color:var(--pos)}
+.type{color:var(--t2);font-size:12px}.go{color:var(--primary);text-decoration:none;font-weight:500;white-space:nowrap}
+.btn{height:34px;padding:0 14px;border-radius:6px;border:1px solid var(--line-strong);background:#fff;color:var(--t1);font-weight:500}.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.note{margin-top:14px;color:var(--t3);font-size:12px}
+.m-only{display:none}
+@media(max-width:640px){.top{height:48px;padding:0 16px}.top nav,.top .right span{display:none}.top .right{margin-left:auto}.sub{padding:8px 16px}.sel{min-width:0;flex:1}.saved{display:none}main{padding:16px}
+.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi .v{font-size:20px;line-height:26px}.kpi:nth-child(5){display:none}
+table,thead{display:none}.m-only{display:block}.row{padding:12px 16px;border-top:1px solid var(--line)}.row .a{display:flex;justify-content:space-between;gap:8px;font-weight:500}.row .w{margin:2px 0 6px}.row .f{display:flex;gap:8px;align-items:center;justify-content:space-between}.tabs{display:none}}
+</style></head><body>
+<div class="top"><div class="brand">Baywise</div><nav><a class="on">Home</a><a>Acquisitions</a><a>Assets</a><a>Property</a><a>Portfolio</a><a>Dispositions</a><a>Finance</a><a>Library</a></nav><div class="right"><span>User manual</span><span>Change log</span><b style="font-weight:500;color:#fff">☰</b></div></div>
+<div class="sub"><select class="sel"><option>All portfolios (3)</option></select><span class="saved">All changes saved · 2:14 PM</span></div>
+<main>
+<h1>Home</h1><p class="lede">What needs doing now, across all three portfolios. Sample data (fictional).</p>
+<div class="kpis">
+<div class="kpi"><div class="l">Assets under management</div><div class="v">$321.6M</div><div class="s">15 assets · 3 portfolios</div></div>
+<div class="kpi"><div class="l">Occupancy</div><div class="v">85.6%</div><div class="s">1,421,000 SF · 299 tenants</div></div>
+<div class="kpi"><div class="l">Past due actions</div><div class="v" style="color:var(--neg)">19</div><div class="s">oldest 272 days</div></div>
+<div class="kpi"><div class="l">Due in 30 days</div><div class="v">114</div><div class="s">41 leasing · 22 lender</div></div>
+<div class="kpi"><div class="l">Assets on watch</div><div class="v">3</div><div class="s">1 at risk · 2 off plan</div></div>
+</div>
+<div class="card"><div class="hd"><h2>Actions needed</h2><span class="count">133</span><div class="tabs"><span class="on">Past due 19</span><span>Due now 114</span><span>All</span></div></div>
+<table><thead><tr><th>Asset</th><th>What to do</th><th>Due</th><th>Owner</th><th>Status</th><th></th></tr></thead><tbody>
+<tr><td><b style="font-weight:500">Example Summit Business Center</b></td><td>Loan matures<div class="type">Loan</div></td><td class="num">Feb 28, 2026<div class="muted">272 days ago</div></td><td>Sam Patel</td><td><span class="chip neg">Past due</span></td><td class="num"><a class="go">Open Debt →</a></td></tr>
+<tr><td><b style="font-weight:500">Airport Flex Park</b></td><td>Send quarterly statements to Desert Mountain Bank for the quarter ended Mar 31, 2026<div class="type">Lender report</div></td><td class="num">May 15, 2026<div class="muted">196 days ago</div></td><td>Alex Morgan</td><td><span class="chip neg">Past due</span></td><td class="num"><a class="go">Open Debt →</a></td></tr>
+<tr><td><b style="font-weight:500">Route 9 Small Bay</b></td><td>Renew unit 001 (Pinnacle Electronics)<div class="type">Business plan milestone</div></td><td class="num">Jun 16, 2026<div class="muted">164 days ago</div></td><td>Jordan Lee</td><td><span class="chip neg">Past due</span></td><td class="num"><a class="go">Open plan →</a></td></tr>
+<tr><td><b style="font-weight:500">Example Foundry Flex Park</b></td><td>Enter the appraisal for Jun 30, 2026<div class="type">Valuation</div></td><td class="num">Aug 29, 2026<div class="muted">90 days ago</div></td><td>Alex Morgan</td><td><span class="chip neg">Past due</span></td><td class="num"><a class="go">Open Valuation →</a></td></tr>
+<tr><td><b style="font-weight:500">Example Orchard Commerce Center</b></td><td>Riverbend Flooring lease expires<div class="type">Lease</div></td><td class="num">Nov 30, 2026<div class="muted">in 3 days</div></td><td>Jordan Lee</td><td><span class="chip warn">Due now</span></td><td class="num"><a class="go">Open Leases →</a></td></tr>
+</tbody></table>
+<div class="m-only">
+<div class="row"><div class="a"><span>Example Summit Business Center</span><span class="chip neg">Past due</span></div><div class="w">Loan matures</div><div class="f"><span class="muted">Feb 28, 2026 · 272 days ago · Sam Patel</span><a class="go">Debt →</a></div></div>
+<div class="row"><div class="a"><span>Airport Flex Park</span><span class="chip neg">Past due</span></div><div class="w">Send quarterly statements to Desert Mountain Bank for the quarter ended Mar 31, 2026</div><div class="f"><span class="muted">May 15, 2026 · 196 days ago · Alex Morgan</span><a class="go">Debt →</a></div></div>
+<div class="row"><div class="a"><span>Route 9 Small Bay</span><span class="chip neg">Past due</span></div><div class="w">Renew unit 001 (Pinnacle Electronics)</div><div class="f"><span class="muted">Jun 16, 2026 · 164 days ago · Jordan Lee</span><a class="go">Plan →</a></div></div>
+<div class="row"><div class="a"><span>Example Orchard Commerce Center</span><span class="chip warn">Due now</span></div><div class="w">Riverbend Flooring lease expires</div><div class="f"><span class="muted">Nov 30, 2026 · in 3 days · Jordan Lee</span><a class="go">Leases →</a></div></div>
+</div></div>
+<p class="note">Mockup only: one dark top bar for the eight areas, one portfolio picker, key figures as cards, 13px table text with tabular figures, one date format, three status colours.</p>
+</main></body></html>
