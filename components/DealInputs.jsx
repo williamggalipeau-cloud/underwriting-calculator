@@ -1030,7 +1030,14 @@ export default function DealInputsPanel({ inputs, onChange, fundNames = [], link
 
         <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-100">
           <Field label="Mgmt. Fee" value={inputs.managementFeePct} field="managementFeePct" suffix="% EGR" step={0.5} onChange={set} />
-          <Field label="Constr. Mgmt" value={inputs.cmFeePct ?? 0} field="cmFeePct" suffix="% value/yr" step={0.25} onChange={set} />
+          <Field label="Constr. Mgmt" value={inputs.cmFeePct ?? 0} field="cmFeePct" suffix={inputs.cmFeeBasis === "spend" ? "% spend" : "% value/yr"} step={0.25} onChange={set} />
+          <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+            Constr. mgmt fee on
+            <select aria-label="Construction management fee basis" value={inputs.cmFeeBasis ?? "value"} onChange={(e) => set("cmFeeBasis", e.target.value)} className="rounded border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900">
+              <option value="value">Asset value, each year</option>
+              <option value="spend">Construction spending</option>
+            </select>
+          </label>
           <Field label="Leasing Fees" value={inputs.leasingFeesPSF} field="leasingFeesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
           <Field label="Capital Reserves" value={inputs.capitalReservesPSF} field="capitalReservesPSF" prefix="$" suffix="/SF/yr" step={0.05} onChange={set} />
         </div>

@@ -34,6 +34,9 @@ const { SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS } = j(R + "/lib/samplePortfoli
 const { toQuickInputs } = j(R + "/lib/pipeline.js");
 const { QUICK_DEFAULTS, toMainInputs } = j(R + "/lib/quickUnderwrite.js");
 const { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js");
+// 1.1.26: the sample joint venture and separate account (lib/sampleVentures.js).
+const VEN = j(R + "/lib/sampleVentures.js").buildSampleVentures({ baseInputs: DEFAULT_INPUTS });
+const venAssets = VEN.deals.map((d) => d.inputs);
 const pipeline = samplePipelineDeals(T);
 // The sample pipeline deal under contract, screened as Load Model Fund I screens it (app/page.jsx pipelineToDeal).
 const pl = pipeline.find((r) => r.id === SFD.SAMPLE_IMPACT_PIPELINE_ID);
@@ -61,12 +64,14 @@ const DATA = [
   ["sellhold", "sell / hold decisions", n(terms.sellHold?.decisions) > 0],
   ["forsale", "sales in progress", sales.length > 0],
   ["offers", "offers", sales.some((s) => n(s.offers) > 0)],
-  ["trackrecord", "sold assets", sales.some((s) => s.status === "closed" || s.closedDate)],
+  ["trackrecord", "sold assets", venAssets.some((a) => (a.dispositions ?? []).some((s) => s.stage === "closed" && s.closing?.date))],
   ["dispdocs", "disposition documents", manifest.dispositions.length > 0],
   ["assets", "owned assets", deals.length === 9],
   ["plan", "business plans", all((a) => n(a.businessPlan?.revisions) > 0)],
   ["units", "rent rolls", all((a) => n(a.units) > 0)],
-  ["units", "leases signed since purchase", any((a) => (a.units ?? []).some((u) => n(u.laterLeases) > 0))],
+  ["units", "leases signed since purchase", venAssets.every((a) => (a.units ?? []).some((u) => n(u.laterLeases) > 0))],
+  ["fund", "joint venture and separate account", Object.values(VEN.funds).map((t) => t.type).sort().join() === "Joint Venture,Separate Account"],
+  ["gppartners", "outside GP partners of the joint venture and separate account", VEN.gp.agreements.length === 2],
   ["leases", "lease abstracts", manifest.leases.length > 0],
   ["credit", "tenant credit", any((a) => (a.units ?? []).some((u) => n(u.credit?.records ?? u.credit) > 0))],
   ["credit", "tenant credit documents", manifest.credit.some((c) => c.kind === "tenant")],
@@ -95,11 +100,8 @@ const DATA = [
 ];
 // Still missing, with the patch that adds it.
 const PENDING_DATA = {
-  // Model Fund I's assets were all bought in 2026 and none has a lease signed since (adding one would move its figures and its documents).
-  "units / leases signed since purchase": "1.1.26 (the sample joint venture and separate account, bought in 2022 and 2023)",
-  "trackrecord / sold assets": "1.1.26 (the sample joint venture's sold asset)",
   // Model Fund I bought its assets in 2026 on the subscription line: no capital is called and nothing is distributable yet.
-  "distributions / distribution proposals": "1.1.26 (the sample joint venture and separate account, set up in 2022 and 2023)",
+  "distributions / distribution proposals": "1.1.28 (the sample joint venture's sale proceeds)",
 };
 for (const t of TABS) check(DATA.some(([tab]) => tab === t.id), `tab "${t.label}" (${t.id}) has no sample data set listed in this test`);
 for (const [tab, name, has] of DATA) {
@@ -133,12 +135,12 @@ const LISTS = {
 };
 // Still missing, with the patch that adds it.
 const PENDING_DOCS = {
-  "library": { closing_disp: "1.1.26 (the sold asset)", jva: "1.1.26 (the sample joint venture)", sma: "1.1.26 (the sample separate account)" },
+  "library": { closing_disp: "1.1.27 (the sold asset's documents)", jva: "1.1.27 (the sample joint venture's documents)", sma: "1.1.27 (the sample separate account's documents)" },
   "acquisition": {},
-  "disposition": { closing_disp: "1.1.26 (the sold asset)", post_closing: "1.1.26 (the sold asset)", distribution_notice: "1.1.26 (the sold asset)" },
+  "disposition": { closing_disp: "1.1.27 (the sold asset's documents)", post_closing: "1.1.27 (the sold asset's documents)", distribution_notice: "1.1.27 (the sold asset's documents)" },
   "leasing": {},
-  // No Model Fund I asset needed a Phase II (every Phase I is clean); one of the 1.1.26 assets will.
-  "fact": { phase2: "1.1.26" },
+  // No Model Fund I asset needed a Phase II (every Phase I is clean); one of the sample joint venture's assets does (its documents come in 1.1.27).
+  "fact": { phase2: "1.1.27" },
   "research": {},
   "property management": {},
 };

@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.25** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.26** (2026-11-27). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -1242,6 +1242,60 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
   Light). A leasing document is filed only when the asset has that prospect,
   the rent comp report only when the asset holds the comps it lists, and a
   research file only on a research item the asset holds.
+- **Version 11 (1.1.26):** the sample joint venture and separate account
+  (below).
+
+**Sample joint venture and separate account (1.1.26, `lib/sampleVentures.js`).**
+Two more fictional portfolios load beside Model Fund I, so the joint venture
+and separate account screens, a sold asset, an asset behind its plan and
+assets owned for several years can be tested without typing anything in.
+
+| Portfolio | Type | Set up | Commitments | Investor | Outside GP partner |
+|---|---|---|---|---|---|
+| Sample Industrial Venture I | Joint venture | 2022 | $80,000,000 | Example Pension Fund | Placeholder Capital Partners LP |
+| Sample Separate Account A | Separate account | 2023 | $25,000,000 | Fictional Insurance Company | Demo Holdings Family Office |
+
+- **Terms (as you set them, 11/27).** Asset management 0.75% a year (joint
+  venture) and 1.25% (separate account), charged on invested equity as the
+  portfolio's fee; property management 5.0%; construction management 1.5%
+  of construction spending (the capital budget and tenant improvements;
+  §7.13 below).
+  An 8% preferred return, then 20% of profit to the sponsor side up to a 14%
+  IRR and 30% above, with no catch-up. The sponsor co-invests 10%; the
+  outside GP partner funds half of that and takes 25% of the promote.
+- **Assets.** Each is about $50,000,000 with 60 to 80 units and a four-year
+  hold, with fixed past dates:
+
+  | Asset | Portfolio | Bought | Units | Price | Story |
+  |---|---|---|---|---|---|
+  | Example Gateway Industrial Park, Phoenix | Joint venture | 6/15/2022 | 72 | $49,500,000 | Sold 6/30/2026 for $85,650,000 (Track Record): 23.6% IRR against 20.2% underwritten |
+  | Example Summit Business Center, Las Vegas | Joint venture | 2/28/2023 | 64 | $51,000,000 | On plan: 18.8% against 15.9% underwritten |
+  | Example Foundry Flex Park, Salt Lake City | Joint venture | 11/15/2023 | 78 | $48,000,000 | Behind plan: bought 68% leased to reach about 92%, now 76%; −15.4% against 18.4% underwritten; marked $47,650,000 against a cost of $51,500,000 |
+  | Example Orchard Commerce Center, Denver | Separate account | 6/30/2023 | 68 | $50,500,000 | On plan: 18.0% against 15.4% underwritten |
+
+- **How each is built.** First as it was underwritten at purchase, which is
+  kept as the asset's underwriting baseline (the closing model). Then what
+  happened since, through the functions the tabs call: the leases signed
+  since purchase (the Rent Roll's Add lease), the sale (Dispositions), and,
+  for the asset behind plan, the vacant units' longer lease-up, a higher
+  exit cap rate and a lower market rent. Each asset has its own fixed rate
+  path and cap costs, so neither today's date nor the live rate curve moves
+  its figures.
+- **Marks.** Year-end appraisals and quarterly internal marks, moving from
+  cost toward the value each asset's model now reaches.
+- **Tenant credit.** Every tenant in place has its own clean screening
+  record (a tenant that moved in since purchase has one in its own name), so
+  none shows as missing on Tenant Credit. The credit stories (weak, watch,
+  late rent) come with the rest of the tab data in 1.1.28.
+- **Pipeline.** Two joint venture deals: Example Ironworks Distribution
+  Center (under contract) and Example Prairie Commerce Park (LOI).
+- **Not yet (1.1.27 and 1.1.28):** their documents (agreements, leases,
+  closing documents, a Phase II), and their business plans, leasing
+  pipeline, tenant credit and property management data.
+- **Loading.** Automatic, like the rest of the sample data: a firm that has
+  Model Fund I gets them the next time an owner opens Baywise. Only what is
+  missing is added; a portfolio, asset or mark you already have is left
+  alone.
 - **Version 9 (1.1.22):** fund-level records on Model Fund I, each made by
   the same function its tab runs when you press the button, from the fund as
   it is: one subscription line draw per purchase in the capital activity
@@ -4479,7 +4533,8 @@ files hold the same object.
 | `amFeePct` | `deals[].quick.amFeePct` | % of equity / yr | 0 | Asset-level asset management fee (Model Fund I charges its fee at the fund level, §7.20) |
 | `pmFeePct` | `deals[].quick.pmFeePct` | % / yr | 5 | Property management fee |
 | `pmFeeBasis` | `deals[].quick.pmFeeBasis` | `noi` / `value` | noi | PM fee basis: NOI before the fee, or purchase price |
-| `cmFeePct` | `deals[].quick.cmFeePct` | % of price / yr | 1.5 | Construction management fee |
+| `cmFeePct` | `deals[].quick.cmFeePct` | % of `cmFeeBasis` | 1.5 | Construction management fee |
+| `cmFeeBasis` | `deals[].quick.cmFeeBasis` | `value` / `spend` | `value` | 1.1.26: what the fee is charged on: asset value each year, or construction spending (the capital budget) |
 
 ### 11.4 Full-model inputs (`inputs`)
 
@@ -4506,7 +4561,8 @@ Fields set from Underwriter on linked deals are marked **Q**.
 | `noiYear1` **Q** | `deals[].inputs.noiYear1` | $ | | Year-1 NOI before PM (direct NOI) |
 | `noiGrowthPct` **Q** | `deals[].inputs.noiGrowthPct` | % / yr | | NOI growth (direct NOI) |
 | `pmFeePct`, `pmFeeBasis` **Q** | `deals[].inputs.pmFeePct`<br>`deals[].inputs.pmFeeBasis` | %, `noi`/`value` | 5, noi | PM fee in direct-NOI mode |
-| `cmFeePct` **Q** | `deals[].inputs.cmFeePct` | % of price / yr | 1.5 | Construction management, below NOI |
+| `cmFeePct` **Q** | `deals[].inputs.cmFeePct` | % of `cmFeeBasis` | 1.5 | Construction management, below NOI |
+| `cmFeeBasis` **Q** | `deals[].inputs.cmFeeBasis` | `value` / `spend` | `value` | 1.1.26: `value` = % of the purchase price every year; `spend` = % of construction spending (the capital budget in year 1 and each year's tenant improvements; not leasing commissions or free rent) |
 
 **Rent roll and operations** (used when direct NOI is off):
 
@@ -5292,6 +5348,24 @@ Every future release is checked against these:
 - **New versions are built separately.** Each is built and tested on its own branch while the live site stays on the current release. When you approve it, it goes live in one step, and the version number in the app changes.
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
+
+### What's in 1.1.26
+
+The sample joint venture and separate account (§7.13): their terms, four assets, marks and two pipeline deals. Documents follow in 1.1.27 and the remaining tab data in 1.1.28.
+
+- **Two portfolios.** Sample Industrial Venture I (joint venture with Example Pension Fund, 2022, $80,000,000) and Sample Separate Account A (Fictional Insurance Company, 2023, $25,000,000), with the fees and promote you set and an outside GP partner each.
+- **Four assets** of about $50,000,000 and 60 to 80 units, bought in 2022 and 2023: one sold in June 2026 (the first sale on the Track Record), two on plan, and one well behind plan and marked below cost.
+- **Leases signed since purchase** on all four (234 in total), so the Rent Roll and every screen that lists leases show today's tenants. This is the first sample data for the lease history added in 1.1.24.
+- **Each asset keeps its closing model** as the underwriting baseline, so Underwritten vs Actual and the Track Record compare against what was underwritten.
+- **Figures (test copy, as of 11/27/2026).** Firm Economics over the life of both portfolios: fees $6,277,891, promote $3,869,496, co-invest profit $3,101,706, on $5,009,945 of the firm's own capital. The joint venture's promote ($2,697,568 in total, of which the firm's share is $2,023,176) is held down by the asset behind plan.
+- **Construction management fee on construction spending (your decision, 11/27).** An asset's construction management fee can now be charged on construction spending (its capital budget, in the year the model spends it, and each year's tenant improvements) in place of the asset's value every year: asset inputs → Constr. mgmt fee on. The two new portfolios use it at 1.5%. Model Fund I and your own assets stay on asset value until you change them.
+- **A sold asset now drops off the operating screens** (found while building; `lib/assetStatus.js`). Baywise had never held a sold asset, and the Dashboard, Tenant Credit, the risk report, the fund limits, Portfolio Debt, the SNDA list and the lease flags kept treating one as owned. From its sale date they leave it out. Portfolio Return, the Track Record, GP and Firm Economics and the valuations up to the sale keep it.
+- **Tenant credit follows the tenant.** On a unit where a new tenant has moved in, credit records and flags recorded for the former tenant no longer count against the new one.
+- **Model Fund I: no figure changes.**
+- **Loads by itself** (sample data version 11); only what is missing is added.
+- **Also in the plan:** the Dispositions workflow (25 steps) and the expanded Acquisitions workflow (26 steps) for v1.2.
+- **Tests:** a new node suite (`ventures1126`, 59 checks), a new browser suite (`ventures1126`, 6 checks), and checks in both load tests on what is actually saved.
+- **No database change.**
 
 ### What's in 1.1.25
 

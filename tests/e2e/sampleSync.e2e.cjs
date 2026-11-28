@@ -93,7 +93,29 @@ const removed = [], removedLeases = [];
   check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 10, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 11, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  {
+    // 1.1.26: the sample joint venture and separate account, as actually saved.
+    const jv = sd?.funds?.["Sample Industrial Venture I"], sma = sd?.funds?.["Sample Separate Account A"];
+    check(jv?.type === "Joint Venture" && jv.partnerName === "Example Pension Fund" && jv.targetEquity === 80_000_000 && jv.mgmtFeePct === 0.75 && jv.prefPct === 8 && jv.gpCommitPct === 10 && JSON.stringify(jv.tiers.map((t) => [t.irrThreshold, t.gpSplit])) === "[[14,20],[null,30]]", `saved: the joint venture with its terms (${jv?.type}, ${jv?.targetEquity}, fee ${jv?.mgmtFeePct})`);
+    check(sma?.type === "Separate Account" && sma.clientName === "Fictional Insurance Company" && sma.targetEquity === 25_000_000 && sma.mgmtFeePct === 1.25 && sma.prefPct === 8, `saved: the separate account with its terms (${sma?.type}, fee ${sma?.mgmtFeePct})`);
+    const party = (t) => (t?.gpParties ?? []).find((g) => g.who === "external");
+    check(party(jv)?.name === "Placeholder Capital Partners LP" && party(jv).capitalPct === 50 && party(jv).promotePct === 25 && party(sma)?.name === "Demo Holdings Family Office" && party(sma).capitalPct === 50 && party(sma).promotePct === 25, "saved: each portfolio's outside GP partner funds half the GP capital and takes a quarter of the promote");
+    const gpSaved = sd?.gpPartners ?? sd?.settings?.gpPartners;
+    check((gpSaved?.agreements ?? []).filter((a) => ["gpa-sample-jv", "gpa-sample-sma"].includes(a.id) && a.status === "checked").length === 2, `saved: the two agreements are in the firm's GP partner list (${(gpSaved?.agreements ?? []).map((a) => a.id).join(", ")})`);
+    const va = (sd?.deals ?? []).filter((d) => /^sample-(jv|sma)-\d+$/.test(d.id));
+    const by = (id) => va.find((d) => d.id === id)?.inputs;
+    check(va.length === 4 && va.filter((d) => d.inputs.fundName === "Sample Industrial Venture I").length === 3 && by("sample-sma-1")?.fundName === "Sample Separate Account A" && va.every((d) => d.inputs.units.length >= 60 && d.inputs.units.length <= 80 && d.inputs.purchasePrice >= 48_000_000 && d.inputs.purchasePrice <= 51_000_000), `saved: four assets of about $50,000,000 with 60 to 80 units (${va.map((d) => `${d.id}:${d.inputs.units.length}`).join(", ")})`);
+    check(va.every((d) => d.inputs.units.some((u) => (u.laterLeases ?? []).length > 0) && d.inputs.uwBaseline?.inputs?.units?.length === d.inputs.units.length), "saved: each has leases signed since purchase and its closing model kept as the underwriting baseline");
+    const sold = by("sample-jv-1");
+    check(sold?.acquisitionDate === "2022-06-15" && sold.dispositions?.[0]?.stage === "closed" && sold.dispositions[0].closing?.date === "2026-06-30" && sold.realizedSaleDate === "2026-06-30" && sold.realizedSalePrice === sold.dispositions[0].closing.price, `saved: the asset bought 6/15/2022 was sold 6/30/2026 (${sold?.dispositions?.[0]?.closing?.price})`);
+    const behind = by("sample-jv-3");
+    const lastMark = Object.entries(sd?.valuations?.["sample-jv-3"] ?? {}).sort().at(-1)?.[1]?.value;
+    check(behind && lastMark > 0 && lastMark < behind.purchasePrice + (behind.capexBudget ?? 0) && behind.units.filter((u) => u.leaseStatus !== "occupied" && !(u.laterLeases ?? []).length).length >= 15, `saved: the asset behind plan is marked below cost and still has vacant units (${lastMark})`);
+    check(["sample-jv-1", "sample-jv-2", "sample-jv-3", "sample-sma-1"].every((id) => Object.keys(sd?.valuations?.[id] ?? {}).length >= 4), "saved: every one of the four has its marks");
+    const rows = (sd?.pipeline?.deals ?? []).filter((r) => /^sample-pl-jv-/.test(r.id));
+    check(rows.length === 2 && rows.every((r) => r.targetFund === "Sample Industrial Venture I" && r.dealId && (sd.deals ?? []).some((d) => d.id === r.dealId)) && rows.map((r) => r.stage).sort().join() === "loi,psa", `saved: two joint venture pipeline deals, one under contract and one at LOI, each screened (${rows.map((r) => r.stage).join(", ")})`);
+  }
   {
     // 1.1.22: the fund-level sample records, as actually saved.
     const mf9 = sd?.funds?.["Model Fund I"] ?? {}, own = (sd?.deals ?? []).filter((d) => String(d.id).startsWith("sample-deal-") && d.inputs?.acquisitionDate <= new Date().toISOString().slice(0, 10));
@@ -111,7 +133,7 @@ const removed = [], removedLeases = [];
     check(((mf9.impactScenarios ?? []).length === 1) === screened, `1.1.22: a Portfolio Impact scenario is saved when the firm has the screened pipeline deal (${(mf9.impactScenarios ?? []).length} saved; screened: ${screened})`);
   }
   const withCredit = (sd?.deals ?? []).filter((d) => (d.inputs?.units ?? []).some((u) => u.credit)).length;
-  check(withCredit >= 5 && sd?.gpPartners?.partners?.length === 2 && gpa.length === 2 && (sd?.gpPartners?.agreements ?? []).filter((a) => a.status === "checked").length === 2, `tenant credit on ${withCredit} assets; 2 GP partners, their 2 agreements switched on`);
+  check(withCredit >= 5 && sd?.gpPartners?.partners?.filter((x) => !/^gpp-sample-/.test(x.id)).length === 2 && gpa.length === 2 && (sd?.gpPartners?.agreements ?? []).filter((a) => a.status === "checked" && !/^gpa-sample-/.test(a.id)).length === 2 && sd.gpPartners.partners.length === 4, `tenant credit on ${withCredit} assets; Model Fund I's 2 GP partners with their 2 agreements switched on, and the 2 partners of the joint venture and separate account`);
   const parties = (sd?.funds?.["Model Fund I"]?.gpParties ?? []).filter((x) => x.partnerId);
   const fcp = parties.find((x) => /Fictional Capital/.test(x.name)), sfo = parties.find((x) => /Sample Family/.test(x.name));
   check(fcp?.capitalPct === 40 && sfo?.terms?.[0]?.dealId && sfo.terms[0].capitalPct === 50, `the fund's GP parties match the agreements: Fictional Capital Partners 40% of GP capital fund-wide; Sample Family Office 50% on Granite Ave only (${JSON.stringify(parties.map((x) => [x.name, x.capitalPct]))})`);

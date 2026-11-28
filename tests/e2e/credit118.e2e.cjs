@@ -84,7 +84,8 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   // Flag a tenant whose credit changed
   await tc.getByRole("tab", { name: /All tenants/ }).click();
   await p.waitForTimeout(400);
-  const okRow = tc.getByTestId("credit-row").filter({ has: p.getByTestId("credit-status").filter({ hasText: /^OK$/ }) }).first();
+  // A Model Fund I tenant (the risk report below is that fund's; the list also holds the sample joint venture and separate account).
+  const okRow = tc.getByTestId("credit-row").filter({ hasText: /Mill Creek Business Park|Canal Street Workshops|Lakeshore Service Center|Route 9 Small Bay/ }).filter({ has: p.getByTestId("credit-status").filter({ hasText: /^OK$/ }) }).first();
   const okTenant = (await okRow.locator("td").first().innerText()).split("\n")[0];
   await okRow.getByRole("button", { name: "Open" }).click();
   await p.waitForTimeout(300);
@@ -141,7 +142,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.waitForTimeout(2500);
   const rk = rp.getByTestId("risk-report");
   const cr = await rk.getByTestId("risk-credit").innerText();
-  check(/Airport Flex Park/.test(cr) && /Ridgeway Trade Center/.test(cr) && /Own assessment: Weak/.test(cr) && /Filed for Chapter 11/.test(cr), "risk report Tenant Credit: the flagged tenants, with why");
+  check(/Airport Flex Park/.test(cr) && /Ridgeway Trade Center/.test(cr) && /Own assessment: Weak/.test(cr) && /Filed for Chapter 11/.test(cr), `risk report Tenant Credit: the flagged tenants, with why (${cr.replace(/\s+/g, " ").slice(0, 700)})`);
   const ag = await rk.getByTestId("risk-aged").innerText();
   check(/Harbor Light Industrial/.test(ag) && /Southpoint Flex/.test(ag) && !/Granite Ave Industrial/.test(ag) && /Model Fund I/.test(ag), "Aged Rent: the tenants past due at assets held at the quarter end (Granite Ave, bought after it, isn't in this quarter's report), and the fund total");
   check(/\(2 tenants\)/.test(await rk.getByTestId("risk-summary-aged").innerText()), `summary: rent 60+ days past due (${(await rk.getByTestId("risk-summary-aged").innerText()).replace(/\s+/g, " ")})`);

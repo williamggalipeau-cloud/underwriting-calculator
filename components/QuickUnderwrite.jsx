@@ -382,7 +382,14 @@ export default function QuickUnderwrite({ inputs, onChange, linked = false, onLi
               <option value="noi">NOI</option>
             </select>
           </div>
-          <NumField label="Construction mgmt" suffix="% value/yr" step={0.25} value={inputs.cmFeePct ?? 0} onChange={set("cmFeePct")} />
+          <NumField label="Construction mgmt" suffix={inputs.cmFeeBasis === "spend" ? "% spend" : "% value/yr"} step={0.25} value={inputs.cmFeePct ?? 0} onChange={set("cmFeePct")} />
+          <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+            Construction mgmt fee on
+            <select aria-label="Construction management fee basis" value={inputs.cmFeeBasis ?? "value"} onChange={(e) => set("cmFeeBasis")(e.target.value)} className="rounded border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900">
+              <option value="value">Asset value, each year</option>
+              <option value="spend">Construction spending</option>
+            </select>
+          </label>
         </Group>
 
         <Group title="Loan">

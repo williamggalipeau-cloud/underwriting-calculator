@@ -31,6 +31,7 @@ import { estoppelChecks } from "@/lib/dealDocApply";
 import { planDates } from "@/lib/businessPlan";
 import { downloadBlob, safeFileName } from "@/lib/fundTerms";
 import { unitToday } from "@/lib/leaseHistory";
+import { isSold } from "@/lib/assetStatus";
 
 const STATUS_STYLE = {
   uploaded: "border-gray-200 bg-gray-50 text-gray-700",
@@ -820,7 +821,7 @@ export default function Leases({ workspace, signedIn, email, userId, canEdit, de
             {reporting && <span className="ml-2 text-gray-500">Making the report…</span>}
           </div>
           {view === "dates" && <CriticalDatesView leases={shown} assetName={dealName} title={scopeTitle} asOf={today} credit={creditFor} docs={docsFor} milestones={milestonesFor} onReport={report} />}
-          {view === "sndas" && <SndaView deals={scope === "fund" ? (fundDeals ?? []).filter((d) => d.inputs?.acquisitionDate) : deal ? [deal] : []} title={scopeTitle} canEdit={canEdit} onUpdateInputs={onUpdateInputs} workspaceId={wsId} email={email} todayISO={today} />}
+          {view === "sndas" && <SndaView deals={scope === "fund" ? (fundDeals ?? []).filter((d) => d.inputs?.acquisitionDate && !isSold(d.inputs, today)) : deal ? [deal] : []} title={scopeTitle} canEdit={canEdit} onUpdateInputs={onUpdateInputs} workspaceId={wsId} email={email} todayISO={today} />}
           {view === "risks" && <RiskFlagsView leases={shown} assetName={dealName} title={scopeTitle} onReport={report} />}
           {error && (
             <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">

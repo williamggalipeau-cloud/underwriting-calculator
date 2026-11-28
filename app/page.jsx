@@ -78,6 +78,7 @@ import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { TAB_GROUPS, TABS, TAB_COUNT_TITLES, DEAL_TABS } from "@/lib/tabs";
 import { sampleFundData, samplePipelineCandidate, withSampleBenchmarks, SAMPLE_IMPACT_PIPELINE_ID } from "@/lib/sampleFundData";
+import { sampleVenturesToAdd } from "@/lib/sampleVentures";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
 import { anchorCurveToLive, fetchNyFedRates } from "@/lib/nyfed";
@@ -1496,6 +1497,10 @@ export default function Home() {
       const add = plRows.filter((r) => !have.has(r.id)).map(link);
       return { ...p, deals: [...cur.map(link), ...add] };
     });
+    // 1.1.26: the sample joint venture and separate account load with it (only what is missing).
+    const ven = sampleVenturesToAdd({ deals, funds, valuations, gp: gpPartners, pipeline: pipeline?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
+    setGpPartners(ven.gp);
+    addSampleVentures(ven);
     setActiveTab("fund");
     // The sample documents and tenant-named leases (database only; skipped
     // signed out). Runs after the deals above are set.
@@ -1593,6 +1598,14 @@ export default function Home() {
   // user's own records; the fund's terms then record the version, so it runs
   // once per release that adds sample material. Logged in the change log.
   const sampleSyncRan = useRef(false);
+  // 1.1.26: puts the sample joint venture and separate account into the
+  // firm's data (lib/sampleVentures.js sampleVenturesToAdd: only what is missing).
+  function addSampleVentures(ven) {
+    if (ven.deals.length) setDeals((prev) => [...prev, ...ven.deals.filter((d) => !prev.some((x) => x.id === d.id))]);
+    if (Object.keys(ven.funds).length) setFunds((prev) => ({ ...Object.fromEntries(Object.entries(ven.funds).filter(([n]) => !prev[n])), ...prev }));
+    if (Object.keys(ven.valuations).length) setValuations((prev) => ({ ...Object.fromEntries(Object.entries(ven.valuations).filter(([id]) => !Object.keys(prev[id] ?? {}).length)), ...prev }));
+    if (ven.pipeline.length) setPipeline((p) => ({ ...p, deals: [...(p?.deals ?? []), ...ven.pipeline.filter((r) => !(p?.deals ?? []).some((x) => x.id === r.id))] }));
+  }
   async function syncSampleData() {
     const cur = latestData.current, l = dbLinkRef.current;
     if (!cur || !l?.id || l.role !== "owner" || lockedRef.current) return;
@@ -1660,7 +1673,13 @@ export default function Home() {
         const r = saveAgreement(gp, draft, { by: email ?? "" });
         if (!r.error) { gp = r.gp; switched++; }
       }
+      // 1.1.26: the sample joint venture and separate account (their terms,
+      // four assets, marks, outside GP partners and two pipeline deals),
+      // each piece only where the firm does not have it.
+      const ven = sampleVenturesToAdd({ deals: latestData.current?.deals ?? cur.deals, funds: latestData.current?.funds ?? cur.funds, valuations: latestData.current?.valuations ?? cur.valuations, gp, pipeline: (latestData.current?.pipeline ?? cur.pipeline)?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
+      gp = ven.gp;
       setGpPartners(gp);
+      addSampleVentures(ven);
       const failed = [...docs.failed, ...gpr.failed];
       // 1.1.14: the asset changes are applied again here, to whatever the
       // assets are now, in case they were discarded or reloaded during the

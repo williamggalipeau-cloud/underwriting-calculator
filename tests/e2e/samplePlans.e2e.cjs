@@ -146,7 +146,7 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   await p.getByTestId("home-button").click();
   await p.waitForTimeout(1200);
   const t3 = await p.getByTestId("watch-asset").allInnerTexts();
-  check(t3.length === 2 && t3.some((t) => /Route 9 Small Bay[\s\S]*At Risk/.test(t)) && t3.some((t) => /Harbor Light Industrial[\s\S]*Off Plan/.test(t)), `Load Model Fund I: the Watch List shows Route 9 At Risk and Harbor Light Off Plan at once (${t3.map((t) => t.split("\n")[0]).join(", ")})`);
+  check(t3.length === 3 && t3.some((t) => /Example Foundry Flex Park/.test(t)) && t3.some((t) => /Route 9 Small Bay[\s\S]*At Risk/.test(t)) && t3.some((t) => /Harbor Light Industrial[\s\S]*Off Plan/.test(t)), `Load Model Fund I: the Watch List shows Route 9 At Risk and Harbor Light Off Plan at once, and the sample joint venture's asset behind plan (${t3.map((t) => t.split("\n")[0]).join(", ")})`);
   await FX.openTab(p, "Active Leasing");
   await p.waitForTimeout(800);
   await lz.getByRole("button", { name: /^All (of |assets)/ }).click();

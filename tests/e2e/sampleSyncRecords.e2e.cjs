@@ -122,7 +122,16 @@ const findRow = (kind, key) => rows.find((r) => r.kind === kind && r.key === key
   const fund = findRow("fund", "Model Fund I");
   const assets = rows.filter((r) => r.kind === "deal" && r.key.startsWith("sample-deal-"));
   check(discarded, `the person moved to another tab during the load (${sawDialog ? "the unsaved-changes box appeared and they chose Discard" : "no unsaved-changes box: the asset changes were already saved"})`);
-  check(fund?.data?.sampleDataVersion === 10 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
+  {
+    // 1.1.26: the sample joint venture and separate account, in the saved records.
+    const jv = findRow("fund", "Sample Industrial Venture I")?.data, sma = findRow("fund", "Sample Separate Account A")?.data;
+    const va = rows.filter((r) => r.kind === "deal" && /^sample-(jv|sma)-\d+$/.test(r.key));
+    check(jv?.type === "Joint Venture" && jv.mgmtFeePct === 0.75 && sma?.type === "Separate Account" && sma.mgmtFeePct === 1.25 && (jv.gpParties ?? []).some((g) => g.who === "external" && g.promotePct === 25), `the joint venture and separate account are saved as their own records (${jv?.type}, ${sma?.type})`);
+    check(va.length === 4 && va.every((r) => (r.data?.inputs ?? r.data)?.units?.some((u) => (u.laterLeases ?? []).length > 0)), `their four assets are saved, each with leases signed since purchase (${va.map((r) => r.key).join(", ")})`);
+    const sold = va.find((r) => r.key === "sample-jv-1"); const si = sold?.data?.inputs ?? sold?.data;
+    check(si?.dispositions?.[0]?.stage === "closed" && si.realizedSaleDate === "2026-06-30", "the sold asset's closing is saved");
+  }
+  check(fund?.data?.sampleDataVersion === 11 && (fund.data.entities ?? []).length === 11, `the fund's version and legal entities are saved (version ${fund?.data?.sampleDataVersion}, ${(fund?.data?.entities ?? []).length} entities)`);
   {
     // 1.1.22: the fund-level sample records, in the saved fund record.
     const fd = fund?.data ?? {};
