@@ -2,7 +2,7 @@
 
 Live site: https://baywise.baysidecre.com (hosted on Vercel since 1.1.7; the old GitHub Pages address is retired)
 Repository: `williamggalipeau-cloud/underwriting-calculator`
-Version: **1.1.28** (2026-11-27). The version shows next to the Baywise
+Version: **1.1.29** (2026-11-28). The version shows next to the Baywise
 name in the header and at the top of the Change log. See [§13 Roadmap](#13-roadmap)
 for what's in 1.0, what comes next and how releases work.
 
@@ -325,9 +325,9 @@ Management, where it was "Sales Comps") and its **Third-Party** research
 it leads to Start sale); Asset Summary is the first Asset Management tab;
 **Unit Roll** is now **Rent Roll** and **Leasing** is now **Active
 Leasing**; the Fund Plan tab is now **Plan vs. actual** on Portfolio Summary. New
-fields: **Asset Manager** and, since 1.1.13, **Property manager** (Edit asset) and **Portfolio manager** (Edit fund)
+fields: **Asset Manager** and, since 1.1.13, **Property manager** (Edit asset) and **Portfolio manager** (Edit Portfolio)
 name the Owner on the dashboard; **Ext. Notice** (Debt) and **Sub line
-maturity** (Edit fund) feed Upcoming Events; sale contracts and pipeline
+maturity** (Edit Portfolio) feed Upcoming Events; sale contracts and pipeline
 deals carry P&S, deposit, hard money, due diligence, loan closing and
 closing dates. Older sections of this manual may still use the old names.
 
@@ -516,7 +516,7 @@ connectors are installed in the Claude Code environment (finance, legal,
 design and others), among them Acquirepad, Corbis, Gamma, RiskModels and
 TradingCalc, which show in Claude Code's tools panel; none of them was
 called for Baywise (checked against the session record, 11/27 and again
-for 1.1.27 and 1.1.28; no new connector, skill or agent was used in either,
+for 1.1.27, 1.1.28 and 1.1.29; no new connector, skill or agent was used in any of them,
 and the live database was only read) and none
 is listed in the table. Claude also used its built-in tools (reading and editing files,
 running commands and tests, web search and web fetch), which are not
@@ -1254,6 +1254,14 @@ steps to rebuild the documents are in `docs/sample-deal-docs/README.md`.
 - **Version 13 (1.1.28):** the two portfolios' business plans, leasing
   prospects, tenant credit stories and aged receivables, Property Management
   rows and distribution proposals (below).
+- **Version 14 (1.1.29):** what New Portfolio Setup records on the joint
+  venture and the separate account (the investor, target return, agreement
+  dates and restrictions), with their two agreements replaced by copies that
+  state it; and, on Model Fund I, when proof of insurance was requested and
+  received for the nine tenants with a sample lease. The tenant with the
+  sample certificate (Blue Mesa Fulfillment, Airport Flex Park) shows as in
+  place; the other eight as proof requested; every other tenant as no lease
+  on file.
 
 **Model Fund I's construction management fee (1.1.27).** The fund's nine
 assets now charge construction management at 1.5% of construction spending
@@ -2893,8 +2901,9 @@ full page width. Under the header:
 - The inputs open as a **slide-over** on the right with **Done** (or press
   Escape, or click outside) to close it. Nothing else opens it. Assets are
   never deleted from it; taking an asset out of a fund stays on Portfolio Return.
-- **New fund** and **Edit fund…** open the fund terms editor (with the LPA /
-  PPM upload), as from Portfolio Return.
+- **New Portfolio Setup** and **Edit Portfolio…** (1.1.29; before, New fund
+  setup and Edit fund) set up or edit a fund, a joint venture or a separate
+  account, each in its own steps (§7.52).
 - The **Asset** picker above the single-asset tabs still chooses which asset
   those tabs show.
 
@@ -2920,7 +2929,7 @@ changes nothing and saves nothing.
   reopen on the portfolio you last worked on, on any computer. Signed out,
   this browser remembers it. A fund that no longer exists falls back to All
   funds.
-- **Edit asset…**, **Edit fund…** and the Documents tab still list every
+- **Edit asset…**, **Edit Portfolio…** and the Documents tab still list every
   asset and fund, so nothing is out of reach.
 
 ### 7.41 Revert, restore and recently deleted (`lib/revert.js`)
@@ -2979,7 +2988,7 @@ loaded; the only thing it saves is which actions were marked done.
   the tab you're on is highlighted and opens by itself when a dashboard link
   takes you to one of its tabs.
 - **Setup & Maintenance**, the last button in Functions (1.1.1): opening it
-  shows a row with New asset, New fund setup, Edit asset…, Edit fund…, Upload
+  shows a row with New asset, New Portfolio Setup, Edit asset…, Edit Portfolio…, Upload
   rent roll, Upload Yardi actuals, Import marks, Record capital activity and
   New report. Choosing it again closes it; the page below stays on the tab
   you were on.
@@ -3001,7 +3010,7 @@ loaded; the only thing it saves is which actions were marked done.
    notices (the loan's notice period, **Ext. Notice** on Debt; 60 days when
    not set), quarterly covenant tests, rate caps expiring (one line, saying
    when a replacement is needed because the loan runs past the cap), each
-   fund's sub line maturity (Edit fund), appraisals due, property management
+   fund's sub line maturity (Edit Portfolio), appraisals due, property management
    dates, construction jobs' scheduled completion, business plan milestones,
    purchase and sale contract dates (P&S signed, deposit due, hard money due,
    due diligence start and end, loan closing, deal closing) and fund dates.
@@ -3026,7 +3035,7 @@ Action type, Owner, Status and **Details** (opens the tab where the item is
 handled, on that asset).
 - **Owner:** the item's own owner (a plan milestone's or a pipeline deal's),
   else the asset's **Asset Manager** (Edit asset), else the fund's
-  **Portfolio manager** (Edit fund); "Unassigned" when none is set.
+  **Portfolio manager** (Edit Portfolio); "Unassigned" when none is set.
 - **Status:** **Past Due**, **Due now** (within 30 days, or an issue to fix
   now), **Upcoming** (more than 30 days out; Upcoming Events only) or
   **Completed** (marked done, cleared by the data, or a past event). Status
@@ -3224,13 +3233,38 @@ Everything is kept on the asset, so edits save and log like any other.
   - The summary gives, for the chosen tax year: billed, paid, unpaid, the
     business plan's tax budget and the difference, assessed value, appeal
     savings and pending appeals.
-- **Insurance:**
-  - **Policies:** coverage, carrier, number, limit, deductible, premium,
-    effective and renewal dates, and broker.
-  - **Claims log:** date of loss, cause, policy, amount, status and
-    recovery.
-  - The summary gives total premium, property limit, open claims, and
-    claimed vs. recovered.
+- **Insurance** has two sections (1.1.29), for the two kinds of insurance:
+  - **Property insurance**, which the sponsor buys:
+    - **Policies:** coverage, carrier, number, limit, deductible, premium,
+      effective and renewal dates, and broker.
+    - **Claims log:** date of loss, cause, policy, amount, status and
+      recovery.
+    - The summary gives total premium, property limit, open claims, and
+      claimed vs. recovered.
+  - **Tenant insurance** (`lib/tenantInsurance.js`), which each tenant buys
+    and must prove. One row per tenant in place today:
+    - **The lease requires:** from the lease read in on the Leases tab
+      (general liability per occurrence and aggregate, umbrella, auto,
+      pollution, workers' compensation, landlord as additional insured,
+      waiver of subrogation).
+    - **Proof on file:** the tenant's certificate (uploaded under Insurance
+      certificates below and linked to its lease), when it **expires**, and
+      any **shortfall** against the lease. This is the same check the Risk
+      Report runs (§7.32d), now shown tenant by tenant.
+    - **Proof requested** and **Proof received** dates and a note, which you
+      enter.
+    - **Status:** In place, Expires soon (60 days), Below the lease, Proof
+      expired, No proof on file, or No lease on file.
+    - **A tenant only on the rent roll** has a row marked "No lease
+      requirements on file".
+    - **Only tenants needing attention** filters the list; **Excel** exports it.
+  - **On the Dashboard (when signed in):** Actions Needed gets one line per
+    asset to **upload the leases** of tenants with none on file, one to
+    **get proof of insurance** and one for cover **below the lease**. Each
+    certificate's expiry is on Upcoming Events and becomes an action within
+    30 days. The actions are grouped by asset because a rent roll can hold
+    dozens of tenants; the tab lists each one.
+  - A sold asset has no tenant rows.
 - **Property Condition:** findings from a PCA, Phase I/II, zoning or
   inspection report. Each has the system, finding, cost, urgency
   (Immediate, within 1 year, 1–5 years, 5+ years), status and Yardi job.
@@ -3644,9 +3678,68 @@ under its real type here.
 
 A **portfolio** is a fund, a joint venture (**JV**) or a separate account
 (**SMA**); some, mainly separate accounts, hold a single asset. Each is set
-up the same way (Functions → Setup & Maintenance → New fund setup / Edit fund; the
-dialog calls it a fund, a JV or an SMA by its type, never "fund" for the
-others) and chosen in **Select Portfolio** (formerly Working on).
+up in Functions → Setup & Maintenance → **New Portfolio Setup**, edited in
+**Edit Portfolio…**, and chosen in **Select Portfolio** (formerly Working on).
+
+**New Portfolio Setup and Edit Portfolio (1.1.29, `lib/portfolioSetup.js`).**
+Until 1.1.29 a joint venture or separate account was set up in the fund's
+form, with a Type drop-down and a few extra fields. Now each type has its
+own setup:
+- **The type comes first and is then fixed.** New Portfolio Setup opens on
+  three choices: Fund, Joint Venture, Separate Account. Edit Portfolio opens
+  the same steps already filled in, with no type choice.
+- **Five steps and a review page.** You can move between steps in any order.
+  1. **Document:** the name, the portfolio manager, and the agreement (LPA /
+     PPM, JVA, or SMA / IMA). Claude reads it and each term it finds is
+     listed to **Use** one by one.
+  2. **Investor** (a joint venture or separate account): the capital partner
+     or the client, the investor type (pension fund, insurance company,
+     endowment or foundation, family office, sovereign wealth fund, fund of
+     funds, other), the entities, a contact and notes. A separate account
+     also records its **authority**: discretionary, or the client approves
+     each deal. That is recorded only; the approval step itself comes with
+     Workflow (version 1.2). A fund's second step is **Parties**: a fund's
+     investors are kept in your CRM, not in Baywise. Every type has the
+     sponsor and GP parties here (§7.55).
+  3. **Capital and fees:** a fund's commitments and GP commitment; a joint
+     venture's total equity and the ownership split (partner / sponsor); a
+     separate account's allocation, with sponsor co-investment off unless
+     switched on. Then the fees, who is paid each, and the subscription line
+     (off for a new joint venture or separate account unless switched on).
+  4. **Returns:** the **target return** (IRR, equity multiple and cash yield,
+     net to the investors), then the preferred return and promote tiers in
+     that type's words, or a separate account's incentive fee, which
+     replaces the tiers.
+  5. **Restrictions and dates:** each restriction from the agreement with
+     its clause, or added by hand. The ones Baywise can measure (leverage,
+     concentration, hold) show actual against limit on Portfolio Limits
+     (§7.32c); the rest (consent rights, exclusivity, permitted property
+     types) are **listed for reference**. Then the **term of the
+     agreement**: its date, the years, the end date Baywise works out, and
+     the extensions; a joint venture's outside sale date and the date the
+     buy-sell opens; a separate account's termination notice.
+  - **Review:** every term by step, marked From the agreement, Entered or
+    Not set. A new portfolio is created from this page; nothing is saved
+    before that. An edit can be saved from any step.
+- **The target return is one set of targets.** It is the same set the
+  portfolio plan on Portfolio Summary tracks beside the plan and the
+  current projection (§7.33), now with a cash yield target (the average
+  year's operating distributions ÷ capital called).
+- **Where it shows.** Portfolio Summary has a new box for a joint venture or
+  separate account: the investor, the target return, the term and dates and
+  the number of restrictions. A joint venture's outside sale date and
+  buy-sell date are on the Dashboard's Upcoming Events, with the term dates
+  every portfolio already has.
+- **What the agreements now read in:** the target return (every type); the
+  investor type, agreement date, outside sale date and buy-sell date (JVA);
+  the investor type, authority, agreement date and termination notice
+  (SMA). An agreement can list several restrictions of the same kind; each
+  is kept.
+- **No figure changes.** These terms are recorded and shown. Every type
+  still runs the same return model.
+- **Not in 1.1.29:** a separate account's asset management fee charged on
+  value (the fee basis is still commitments or invested capital). It would
+  change the fee calculation, so it is left for you to decide.
 
 **Governing documents, read in by Claude:** a fund's **LPA / PPM**, a JV's
 **joint venture agreement (JVA)**, an SMA's **separate account / investment
@@ -3764,7 +3857,7 @@ sometimes different companies. The GP makes money on its invested capital and
 its share of the promote; the sponsor manages the assets and earns fees (and
 its own share of the promote).
 
-**Setup: Edit fund / JV / SMA → Parties and economics** (entered by whoever
+**Setup: Edit Portfolio → step 2, Parties and economics** (entered by whoever
 sets up the portfolio):
 - **Sponsor / operator:** this firm or an outside operator (named), and its
   co-invest (% of equity, usually 0; it earns at the LPs' net multiple).
@@ -3868,7 +3961,7 @@ asset to a submarket there):
 - **Difference:** this asset minus the market: cap rate in bp, rent in %,
   vacancy and growth in points.
 - **Flags:** amber past the level, red past the level × the red multiple.
-- **Levels per portfolio:** Edit fund / JV / SMA → **Market check flag
+- **Levels per portfolio:** Edit Portfolio → step 5, **Market check flag
   levels**. The defaults, which the sample data uses, are 50 bp, 10%, 2 pts,
   1 pt and red at 1.5×.
 
@@ -4657,6 +4750,7 @@ Fields set from Underwriter on linked deals are marked **Q**.
 | `cmFeePct` **Q** | `deals[].inputs.cmFeePct` | % of `cmFeeBasis` | 1.5 | Construction management, below NOI |
 | `cmFeeBasis` **Q** | `deals[].inputs.cmFeeBasis` | `value` / `spend` | `value` | 1.1.26: `value` = % of the purchase price every year; `spend` = % of construction spending (the capital budget in year 1 and each year's tenant improvements; not leasing commissions or free rent) |
 | `moveOut` | `deals[].inputs.units[].moveOut` | `{ date, tenantName, reason, note, by, at }` | none | 1.1.27: a tenant that moved out with no replacement. `date` is its last day; `reason` is `expired`, `terminated`, `default` or `other`. The lease running that day ends then and the unit is vacant from the next day |
+| `tenantInsurance` | `deals[].inputs.tenantInsurance` | `{ [tenant]: { requested, received, notes } }` | none | 1.1.29: when proof of insurance was requested from and received from each tenant, and a note (Insurance tab → Tenant insurance). Keyed by the tenant's name in lower case with hyphens. The lease's requirements, the certificate and its expiry are read from the documents, not stored here |
 | `sampleCreditStory` | `deals[].inputs.units[].sampleCreditStory` | `true` | none | 1.1.28: marks the unit carrying a sample tenant credit story on the sample joint venture and separate account, so the load adds the story once. Not used by any calculation |
 
 **Rent roll and operations** (used when direct NOI is off):
@@ -4813,6 +4907,12 @@ column.
 |---|---|---|---|---|---|
 | `name` | `funds["Fund name"].name` | Fund name | text | | Must match the deals' Fund field |
 | `type` | `funds["Fund name"].type` | — | `Fund` / `Separate Account` / `Joint Venture` | Fund (when missing) | Type tag, a label only (11/23): chosen in New fund, editable in the terms; badge on Asset Summary, Valuation, Portfolio Return, pickers and PDF covers; Portfolio Return can filter by it. No effect on any calculation |
+| `investorType`, `investorEntity`, `sponsorEntity`, `investorContactName`, `investorContactEmail`, `investorNotes` | `funds["Fund name"].…` | — | text | none | 1.1.29: who the capital partner (joint venture) or client (separate account) is. Recorded and shown; no calculation |
+| `authority` | `funds["Fund name"].authority` | — | `discretionary` / `approval` | `approval` on a new separate account | 1.1.29: whether the client approves each deal. Recorded only (the approval step is version 1.2) |
+| `fundPlanTargets` | `funds["Fund name"].fundPlanTargets` | — | `{ netIrrPct, netMultiple, cashYieldPct, grossIrrPct }` | none | The target return, set in New Portfolio Setup (step 4) or on the portfolio plan; one set. `cashYieldPct` is new in 1.1.29 |
+| `outsideSaleDate`, `buySellDate` | `funds["Fund name"].…` | — | date | none | 1.1.29: a joint venture's outside sale date and the date its buy-sell opens; on Upcoming Events |
+| `terminationNoticeDays` | `funds["Fund name"].terminationNoticeDays` | — | days | none | 1.1.29: a separate account's termination notice |
+| `termSources` | `funds["Fund name"].termSources` | — | `{ [term]: "doc" }` | none | 1.1.29: the terms taken from the agreement (the setup review page marks them) |
 | `finalClose` | `funds["Fund name"].finalClose` | Final close date | date | 2025-12-31 | Start of the fund timeline |
 | `investmentPeriodYears` | `funds["Fund name"].investmentPeriodYears` | Investment period (years) | years | 2 | From final close |
 | `termYears` | `funds["Fund name"].termYears` | Fund term (years) | years | 5 | From final close |
@@ -5424,7 +5524,8 @@ Every future release is checked against these:
 |---|---|---|
 | **1.0** | Everything built through 11/24 (PR #101): the phases and items below marked built | ✅ Released 2026-11-25 (tag `v1.0.0`) |
 | **1.1** | Claude reads BOVs, LOIs, PSAs and closing statements into Dispositions and applies their terms; market check on the Valuation tab and the Asset Business Plan; Add sample documents; sample pipeline deals load with Model Fund I | ✅ Released 2026-11-25 (tag `v1.1.0`); patch **1.1.1**: Setup & Maintenance moves into Functions as its last area (tag `v1.1.1`); patch **1.1.2**: Vacant Units on the Dashboard; leasing manager; Add sample business plans and Add sample prospects (tag `v1.1.2`); patch **1.1.3**: Vacant Units moves to Active Leasing (tag `v1.1.3`); patch **1.1.4**: Prospects column; Load Model Fund I adds sample plans and prospects (tag `v1.1.4`); patch **1.1.5**: Disposition Candidates; sample marks and market data; risk report KRI Trending, issued reports at the bottom, environmental removed (tag `v1.1.5`); patch **1.1.6**: the Acquisitions flow (the Deal Screener reads the Pipeline), Load Model Fund I builds the complete test fund, Fund terms at the top of Portfolio Return, autosave every 2 minutes (tag `v1.1.6`); patch **1.1.7**: hosting moves to Vercel (preview link per pull request), Load Model Fund I saves its sample sales at once (tag `v1.1.7`); patch **1.1.8**: risk report risks first, Tenant Credit (tab, screening before Signed, credit-change flags), Aged Rent, Internal-only reports (tag `v1.1.8`); patch **1.1.9**: Finance → Firm Economics, sample credit report PDFs linked from Tenant Credit (tag `v1.1.9`); patch **1.1.10**: Finance → **GP Partners** (outside GP capital partners, their agreements read by Claude, deal-level and dated terms, committed capital by partner); the firm is always the sponsor, no sponsor co-invest, no fees to the GP (tag `v1.1.10`); patch **1.1.11**: UI polish from the ease-of-use review (Rent Roll, Portfolio Return index, less red and ⓘ rule text, readable grey, one highlighted area and Home, Sample data in Setup & Maintenance, Deal Screener pick list, clickable header figures, title-case headers, Find in the asset picker, phone layout) (tag `v1.1.11`); patch **1.1.12**: correctness and safety from the code review (waterfall: GP capital pro rata, catch-up fixed, marginal promote tiers read from the LPA; Discard changes when leaving a tab; merged saves; record history; risk report and other calculation fixes; sample material loads by itself) (tag `v1.1.12`); patch **1.1.13**: sample documents rewritten from Model Fund I with a tie-out test; sales in progress; Model Fund I legal entities; property manager in asset setup; lender reporting and entity dates on the Home calendar; patch **1.1.14**: fix to the automatic sample load (asset changes saved before the uploads); patch **1.1.15**: correctness (a save can't replace someone else's new record; rate cap replacement cost; GP partner shares capped at 100%); patch **1.1.16**: Dispositions comps (separate acquisition and disposition sets), price per SF, break-even occupancy; patch **1.1.17**: twelve industrial asset characteristics in asset setup, SNDAs, their sample documents; patch **1.1.18**: fix to the automatic sample load (the SNDA status of each lease was not saved); patch **1.1.19**: property management fee paid asset by asset; patch **1.1.20**: the Deal Screener's fund summary line; housekeeping; patch **1.1.21**: sample Property Management data and documents, third-party research, the sample leases' rent steps; planned patches **1.1.22** and **1.1.23** (row below) |
-| **1.1.x** | Version 1.1 is complete with **1.1.28** (your decision, 11/27, that it is the last 1.1 patch): 1.1.26 the sample joint venture and separate account, their terms, four assets and figures; 1.1.27 their documents, a tenant that moved out and Model Fund I's construction management fee on construction spending; 1.1.28 their business plans, leasing, tenant credit, property management data and distribution proposals | Done with 1.1.28 |
+| **1.1.29** | New Portfolio Setup and Edit Portfolio for the three portfolio types; the Insurance tab in two sections, property and tenant (your requests, 11/28) | In review |
+| **1.1.x** | 1.1.28 was to be the last 1.1 patch (your decision, 11/27); 1.1.29 was added at your request on 11/28. 1.1.26 the sample joint venture and separate account, their terms, four assets and figures; 1.1.27 their documents, a tenant that moved out and Model Fund I's construction management fee on construction spending; 1.1.28 their business plans, leasing, tenant credit, property management data and distribution proposals | Done with 1.1.28 |
 | **1.2** | Workflow: approvals, reminders and gating (phase V); the Acquisitions and Dispositions workflows you set out (Leasing and Property Management to come); and, by your decision of 11/28: IC Memos tabs in Acquisitions and Dispositions, a closing calendar for each deal in process (milestones to review with you first), a home page section of acquisitions and dispositions in process, two quarterly reports (Quarterly Asset Performance, Quarterly Portfolio Performance) and locking a sold asset from further editing | Planned |
 | **1.3** | Chat and custom reports (rescoped 11/27: a read-only Chat section for plain-English answers, analytics and reports, using Claude; uploaded Excel / PowerPoint / PDF report templates, standard recurring and bespoke, filed by function; work done for a bespoke report applies to that report only, lasting rules only for standard reports; five actions: new bespoke report, new standard report, edit a standard template, run a standard report, save a bespoke report as standard; where the chat box lives is decided at scoping). Custom investor reports: a report builder for bespoke and ad hoc investor performance inquiries (choose the fund, assets, period and measures; PDF and Excel), marked unofficial, with internal reports alongside. The quarterly reports' "Shareable" versions were removed in patch 1.1.8. Not official client documents: LP capital account statements, ILPA reports, quarterly statements, notices and annual financial reports come from the fund administrator (user, 11/25) | Planned |
 | **1.4** | Demo firm (sample data kept apart from the real firm); Yardi API connection (automatic pull) | Planned |
@@ -5444,9 +5545,26 @@ Every future release is checked against these:
 - **Bug fixes ship as patch releases.** Fixes to the live release ship as 1.0.1, 1.0.2, … without waiting for the next version, and are carried into the version in progress.
 - **Database changes stay compatible.** A change a new version needs is made so the previous release still works with it, so a revert never breaks the data. As always, you run any database script yourself.
 
+### What's in 1.1.29
+
+Two things you asked for on 11/28. No database change, and no return figure moves. Sample data version 14 loads by itself.
+
+- **New Portfolio Setup and Edit Portfolio (§7.52).** The setup buttons are renamed and rebuilt. You choose the type first (fund, joint venture or separate account), which is then fixed, and each type has its own five steps and review page, in its own words.
+  - **New terms:** who the investor is (joint venture and separate account; a fund's investors stay in your CRM), the target return (IRR, equity multiple and cash yield), each restriction in the agreement with its clause, and the term of the agreement with its dates.
+  - **A separate account** records whether the client approves each deal. The approval step itself comes with Workflow (1.2).
+  - **The agreements read these in**, and the two sample agreements were rewritten to state them.
+- **The Insurance tab in two sections (§7.46).** Property insurance (the sponsor's policies and claims) is as before. Tenant insurance is new on the tab: one row per tenant with what the lease requires, the proof on file, when it expires, any shortfall, and when proof was requested and received.
+  - **A tenant only on the rent roll** has a row and raises a Dashboard action to upload its lease (your request).
+  - **Actions Needed** also gets missing proof and cover below the lease, one line per asset, and each certificate's expiry is on Upcoming Events.
+- **Decided by Claude, for you to confirm:**
+  - The Dashboard actions are one line per asset, not one per tenant, so a rent roll with dozens of tenants does not bury everything else. The tab lists every tenant.
+  - The target return in setup is the same set of targets the portfolio plan already tracked, so the two cannot disagree.
+  - A separate account's fee on value, which the mockup showed as a choice, is not built: it would change the fee calculation. Say if you want it.
+- **Next:** version 1.2, Workflow.
+
 ### What's in 1.1.28
 
-The last 1.1 patch: the rest of the sample joint venture's and separate account's tab data (§7.13). No figure of Model Fund I or of the four assets' models moves.
+The last planned 1.1 patch (1.1.29 was added afterwards at your request): the rest of the sample joint venture's and separate account's tab data (§7.13). No figure of Model Fund I or of the four assets' models moves.
 
 - **Business plans with actuals** on all four assets. The plan is the closing model and the actuals are the asset's model today, so the variance is underwriting against what happened: three assets a little ahead, Example Foundry Flex Park about 45% under its budgeted NOI.
 - **Leasing prospects** on the units vacant today and a renewal, on the three held assets.

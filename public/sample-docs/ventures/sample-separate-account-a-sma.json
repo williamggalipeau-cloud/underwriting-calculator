@@ -29,6 +29,30 @@
    ]
   },
   {
+   "key": "investor_type",
+   "value": "Insurance company",
+   "status": "found",
+   "clause": "1.4",
+   "evidence": [
+    {
+     "quote": "The Client is an insurance company.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "authority",
+   "value": "The Client approves each investment",
+   "status": "found",
+   "clause": "1.5",
+   "evidence": [
+    {
+     "quote": "The Manager has no discretion to invest: the Client approves each investment before the Manager commits to it.",
+     "page": 1
+    }
+   ]
+  },
+  {
    "key": "commitments",
    "value": "$25,000,000",
    "status": "found",
@@ -204,6 +228,108 @@
    "evidence": [
     {
      "quote": "Each extension is for 1 year.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "agreement_date",
+   "value": "March 31, 2023",
+   "status": "found",
+   "clause": "5.5",
+   "evidence": [
+    {
+     "quote": "This Agreement is dated March 31, 2023, and its term runs from that date.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "termination_notice_days",
+   "value": "90 days",
+   "status": "found",
+   "clause": "5.6",
+   "evidence": [
+    {
+     "quote": "The Client may end this Agreement on 90 days' written notice to the Manager.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "target_irr_pct",
+   "value": "11%",
+   "status": "found",
+   "clause": "6.1",
+   "evidence": [
+    {
+     "quote": "The Manager targets a net internal rate of return to the Client of 11%. The target is not a promise.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "target_multiple",
+   "value": "1.5x",
+   "status": "found",
+   "clause": "6.2",
+   "evidence": [
+    {
+     "quote": "The Manager targets a net equity multiple to the Client of 1.5x.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "target_cash_yield_pct",
+   "value": "5.5%",
+   "status": "found",
+   "clause": "6.3",
+   "evidence": [
+    {
+     "quote": "The Manager targets an average cash yield to the Client of 5.5% per year on the capital called.",
+     "page": 1
+    }
+   ]
+  }
+ ],
+ "limits": [
+  {
+   "key": "asset_ltv_pct",
+   "label": "Leverage on any one property",
+   "limit": 75,
+   "unit": "%",
+   "basis": "of the property's value",
+   "clause": "7.1",
+   "evidence": [
+    {
+     "quote": "Leverage on any one property: borrowing secured by any one property may not exceed 75% of the property's value.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "property_type",
+   "label": "Permitted property types",
+   "limit": "Stabilized industrial and flex properties only",
+   "unit": "text",
+   "clause": "7.2",
+   "evidence": [
+    {
+     "quote": "Permitted property types: stabilized industrial and flex properties only.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "other",
+   "label": "Development",
+   "limit": "No ground-up development",
+   "unit": "text",
+   "clause": "7.3",
+   "evidence": [
+    {
+     "quote": "Development: no ground-up development.",
      "page": 1
     }
    ]

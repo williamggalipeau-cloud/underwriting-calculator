@@ -78,7 +78,8 @@ import { withSampleComps } from "@/lib/sampleComps";
 import { withRiskTestData } from "@/lib/sampleRiskData";
 import { TAB_GROUPS, TABS, TAB_COUNT_TITLES, DEAL_TABS } from "@/lib/tabs";
 import { sampleFundData, samplePipelineCandidate, withSampleBenchmarks, SAMPLE_IMPACT_PIPELINE_ID } from "@/lib/sampleFundData";
-import { isSampleVentureDeal, sampleVenturesToAdd, withSampleMoveOut, withSampleVentureFacts, SAMPLE_VENTURE_NAMES } from "@/lib/sampleVentures";
+import { isSampleVentureDeal, sampleVenturesToAdd, withSampleMoveOut, withSampleSetupTerms, withSampleVentureFacts, SAMPLE_VENTURE_NAMES } from "@/lib/sampleVentures";
+import { withSampleTenantInsurance } from "@/lib/sampleTenantInsurance";
 import { sampleVentureFundData, sampleVenturesFull, withSampleVentureData } from "@/lib/sampleVentureData";
 import { buildSampleDeals, currentSampleDate, currentSampleHold, sampleUnitCount, snapshotDeal, withSizingConstraints, SAMPLE_FUND_NAME, OLD_SAMPLE_FUND_NAME, SAMPLE_FUND_COMMITMENTS, SAMPLE_FUND_FEE_TERMS, SAMPLE_DATA_VERSION, withSampleCmFeeBasis } from "@/lib/samplePortfolio";
 import { DEFAULT_CURVE } from "@/lib/forwardCurve";
@@ -1639,6 +1640,7 @@ export default function Home() {
         inp = withSamplePropertyMgmt(inp, d.id); // 1.1.21: Property Management rows, only in the sections the asset has none in
         inp = withSampleDocProspect(inp, d.id); // 1.1.23: the prospect with fixed terms the sample leasing documents are written for (only where the asset does not have it)
         inp = withSampleResearchExtra(inp, d.id, { valuations: applySampleDocMarks(latestData.current?.valuations ?? cur.valuations ?? {}) }); // 1.1.23: research items of the remaining types, each only where the asset does not have it
+        inp = withSampleTenantInsurance(inp, d.id); // 1.1.29: when proof of insurance was requested and received, for the tenants with a sample lease (only where the asset has no record for the tenant)
         if (!String(inp.propertyManager ?? "").trim() && !inp.propertyManagementFirm) inp = { ...inp, ...samplePropertyManager(Number(d.id.replace("sample-deal-", "")) - 1) };
         const q = d.quick ? withSampleCmFeeBasis(d.quick, d.id) : d.quick; // the asset's screening copy follows, by the same rule
         return inp === d.inputs && q === d.quick ? d : { ...d, inputs: inp, ...(q !== d.quick ? { quick: q } : {}) };
@@ -1715,7 +1717,8 @@ export default function Home() {
       setFunds((prev) => {
         const t = { ...applyAgreements({ ...DEFAULT_FUND_TERMS, ...(prev[SAMPLE_FUND_NAME] ?? {}), name: SAMPLE_FUND_NAME }, SAMPLE_FUND_NAME, gp), ...sampleFundTermsPatch(prev[SAMPLE_FUND_NAME] ?? {}, { keepExisting: true }), ...((prev[SAMPLE_FUND_NAME]?.entities ?? []).length ? {} : { entities: sampleEntities() }), ...(credit.delinquency ? { delinquency: credit.delinquency } : {}) };
         // 1.1.28: the joint venture's and separate account's aged receivables and last quarter's distribution proposal, each only where the portfolio has none.
-        const venRecords = Object.fromEntries(SAMPLE_VENTURE_NAMES.filter((n) => prev[n]).map((n) => { try { return [n, { ...prev[n], ...sampleVentureFundData(n, dealsNow, prev[n], { todayISO, curve: effectiveCurve(baseCurveRef.current, anchorToLive, live) }) }]; } catch { return [n, prev[n]]; } }));
+        // 1.1.29: and what New Portfolio Setup records (the investor, target return, agreement dates and restrictions), each only where the portfolio has none.
+        const venRecords = Object.fromEntries(SAMPLE_VENTURE_NAMES.filter((n) => prev[n]).map((n) => { try { return [n, { ...withSampleSetupTerms(prev[n], n), ...sampleVentureFundData(n, dealsNow, prev[n], { todayISO, curve: effectiveCurve(baseCurveRef.current, anchorToLive, live) }) }]; } catch { return [n, prev[n]]; } }));
         return { ...prev, ...venRecords, [SAMPLE_FUND_NAME]: { ...t, ...fundRecords(t), ...(failed.length ? {} : { sampleDataVersion: SAMPLE_DATA_VERSION }) } };
       });
       setTimeout(() => saveRef.current?.(), 1500); // after the unsaved-changes check has seen the new data

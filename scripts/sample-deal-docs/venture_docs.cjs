@@ -60,10 +60,10 @@ function numbered(sections) {
   return { body, fields, quotes };
 }
 // A document with abstract fields (library and sale documents).
-function doc({ name, list, type, dealId = null, fund = null, heading, sub, title, sections, docType = type, extra = {} }) {
+function doc({ name, list, type, dealId = null, fund = null, heading, sub, title, sections, docType = type, extra = {}, limits = null }) {
   const n = numbered(sections), a = dealId ? inp(dealId) : null;
   docs.push({ name, list, type, dealId, asset: a?.propertyName ?? null, fund, title, html: page(heading, sub, n.body), extra,
-    abstract: { doc_type: docType, title, ...(a ? { asset: a.propertyName } : { fund }), summary: sub, fields: n.fields, critical_dates: [], app: { ...SAMPLE, files: [`${name}.pdf`] } } });
+    abstract: { doc_type: docType, title, ...(a ? { asset: a.propertyName } : { fund }), summary: sub, fields: n.fields.filter((f) => !f.key.startsWith("limit:")), ...(limits ? { limits: limits.map((l) => { const f = n.fields.find((x) => x.key === `limit:${l.key}`); return { key: l.key.replace(/_\d+$/, ""), label: l.label, limit: l.limit, unit: l.unit, ...(l.basis ? { basis: l.basis } : {}), clause: f.clause, evidence: f.evidence }; }) } : {}), critical_dates: [], app: { ...SAMPLE, files: [`${name}.pdf`] } } });
 }
 
 // ── The joint venture agreement and the separate account agreement ──
@@ -79,6 +79,8 @@ for (const [name, type] of [[V.SAMPLE_JV_NAME, "jva"], [V.SAMPLE_SMA_NAME, "sma"
         ["fund_name", name, jv ? `This Agreement governs ${name}, a joint venture between the ${inv} and the ${sp}.` : `This Agreement establishes ${name}, a separate account managed for the ${inv} by the ${sp}.`],
         [jv ? "partner_name" : "client_name", investor, `The ${inv} is ${investor}.`],
         `The ${sp} is ${SPONSOR}, which manages the investments.`,
+        ["investor_type", t.investorType, `The ${inv} is ${/^[aeiou]/i.test(t.investorType) ? "an" : "a"} ${t.investorType.toLowerCase()}.`],
+        ...(jv ? [] : [["authority", "The Client approves each investment", `The ${sp} has no discretion to invest: the ${inv} approves each investment before the ${sp} commits to it.`]]),
       ]],
       ["Capital", [
         ["commitments", usd(t.targetEquity), `Total equity commitments are ${usd(t.targetEquity)}.`],
@@ -102,8 +104,19 @@ for (const [name, type] of [[V.SAMPLE_JV_NAME, "jva"], [V.SAMPLE_SMA_NAME, "sma"
         ["term_years", `${t.termYears} years`, `The term is ${t.termYears} years from ${long(t.finalClose)}.`],
         ["extension_count", `${t.extensionCount}`, `The term may be extended ${t.extensionCount} times with the ${inv}'s consent.`],
         ["extension_years", `${t.extensionYears} year`, `Each extension is for ${t.extensionYears} year.`],
+        ["agreement_date", long(t.finalClose), `This Agreement is dated ${long(t.finalClose)}, and its term runs from that date.`],
+        ...(jv
+          ? [["buy_sell_date", long(t.buySellDate), `Either member may start the buy-sell procedure on or after ${long(t.buySellDate)}.`],
+             ["outside_sale_date", long(t.outsideSaleDate), `Every property is to be sold by ${long(t.outsideSaleDate)}, the outside sale date.`]]
+          : [["termination_notice_days", `${t.terminationNoticeDays} days`, `The ${inv} may end this Agreement on ${t.terminationNoticeDays} days' written notice to the ${sp}.`]]),
       ]],
-    ] });
+      ["Target return", [
+        ["target_irr_pct", `${t.fundPlanTargets.netIrrPct}%`, `The ${sp} targets a net internal rate of return to the ${inv} of ${t.fundPlanTargets.netIrrPct}%. The target is not a promise.`],
+        ["target_multiple", `${t.fundPlanTargets.netMultiple}x`, `The ${sp} targets a net equity multiple to the ${inv} of ${t.fundPlanTargets.netMultiple}x.`],
+        ["target_cash_yield_pct", `${t.fundPlanTargets.cashYieldPct}%`, `The ${sp} targets an average cash yield to the ${inv} of ${t.fundPlanTargets.cashYieldPct}% per year on the capital called.`],
+      ]],
+      ["Restrictions", t.limits.map((l) => [`limit:${l.key}`, String(l.limit), l.unit === "%" ? `${l.label}: borrowing secured by any one property may not exceed ${l.limit}% ${l.basis}.` : `${l.label}: ${String(l.limit).replace(/^./, (c) => c.toLowerCase())}.`])],
+    ], limits: t.limits });
 }
 
 // ── The outside GP partners' agreements ──

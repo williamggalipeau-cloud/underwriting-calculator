@@ -396,5 +396,56 @@ for (const l of leaseIndex) {
   ok(off.length === 0, `the two portfolios' plans are their closing models, their actuals their models today, their insurance their own expense, and each proposal what Distribution Analysis computes${off.length ? " — " + off.join("; ") : ""}`);
 }
 
+// 1.1.29: what New Portfolio Setup records on the joint venture and the
+// separate account is what their agreements state (every row of each
+// agreement is compared above, with no exceptions list; here the new terms
+// are named, so a field dropped from the agreement fails too), and the sample
+// tenant insurance records follow the sample leases and the one sample
+// tenant certificate.
+{
+  const V = j(R + "/lib/sampleVentures.js"), PS = j(R + "/lib/portfolioSetup.js"), ST = j(R + "/lib/sampleTenantInsurance.js"), TI = j(R + "/lib/tenantInsurance.js"), TERMS = j(R + "/lib/sampleDocTerms.json"), { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js");
+  const { buildSampleFund } = j(R + "/lib/sampleFund.js");
+  const v = V.buildSampleVentures({ baseInputs: DEFAULT_INPUTS, todayISO: V.SAMPLE_VENTURE_AS_OF }), off = [];
+  const man = JSON.parse(fs.readFileSync(`${R}/public/sample-docs/manifest.json`, "utf8")), read = (m) => JSON.parse(fs.readFileSync(`${R}/public/sample-docs/${m.abstract}`, "utf8"));
+  for (const [name, type, want] of [[V.SAMPLE_JV_NAME, "jva", ["fundPlanTargets.netIrrPct", "fundPlanTargets.netMultiple", "fundPlanTargets.cashYieldPct", "investorType", "finalClose", "outsideSaleDate", "buySellDate"]], [V.SAMPLE_SMA_NAME, "sma", ["fundPlanTargets.netIrrPct", "fundPlanTargets.netMultiple", "fundPlanTargets.cashYieldPct", "investorType", "authority", "finalClose", "terminationNoticeDays"]]]) {
+    const m = man.deals.find((x) => x.docType === type && x.fund === name), t = v.funds[name], rows = DA.compareDoc({ doc_type: type, abstract: read(m) }, { terms: t });
+    for (const k of want) { const r = rows.find((x) => x.target === k); if (!r || r.differs) off.push(`${name}: ${k}`); }
+    const lim = rows.filter((x) => x.target.startsWith("limits."));
+    if (lim.length !== t.limits.length || lim.some((x) => x.differs) || lim.map((x) => x.docKey).join() !== t.limits.map((l) => l.key).join()) off.push(`${name}: restrictions`);
+    const a = PS.agreementTerm(t);
+    if (type === "jva" && (t.buySellDate !== `${Number(t.finalClose.slice(0, 4)) + t.investmentPeriodYears}${t.finalClose.slice(4)}` || t.outsideSaleDate !== a.extendedEnd)) off.push(`${name}: the buy-sell opens when the investment period ends and the outside sale date is the fully extended term`);
+    // Setting the terms changes no other term, and is added only where missing.
+    const bare = Object.fromEntries(Object.entries(t).filter(([k]) => !Object.keys(V.sampleSetupTerms(name, t)).includes(k)));
+    const again = V.withSampleSetupTerms(bare, name);
+    if (JSON.stringify(again) !== JSON.stringify({ ...bare, ...V.sampleSetupTerms(name, t) }) || V.withSampleSetupTerms(t, name) !== t) off.push(`${name}: the load step`);
+    const own = V.withSampleSetupTerms({ ...bare, investorType: "Family office", fundPlanTargets: { netIrrPct: 9 }, limits: [{ key: "other", label: "Mine", limit: "x", unit: "text" }] }, name);
+    if (own.investorType !== "Family office" || own.fundPlanTargets.netIrrPct !== 9 || own.limits.length !== 1) off.push(`${name}: the load step overwrote the firm's own terms`);
+  }
+  ok(off.length === 0, `the joint venture's and separate account's investor, target return, dates and restrictions are what their agreements state${off.length ? " — " + off.join("; ") : ""}`);
+
+  const f = buildSampleFund({ todayISO: TERMS.asOf }), off2 = [];
+  const certM = man.deals.find((x) => x.docType === "insurance_cert" && x.leaseTenant), cert = read(certM);
+  const certDeal = f.deals.find((d) => d.inputs.propertyName === certM.asset);
+  if (certDeal.id !== ST.SAMPLE_TENANT_CERT.dealId || certM.leaseTenant !== ST.SAMPLE_TENANT_CERT.tenant || j(R + "/lib/dealDocTypes.js").fieldValue(cert, "insurance_cert", "cert_date") !== ST.SAMPLE_TENANT_CERT.certDate) off2.push("the sample certificate's asset, tenant and date");
+  const leases = man.leases.map((m, i) => ({ id: `L${i}`, deal_id: f.deals.find((d) => d.inputs.propertyName === m.asset).id, tenant: m.tenant, unit_ids: [], abstract: read(m) }));
+  const certs = [{ id: "C", doc_type: "insurance_cert", deal_id: certDeal.id, lease_id: leases.find((l) => l.deal_id === certDeal.id && l.tenant === certM.leaseTenant).id, title: certM.title, created_at: `${ST.SAMPLE_TENANT_CERT.certDate}T00:00:00Z`, abstract: cert }];
+  let withLease = 0;
+  for (const d of f.deals) {
+    const rec = d.inputs.tenantInsurance ?? {}, mine = leases.filter((l) => l.deal_id === d.id), rows = TI.tenantInsuranceRows(d.inputs, { dealId: d.id, leases, certs, asOf: TERMS.asOf });
+    if (Object.keys(rec).join() !== mine.map((l) => TI.tenantKey(l.tenant)).join()) off2.push(`${d.inputs.propertyName}: a record for each tenant with a sample lease, and no other`);
+    for (const l of mine) {
+      const r = rows.find((x) => x.leaseId === l.id); withLease++;
+      if (!r) { off2.push(`${l.tenant}: the lease's tenant is not on the rent roll today`); continue; }
+      const hasCert = d.id === certDeal.id && l.tenant === certM.leaseTenant;
+      if (hasCert ? !(r.status === "ok" && r.received === ST.SAMPLE_TENANT_CERT.certDate && r.requested < r.received && r.shortfalls.length === 0) : !(r.status === "noProof" && r.requested && !r.received)) off2.push(`${l.tenant}: ${r.status}`);
+    }
+    if (rows.filter((x) => !x.leaseId).some((x) => x.status !== "noLease")) off2.push(`${d.inputs.propertyName}: a tenant with no lease`);
+    if (ST.withSampleTenantInsurance(d.inputs, d.id) !== d.inputs) off2.push(`${d.inputs.propertyName}: the load step is not idempotent`);
+    const figs = (i) => { const r = underwrite(i); return JSON.stringify([r.returns.irr, r.debt.loanAmount, r.annualCashFlows.map((c) => Math.round(c.noi))]); };
+    if (figs(d.inputs) !== figs({ ...d.inputs, tenantInsurance: undefined })) off2.push(`${d.inputs.propertyName}: the records move a figure`);
+  }
+  ok(off2.length === 0 && withLease === man.leases.length, `Model Fund I's tenant insurance records follow its ${withLease} sample leases and its sample tenant certificate (in place for that tenant, requested from the others), and move no figure${off2.length ? " — " + off2.join("; ") : ""}`);
+}
+
 console.log(fail ? `${fail} FAILED` : "ALL PASS");
 process.exit(fail ? 1 : 0);
