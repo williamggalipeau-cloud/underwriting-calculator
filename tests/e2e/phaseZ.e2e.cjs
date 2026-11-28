@@ -69,10 +69,12 @@ const check = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fail
   check(od === "yes" && !/red/.test(odCls) && soon === "no" && /text-gray-900/.test(soonCls) && !/red/.test(soonCls), "1.1.11: red only on the status chip (overdue marked by its Past Due chip), not the text");
   // Done: the overdue item leaves Actions Needed and shows done on the Calendar
   const nAct = await att.getByTestId("action-row").count();
+  const total = async () => Number((await att.locator("h3").first().innerText()).match(/Actions Needed\s*(\d+)/)?.[1] ?? NaN); // the count beside the heading (the table may show only the first rows)
+  const nTotal = await total();
   check((await att.getByRole("button", { name: /^Done/ }).count()) === 0, "no Done button: Status marks it");
   await att.getByRole("combobox", { name: /^Status: .*without a \d{4}-\d{2}-\d{2} mark/ }).selectOption("Completed");
   await p.waitForTimeout(500);
-  check((await att.getByTestId("action-row").count()) === nAct - 1 && !/without a \d{4}-\d{2}-\d{2} mark/.test(await att.innerText()), "Status set to Completed: it leaves Actions Needed");
+  check((await total()) === nTotal - 1 && (await att.getByTestId("action-row").count()) <= nAct && !/without a \d{4}-\d{2}-\d{2} mark/.test(await att.innerText()), "Status set to Completed: it leaves Actions Needed");
   await p.getByTestId("calendar").getByRole("button", { name: /Show the past 12 months/ }).click();
   await p.waitForTimeout(300);
   const doneRow = p.getByTestId("calendar-item").filter({ hasText: /without a \d{4}-\d{2}-\d{2} mark/ });
