@@ -23,6 +23,7 @@ const j = require(R + "/node_modules/jiti")(__filename, { alias: { "@": R } });
 const V = j(R + "/lib/sampleVentures.js");
 const { DEFAULT_INPUTS } = j(R + "/lib/defaultInputs.js");
 const { tiersLabel } = j(R + "/lib/dealDocApply.js");
+const VD = j(R + "/lib/sampleVentureData.js");
 const dir = path.join(R, "docs", "sample-deal-docs", "ventures");
 const AS_OF = V.SAMPLE_VENTURE_AS_OF;
 
@@ -157,7 +158,10 @@ for (const a of v.gp.agreements.filter((x) => V.SAMPLE_VENTURE_NAMES.includes(x.
         ["holdback", "None", "No funds were held back at closing. The holdback is: None."],
       ]],
     ] });
-  const paid = addDays(c.date, 15), t = v.funds[G.fundName];
+  // 1.1.28 (user, 11/28): the proceeds are distributed to the capital partners per the waterfall.
+  const t = v.funds[G.fundName], sd = VD.sampleSaleDistribution(G.fundName, v.deals, t, { todayISO: AS_OF }), paid = sd.paidDate;
+  if (Math.abs(sd.amount - c.net) > 0.01 || Math.abs(sd.lp + sd.gp - sd.amount) > 0.02) throw new Error("the sale's distribution is not its net proceeds");
+  const promote = sd.gp - sd.amount * (t.gpCommitPct / 100);
   doc({ name: `${p}-distribution-notice`, list: "disposition", type: "distribution_notice", docType: "disposition_distribution_notice", dealId: id, extra, heading: "Distribution Notice", sub: `${G.fundName} · ${long(paid)}`, title: `${G.fundName} distribution notice (${G.propertyName} sale)`,
     sections: [
       ["Distribution", [
@@ -167,6 +171,9 @@ for (const a of v.gp.agreements.filter((x) => V.SAMPLE_VENTURE_NAMES.includes(x.
       ]],
       ["Allocation", [
         ["recipient", t.partnerName, `The distribution is allocated between ${t.partnerName} and the Sponsor Member under the distribution provisions of the joint venture agreement.`],
+        ["to_partner", usd(sd.lp), `${t.partnerName} receives ${usd(sd.lp)}.`],
+        ["to_sponsor", usd(sd.gp), `The Sponsor Member receives ${usd(sd.gp)}.`],
+        ["promote", usd(promote), promote > 0.5 ? `The Sponsor Member's amount includes promote of ${usd(promote)}.` : `No promote is paid on this distribution: the members have not yet received the return of their capital and the preferred return. The promote is ${usd(promote)}.`],
       ]],
     ] });
 }

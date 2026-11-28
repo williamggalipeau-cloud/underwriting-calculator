@@ -1699,9 +1699,8 @@ abstract, and each written from the portfolios as the app builds them:
 - **The separate account agreement** carries a preferred return and promote
   (the SMA document type gained those fields in 1.1.27).
 - **The distribution notice** states the amount, which is the sale's net
-  proceeds, and that it is allocated under the JVA. It gives no split
-  between the partner and the sponsor: the distribution record comes in
-  1.1.28.
+  proceeds, and, since 1.1.28, what each party receives under the
+  waterfall (below).
 - **Not included:** a broker opinion, offer or P&S for the sold asset (the
   sale record holds none), and leases for the four assets.
 
@@ -1716,7 +1715,7 @@ asset or portfolio has none.
 | Tenant Credit | One story on each held asset: an open flag, a conditional screening, a tenant with no record | A tenant in place today |
 | Aged rent | Two months of aged receivables on each portfolio | Those tenants' rent |
 | Property Management | A parcel, tax bills, three policies, property condition items and four service contracts on the three held assets; one tax appeal, one closed claim | The asset's own tax, insurance and repairs assumptions, and its building and site facts |
-| Distribution Analysis | Last quarter's proposal on each portfolio | What the tab itself finds distributable, split by capital |
+| Distribution Analysis | Last quarter's proposal on each portfolio; on the joint venture, the sale's net proceeds recorded as paid | What the tab itself finds distributable; the sale's net proceeds, split by the portfolio's waterfall |
 
 - **Plan against actual is underwriting against what happened.** Since
   closing (test copy): Example Gateway Industrial Park +1.6% of budgeted
@@ -1726,9 +1725,19 @@ asset or portfolio has none.
 - **The sold asset** gets its business plan, with actuals to the sale, and
   nothing else: its leases, credit and property management are the buyer's.
 - **Distribution proposals** (test copy): $569,960 for the joint venture and
-  $571,355 for the separate account, each split 90 / 10 by capital. The
-  sale's proceeds are not part of a quarter's distributable cash, so there
-  is no separate proposal for them.
+  $571,355 for the separate account, each split 90 / 10 by capital.
+- **The sale's proceeds are distributed to the capital partners per the
+  waterfall** (your decision, 11/28). Example Gateway Industrial Park's net
+  proceeds of $45,967,456 are recorded on the joint venture as a
+  distribution paid on 7/15/2026, the way Distribution Analysis records a
+  paid distribution: a paid entry for Q2 2026 and a "Distribution paid"
+  entry in capital activity. The waterfall is run on the joint venture's
+  cash flows before the sale: $41,370,710 to Example Pension Fund and
+  $4,596,746 to the sponsor side. There is no promote on it, because the
+  partners have not yet had their capital and the 8% preferred return back,
+  so the proceeds go by capital share (90 / 10). The distribution notice
+  now states the same amounts (it replaces the 1.1.27 copy). Recording it
+  does not change the joint venture's returns, fees or promote.
 
 **Leases signed since purchase (1.1.24, `lib/leaseHistory.js`).** The rent
 roll rows are the leases in place on the day the asset was bought: the model
@@ -5444,7 +5453,8 @@ The last 1.1 patch: the rest of the sample joint venture's and separate account'
 - **Tenant credit stories**, one per held asset (an open flag, a conditional screening, a tenant with no record), and two months of aged receivables on each portfolio.
 - **Property Management rows** on the three held assets, from each asset's own tax, insurance and repairs assumptions.
 - **A distribution proposal** for last quarter on each portfolio, as Distribution Analysis computes it.
-- **Decided by Claude, for you to confirm:** there is no separate proposal for the sale proceeds (Distribution Analysis proposes operating cash by quarter), and the sold asset gets only its business plan.
+- **The sale's proceeds distributed per the waterfall** (your decision, 11/28): the sold asset's net proceeds are recorded on the joint venture as a paid distribution, split by the waterfall ($41,370,710 to the investor and $4,596,746 to the sponsor side on the test copy; no promote yet), and the distribution notice states the same amounts.
+- **Decided by Claude, for you to confirm:** the sold asset gets its business plan and nothing else (no leasing prospects, tenant credit story or Property Management rows), because you no longer own it.
 - **Next:** version 1.2, Workflow.
 
 ### What's in 1.1.27

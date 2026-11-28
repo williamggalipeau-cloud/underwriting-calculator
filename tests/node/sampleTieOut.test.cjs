@@ -386,7 +386,10 @@ for (const l of leaseIndex) {
     if (pm && pm.policies.reduce((s, p) => s + p.premium, 0) !== Math.round(d.inputs.insurancePSF * d.inputs.squareFootage)) off.push(`${d.inputs.propertyName}: insurance`);
   }
   for (const [name, terms] of Object.entries(v.funds)) {
-    const mine = deals.filter((d) => d.inputs.fundName === name), p = VD.sampleVentureFundData(name, deals, terms, { todayISO: T }).distributions?.proposals?.[0];
+    const mine = deals.filter((d) => d.inputs.fundName === name), rec = VD.sampleVentureFundData(name, deals, terms, { todayISO: T }), p = rec.distributions?.proposals?.find((x) => x.status === "proposed"), paid = rec.distributions?.proposals?.find((x) => x.status === "paid");
+    // The sale's proceeds: its closing's net, all of it to the partners.
+    const cl = mine.flatMap((d) => d.inputs.dispositions ?? []).find((x) => x.stage === "closed")?.closing;
+    if (!!cl !== !!paid || (cl && (Math.abs(paid.amount - cl.net) > 0.01 || Math.abs(paid.lp + paid.gp - paid.amount) > 0.02))) off.push(`${name}: sale distribution`);
     const calc = DIST.distributable(mine.map((d) => SP.snapshotDeal(d.inputs, d.id)), terms, lastCompletedQuarterEnd(T), { todayISO: T });
     if (!p || Math.abs(p.amount - calc.total) > 0.01) off.push(`${name}: proposal`);
   }

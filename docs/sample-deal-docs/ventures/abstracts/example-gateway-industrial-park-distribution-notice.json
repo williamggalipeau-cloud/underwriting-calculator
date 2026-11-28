@@ -51,6 +51,42 @@
      "page": 1
     }
    ]
+  },
+  {
+   "key": "to_partner",
+   "value": "$41,370,710",
+   "status": "found",
+   "clause": "2.2",
+   "evidence": [
+    {
+     "quote": "Example Pension Fund receives $41,370,710.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "to_sponsor",
+   "value": "$4,596,746",
+   "status": "found",
+   "clause": "2.3",
+   "evidence": [
+    {
+     "quote": "The Sponsor Member receives $4,596,746.",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "key": "promote",
+   "value": "$0",
+   "status": "found",
+   "clause": "2.4",
+   "evidence": [
+    {
+     "quote": "No promote is paid on this distribution: the members have not yet received the return of their capital and the preferred return. The promote is $0.",
+     "page": 1
+    }
+   ]
   }
  ],
  "critical_dates": [],

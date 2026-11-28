@@ -90,9 +90,27 @@ for (const d of deals) {
 
 // ── Distribution Analysis ──
 for (const [name, terms] of Object.entries(v.funds)) {
-  const mine = deals.filter((d) => d.inputs.fundName === name), p = VD.sampleVentureFundData(name, deals, terms, { todayISO: T }).distributions.proposals;
+  const mine = deals.filter((d) => d.inputs.fundName === name), p = VD.sampleVentureFundData(name, deals, terms, { todayISO: T }).distributions.proposals.filter((x) => x.status === "proposed");
   const qEnd = lastCompletedQuarterEnd(T), calc = D.distributable(mine.map((d) => SP.snapshotDeal(d.inputs, d.id)), terms, qEnd, { todayISO: T }), pick = D.chooseDistribution(calc, terms, { mode: "pct", value: 100 });
   check(p.length === 1 && p[0].quarter === "2026-Q3" && p[0].status === "proposed" && near(p[0].amount, calc.total, 0.01) && near(p[0].amount, pick.amount, 0.01) && near(p[0].lp + p[0].gp, p[0].amount, 0.01) && near(p[0].gp / p[0].amount, terms.gpCommitPct / 100, 0.001) && p[0].amount > 100000, `${name}: last quarter's proposal is all of what Distribution Analysis finds distributable, split by capital ($${Math.round(p[0].amount).toLocaleString("en-US")})`);
+}
+
+// ── The sale's proceeds, distributed per the waterfall (user, 11/28) ──
+{
+  const name = V.SAMPLE_JV_NAME, terms = v.funds[name], patch = VD.sampleVentureFundData(name, deals, terms, { todayISO: T });
+  const c = sold.dispositions.find((x) => x.stage === "closed").closing, sd = VD.sampleSaleDistribution(name, deals, terms, { todayISO: T });
+  const mine = deals.filter((d) => d.inputs.fundName === name).map((d) => SP.snapshotDeal(d.inputs, d.id)), calc = D.distributable(mine, terms, "2026-06-30", { todayISO: T }), split = D.splitSaleProceeds(calc.events, terms, c.date, c.net);
+  check(near(sd.amount, c.net, 0.01) && near(sd.lp + sd.gp, sd.amount, 0.02) && near(sd.lp, split.lp, 0.01) && near(sd.gp, split.gp, 0.01) && sd.closed === "2026-06-30" && sd.paidDate === "2026-07-15" && sd.quarter === "2026-Q2", `the sale's distribution is its net proceeds ($${Math.round(sd.amount).toLocaleString("en-US")}), split by the waterfall on the portfolio's events before the sale`);
+  check(near(sd.gp / sd.amount, terms.gpCommitPct / 100, 1e-6) && sd.lp < [...mine].reduce((s2, d) => s2 + d.metrics.equityRequired, 0), "no promote on it: the proceeds are less than the capital still to be returned, so they go to the capital partners by their shares (90 / 10)");
+  const paid = patch.distributions.proposals.find((x) => x.status === "paid"), act = patch.capitalActivity ?? [];
+  check(paid && paid.id === "dp-sample-sale-sample-jv-1" && paid.amount === sd.amount && paid.lp === sd.lp && paid.gp === sd.gp && paid.paidDate === sd.paidDate && paid.quarter === "2026-Q2" && act.length === 1 && act[0].id === paid.activityId && act[0].type === "distribution" && act[0].amount === sd.amount && act[0].date === sd.paidDate, "it is recorded as Distribution Analysis records a paid distribution: a paid proposal and a Distribution paid entry in capital activity");
+  check(patch.distributions.proposals.length === 2 && !VD.sampleSaleDistribution(V.SAMPLE_SMA_NAME, deals, v.funds[V.SAMPLE_SMA_NAME], { todayISO: T }) && !VD.sampleVentureFundData(V.SAMPLE_SMA_NAME, deals, v.funds[V.SAMPLE_SMA_NAME], { todayISO: T }).capitalActivity, "the separate account has sold nothing, so it has only last quarter's proposal");
+  // The distribution notice states the same split.
+  const fs = require("fs"), dn = JSON.parse(fs.readFileSync(R + "/public/sample-docs/ventures/example-gateway-industrial-park-distribution-notice.json", "utf8")), usd = (x) => `$${Math.round(x).toLocaleString("en-US")}`, f = (k) => dn.fields.find((x) => x.key === k)?.value;
+  check(f("amount") === usd(sd.amount) && f("to_partner") === usd(sd.lp) && f("to_sponsor") === usd(sd.gp) && f("promote") === "$0" && f("distribution_date") === "July 15, 2026", `the distribution notice states the same amounts (${f("to_partner")} to the partner, ${f("to_sponsor")} to the sponsor side)`);
+  const SDOC = j(R + "/lib/sampleDocs.js"), CH = require(R + "/lib/sampleDocChanges.json");
+  const stored = [{ id: "n", deal_id: "sample-jv-1", title: "[sale:sample-jv-1-sale-1] Distribution notice: example-gateway-industrial-park-distribution-notice.pdf", abstract: { app: { made_with: "Sample (fictional)" } }, files: [{ name: "example-gateway-industrial-park-distribution-notice.pdf" }] }, { id: "c", deal_id: "sample-jv-1", title: "[sale:sample-jv-1-sale-1] Closing statement: example-gateway-industrial-park-closing-disp.pdf", abstract: { app: { made_with: "Sample (fictional)" } }, files: [{ name: "example-gateway-industrial-park-closing-disp.pdf" }] }];
+  check(SDOC.supersededSampleSaleDocs(stored, CH, { fromVersion: 12 }).map((x) => x.id).join() === "n" && SDOC.supersededSampleSaleDocs(stored, CH, { fromVersion: 13 }).length === 0, "a firm that already has the earlier notice gets it replaced; the closing statement is left");
 }
 
 // ── The load: only where missing, only its own fields ──
@@ -111,7 +129,7 @@ for (const [name, terms] of Object.entries(v.funds)) {
   const have = { ...v.funds[V.SAMPLE_JV_NAME], delinquency: { months: { "2026-10-31": { rows: [], file: "mine" } } }, distributions: { proposals: [{ id: "mine" }] } };
   check(Object.keys(VD.sampleVentureFundData(V.SAMPLE_JV_NAME, deals, have, { todayISO: T })).length === 0, "a portfolio that has aged receivables and a proposal keeps its own");
   const full = VD.sampleVenturesFull({ deals: [], funds: {}, valuations: {}, gp: null, pipeline: [] }, { baseInputs: DEFAULT_INPUTS, todayISO: T }, V.sampleVenturesToAdd);
-  check(full.deals.filter((d) => V.isSampleVentureDeal(d.id)).every((d) => d.inputs.businessPlan?.revisions?.length === 1) && Object.values(full.funds).every((t) => t.distributions?.proposals?.length === 1 && Object.keys(t.delinquency?.months ?? {}).length === 2), "a firm that has neither portfolio gets them with all of this data");
+  check(full.deals.filter((d) => V.isSampleVentureDeal(d.id)).every((d) => d.inputs.businessPlan?.revisions?.length === 1) && Object.values(full.funds).every((t) => t.distributions?.proposals?.filter((x) => x.status === "proposed").length === 1 && Object.keys(t.delinquency?.months ?? {}).length === 2), "a firm that has neither portfolio gets them with all of this data");
   check(SP.SAMPLE_DATA_VERSION === 13, "the sample data version is 13");
 }
 
