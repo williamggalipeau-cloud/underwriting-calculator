@@ -2457,6 +2457,7 @@ export default function Home() {
               <UnitRoll
                 units={inputs.units}
                 inputs={inputs}
+                email={session?.user?.email ?? ""}
                 onChange={(units) => setInputs((prev) => ({ ...prev, units }))}
                 workspaceId={session && dbLink?.id ? dbLink.id : null}
                 dealId={activeDeal.id}

@@ -329,7 +329,7 @@ const COL_HEADERS = [
   { key: "tiConcR",   label: "TI Conc R", width: "w-20", tip: "TI concession $/SF — renewal (income-side deduction)" },
 ];
 
-export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId, delinquencyByUnit }) {
+export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId, delinquencyByUnit, email = "" }) {
   const headerId  = useId();
   const fileInput = useRef(null);
   const [csvError, setCsvError] = useState(null);
@@ -778,7 +778,7 @@ export default function UnitRoll({ units, inputs, onChange, workspaceId, dealId,
                     <tr className="bg-blue-50/30">
                       <td colSpan={COL_HEADERS.length + 3 - (showExp ? 0 : EXPENSE_KEYS.length)}>
                         <LeaseDetails unit={u} inputs={inputs} onField={(k, v) => setLeaseField(u, k, v)} />
-                        <UnitLeaseHistory unit={u} inputs={inputs} units={units} onUnits={onChange} />
+                        <UnitLeaseHistory unit={u} inputs={inputs} units={units} onUnits={onChange} email={email} />
                       </td>
                     </tr>
                   )}
