@@ -1650,19 +1650,19 @@ export default function Home() {
         for (const id of Object.keys(next)) for (const q of Object.keys(next[id] ?? {})) if (prev[id]?.[q] && prev[id][q].source !== "internal") next[id] = { ...next[id], [q]: prev[id][q] };
         return next;
       });
+      // 1.1.26: the sample joint venture and separate account (their terms,
+      // four assets, marks, outside GP partners and two pipeline deals),
+      // each piece only where the firm does not have it.
+      const ven = sampleVenturesToAdd({ deals: latestData.current?.deals ?? cur.deals, funds: latestData.current?.funds ?? cur.funds, valuations: latestData.current?.valuations ?? cur.valuations, gp: cur.gpPartners, pipeline: (latestData.current?.pipeline ?? cur.pipeline)?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
+      addSampleVentures(ven); // 1.1.27: before the save below, so they are stored before the uploads start
+      // 1.1.27: their documents are added with Model Fund I's, so the assets and portfolios just added are in the lists the documents are filed against.
+      const allDeals = [...built, ...ven.deals.filter((d) => !built.some((x) => x.id === d.id))];
+      const allFunds = { ...ven.funds, ...(latestData.current?.funds ?? cur.funds) };
       // 1.1.14: save the asset changes now, before the uploads (about a
       // minute). Left unsaved, moving to another tab showed the unsaved-changes
       // box, and Discard changes threw them away while the load carried on.
       await new Promise((r) => setTimeout(r, 900)); // after the unsaved-changes check has seen the new data
       await saveRef.current?.();
-      // 1.1.26: the sample joint venture and separate account (their terms,
-      // four assets, marks, outside GP partners and two pipeline deals),
-      // each piece only where the firm does not have it.
-      const ven = sampleVenturesToAdd({ deals: latestData.current?.deals ?? cur.deals, funds: latestData.current?.funds ?? cur.funds, valuations: latestData.current?.valuations ?? cur.valuations, gp: cur.gpPartners, pipeline: (latestData.current?.pipeline ?? cur.pipeline)?.deals ?? [] }, { baseInputs: DEFAULT_INPUTS, todayISO, toDeal: pipelineToDeal });
-      addSampleVentures(ven);
-      // 1.1.27: their documents are added with Model Fund I's, so the assets and portfolios just added are in the lists the documents are filed against.
-      const allDeals = [...built, ...ven.deals.filter((d) => !built.some((x) => x.id === d.id))];
-      const allFunds = { ...ven.funds, ...(latestData.current?.funds ?? cur.funds) };
       const { removeSupersededSampleDocs } = await import("@/lib/sampleDocs");
       const replaced = (await removeSupersededSampleDocs(l.id, { fromVersion, fundName: SAMPLE_FUND_NAME })).total; // earlier sample documents, sale documents and leases, by their file names
       const { addSampleDocuments, addSampleGpPartners } = await import("@/lib/sampleDocs");
@@ -1690,6 +1690,7 @@ export default function Home() {
         if (!r.error) { gp = r.gp; switched++; }
       }
       setGpPartners(gp);
+      addSampleVentures(ven); // again, in case the data was reloaded during the uploads (adds only what is missing)
       const failed = [...docs.failed, ...gpr.failed];
       // 1.1.14: the asset changes are applied again here, to whatever the
       // assets are now, in case they were discarded or reloaded during the

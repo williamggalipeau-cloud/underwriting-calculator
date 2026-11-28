@@ -72,28 +72,55 @@ const removed = [], removedLeases = [];
   check(/tenant credit and aged rent, \d+ sample documents and \d+ GP agreements? added, 4 earlier sample documents and leases replaced/.test(msg), `the update ran by itself: ${msg.slice(0, 240)}`);
   check(leases.length === 10 && leaseAbs.length === 9 && leases.some((l) => l.id === "my-lease"), `the 9 sample leases with abstracts, and the user's own lease (${leases.length}, ${leaseAbs.length})`);
   check(removedLeases.map((l) => l.id).join() === "old-lease" && leases.some((l) => l.deal_id === "sample-deal-1" && l.tenant === "Blue Mesa Fulfillment") && !leases.some((l) => /Desert Aero/.test(l.tenant)), "the earlier sample lease (a tenant not on the rent roll) is replaced by the lease of a tenant that is; the user's lease is kept");
-  const gpa = docs.filter((d) => /^\[gp-agreement:/.test(d.title ?? ""));
-  const credit = docs.filter((d) => /^\[leasing:tenant:/.test(d.title ?? ""));
-  const saleDocs = docs.filter((d) => /^\[sale:/.test(d.title ?? ""));
-  const facts = docs.filter((d) => /^\[(fact:[a-z0-9_]+|snda:[^\]]*)\] /.test(d.title ?? ""));
-  const pmDocs = docs.filter((d) => /^\[pm:[a-z]+\] /.test(d.title ?? "")), rsDocs = docs.filter((d) => /^\[research:[^\]]+\] /.test(d.title ?? ""));
+  // 1.1.27: the joint venture's and separate account's documents are counted on their own, below.
+  const VEN_FUNDS = ["Sample Industrial Venture I", "Sample Separate Account A"];
+  const isVen = (d) => /^sample-(jv|sma)-/.test(d.deal_id ?? "") || (!d.deal_id && VEN_FUNDS.includes(d.fund_name));
+  const venDocs = docs.filter(isVen), mfDocs = docs.filter((d) => !isVen(d));
+  const gpa = mfDocs.filter((d) => /^\[gp-agreement:/.test(d.title ?? ""));
+  const credit = mfDocs.filter((d) => /^\[leasing:tenant:/.test(d.title ?? ""));
+  const saleDocs = mfDocs.filter((d) => /^\[sale:/.test(d.title ?? ""));
+  const facts = mfDocs.filter((d) => /^\[(fact:[a-z0-9_]+|snda:[^\]]*)\] /.test(d.title ?? ""));
+  const pmDocs = mfDocs.filter((d) => /^\[pm:[a-z]+\] /.test(d.title ?? "")), rsDocs = mfDocs.filter((d) => /^\[research:[^\]]+\] /.test(d.title ?? ""));
   // 1.1.23: research files are filed only on a research item the asset holds (this firm has no market data or rent comps, so no market report or rent survey).
   const RS_IDS = ["srs-1-appraisal", "srs-1-environmental", "srs-1-pca", "srs-1-credit", "srs-1-zoning", "srs-3-bov"];
   const heldItems = (saved?.new_data ?? saved?.data)?.deals?.flatMap((d) => (d.inputs?.research ?? []).map((r) => r.id)) ?? [];
   const rsOn = rsDocs.map((d) => /^\[research:([^\]]+)\]/.exec(d.title)[1]).sort();
   check(pmDocs.length === 13 && pmDocs.every((d) => d.abstract), `1.1.21 and 1.1.23: 13 Property Management documents, each with its abstract (${pmDocs.length})`);
   check(rsOn.length > 0 && rsOn.every((id) => RS_IDS.includes(id)) && rsOn.join() === RS_IDS.filter((id) => heldItems.includes(id)).sort().join(), `1.1.23: a research file on each research item the load added, and no other (${rsOn.join(", ")}; items saved: ${RS_IDS.filter((id) => heldItems.includes(id)).join(", ")})`);
-  const acqDocs = docs.filter((d) => /^\[acq\] /.test(d.title ?? "")), lsgDocs = docs.filter((d) => /^\[leasing:(sample-dlp-[^\]]+|comps)\] /.test(d.title ?? "")), billDocs = docs.filter((d) => d.doc_type === "billing");
+  const acqDocs = mfDocs.filter((d) => /^\[acq\] /.test(d.title ?? "")), lsgDocs = mfDocs.filter((d) => /^\[leasing:(sample-dlp-[^\]]+|comps)\] /.test(d.title ?? "")), billDocs = mfDocs.filter((d) => d.doc_type === "billing");
   const dlp = (saved?.new_data ?? saved?.data)?.deals?.find((d) => d.id === "sample-deal-1")?.inputs?.leasing?.prospects?.filter((x) => x.id === "sample-dlp-airport-flex-park-1") ?? [];
   check(acqDocs.length === 9 && acqDocs.every((d) => d.abstract && d.deal_id === "sample-deal-1") && billDocs.length === 1 && billDocs[0].abstract?.charges?.length === 2, `1.1.23: 9 acquisition documents and the tenant billing on Airport Flex Park, each with its abstract (${acqDocs.length}, ${billDocs.length})`);
   check(dlp.length === 1 && dlp[0].stage === "leaseout" && lsgDocs.length === 5 && lsgDocs.every((d) => d.title.startsWith("[leasing:sample-dlp-airport-flex-park-1] ") && d.abstract), `1.1.23: the prospect with fixed terms is saved once, with its 5 documents; no rent comp report, because this firm has no rent comps (${dlp.length} prospect, ${lsgDocs.length} documents)`);
-  check(credit.length === 8 && gpa.length >= 1 && facts.length === 16 && facts.every((d) => d.abstract) && docs.length === 18 + 10 + credit.length + gpa.length + facts.length + pmDocs.length + rsDocs.length + acqDocs.length + lsgDocs.length + billDocs.length + 2, `18 fund and asset documents, 10 sale documents, 8 credit reports, ${gpa.length} GP agreement(s), 16 asset documents and SNDAs (1.1.17, each with its abstract) and 1.1.23's, with the user's 2, among ${docs.length} documents (the sample LOI is skipped: the user already has a document of that name)`);
+  check(credit.length === 8 && gpa.length >= 1 && facts.length === 16 && facts.every((d) => d.abstract) && mfDocs.length === 18 + 10 + credit.length + gpa.length + facts.length + pmDocs.length + rsDocs.length + acqDocs.length + lsgDocs.length + billDocs.length + 2, `18 fund and asset documents, 10 sale documents, 8 credit reports, ${gpa.length} GP agreement(s), 16 asset documents and SNDAs (1.1.17, each with its abstract) and 1.1.23's, with the user's 2, among ${mfDocs.length} documents (the sample LOI is skipped: the user already has a document of that name)`);
   const names = (d) => (d.files ?? []).map((f) => f.name);
   check(removed.map((d) => d.id).sort().join() === "old-om,old-r9sale,old-sale-doc" && docs.some((d) => d.id === "mine-1") && docs.some((d) => d.id === "mine-2"), `the earlier sample copies were removed; the user's own documents were kept (removed: ${removed.map((d) => d.id).join(", ")})`);
   check(docs.filter((d) => d.deal_id === "sample-deal-1" && names(d).includes("airport-flex-om.pdf")).length === 1 && !docs.some((d) => !/^\[sale:/.test(d.title ?? "") && names(d).includes("route9-closing-disp.pdf")), "the rewritten offering memo is there once; the retired Route 9 test sale statement is gone");
   for (let i = 0; i < 60 && !(saved?.new_data ?? saved?.data)?.funds?.["Model Fund I"]?.sampleDataVersion; i++) await p.waitForTimeout(500);
   const sd = saved?.new_data ?? saved?.data;
-  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 11, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  check(sd?.funds?.["Model Fund I"]?.sampleDataVersion === 12, `the fund records the sample data version, saved without a click (${sd?.funds?.["Model Fund I"]?.sampleDataVersion})`);
+  {
+    // 1.1.27: what this version adds, as actually stored and saved.
+    const title = (d) => d.title ?? "", onAsset = (id) => venDocs.filter((d) => d.deal_id === id);
+    const fundDocs = venDocs.filter((d) => !d.deal_id && !/^\[gp-agreement:/.test(title(d))), venGpa = venDocs.filter((d) => /^\[gp-agreement:/.test(title(d)));
+    check(venDocs.length === 13 && venDocs.every((d) => d.abstract), `1.1.27: 13 documents of the joint venture and separate account, each with its abstract (${venDocs.length})`);
+    check(fundDocs.length === 2 && fundDocs.map((d) => `${d.fund_name}:${d.abstract?.doc_type}`).sort().join() === "Sample Industrial Venture I:jva,Sample Separate Account A:sma", `1.1.27: the JVA is filed on the joint venture and the SMA on the separate account (${fundDocs.map((d) => `${d.fund_name}:${d.abstract?.doc_type}`).join("; ")})`);
+    const appr = venDocs.filter((d) => d.abstract?.doc_type === "appraisal");
+    check(appr.length === 4 && new Set(appr.map((d) => d.deal_id)).size === 4, `1.1.27: an appraisal on each of the four assets (${appr.length})`);
+    const closing = onAsset("sample-jv-1").filter((d) => /^\[sale:/.test(title(d))), soldNow = sd?.deals?.find((d) => d.id === "sample-jv-1")?.inputs;
+    check(closing.length === 3 && closing.every((d) => title(d).startsWith("[sale:sample-jv-1-sale-1] ")) && /Closing statement/.test(closing.map(title).join()) && /Post-closing true-up/.test(closing.map(title).join()) && /Distribution notice/.test(closing.map(title).join()) && soldNow?.dispositions?.length === 1 && soldNow.dispositions[0].stage === "closed", `1.1.27: the closing statement, true-up and distribution notice are filed on the closed sale; no new sale is started (${closing.map(title).join(" | ").slice(0, 200)})`);
+    const fac = venDocs.filter((d) => /^\[fact:phase[12]\] /.test(title(d)));
+    check(fac.length === 2 && fac.every((d) => d.deal_id === "sample-jv-3"), `1.1.27: the Phase I and Phase II are filed on the asset whose Phase I recognized a condition (${fac.length})`);
+    const ag = (sd?.gpPartners?.agreements ?? []).filter((a) => ["gpa-sample-jv", "gpa-sample-sma"].includes(a.id));
+    check(venGpa.length === 2 && ag.length === 2 && ag.every((a) => venGpa.some((d) => d.id === a.docId && title(d).startsWith(`[gp-agreement:${a.partnerId}] `)) && a.status === "checked") && (sd?.gpPartners?.agreements ?? []).length === 4, `1.1.27: each outside GP partner's agreement is filed and linked to the agreement already on the list, not added twice (${(sd?.gpPartners?.agreements ?? []).length} agreements)`);
+    const venA = (sd?.deals ?? []).filter((d) => /^sample-(jv|sma)-\d+$/.test(d.id));
+    check(venA.length === 4 && venA.every((d) => Object.keys(d.inputs.building ?? {}).length >= 20 && Object.keys(d.inputs.site ?? {}).length >= 15) && venA.find((d) => d.id === "sample-jv-3").inputs.site.phase2Result === "Clean", "1.1.27 saved: building and site facts on the four assets, with the clean Phase II");
+    const moved = venA.flatMap((d) => d.inputs.units.filter((u) => u.moveOut).map((u) => `${d.id}:${u.moveOut.date}`));
+    check(moved.join() === "sample-jv-3:2026-08-31", `1.1.27 saved: one tenant moved out with no replacement, on the asset behind plan (${moved.join()})`);
+    const mfA = (sd?.deals ?? []).filter((d) => d.id.startsWith("sample-deal-"));
+    check(mfA.length === 9 && mfA.every((d) => d.inputs.cmFeeBasis === "spend" && (!d.quick || (d.quick.cmFeeBasis ?? "spend") === "spend")) && mfA.find((d) => d.id === "sample-deal-1").inputs.icApproved?.irr === 33.7, `1.1.27 saved: Model Fund I's nine assets charge construction management on construction spending, and the IC approval states the return on that basis (${mfA.filter((d) => d.inputs.cmFeeBasis === "spend").length} of 9; IC ${mfA.find((d) => d.id === "sample-deal-1")?.inputs.icApproved?.irr}%)`);
+    const icDocs = mfDocs.filter((d) => (d.files ?? []).some((f) => /airport-flex-ic-(memo|presentation)\.pdf/.test(f.name)));
+    check(icDocs.length === 2, `1.1.27: one IC memo and one IC presentation (${icDocs.length})`);
+  }
   {
     // 1.1.26: the sample joint venture and separate account, as actually saved.
     const jv = sd?.funds?.["Sample Industrial Venture I"], sma = sd?.funds?.["Sample Separate Account A"];

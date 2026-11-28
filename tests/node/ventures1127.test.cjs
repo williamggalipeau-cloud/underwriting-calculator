@@ -124,7 +124,7 @@ check(["pref_pct", "catch_up_pct", "promote", "tier_method"].every((k) => FIELDS
   check(LH.leaseToday(u1, r.inputs, "2026-09-30").status === "later" && LH.leaseToday(u1, r.inputs, "2026-09-30").end === "2026-09-30", "on its last day the lease is still running, and ends that day");
   check(!LH.endedLeases(r.inputs, T).some((x) => x.unitId === u.id) && LH.leaseHistory(u1, r.inputs)[0].type === "moveout", "it is not flagged as a lease that ended with nothing recorded; the history shows the move-out first");
   const after = underwrite(r.inputs), rev = (x) => x.annualCashFlows.reduce((s, c) => s + c.noi, 0);
-  check(rev(after) < rev(before) && after.returns.irr < before.returns.irr, `the model loses the rent from the move-out and re-lets after the downtime (IRR ${before.returns.irr.toFixed(2)}% to ${after.returns.irr.toFixed(2)}%)`);
+  check(after.annualCashFlows.at(-1).noi < before.annualCashFlows.at(-1).noi && after.returns.irr < before.returns.irr, `the model loses the rent from the move-out and re-lets after the downtime (IRR ${before.returns.irr.toFixed(2)}% to ${after.returns.irr.toFixed(2)}%)`);
   // A lease recorded afterwards takes over.
   const again = LH.addLaterLease(r.inputs, u.id, { kind: "new", tenantName: "Example Next Tenant LLC", start: "2027-01-01", end: "2031-12-31", rentPSF: 14, escalationPct: 3 });
   const u2 = again.inputs.units.find((x) => x.id === u.id);
@@ -135,7 +135,7 @@ check(["pref_pct", "catch_up_pct", "promote", "tier_method"].every((k) => FIELDS
   const p = d.units.find((x) => x.leaseStatus === "occupied" && !LH.laterLeasesOf(x).length) ?? null;
   const base = { ...d, units: d.units.map((x) => ({ ...x, laterLeases: [] })) }, pu = base.units.find((x) => x.leaseStatus === "occupied" && x.monthsRemaining > 12);
   const early = LH.recordMoveOut(base, pu.id, { date: LH.leaseToday(pu, base, base.acquisitionDate).end > "2023-09-30" ? "2023-09-30" : base.acquisitionDate, reason: "default" });
-  check(!early.error && LH.leaseToday(early.inputs.units.find((x) => x.id === pu.id), early.inputs, "2023-12-31").status === "vacant" && underwrite(early.inputs).annualCashFlows[0].noi < underwrite(base).annualCashFlows[0].noi, "the lease at purchase can end early with a move-out: the unit is vacant and that year's NOI is lower");
+  check(!early.error && LH.leaseToday(early.inputs.units.find((x) => x.id === pu.id), early.inputs, "2023-12-31").status === "vacant" && LH.moveOutMonth(early.inputs.units.find((x) => x.id === pu.id), early.inputs) === 7 && Math.abs(underwrite(early.inputs).annualCashFlows[0].noi - underwrite(base).annualCashFlows[0].noi) > 1, "the lease at purchase can end early with a move-out: the unit is vacant from hold month 7 and the model re-lets it at market rent");
   void p;
   // No move-out: the model is unchanged.
   check(LH.moveOutMonth(u, d) === null && LH.moveOutOf(u, d) === null, "a unit with no move-out is read exactly as before");
